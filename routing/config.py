@@ -1,0 +1,5 @@
+# Routing weights and constants
+
+MAX_DISTANCE_KM = 50
+KEY_ACCOUNT_WEIGHT = 1.5
+ROUTING_ENGINE_VERSION = "v1.0"

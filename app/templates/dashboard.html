@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RouteForce Dashboard - Real-Time Route Visualization</title>
+    
+    <!-- TailwindCSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Leaflet CSS and JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Socket.IO for real-time updates -->
+    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Enhanced Dashboard CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard_enhanced.css') }}">
+    
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .map-container {
+            height: 500px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .metric-card {
+            transition: all 0.3s ease;
+        }
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <i class="fas fa-route text-2xl"></i>
+                    <h1 class="text-2xl font-bold">RouteForce Dashboard</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div id="connectionStatus" class="flex items-center space-x-2">
+                        <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                        <span id="statusText" class="text-sm">Connected</span>
+                    </div>
+                    <a href="/" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg transition-all">
+                        <i class="fas fa-home mr-2"></i>Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-6 py-8">
+        <!-- Real-time Metrics Row -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="metric-card bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Total Stores</p>
+                        <p id="totalStores" class="text-3xl font-bold text-blue-600">0</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-store text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="metric-card bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Clusters</p>
+                        <p id="clusterCount" class="text-3xl font-bold text-green-600">0</p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-layer-group text-green-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="metric-card bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Optimization Score</p>
+                        <p id="optimizationScore" class="text-3xl font-bold text-purple-600">0%</p>
+                    </div>
+                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-chart-line text-purple-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="metric-card bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Processing Time</p>
+                        <p id="processingTime" class="text-3xl font-bold text-orange-600">0s</p>
+                    </div>
+                    <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-clock text-orange-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Control Panel -->
+            <div class="lg:col-span-1">
+                <!-- File Upload Card -->
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                        <i class="fas fa-upload mr-2 text-blue-600"></i>Upload Store Data
+                    </h3>
+                    <form id="uploadForm" enctype="multipart/form-data" class="space-y-4">
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+                            <input type="file" id="storeFile" name="file" accept=".csv,.xlsx,.xls" class="hidden" required>
+                            <label for="storeFile" class="cursor-pointer">
+                                <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-3 block"></i>
+                                <p class="file-text text-gray-600">Click to upload or drag & drop</p>
+                                <p class="text-sm text-gray-500 mt-1">CSV, Excel files supported</p>
+                            </label>
+                        </div>
+                        
+                        <!-- Optimization Options -->
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <label class="flex items-center space-x-3">
+                                    <input type="checkbox" id="proximityToggle" class="form-checkbox h-5 w-5 text-blue-600 rounded">
+                                    <span class="text-gray-700">Enable Proximity Clustering</span>
+                                </label>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Cluster Radius: <span id="radiusValue" class="text-blue-600 font-semibold">2.0 km</span>
+                                </label>
+                                <input type="range" id="clusterRadius" min="0.5" max="10" step="0.5" value="2.0" 
+                                       class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
+                                    <input type="time" id="startTime" value="09:00" 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">End Time</label>
+                                    <input type="time" id="endTime" value="17:00" 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" id="optimizeBtn" 
+                                class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105">
+                            <i class="fas fa-magic mr-2"></i>Optimize Route
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Map Controls -->
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                        <i class="fas fa-map mr-2 text-green-600"></i>Map Controls
+                    </h3>
+                    <div class="space-y-3">
+                        <button id="clearMapBtn" 
+                                class="w-full bg-red-100 text-red-700 py-2 px-4 rounded-lg hover:bg-red-200 transition-colors">
+                            <i class="fas fa-trash mr-2"></i>Clear Map
+                        </button>
+                        <button id="centerMapBtn" 
+                                class="w-full bg-blue-100 text-blue-700 py-2 px-4 rounded-lg hover:bg-blue-200 transition-colors">
+                            <i class="fas fa-crosshairs mr-2"></i>Center View
+                        </button>
+                        <button id="toggleClustersBtn" 
+                                class="w-full bg-purple-100 text-purple-700 py-2 px-4 rounded-lg hover:bg-purple-200 transition-colors">
+                            <i class="fas fa-eye mr-2"></i>Toggle Clusters
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Live Activity Feed -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                        <i class="fas fa-activity mr-2 text-orange-600"></i>Live Activity
+                    </h3>
+                    <div id="activityFeed" class="space-y-2 max-h-48 overflow-y-auto">
+                        <div class="text-sm text-gray-600 p-2 bg-gray-50 rounded">
+                            <i class="fas fa-info-circle mr-1 text-blue-500"></i>
+                            Dashboard initialized
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map and Charts -->
+            <div class="lg:col-span-2">
+                <!-- Interactive Map -->
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">
+                            <i class="fas fa-map-marked-alt mr-2 text-blue-600"></i>Route Visualization
+                        </h3>
+                        <div class="flex space-x-2">
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <span class="w-2 h-2 bg-green-400 rounded-full mr-1"></span>
+                                Stores
+                            </span>
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                <span class="w-2 h-2 bg-blue-400 rounded-full mr-1"></span>
+                                Routes
+                            </span>
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                <span class="w-2 h-2 bg-purple-400 rounded-full mr-1"></span>
+                                Clusters
+                            </span>
+                        </div>
+                    </div>
+                    <div id="routeMap" class="map-container"></div>
+                </div>
+
+                <!-- Performance Charts -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                            <i class="fas fa-chart-line mr-2 text-green-600"></i>Performance Trends
+                        </h3>
+                        <div class="h-64">
+                            <canvas id="performanceChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                            <i class="fas fa-chart-pie mr-2 text-purple-600"></i>Cluster Distribution
+                        </h3>
+                        <div class="h-64">
+                            <canvas id="clusterChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-8 text-center">
+            <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Processing Route Optimization</h3>
+            <p class="text-gray-600">This may take a few moments...</p>
+        </div>
+    </div>
+
+</script>
+    <!-- Enhanced Dashboard JavaScript -->
+    <script src="{{ url_for('static', filename='js/dashboard_enhanced.js') }}"></script>
+    
+    <script>
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            window.dashboard = new RouteOptimizationDashboard();
+        });
+    </script>
+
+    <script>
+        async function fetchAndRenderRoutes() {
+            try {
+                const res = await fetch('/api/v1/routes');
+                if (!res.ok) throw new Error('Failed to fetch routes');
+                const data = await res.json();
+                renderRouteOnMap(data);
+            } catch (err) {
+                console.error('Error fetching routes:', err);
+            }
+        }
+
+        function renderRouteOnMap(routeData) {
+            if (!window.routeMap) return;
+
+            // Clear existing layers if any
+            if (window.routeLayerGroup) {
+                window.routeLayerGroup.clearLayers();
+            } else {
+                window.routeLayerGroup = L.layerGroup().addTo(window.routeMap);
+            }
+
+            // Add stores as markers
+            routeData.forEach((stop, index) => {
+                const marker = L.marker([stop.lat, stop.lng], {
+                    title: stop.name
+                }).bindPopup(`<strong>${index + 1}. ${stop.name}</strong>`);
+                window.routeLayerGroup.addLayer(marker);
+            });
+
+            // Draw polyline for route
+            const latlngs = routeData.map(stop => [stop.lat, stop.lng]);
+            const polyline = L.polyline(latlngs, { color: 'blue', weight: 4 });
+            window.routeLayerGroup.addLayer(polyline);
+
+            // Center map to route
+            if (latlngs.length > 0) {
+                window.routeMap.fitBounds(polyline.getBounds());
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            window.routeMap = L.map('routeMap').setView([37.7749, -122.4194], 10);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(window.routeMap);
+
+            fetchAndRenderRoutes();
+        });
+    </script>
+</body>
+</html>

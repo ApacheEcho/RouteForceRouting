@@ -1,0 +1,23 @@
+services:
+  app:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=development
+      - CACHE_TYPE=simple
+      - RATELIMIT_STORAGE_URI=memory://
+    volumes:
+      - ./uploads:/app/uploads
+    restart: unless-stopped
+
+  # Optional Redis service (can be commented out if not needed)
+  # redis:
+  #   image: redis:7-alpine
+  #   ports:
+  #     - "6379:6379"
+  #   restart: unless-stopped
+  #   volumes:
+  #     - redis_data:/data
+# volumes:
+#   redis_data:

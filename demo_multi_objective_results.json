@@ -1,0 +1,71 @@
+[
+  {
+    "scenario": "Scenario 1: Distance vs Time",
+    "success": true,
+    "processing_time": 0.0019059181213378906,
+    "pareto_front_size": 0,
+    "hypervolume": 0.0,
+    "objectives": [
+      "distance",
+      "time"
+    ],
+    "best_solution": {}
+  },
+  {
+    "scenario": "Scenario 2: Distance vs Priority",
+    "success": true,
+    "processing_time": 0.216278076171875,
+    "pareto_front_size": 74,
+    "hypervolume": -4975.362290774878,
+    "objectives": [
+      "distance",
+      "priority"
+    ],
+    "best_solution": {
+      "objectives": {
+        "distance": 52.94065004016661,
+        "priority": -127.0
+      }
+    }
+  },
+  {
+    "scenario": "Scenario 3: Triple Objective",
+    "success": true,
+    "processing_time": 0.45758724212646484,
+    "pareto_front_size": 95,
+    "hypervolume": -3869.9392222298416,
+    "objectives": [
+      "distance",
+      "time",
+      "priority"
+    ],
+    "best_solution": {
+      "objectives": {
+        "distance": 52.94065004016661,
+        "time": 6.058813000803332,
+        "priority": -127.0
+      }
+    }
+  },
+  {
+    "scenario": "Scenario 4: Complete Multi-Objective",
+    "success": true,
+    "processing_time": 0.910120964050293,
+    "pareto_front_size": 109,
+    "hypervolume": -2820.8341498667946,
+    "objectives": [
+      "distance",
+      "time",
+      "priority",
+      "fuel_cost"
+    ],
+    "best_solution": {
+      "objectives": {
+        "distance": 52.94065004016661,
+        "time": 6.058813000803332,
+        "priority": -127.0,
+        "fuel_cost": 6.352878004819993
+      }
+    }
+  }
+]

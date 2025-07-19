@@ -1,2 +1,2 @@
 from .core import generate_route
-from .loader import load_stores_from_csv
+from .loader import load_stores

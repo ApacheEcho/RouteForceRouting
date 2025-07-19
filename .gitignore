@@ -2,3 +2,27 @@
 __pycache__/
 *.pyc
 .DS_Store
+
+# Environment and configuration files
+.env*
+*.env
+secrets/
+config/local.py
+
+# Cache files
+geocoding_cache.json
+*.cache
+.cache/
+
+# Logs
+*.log
+logs/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+Thumbs.db

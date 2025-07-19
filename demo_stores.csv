@@ -1,0 +1,11 @@
+Store Name,Address,Chain,Priority,Store ID,Latitude,Longitude
+Downtown Store,123 Main St New York NY,ChainA,1,S001,40.7128,-74.0060
+Midtown Store,456 Broadway New York NY,ChainA,2,S002,40.7589,-73.9851
+Upper East Store,789 Park Ave New York NY,ChainB,1,S003,40.7731,-73.9656
+Brooklyn Store,321 Atlantic Ave Brooklyn NY,ChainA,3,S004,40.6892,-73.9442
+Queens Store,654 Northern Blvd Queens NY,ChainB,2,S005,40.7282,-73.7949
+Bronx Store,987 Grand Concourse Bronx NY,ChainA,1,S006,40.8448,-73.9249
+Staten Island Store,147 Victory Blvd Staten Island NY,ChainB,3,S007,40.6195,-74.0776
+Financial District Store,258 Wall St New York NY,ChainA,1,S008,40.7074,-74.0113
+Soho Store,369 Spring St New York NY,ChainB,2,S009,40.7241,-74.0019
+East Village Store,741 St Marks Pl New York NY,ChainA,3,S010,40.7281,-73.9868

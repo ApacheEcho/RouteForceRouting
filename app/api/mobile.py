@@ -7,6 +7,7 @@ from flask import Blueprint, request, jsonify, current_app
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import uuid
+import time
 from datetime import datetime, timedelta
 import logging
 from typing import Dict, Any, Optional, List
@@ -114,6 +115,20 @@ def mobile_optimize_route():
         stores = data.get('stores', [])
         preferences = data.get('preferences', {})
         
+        # Get analytics service from app context for tracking
+        from flask import current_app
+        analytics_service = getattr(current_app, 'analytics_service', None)
+        
+        # Track mobile session analytics
+        if analytics_service:
+            device_id = request.headers.get('X-Device-ID', data.get('device_id', 'unknown'))
+            analytics_service.track_mobile_session(device_id, {
+                'app_version': data.get('app_version', '1.0.0'),
+                'device_type': data.get('device_type', 'unknown'),
+                'features_used': ['route_optimization'],
+                'api_calls': 1
+            })
+        
         # Mobile-specific preferences
         mobile_prefs = {
             'compress_response': data.get('compress_response', True),
@@ -125,13 +140,28 @@ def mobile_optimize_route():
         # Get routing service
         routing_service = RoutingService()
         
+        # Track optimization start time
+        import time
+        start_time = time.time()
+        
         # Generate route with mobile optimizations
         route_result = routing_service.generate_route(
             stores=stores,
             **preferences
         )
         
+        optimization_time = time.time() - start_time
+        
         if not route_result or not route_result.get('success'):
+            # Track failed optimization
+            if analytics_service:
+                analytics_service.track_route_optimization({
+                    'algorithm': preferences.get('algorithm', 'genetic'),
+                    'stores': stores,
+                    'optimization_time': optimization_time,
+                    'success': False,
+                    'traffic_aware': False
+                })
             return jsonify({
                 'success': False,
                 'error': 'Route optimization failed'
@@ -140,12 +170,26 @@ def mobile_optimize_route():
         # Compress data for mobile
         mobile_route = _compress_route_for_mobile(route_result, mobile_prefs)
         
+        # Track successful route optimization
+        if analytics_service:
+            analytics_service.track_route_optimization({
+                'route_id': route_result.get('route_id'),
+                'algorithm': preferences.get('algorithm', 'genetic'),
+                'stores': stores,
+                'optimization_time': optimization_time,
+                'total_distance': route_result.get('total_distance'),
+                'total_time': route_result.get('total_time'),
+                'improvement_percentage': route_result.get('improvement_percentage'),
+                'success': True,
+                'traffic_aware': False
+            })
+        
         logger.info(f"Mobile route optimized with {len(stores)} stores")
         
         return jsonify({
             'success': True,
             'route': mobile_route,
-            'optimization_time': route_result.get('optimization_time'),
+            'optimization_time': optimization_time,
             'mobile_optimized': True
         }), 200
         
@@ -238,6 +282,22 @@ def update_driver_location():
         speed = data.get('speed')
         accuracy = data.get('accuracy')
         timestamp = data.get('timestamp', datetime.utcnow().isoformat())
+        
+        # Get analytics service for driver performance tracking
+        from flask import current_app
+        analytics_service = getattr(current_app, 'analytics_service', None)
+        
+        # Track driver performance metrics
+        if analytics_service:
+            analytics_service.track_driver_performance(driver_id, {
+                'location_accuracy': accuracy,
+                'speed': speed,
+                'route_deviation': None,  # Could calculate if route data available
+                'stops_completed': None,
+                'time_at_stop': None,
+                'fuel_efficiency': None,
+                'customer_rating': None
+            })
         
         # Store location update (in production, use Redis for real-time data)
         location_update = {

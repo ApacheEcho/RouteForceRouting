@@ -56,6 +56,15 @@ def create_app(config_name: str = 'development') -> Flask:
     from app.websocket_handlers import init_websocket
     init_websocket(app, socketio)
     
+    # Initialize analytics service and middleware
+    from app.services.analytics_service import AnalyticsService
+    from app.middleware.analytics import init_analytics_middleware
+    analytics_service = AnalyticsService()
+    init_analytics_middleware(app, analytics_service)
+    
+    # Store analytics service in app context for global access
+    app.analytics_service = analytics_service
+    
     # Configure limiter with storage URI
     if app.config.get('RATELIMIT_STORAGE_URI'):
         limiter.storage_uri = app.config['RATELIMIT_STORAGE_URI']
@@ -94,6 +103,7 @@ def register_blueprints(app: Flask) -> None:
     from app.routes.dashboard import dashboard_bp
     from app.api.traffic import traffic_bp
     from app.api.mobile import mobile_bp
+    from app.api.analytics import analytics_bp
     
     app.register_blueprint(main_bp)
     app.register_blueprint(api_bp, url_prefix='/api')
@@ -101,6 +111,7 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(traffic_bp, url_prefix='/api/traffic')
     app.register_blueprint(mobile_bp, url_prefix='/api/mobile')
+    app.register_blueprint(analytics_bp, url_prefix='/api/analytics')
 
 def register_error_handlers(app: Flask) -> None:
     """Register application error handlers"""

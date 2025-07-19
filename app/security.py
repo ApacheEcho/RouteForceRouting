@@ -247,3 +247,101 @@ def rate_limit_advanced(requests_per_minute: int = 60):
             return f(*args, **kwargs)
         return decorated
     return decorator
+
+# Mobile API Security Decorators
+def require_api_key(f):
+    """Require API key for mobile endpoints"""
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        api_key = request.headers.get('X-API-Key')
+        
+        if not api_key:
+            return jsonify({
+                'success': False,
+                'error': 'API key required',
+                'mobile_friendly': True
+            }), 401
+        
+        # In production, validate against database
+        # For now, accept any non-empty key
+        if api_key == 'test-api-key' or len(api_key) > 10:
+            return f(*args, **kwargs)
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Invalid API key',
+                'mobile_friendly': True
+            }), 401
+    
+    return decorated
+
+def validate_request(required_fields):
+    """Validate required fields in request JSON"""
+    def decorator(f):
+        @wraps(f)
+        def decorated(*args, **kwargs):
+            if not request.is_json:
+                return jsonify({
+                    'success': False,
+                    'error': 'Content-Type must be application/json',
+                    'mobile_friendly': True
+                }), 400
+            
+            data = request.get_json()
+            if not data:
+                return jsonify({
+                    'success': False,
+                    'error': 'Invalid JSON data',
+                    'mobile_friendly': True
+                }), 400
+            
+            missing_fields = []
+            for field in required_fields:
+                if field not in data or data[field] is None:
+                    missing_fields.append(field)
+            
+            if missing_fields:
+                return jsonify({
+                    'success': False,
+                    'error': f'Missing required fields: {", ".join(missing_fields)}',
+                    'mobile_friendly': True
+                }), 400
+            
+            return f(*args, **kwargs)
+        
+        return decorated
+    return decorator
+
+def mobile_rate_limit(requests_per_minute: int = 30):
+    """Mobile-specific rate limiting"""
+    def decorator(f):
+        @wraps(f)
+        def decorated(*args, **kwargs):
+            # Get client identifier (device ID or IP)
+            device_id = request.headers.get('X-Device-ID') or request.remote_addr
+            
+            # Simple rate limiting (use Redis in production)
+            current_time = time.time()
+            window_start = current_time - 60
+            
+            if not hasattr(g, 'mobile_rate_storage'):
+                g.mobile_rate_storage = {}
+            
+            client_requests = g.mobile_rate_storage.get(device_id, [])
+            client_requests = [req_time for req_time in client_requests if req_time > window_start]
+            
+            if len(client_requests) >= requests_per_minute:
+                return jsonify({
+                    'success': False,
+                    'error': 'Rate limit exceeded',
+                    'mobile_friendly': True,
+                    'retry_after': '60 seconds'
+                }), 429
+            
+            client_requests.append(current_time)
+            g.mobile_rate_storage[device_id] = client_requests
+            
+            return f(*args, **kwargs)
+        
+        return decorated
+    return decorator

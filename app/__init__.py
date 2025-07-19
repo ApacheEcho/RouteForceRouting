@@ -92,11 +92,13 @@ def register_blueprints(app: Flask) -> None:
     from app.routes.api import api_bp
     from app.auth import auth_bp
     from app.routes.dashboard import dashboard_bp
+    from app.api.traffic import traffic_bp
     
     app.register_blueprint(main_bp)
     app.register_blueprint(api_bp, url_prefix='/api')
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
+    app.register_blueprint(traffic_bp, url_prefix='/api/traffic')
 
 def register_error_handlers(app: Flask) -> None:
     """Register application error handlers"""

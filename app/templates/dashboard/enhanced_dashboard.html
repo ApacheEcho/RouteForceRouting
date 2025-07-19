@@ -206,6 +206,9 @@
                     <button class="tab-button py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm" data-tab="analytics">
                         <i class="fas fa-analytics mr-2"></i>Analytics
                     </button>
+                    <button class="tab-button py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm" data-tab="traffic">
+                        <i class="fas fa-traffic-light mr-2"></i>Traffic Optimization
+                    </button>
                     <button class="tab-button py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm" data-tab="system">
                         <i class="fas fa-server mr-2"></i>System Status
                     </button>
@@ -314,6 +317,130 @@
                     </h3>
                     <div class="h-80">
                         <canvas id="responseTimeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Traffic Optimization Tab -->
+        <div id="traffic" class="tab-content">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- Traffic Configuration -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-6">
+                        <i class="fas fa-route mr-2 text-blue-600"></i>Traffic-Aware Route Configuration
+                    </h3>
+                    
+                    <!-- Traffic Settings Form -->
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Traffic Model</label>
+                            <select id="trafficModel" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="best_guess">Best Guess (Default)</option>
+                                <option value="pessimistic">Pessimistic (Heavy Traffic)</option>
+                                <option value="optimistic">Optimistic (Light Traffic)</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Departure Time</label>
+                            <select id="departureTime" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="now">Now</option>
+                                <option value="morning_rush">Morning Rush (8:00 AM)</option>
+                                <option value="midday">Midday (12:00 PM)</option>
+                                <option value="evening_rush">Evening Rush (5:00 PM)</option>
+                                <option value="custom">Custom Time</option>
+                            </select>
+                        </div>
+                        
+                        <div id="customTimeContainer" class="hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Custom Departure Time</label>
+                            <input type="datetime-local" id="customTime" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        
+                        <div>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="avoidTolls" class="mr-2">
+                                <span class="text-sm text-gray-700">Avoid Toll Roads</span>
+                            </label>
+                        </div>
+                        
+                        <div>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="avoidHighways" class="mr-2">
+                                <span class="text-sm text-gray-700">Avoid Highways</span>
+                            </label>
+                        </div>
+                        
+                        <button id="optimizeTrafficRoute" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-magic mr-2"></i>Optimize with Traffic Data
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Traffic Status -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-6">
+                        <i class="fas fa-tachometer-alt mr-2 text-green-600"></i>Traffic Service Status
+                    </h3>
+                    
+                    <div id="trafficStatus" class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Service Status</span>
+                            <span id="serviceStatus" class="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded">Checking...</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">API Quota Used</span>
+                            <span id="apiQuota" class="text-sm font-medium">0%</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Cache Entries</span>
+                            <span id="cacheEntries" class="text-sm font-medium">0</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Last Updated</span>
+                            <span id="lastUpdated" class="text-sm text-gray-500">Never</span>
+                        </div>
+                        
+                        <button id="clearTrafficCache" class="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition-colors">
+                            <i class="fas fa-trash mr-2"></i>Clear Traffic Cache
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Traffic Route Results -->
+            <div id="trafficResults" class="bg-white rounded-xl shadow-lg p-6 hidden">
+                <h3 class="text-lg font-semibold text-gray-800 mb-6">
+                    <i class="fas fa-road mr-2 text-purple-600"></i>Traffic-Optimized Route
+                </h3>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-blue-600" id="trafficDistance">0 km</div>
+                        <div class="text-sm text-gray-600">Total Distance</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-green-600" id="trafficDuration">0 min</div>
+                        <div class="text-sm text-gray-600">With Traffic</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-orange-600" id="trafficConditions">Normal</div>
+                        <div class="text-sm text-gray-600">Traffic Conditions</div>
+                    </div>
+                </div>
+                
+                <!-- Route Map -->
+                <div id="trafficMap" class="map-container mb-6"></div>
+                
+                <!-- Alternative Routes -->
+                <div id="alternativeRoutes" class="space-y-4">
+                    <h4 class="text-md font-semibold text-gray-800">Alternative Routes</h4>
+                    <div id="alternativesList" class="space-y-2">
+                        <!-- Alternative routes will be populated here -->
                     </div>
                 </div>
             </div>
@@ -482,6 +609,22 @@
                 document.getElementById('saveSettings').addEventListener('click', () => {
                     this.saveSettings();
                 });
+
+                // Traffic optimization
+                document.getElementById('optimizeTrafficRoute').addEventListener('click', () => {
+                    this.optimizeTrafficRoute();
+                });
+
+                document.getElementById('clearTrafficCache').addEventListener('click', () => {
+                    this.clearTrafficCache();
+                });
+
+                document.getElementById('departureTime').addEventListener('change', (e) => {
+                    this.handleDepartureTimeChange(e.target.value);
+                });
+
+                // Load traffic status on init
+                this.loadTrafficStatus();
             }
 
             switchTab(tabId) {
@@ -967,6 +1110,223 @@
                 setTimeout(() => {
                     notification.remove();
                 }, 5000);
+            }
+
+            // Traffic optimization methods
+            async loadTrafficStatus() {
+                try {
+                    const response = await fetch('/api/traffic/status');
+                    const data = await response.json();
+                    
+                    document.getElementById('serviceStatus').textContent = data.success ? 'Active' : 'Inactive';
+                    document.getElementById('serviceStatus').className = data.success ? 
+                        'px-2 py-1 text-xs bg-green-100 text-green-800 rounded' : 
+                        'px-2 py-1 text-xs bg-red-100 text-red-800 rounded';
+                    
+                    document.getElementById('apiQuota').textContent = data.api_quota_used || '0%';
+                    document.getElementById('cacheEntries').textContent = data.cache_size || '0';
+                    document.getElementById('lastUpdated').textContent = data.last_updated || 'Never';
+                } catch (error) {
+                    console.error('Failed to load traffic status:', error);
+                    this.showError('Failed to load traffic status');
+                }
+            }
+
+            async optimizeTrafficRoute() {
+                if (!this.comparisonData || !this.comparisonData.stores) {
+                    this.showError('Please run algorithm comparison first to generate store data');
+                    return;
+                }
+
+                const trafficModel = document.getElementById('trafficModel').value;
+                const departureTime = this.getDepartureTime();
+                const avoidTolls = document.getElementById('avoidTolls').checked;
+                const avoidHighways = document.getElementById('avoidHighways').checked;
+
+                try {
+                    // Show loading
+                    document.getElementById('optimizeTrafficRoute').disabled = true;
+                    document.getElementById('optimizeTrafficRoute').innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Optimizing...';
+
+                    const response = await fetch('/api/traffic/optimize', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            stores: this.comparisonData.stores,
+                            starting_location: 'San Francisco, CA',
+                            traffic_model: trafficModel,
+                            departure_time: departureTime,
+                            avoid_tolls: avoidTolls,
+                            avoid_highways: avoidHighways,
+                            vehicle_capacity: 1000,
+                            time_windows: {
+                                start_time: '09:00',
+                                end_time: '17:00'
+                            }
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        this.displayTrafficResults(data);
+                        this.showSuccess('Traffic-optimized route generated successfully!');
+                    } else {
+                        this.showError(data.error || 'Failed to optimize route with traffic data');
+                    }
+                } catch (error) {
+                    console.error('Traffic optimization failed:', error);
+                    this.showError('Failed to optimize route with traffic data');
+                } finally {
+                    // Reset button
+                    document.getElementById('optimizeTrafficRoute').disabled = false;
+                    document.getElementById('optimizeTrafficRoute').innerHTML = '<i class="fas fa-magic mr-2"></i>Optimize with Traffic Data';
+                }
+            }
+
+            getDepartureTime() {
+                const timeSelect = document.getElementById('departureTime').value;
+                
+                switch (timeSelect) {
+                    case 'now':
+                        return 'now';
+                    case 'morning_rush':
+                        const morningRush = new Date();
+                        morningRush.setHours(8, 0, 0, 0);
+                        return morningRush.toISOString();
+                    case 'midday':
+                        const midday = new Date();
+                        midday.setHours(12, 0, 0, 0);
+                        return midday.toISOString();
+                    case 'evening_rush':
+                        const eveningRush = new Date();
+                        eveningRush.setHours(17, 0, 0, 0);
+                        return eveningRush.toISOString();
+                    case 'custom':
+                        const customTime = document.getElementById('customTime').value;
+                        return customTime ? new Date(customTime).toISOString() : 'now';
+                    default:
+                        return 'now';
+                }
+            }
+
+            handleDepartureTimeChange(value) {
+                const customContainer = document.getElementById('customTimeContainer');
+                if (value === 'custom') {
+                    customContainer.classList.remove('hidden');
+                } else {
+                    customContainer.classList.add('hidden');
+                }
+            }
+
+            displayTrafficResults(data) {
+                // Show results section
+                document.getElementById('trafficResults').classList.remove('hidden');
+
+                // Update metrics
+                document.getElementById('trafficDistance').textContent = data.total_distance || '0 km';
+                document.getElementById('trafficDuration').textContent = data.total_time || '0 min';
+                document.getElementById('trafficConditions').textContent = 
+                    data.traffic_info?.conditions || 'Normal';
+
+                // Initialize or update map
+                this.initTrafficMap(data);
+
+                // Display alternative routes if available
+                if (data.alternatives) {
+                    this.displayAlternativeRoutes(data.alternatives);
+                }
+
+                // Scroll to results
+                document.getElementById('trafficResults').scrollIntoView({ 
+                    behavior: 'smooth' 
+                });
+            }
+
+            initTrafficMap(data) {
+                // Initialize map if not exists
+                if (!this.trafficMap) {
+                    this.trafficMap = L.map('trafficMap').setView([37.7749, -122.4194], 11);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '© OpenStreetMap contributors'
+                    }).addTo(this.trafficMap);
+                }
+
+                // Clear existing markers
+                this.trafficMap.eachLayer(layer => {
+                    if (layer instanceof L.Marker) {
+                        this.trafficMap.removeLayer(layer);
+                    }
+                });
+
+                // Add route markers
+                if (data.route) {
+                    data.route.forEach((stop, index) => {
+                        const marker = L.marker([stop.lat, stop.lng])
+                            .addTo(this.trafficMap)
+                            .bindPopup(`${index + 1}. ${stop.name || stop.address}`);
+                        
+                        if (index === 0) {
+                            marker.setIcon(L.icon({
+                                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+                                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                                iconSize: [25, 41],
+                                iconAnchor: [12, 41],
+                                popupAnchor: [1, -34],
+                                shadowSize: [41, 41]
+                            }));
+                        }
+                    });
+
+                    // Fit map to show all markers
+                    const group = new L.featureGroup(this.trafficMap._layers);
+                    this.trafficMap.fitBounds(group.getBounds().pad(0.1));
+                }
+            }
+
+            displayAlternativeRoutes(alternatives) {
+                const container = document.getElementById('alternativesList');
+                container.innerHTML = '';
+
+                alternatives.forEach((alt, index) => {
+                    const routeDiv = document.createElement('div');
+                    routeDiv.className = 'p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer';
+                    routeDiv.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <div class="font-medium text-gray-800">Route ${index + 1}</div>
+                                <div class="text-sm text-gray-600">${alt.summary || 'Alternative route'}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-medium text-blue-600">${alt.duration || 'N/A'}</div>
+                                <div class="text-xs text-gray-500">${alt.distance || 'N/A'}</div>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(routeDiv);
+                });
+            }
+
+            async clearTrafficCache() {
+                try {
+                    const response = await fetch('/api/traffic/cache/clear', {
+                        method: 'POST'
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.showSuccess('Traffic cache cleared successfully');
+                        this.loadTrafficStatus(); // Refresh status
+                    } else {
+                        this.showError(data.error || 'Failed to clear cache');
+                    }
+                } catch (error) {
+                    console.error('Failed to clear traffic cache:', error);
+                    this.showError('Failed to clear traffic cache');
+                }
             }
         }
 

@@ -8,13 +8,15 @@ from dataclasses import dataclass
 from flask import current_app
 
 from routing.core import generate_route as core_generate_route
-from routing.optimizer import find_fastest_route
 from geopy.distance import geodesic
 
 # Import optimization algorithms
 from app.optimization.genetic_algorithm import GeneticAlgorithm, GeneticConfig
 from app.optimization.simulated_annealing import SimulatedAnnealingOptimizer, SimulatedAnnealingConfig
 from app.optimization.multi_objective import MultiObjectiveOptimizer, MultiObjectiveConfig
+
+# Import traffic service
+from app.services.traffic_service import TrafficService, TrafficConfig
 
 logger = logging.getLogger(__name__)
 
@@ -95,6 +97,14 @@ class RoutingService:
         except Exception as e:
             self.ml_predictor = None
             logger.warning(f"ML predictor not available: {str(e)}")
+        
+        # Initialize traffic service
+        try:
+            self.traffic_service = TrafficService(TrafficConfig())
+            logger.info("Traffic service initialized successfully")
+        except Exception as e:
+            self.traffic_service = None
+            logger.warning(f"Traffic service not available: {str(e)}")
     
     def generate_route_with_filters(
         self, 
@@ -667,7 +677,17 @@ class RoutingService:
                 filters['algorithm'] = recommended_algo
                 
                 route = self.generate_route_from_stores(stores, filters)
-                optimized_route = find_fastest_route(route, use_api=False)
+                
+                # Apply traffic optimization if available
+                if self.traffic_service and self.traffic_service.api_available:
+                    traffic_result = self.traffic_service.get_traffic_optimized_route(route)
+                    if traffic_result['success']:
+                        optimized_route = traffic_result['route']
+                    else:
+                        optimized_route = route
+                else:
+                    optimized_route = route
+                    
                 return {
                     'success': True,
                     'route': optimized_route,
@@ -677,7 +697,17 @@ class RoutingService:
             else:
                 # Fall back to default algorithm
                 route = self.generate_route_from_stores(stores, constraints)
-                optimized_route = find_fastest_route(route, use_api=False)
+                
+                # Apply traffic optimization if available
+                if self.traffic_service and self.traffic_service.api_available:
+                    traffic_result = self.traffic_service.get_traffic_optimized_route(route)
+                    if traffic_result['success']:
+                        optimized_route = traffic_result['route']
+                    else:
+                        optimized_route = route
+                else:
+                    optimized_route = route
+                    
                 return {
                     'success': True,
                     'route': optimized_route,
@@ -856,6 +886,303 @@ class RoutingService:
                 'ml_confidence': 0.0,
                 'ml_reasoning': f'ML generation failed: {str(e)}'
             }
+    
+    def generate_traffic_optimized_route(
+        self, 
+        stores: List[Dict[str, Any]], 
+        constraints: Optional[Dict[str, Any]] = None,
+        start_location: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Generate route optimized for traffic conditions using Google Maps API
+        
+        Args:
+            stores: List of store dictionaries
+            constraints: Optional routing constraints
+            start_location: Optional starting location
+            
+        Returns:
+            Dictionary with traffic-optimized route and traffic data
+        """
+        start_time = time.time()
+        
+        try:
+            if not stores:
+                logger.warning("No stores provided for traffic optimization")
+                return {'success': False, 'error': 'No stores provided'}
+            
+            if not self.traffic_service:
+                logger.warning("Traffic service not available")
+                return self._fallback_to_basic_route(stores, "Traffic service not available")
+            
+            # Generate traffic-optimized route
+            route_id = f"traffic_route_{int(time.time() * 1000)}"
+            
+            # Broadcast start
+            self._broadcast_route_update(route_id, 'traffic_optimization_started', {
+                'total_stores': len(stores),
+                'has_start_location': start_location is not None
+            })
+            
+            # Get traffic-optimized route
+            traffic_result = self.traffic_service.get_traffic_optimized_route(
+                stores, start_location, constraints
+            )
+            
+            processing_time = time.time() - start_time
+            self.last_processing_time = processing_time
+            
+            if traffic_result['success']:
+                # Create metrics for traffic optimization
+                self.metrics = RoutingMetrics(
+                    processing_time=processing_time,
+                    total_stores=len(stores),
+                    filtered_stores=len(traffic_result['route']),
+                    optimization_score=self._calculate_traffic_optimization_score(traffic_result),
+                    algorithm_used='traffic_optimized',
+                    algorithm_metrics=traffic_result.get('traffic_data', {})
+                )
+                
+                # Broadcast completion
+                self._broadcast_route_update(route_id, 'traffic_optimization_completed', {
+                    'route_length': len(traffic_result['route']),
+                    'processing_time': processing_time,
+                    'total_distance': traffic_result.get('total_distance', 0),
+                    'total_duration': traffic_result.get('total_duration', 0),
+                    'traffic_delay': traffic_result.get('traffic_delay', 0)
+                })
+                
+                logger.info(f"Traffic-optimized route generated in {processing_time:.2f}s")
+                return traffic_result
+            else:
+                # Broadcast failure and fall back
+                self._broadcast_route_update(route_id, 'traffic_optimization_failed', {
+                    'error': traffic_result.get('error', 'Unknown error')
+                })
+                
+                return self._fallback_to_basic_route(stores, traffic_result.get('error', 'Traffic optimization failed'))
+                
+        except Exception as e:
+            logger.error(f"Error in traffic optimization: {str(e)}")
+            return self._fallback_to_basic_route(stores, f"Error: {str(e)}")
+    
+    def get_traffic_alternatives(
+        self, 
+        stores: List[Dict[str, Any]], 
+        max_alternatives: int = 3
+    ) -> Dict[str, Any]:
+        """
+        Get alternative routes with traffic analysis
+        
+        Args:
+            stores: List of store dictionaries
+            max_alternatives: Maximum number of alternatives
+            
+        Returns:
+            Dictionary with alternative routes and traffic comparisons
+        """
+        try:
+            if not self.traffic_service:
+                return {'success': False, 'error': 'Traffic service not available'}
+            
+            alternatives = self.traffic_service.get_route_alternatives(stores, max_alternatives)
+            
+            if alternatives:
+                # Find the best alternative
+                best_alternative = min(alternatives, key=lambda x: x['total_duration'])
+                
+                return {
+                    'success': True,
+                    'alternatives': alternatives,
+                    'best_alternative': best_alternative,
+                    'recommendation': {
+                        'route_id': best_alternative['route_id'],
+                        'savings': {
+                            'time_minutes': (alternatives[0]['total_duration'] - best_alternative['total_duration']) / 60,
+                            'distance_km': (alternatives[0]['total_distance'] - best_alternative['total_distance']) / 1000
+                        }
+                    }
+                }
+            else:
+                return {'success': False, 'error': 'No alternatives generated'}
+                
+        except Exception as e:
+            logger.error(f"Error getting traffic alternatives: {str(e)}")
+            return {'success': False, 'error': str(e)}
+    
+    def predict_traffic_for_route(
+        self, 
+        stores: List[Dict[str, Any]], 
+        future_hours: List[int] = [1, 2, 4, 8]
+    ) -> Dict[str, Any]:
+        """
+        Predict traffic conditions for future departure times
+        
+        Args:
+            stores: List of store dictionaries
+            future_hours: Hours in the future to predict
+            
+        Returns:
+            Dictionary with traffic predictions
+        """
+        try:
+            if not self.traffic_service:
+                return {'success': False, 'error': 'Traffic service not available'}
+            
+            predictions = self.traffic_service.predict_traffic_conditions(stores, future_hours)
+            
+            if 'success' in predictions and predictions['success']:
+                # Add route optimization recommendation
+                best_time = predictions.get('best_time')
+                if best_time:
+                    predictions['recommendation'] = {
+                        'best_departure_time': best_time,
+                        'reason': 'Minimal traffic delays predicted',
+                        'should_delay': best_time != '1h'  # If best time is not 1 hour from now
+                    }
+                
+                return predictions
+            else:
+                return predictions
+                
+        except Exception as e:
+            logger.error(f"Error predicting traffic: {str(e)}")
+            return {'success': False, 'error': str(e)}
+    
+    def get_traffic_segment_data(
+        self, 
+        origin: Dict[str, Any], 
+        destination: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Get detailed traffic data for a specific route segment
+        
+        Args:
+            origin: Origin location
+            destination: Destination location
+            
+        Returns:
+            Traffic data dictionary or None
+        """
+        try:
+            if not self.traffic_service:
+                return None
+            
+            traffic_data = self.traffic_service.get_traffic_data_for_segment(origin, destination)
+            
+            if traffic_data:
+                return {
+                    'origin': traffic_data.origin,
+                    'destination': traffic_data.destination,
+                    'distance_meters': traffic_data.distance_meters,
+                    'duration_seconds': traffic_data.duration_seconds,
+                    'traffic_duration_seconds': traffic_data.duration_in_traffic_seconds,
+                    'traffic_delay_seconds': traffic_data.traffic_delay,
+                    'traffic_condition': traffic_data.traffic_condition,
+                    'distance_km': traffic_data.distance_meters / 1000,
+                    'duration_minutes': traffic_data.duration_seconds / 60,
+                    'traffic_duration_minutes': traffic_data.duration_in_traffic_seconds / 60,
+                    'traffic_delay_minutes': traffic_data.traffic_delay / 60
+                }
+            
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error getting traffic segment data: {str(e)}")
+            return None
+    
+    def _fallback_to_basic_route(self, stores: List[Dict[str, Any]], reason: str) -> Dict[str, Any]:
+        """Fallback to basic route generation when traffic optimization fails"""
+        try:
+            basic_route = self.generate_route(stores, {})
+            return {
+                'success': True,
+                'route': basic_route,
+                'traffic_data': {},
+                'fallback_reason': reason,
+                'algorithm_used': 'basic_fallback'
+            }
+        except Exception as e:
+            logger.error(f"Even basic route generation failed: {str(e)}")
+            return {
+                'success': False,
+                'route': stores,
+                'error': f"All route generation methods failed: {reason}, {str(e)}"
+            }
+    
+    def _calculate_traffic_optimization_score(self, traffic_result: Dict[str, Any]) -> float:
+        """Calculate optimization score for traffic-optimized route"""
+        try:
+            if not traffic_result.get('success'):
+                return 0.0
+            
+            # Base score from traffic efficiency
+            total_duration = traffic_result.get('total_duration', 0)
+            traffic_delay = traffic_result.get('traffic_delay', 0)
+            
+            if total_duration <= 0:
+                return 50.0  # Neutral score
+            
+            # Calculate efficiency (lower delay = higher score)
+            delay_ratio = traffic_delay / total_duration
+            efficiency_score = max(0, 100 - (delay_ratio * 100))
+            
+            # Bonus for using traffic data
+            traffic_bonus = 10 if traffic_result.get('traffic_data') else 0
+            
+            return min(100.0, efficiency_score + traffic_bonus)
+            
+        except Exception as e:
+            logger.error(f"Error calculating traffic optimization score: {str(e)}")
+            return 50.0  # Default neutral score
+    
+    def generate_route_from_stores(self, stores: List[Dict], filters: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """
+        Generate route from stores using specified filters
+        
+        Args:
+            stores: List of store dictionaries
+            filters: Dictionary of routing filters and algorithm selection
+            
+        Returns:
+            List of optimized route stops
+        """
+        start_time = time.time()
+        
+        try:
+            if not stores:
+                logger.warning("No stores provided for route generation")
+                return []
+            
+            # Build constraints from filters
+            constraints = self._build_constraints(filters)
+            
+            # Generate route using specified algorithm
+            route, algorithm_metrics = self._generate_route_with_algorithm(
+                stores, constraints, filters
+            )
+            
+            processing_time = time.time() - start_time
+            self.last_processing_time = processing_time
+            
+            # Calculate and store metrics
+            optimization_score = self._calculate_optimization_score(route)
+            self.metrics = RoutingMetrics(
+                processing_time=processing_time,
+                total_stores=len(stores),
+                filtered_stores=len(stores),
+                optimization_score=optimization_score,
+                algorithm_used=algorithm_metrics.get('algorithm', 'default'),
+                algorithm_metrics=algorithm_metrics
+            )
+            
+            logger.info(f"Route generated in {processing_time:.2f}s using {algorithm_metrics.get('algorithm', 'default')} algorithm")
+            return route
+            
+        except Exception as e:
+            logger.error(f"Error generating route from stores: {str(e)}")
+            self.last_processing_time = time.time() - start_time
+            return []
     
     def _broadcast_route_update(self, route_id: str, status: str, data: Dict[str, Any]):
         """Broadcast route update via WebSocket"""
@@ -1084,51 +1411,3 @@ class RoutingService:
         except Exception as e:
             logger.error(f"Error in multi-objective optimization: {str(e)}")
             return self._generate_route_default(stores, constraints, route_id)
-    
-    def generate_route_from_stores(self, stores: List[Dict], filters: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """
-        Generate route from stores using specified filters
-        
-        Args:
-            stores: List of store dictionaries
-            filters: Dictionary of routing filters and algorithm selection
-            
-        Returns:
-            List of optimized route stops
-        """
-        start_time = time.time()
-        
-        try:
-            if not stores:
-                logger.warning("No stores provided for route generation")
-                return []
-            
-            # Build constraints from filters
-            constraints = self._build_constraints(filters)
-            
-            # Generate route using specified algorithm
-            route, algorithm_metrics = self._generate_route_with_algorithm(
-                stores, constraints, filters
-            )
-            
-            processing_time = time.time() - start_time
-            self.last_processing_time = processing_time
-            
-            # Calculate and store metrics
-            optimization_score = self._calculate_optimization_score(route)
-            self.metrics = RoutingMetrics(
-                processing_time=processing_time,
-                total_stores=len(stores),
-                filtered_stores=len(stores),
-                optimization_score=optimization_score,
-                algorithm_used=algorithm_metrics.get('algorithm', 'default'),
-                algorithm_metrics=algorithm_metrics
-            )
-            
-            logger.info(f"Route generated in {processing_time:.2f}s using {algorithm_metrics.get('algorithm', 'default')} algorithm")
-            return route
-            
-        except Exception as e:
-            logger.error(f"Error generating route from stores: {str(e)}")
-            self.last_processing_time = time.time() - start_time
-            return []

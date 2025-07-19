@@ -452,4 +452,6 @@ def validate_playbook_constraints():
         return jsonify({'error': 'Validation error', 'details': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # Try port 5001 if 5000 is in use (common on macOS with AirPlay)
+    port = int(os.environ.get('PORT', 5001))
+    app.run(host='0.0.0.0', port=port, debug=True)

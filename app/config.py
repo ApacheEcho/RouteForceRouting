@@ -35,6 +35,11 @@ class Config:
     LOG_TO_STDOUT = os.environ.get('LOG_TO_STDOUT', 'False').lower() == 'true'
     LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO')
     
+    # Google Maps API configuration
+    GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY')
+    GOOGLE_MAPS_API_QUOTA_LIMIT = int(os.environ.get('GOOGLE_MAPS_API_QUOTA_LIMIT', '1000'))
+    GOOGLE_MAPS_CACHE_TTL = int(os.environ.get('GOOGLE_MAPS_CACHE_TTL', '3600'))  # 1 hour
+    
     @staticmethod
     def init_app(app) -> None:
         """Initialize app with configuration"""

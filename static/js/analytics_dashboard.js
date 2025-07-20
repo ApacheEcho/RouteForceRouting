@@ -23,31 +23,15 @@ class AnalyticsDashboard {
     }
 
     initializeAnalyticsContainer() {
-        // Check if analytics container exists, if not create it
+        // Get the analytics container that already exists in the dashboard
         let analyticsContainer = document.getElementById('analytics-container');
         if (!analyticsContainer) {
-            // Create analytics tab in existing dashboard
-            this.createAnalyticsTab();
-            analyticsContainer = document.getElementById('analytics-container');
+            console.error('Analytics container not found in dashboard');
+            return;
         }
         
         // Initialize analytics HTML structure
         analyticsContainer.innerHTML = `
-            <div class="analytics-header">
-                <h2><i class="fas fa-chart-line"></i> Analytics & Monitoring</h2>
-                <div class="analytics-controls">
-                    <select id="analytics-timeframe" class="form-control">
-                        <option value="1h">Last Hour</option>
-                        <option value="24h" selected>Last 24 Hours</option>
-                        <option value="7d">Last 7 Days</option>
-                        <option value="30d">Last 30 Days</option>
-                    </select>
-                    <button id="refresh-analytics" class="btn btn-primary btn-sm">
-                        <i class="fas fa-refresh"></i> Refresh
-                    </button>
-                </div>
-            </div>
-
             <div class="analytics-grid">
                 <!-- System Health Card -->
                 <div class="analytics-card health-card">
@@ -190,26 +174,9 @@ class AnalyticsDashboard {
     }
 
     createAnalyticsTab() {
-        // Add analytics tab to existing dashboard navigation
-        const tabNav = document.querySelector('.nav-tabs') || document.querySelector('.tab-nav');
-        if (tabNav) {
-            const analyticsTab = document.createElement('li');
-            analyticsTab.className = 'nav-item';
-            analyticsTab.innerHTML = `
-                <a class="nav-link" id="analytics-tab" data-toggle="tab" href="#analytics-container" role="tab">
-                    <i class="fas fa-chart-line"></i> Analytics
-                </a>
-            `;
-            tabNav.appendChild(analyticsTab);
-        }
-
-        // Add analytics container to tab content
-        const tabContent = document.querySelector('.tab-content') || document.body;
-        const analyticsContainer = document.createElement('div');
-        analyticsContainer.className = 'tab-pane fade';
-        analyticsContainer.id = 'analytics-container';
-        analyticsContainer.setAttribute('role', 'tabpanel');
-        tabContent.appendChild(analyticsContainer);
+        // This method is no longer needed since we're integrating directly into the dashboard
+        // Analytics section is now part of the main dashboard layout
+        console.log('Analytics integrated directly into dashboard layout');
     }
 
     setupEventListeners() {

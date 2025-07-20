@@ -16,7 +16,7 @@
     "pod-install": "cd ios && pod install"
   },
   "dependencies": {
-    "react": "18.2.0",
+    "react": "18.3.1",
     "react-native": "0.73.0",
     "@react-navigation/native": "^6.1.9",
     "@react-navigation/stack": "^6.3.20",
@@ -101,5 +101,9 @@
     "bracketSpacing": false,
     "singleQuote": true,
     "trailingComma": "all"
-  }
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
 }

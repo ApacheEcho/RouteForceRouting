@@ -22,7 +22,6 @@
     "zustand": "^4.4.7",
     "leaflet": "^1.9.4",
     "react-leaflet": "^4.2.1",
-    "@geoapify/geocoder-autocomplete": "^1.7.0",
     "workbox-window": "^7.0.0",
     "idb": "^8.0.0",
     "localforage": "^1.10.0",

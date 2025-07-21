@@ -34,6 +34,8 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
+    // AUTO-PILOT: Enhanced build optimization
+    minify: 'esbuild', // Use esbuild instead of terser for faster builds
     rollupOptions: {
       output: {
         manualChunks: {
@@ -42,9 +44,31 @@ export default defineConfig({
           state: ['@reduxjs/toolkit', 'react-redux'],
           charts: ['chart.js', 'react-chartjs-2', 'recharts'],
           ui: ['@headlessui/react', '@heroicons/react', 'framer-motion'],
+          // AUTO-PILOT: Additional chunk splitting for better caching  
+          utils: ['lodash', 'date-fns'],
+        },
+        // AUTO-PILOT: Optimize chunk file naming for better caching
+        chunkFileNames: (chunkInfo) => {
+          const facadeModuleId = chunkInfo.facadeModuleId ? 
+            chunkInfo.facadeModuleId.split('/').pop()?.replace('.tsx', '').replace('.ts', '') : 
+            'chunk';
+          return `js/${facadeModuleId || 'chunk'}-[hash].js`;
+        },
+        assetFileNames: (assetInfo) => {
+          const name = assetInfo.name || 'asset';
+          const extType = name.split('.').at(1);
+          if (extType && /png|jpe?g|svg|gif|tiff|bmp|ico/i.test(extType)) {
+            return `img/[name]-[hash][extname]`;
+          }
+          if (extType && /css/i.test(extType)) {
+            return `css/[name]-[hash][extname]`;
+          }
+          return `assets/[name]-[hash][extname]`;
         },
       },
     },
+    // AUTO-PILOT: Bundle size analysis and warnings
+    chunkSizeWarningLimit: 1000,
   },
   optimizeDeps: {
     include: ['react', 'react-dom', 'react-router-dom'],

@@ -15,6 +15,15 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = False
     
+    # AUTO-PILOT: Enhanced database connection pooling configuration
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_size': int(os.environ.get('DB_POOL_SIZE', '20')),
+        'max_overflow': int(os.environ.get('DB_MAX_OVERFLOW', '10')),
+        'pool_timeout': int(os.environ.get('DB_POOL_TIMEOUT', '30')),
+        'pool_recycle': int(os.environ.get('DB_POOL_RECYCLE', '3600')),  # 1 hour
+        'pool_pre_ping': True,  # Validate connections before use
+    }
+    
     # File upload configuration
     MAX_CONTENT_LENGTH = int(os.environ.get('MAX_CONTENT_LENGTH', '16777216'))  # 16MB
     UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER', 'uploads')

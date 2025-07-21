@@ -2,11 +2,13 @@
 WebSocket handlers for real-time features
 """
 from flask_socketio import SocketIO, emit, join_room, leave_room
-from flask import request, current_app
+from flask import request
 from app.monitoring import metrics_collector
 import logging
-import json
 import time
+import threading
+import signal
+from threading import Event
 from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
@@ -216,43 +218,87 @@ def get_connection_stats() -> Dict[str, Any]:
         }
     }
 
+# AUTO-PILOT: Enhanced background thread with proper lifecycle
+
+# Global shutdown event for graceful termination
+shutdown_event = Event()
+
+def signal_handler(signum, frame):
+    """Handle shutdown signals gracefully"""
+    logger.info("🛑 Shutdown signal received, stopping background threads...")
+    shutdown_event.set()
+
+# Register signal handlers
+signal.signal(signal.SIGTERM, signal_handler)
+signal.signal(signal.SIGINT, signal_handler)
+
 # Background task to send periodic updates
 def background_thread():
-    """Background thread for periodic updates"""
-    import threading
-    import time
+    """Enhanced background thread with proper lifecycle management"""
     
     def update_loop():
-        while True:
+        max_errors = 10
+        error_count = 0
+        
+        logger.info("🚀 Starting background thread for periodic updates")
+        
+        while error_count < max_errors and not shutdown_event.is_set():
             try:
                 # Wait for SocketIO to be initialized
                 if not hasattr(socketio, 'server') or socketio.server is None:
-                    time.sleep(5)
+                    if shutdown_event.wait(timeout=5):
+                        break
                     continue
-                    
+                
                 # Send metrics update every 10 seconds
                 broadcast_metrics_update()
                 
-                # Check for stale routes (cleanup after 1 hour)
+                # AUTO-PILOT: Enhanced stale route cleanup
                 current_time = time.time()
                 stale_routes = [
-                    route_id for route_id, route_data in active_routes.items()
+                    route_id for route_id, route_data in list(active_routes.items())
                     if current_time - route_data.get('last_update', route_data['created_at']) > 3600
                 ]
                 
                 for route_id in stale_routes:
-                    del active_routes[route_id]
-                    logger.info(f"Cleaned up stale route: {route_id}")
+                    try:
+                        del active_routes[route_id]
+                        logger.info(f"🧹 Cleaned up stale route: {route_id}")
+                    except KeyError:
+                        pass  # Already cleaned up by another thread
                 
-                time.sleep(10)
+                # Reset error count on success
+                error_count = 0
                 
+                # Wait for next iteration or shutdown with graceful timeout
+                if shutdown_event.wait(timeout=10):
+                    break
+                    
             except Exception as e:
-                logger.error(f"Error in background thread: {e}")
-                time.sleep(5)
+                error_count += 1
+                logger.error(f"❌ Error in background thread: {e}")
+                
+                if error_count >= max_errors:
+                    logger.critical("💥 Too many errors, stopping background thread")
+                    break
+                
+                # AUTO-PILOT: Exponential backoff on errors
+                backoff_time = min(60, 5 * (2 ** (error_count - 1)))
+                logger.warning(f"⏳ Backing off for {backoff_time}s due to errors")
+                if shutdown_event.wait(timeout=backoff_time):
+                    break
+        
+        logger.info("✅ Background thread shutting down gracefully")
     
-    # Start background thread
-    thread = threading.Thread(target=update_loop, daemon=True)
+    # Start background thread as daemon with descriptive name
+    thread = threading.Thread(
+        target=update_loop, 
+        daemon=True, 
+        name="RouteForceWebSocketBackground"
+    )
     thread.start()
+    logger.info("🎯 Background thread started successfully")
+    return thread
 
 def start_background_thread():
     """Start the background thread after SocketIO is initialized"""

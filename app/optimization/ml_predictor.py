@@ -3,18 +3,15 @@ Machine Learning Route Predictor
 Uses historical route data to predict optimal routes and select best algorithms
 """
 import numpy as np
-import pandas as pd
-import json
 import pickle
 import logging
-from typing import List, Dict, Any, Tuple, Optional
+from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.metrics import mean_squared_error, accuracy_score
-import joblib
 import os
 
 logger = logging.getLogger(__name__)
@@ -125,47 +122,129 @@ class MLRoutePredictor:
         """
         features = RouteFeatures()
         
-        if not stores:
-            return features
-        
-        # Basic route features
-        features.num_stores = len(stores)
-        
-        # Geographic features
-        lats = [store.get('lat', store.get('latitude', 0)) for store in stores]
-        lons = [store.get('lon', store.get('longitude', 0)) for store in stores]
-        
-        if lats and lons:
-            features.geographic_spread = np.std(lats) + np.std(lons)
-        
-        # Distance calculations
-        distances = []
-        for i in range(len(stores)):
-            for j in range(i + 1, len(stores)):
-                lat1, lon1 = lats[i], lons[i]
-                lat2, lon2 = lats[j], lons[j]
+        # AUTO-PILOT: Enhanced input validation and error handling
+        try:
+            if not stores or not isinstance(stores, list):
+                logger.warning("Invalid or empty stores data provided")
+                return features
+            
+            # Basic route features
+            features.num_stores = len(stores)
+            
+            # Geographic features with error handling
+            lats = []
+            lons = []
+            
+            for i, store in enumerate(stores):
+                try:
+                    lat = store.get('lat', store.get('latitude'))
+                    lon = store.get('lon', store.get('longitude'))
+                    
+                    # Validate coordinates
+                    if lat is not None and lon is not None:
+                        lat_float = float(lat)
+                        lon_float = float(lon)
+                        
+                        # Check if coordinates are within valid range
+                        if -90 <= lat_float <= 90 and -180 <= lon_float <= 180:
+                            lats.append(lat_float)
+                            lons.append(lon_float)
+                        else:
+                            logger.warning(f"Invalid coordinates for store {i}: lat={lat}, lon={lon}")
+                    else:
+                        logger.warning(f"Missing coordinates for store {i}")
+                        
+                except (ValueError, TypeError) as e:
+                    logger.warning(f"Error parsing coordinates for store {i}: {e}")
+                    continue
+            
+            # Calculate geographic spread safely
+            if len(lats) >= 2 and len(lons) >= 2:
+                try:
+                    features.geographic_spread = np.std(lats) + np.std(lons)
+                except Exception as e:
+                    logger.error(f"Error calculating geographic spread: {e}")
+                    features.geographic_spread = 0.0
+            
+            # Distance calculations with error handling
+            distances = []
+            for i in range(len(lats)):
+                for j in range(i + 1, len(lats)):
+                    try:
+                        dist = self._calculate_distance(lats[i], lons[i], lats[j], lons[j])
+                        if dist is not None and dist > 0:
+                            distances.append(dist)
+                    except Exception as e:
+                        logger.warning(f"Error calculating distance between stores {i} and {j}: {e}")
+                        continue
+            
+            # Calculate distance-based features safely
+            if distances:
+                try:
+                    features.total_distance = sum(distances)
+                    features.avg_distance_between_stores = np.mean(distances)
+                except Exception as e:
+                    logger.error(f"Error calculating distance features: {e}")
+                    features.total_distance = 0.0
+                    features.avg_distance_between_stores = 0.0
+            
+            # Priority and demand features with error handling
+            try:
+                priorities = []
+                demands = []
                 
-                if lat1 and lon1 and lat2 and lon2:
-                    dist = self._calculate_distance(lat1, lon1, lat2, lon2)
-                    distances.append(dist)
-        
-        if distances:
-            features.total_distance = sum(distances)
-            features.avg_distance_between_stores = np.mean(distances)
-        
-        # Priority and demand features
-        priorities = [store.get('priority', 1) for store in stores]
-        demands = [store.get('demand', 0) for store in stores]
-        
-        features.priority_score = sum(p * (len(stores) - i) for i, p in enumerate(priorities))
-        features.demand_total = sum(demands)
-        features.demand_variance = np.var(demands) if demands else 0
-        
-        # Temporal features
-        if context:
-            now = context.get('timestamp', datetime.now())
-            features.time_of_day = now.hour
-            features.day_of_week = now.weekday()
+                for store in stores:
+                    try:
+                        priority = float(store.get('priority', 1))
+                        demand = float(store.get('demand', 0))
+                        priorities.append(priority)
+                        demands.append(demand)
+                    except (ValueError, TypeError):
+                        priorities.append(1.0)  # Default priority
+                        demands.append(0.0)    # Default demand
+                
+                features.priority_score = sum(p * (len(stores) - i) for i, p in enumerate(priorities))
+                features.demand_total = sum(demands)
+                features.demand_variance = np.var(demands) if demands else 0.0
+                
+            except Exception as e:
+                logger.error(f"Error calculating priority/demand features: {e}")
+                features.priority_score = len(stores)  # Default
+                features.demand_total = 0.0
+                features.demand_variance = 0.0
+            
+            # Temporal features with error handling
+            try:
+                if context and isinstance(context, dict):
+                    timestamp = context.get('timestamp')
+                    if timestamp:
+                        if isinstance(timestamp, datetime):
+                            now = timestamp
+                        else:
+                            now = datetime.fromisoformat(str(timestamp))
+                    else:
+                        now = datetime.now()
+                    
+                    features.time_of_day = now.hour
+                    features.day_of_week = now.weekday()
+                    
+                    # Weather and traffic factors
+                    features.weather_factor = float(context.get('weather_factor', 1.0))
+                    features.traffic_factor = float(context.get('traffic_factor', 1.0))
+                    
+            except Exception as e:
+                logger.warning(f"Error extracting temporal features: {e}")
+                now = datetime.now()
+                features.time_of_day = now.hour
+                features.day_of_week = now.weekday()
+                features.weather_factor = 1.0
+                features.traffic_factor = 1.0
+                
+        except Exception as e:
+            logger.error(f"Critical error in feature extraction: {e}")
+            # Return default features if everything fails
+            features = RouteFeatures()
+            features.num_stores = len(stores) if stores else 0
             features.weather_factor = context.get('weather_factor', 1.0)
             features.traffic_factor = context.get('traffic_factor', 1.0)
         else:

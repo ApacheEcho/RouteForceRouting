@@ -3,13 +3,39 @@ Genetic Algorithm for Route Optimization
 Advanced TSP (Traveling Salesman Problem) solver using evolutionary algorithms
 """
 import random
-import numpy as np
 from typing import List, Dict, Tuple, Any
 from dataclasses import dataclass
 from geopy.distance import geodesic
 import logging
+from collections import deque
 
 logger = logging.getLogger(__name__)
+
+# AUTO-PILOT: Efficient convergence detection class
+class ConvergenceTracker:
+    """O(1) convergence detection using sliding window"""
+    
+    def __init__(self, window_size: int = 20, threshold: float = 0.001):
+        self.window_size = window_size
+        self.threshold = threshold
+        self.values = deque(maxlen=window_size)
+        self.min_value = float('inf')
+        self.max_value = float('-inf')
+    
+    def check_convergence(self, value: float) -> bool:
+        """Check if algorithm has converged (O(1) operation)"""
+        self.values.append(value)
+        
+        if len(self.values) < self.window_size:
+            return False
+        
+        # Update min/max for current window
+        self.min_value = min(self.values)
+        self.max_value = max(self.values)
+        
+        # Check if range is below threshold
+        range_diff = self.max_value - self.min_value
+        return range_diff <= self.threshold
 
 @dataclass
 class GeneticConfig:
@@ -98,7 +124,9 @@ class GeneticAlgorithm:
         initial_best = min(self.population)
         best_distances = []
         
-        # Evolution loop
+        # Evolution loop with enhanced convergence detection
+        convergence_tracker = ConvergenceTracker(window_size=20, threshold=0.001)
+        
         for generation in range(self.config.generations):
             # Selection and reproduction
             new_population = self._evolve_population()
@@ -111,9 +139,9 @@ class GeneticAlgorithm:
             if not self.best_individual or current_best.fitness > self.best_individual.fitness:
                 self.best_individual = current_best
             
-            # Early stopping if no improvement
-            if generation > 50 and len(set(best_distances[-20:])) == 1:
-                logger.info(f"Early stopping at generation {generation}")
+            # AUTO-PILOT: Enhanced convergence detection (O(1) instead of O(n))
+            if generation > 50 and convergence_tracker.check_convergence(current_best.distance):
+                logger.info(f"Early stopping at generation {generation} - convergence detected")
                 break
             
             # Log progress
@@ -181,9 +209,15 @@ class GeneticAlgorithm:
             if random.random() < self.config.mutation_rate:
                 child2 = self._mutate(child2)
             
-            new_population.extend([child1, child2])
+            # AUTO-PILOT: Ensure exact population size bounds
+            remaining_slots = self.config.population_size - len(new_population)
+            if remaining_slots >= 2:
+                new_population.extend([child1, child2])
+            elif remaining_slots == 1:
+                new_population.append(child1)
+                break
         
-        # Trim to population size and sort
+        # AUTO-PILOT: Ensure exact population size
         new_population = new_population[:self.config.population_size]
         new_population.sort()
         

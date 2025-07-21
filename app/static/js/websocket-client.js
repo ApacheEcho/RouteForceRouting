@@ -12,6 +12,7 @@ class RouteForceWebSocket {
         this.reconnectAttempts = 0;
         this.maxReconnectAttempts = 5;
         this.reconnectDelay = 1000;
+        this.reconnectionTimer = null;  // AUTO-PILOT: Prevent race conditions
         
         this.init();
     }
@@ -49,9 +50,15 @@ class RouteForceWebSocket {
             this.showNotification('Lost connection to real-time updates', 'warning');
             this.trigger('disconnected', reason);
             
-            // Attempt reconnection for client-side disconnects
+            // AUTO-PILOT: Prevent overlapping reconnection attempts
             if (reason === 'io client disconnect') {
-                this.attemptReconnection();
+                if (this.reconnectionTimer) {
+                    clearTimeout(this.reconnectionTimer);
+                }
+                this.reconnectionTimer = setTimeout(() => {
+                    this.attemptReconnection();
+                    this.reconnectionTimer = null;
+                }, 1000);
             }
         });
         

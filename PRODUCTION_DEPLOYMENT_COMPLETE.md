@@ -22,7 +22,7 @@
 - **✅ PostgreSQL Database** with multi-tenant schema support
 - **✅ Redis Cache & Session Store** with password protection
 - **✅ Nginx Load Balancer** with SSL/TLS, rate limiting, and security headers
-- **✅ Gunicorn WSGI Server** with gevent workers for high concurrency
+- **✅ Gunicorn WSGI Server** for high concurrency
 - **✅ Celery Task Queue** for asynchronous background processing
 
 ### 📊 Production Monitoring & Observability
@@ -70,7 +70,7 @@ Services Deployed:
 - **Database Security**: User isolation, password protection
 
 ### Performance Optimizations
-- **Worker Configuration**: 4 Gunicorn workers with gevent
+- **Worker Configuration**: 4 Gunicorn workers
 - **Connection Management**: Efficient database pooling
 - **Caching**: Redis for sessions, rate limiting, and application cache
 - **Static Files**: Nginx with 1-year caching and compression

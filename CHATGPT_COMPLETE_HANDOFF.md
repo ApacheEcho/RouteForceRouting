@@ -494,7 +494,7 @@ TestAdvancedFeatures: 3/3 PASSED ✅
 
 - **Core Framework:** Flask 3.1.0, SQLAlchemy 2.0.41, Werkzeug 3.1.3
 - **Machine Learning:** scikit-learn 1.6.1, xgboost 3.0.2, hyperopt 0.2.7
-- **Production:** gunicorn 23.0.0, prometheus-client 0.21.1, gevent 24.12.0
+- **Production:** gunicorn 23.0.0, prometheus-client 0.21.1
 - **Database:** psycopg2-binary 2.9.10, flask-sqlalchemy 3.1.1
 - **Security:** bcrypt 4.2.1, pyjwt 2.9.0, cryptography 44.0.0
 - **Environment:** Python 3.12.8 virtual environment configured

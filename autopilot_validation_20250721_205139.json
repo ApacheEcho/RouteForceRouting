@@ -1,0 +1,47 @@
+{
+  "timestamp": "2025-07-22T00:51:38.295003",
+  "system_info": {
+    "python_version": "3.12.8 (v3.12.8:2dc476bcb91, Dec  3 2024, 14:43:19) [Clang 13.0.0 (clang-1300.0.29.30)]",
+    "platform": "darwin"
+  },
+  "genetic_algorithm": {
+    "status": "success",
+    "execution_time": 0.005614042282104492,
+    "memory_usage_mb": 0.046875,
+    "improvement_percent": 0.0,
+    "generations_completed": 50,
+    "route_count": 5
+  },
+  "system_performance": {
+    "status": "success",
+    "cpu_percent": 24.1,
+    "memory_percent": 72.8,
+    "memory_available_gb": 4.3566131591796875,
+    "disk_free_gb": 43.55194854736328,
+    "system_healthy": true
+  },
+  "imports": {
+    "app.optimization.genetic_algorithm": "success",
+    "app.services.geocoding_cache": "success",
+    "app.performance.optimization_engine": "success",
+    "app.database.optimized_connection_pool": "success"
+  },
+  "frontend_build": {
+    "status": "success",
+    "key_files_found": [
+      "index.html"
+    ],
+    "assets_count": 1,
+    "total_size_mb": 3.5643606185913086,
+    "build_complete": true
+  },
+  "deployment": {
+    "status": "success",
+    "netlify_config": true,
+    "frontend_package": true,
+    "main_files": true,
+    "ready_for_deployment": true
+  },
+  "total_test_time": 1.5189728736877441,
+  "overall_score": 65.0
+}

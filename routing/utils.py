@@ -1,164 +1,137 @@
-import json
-import time
-import requests
-import urllib.parse
-from pathlib import Path
-from typing import Optional, Tuple, Dict, Any
-from geopy.distance import geodesic
+"""
+Legacy routing utilities - Modernized with clean service architecture
+This module provides backward compatibility while using modern services internally
+"""
 
+import logging
+from typing import Any, Dict, List, Optional, Tuple
+
+from app.services.distance_service import create_distance_calculator
+
+# Import modern services
+from app.services.geocoding_service import create_geocoding_service
+
+logger = logging.getLogger(__name__)
+
+# Create global service instances for backward compatibility
+_geocoding_service = create_geocoding_service()
+_distance_calculator = create_distance_calculator()
+
+
+# Legacy compatibility classes (deprecated - use modern services instead)
 class GeocodingCache:
+    """
+    Legacy geocoding cache - DEPRECATED
+    Use app.services.geocoding_service.ModernGeocodingService instead
+    """
+
     def __init__(self, cache_file: str = "geocoding_cache.json"):
-        self.cache_file = Path(cache_file)
-        self.cache = self._load_cache()
-
-    def _load_cache(self) -> dict:
-        if self.cache_file.exists():
-            try:
-                with open(self.cache_file, 'r') as f:
-                    return json.load(f)
-            except json.JSONDecodeError:
-                return {}
-        return {}
-
-    def _save_cache(self) -> None:
-        with open(self.cache_file, 'w') as f:
-            json.dump(self.cache, f)
+        logger.warning(
+            "GeocodingCache is deprecated. Use ModernGeocodingService instead."
+        )
+        self.service = create_geocoding_service()
 
     def get_coordinates(self, address: str) -> Optional[Tuple[float, float]]:
-        address = address.strip().lower()
-        if address in self.cache:
-            return tuple(self.cache[address])
+        """Get coordinates for address"""
+        return self.service.get_coordinates(address)
 
-        coords = self._geocode_address(address)
-        if coords:
-            self.cache[address] = coords
-            self._save_cache()
-        return coords
+    @property
+    def cache(self) -> Dict:
+        """Access to cache data (for compatibility)"""
+        return {"size": self.service.get_cache_size()}
 
-    def _geocode_address(self, address: str) -> Optional[Tuple[float, float]]:
-        try:
-            time.sleep(1)  # respectful delay for Nominatim
-            url = f"https://nominatim.openstreetmap.org/search"
-            params = {
-                "q": address,
-                "format": "json",
-                "limit": 1
-            }
-            headers = {
-                "User-Agent": "RouteForceProBot/1.0"
-            }
-            response = requests.get(url, params=params, headers=headers, timeout=10)
-            response.raise_for_status()
-            data = response.json()
-
-            if data and len(data) > 0:
-                return float(data[0]['lat']), float(data[0]['lon'])
-        except Exception as e:
-            print(f"[Geocoder] Error geocoding '{address}': {e}")
-        return None
 
 class AddressCache:
+    """
+    Legacy address cache - DEPRECATED
+    Modern services handle encoding internally
+    """
+
     def __init__(self, cache_file: str = "address_cache.json"):
-        self.cache_file = Path(cache_file)
-        self.cache = self._load_cache()
-
-    def _load_cache(self) -> dict:
-        if self.cache_file.exists():
-            try:
-                with open(self.cache_file, 'r') as f:
-                    return json.load(f)
-            except json.JSONDecodeError:
-                return {}
-        return {}
-
-    def _save_cache(self) -> None:
-        with open(self.cache_file, 'w') as f:
-            json.dump(self.cache, f)
+        logger.warning(
+            "AddressCache is deprecated. Modern services handle encoding internally."
+        )
 
     def get_encoded_address(self, address: str) -> str:
-        address = address.strip().lower()
-        if address in self.cache:
-            return self.cache[address]
+        """Get URL-encoded address"""
+        import urllib.parse
 
-        encoded_address = urllib.parse.quote(address)
-        self.cache[address] = encoded_address
-        self._save_cache()
-        return encoded_address
+        return urllib.parse.quote(address.strip())
 
-# Initialize global geocoding cache
+
+# Initialize global geocoding cache for backward compatibility
 geocoding_cache = GeocodingCache()
+
 
 def calculate_distance(store_a: Dict[str, Any], store_b: Dict[str, Any]) -> float:
     """
-    Calculate distance between two store locations.
-    
+    Calculate distance between two store locations (legacy compatibility)
+
     Args:
-        store_a: First store dictionary with 'address' key
-        store_b: Second store dictionary with 'address' key
-        
+        store_a: First store dictionary
+        store_b: Second store dictionary
+
     Returns:
         Distance in kilometers
     """
-    # Try to get coordinates from stores (if they exist)
-    coord_a = None
-    coord_b = None
-    
-    # Check if coordinates already exist
-    if 'lat' in store_a and 'lon' in store_a:
-        coord_a = (store_a['lat'], store_a['lon'])
-    if 'lat' in store_b and 'lon' in store_b:
-        coord_b = (store_b['lat'], store_b['lon'])
-    
-    # If coordinates don't exist, geocode addresses using cache
-    if not coord_a:
-        coord_a = geocoding_cache.get_coordinates(store_a['address'])
-        if coord_a:
-            store_a['lat'], store_a['lon'] = coord_a
-    
-    if not coord_b:
-        coord_b = geocoding_cache.get_coordinates(store_b['address'])
-        if coord_b:
-            store_b['lat'], store_b['lon'] = coord_b
-    
-    # If geocoding failed, return a large distance
-    if not coord_a or not coord_b:
-        return float('inf')
-    
-    # Calculate distance using geodesic
-    return geodesic(coord_a, coord_b).km
+    return _distance_calculator.calculate_store_distance(store_a, store_b)
 
-def calculate_route_distance(route: list[Dict[str, Any]]) -> float:
+
+def calculate_route_distance(route: List[Dict[str, Any]]) -> float:
     """
-    Calculate total distance for a route.
-    
+    Calculate total distance for a route (legacy compatibility)
+
     Args:
         route: List of store dictionaries
-        
+
     Returns:
         Total distance in kilometers
     """
-    if len(route) < 2:
-        return 0.0
-    
-    total_distance = 0.0
-    for i in range(len(route) - 1):
-        total_distance += calculate_distance(route[i], route[i + 1])
-    
-    return total_distance
+    return _distance_calculator.calculate_route_distance(route)
+
 
 def get_cached_coordinates_count() -> int:
     """
-    Get the number of cached coordinates.
-    
+    Get the number of cached coordinates (legacy compatibility)
+
     Returns:
         Number of cached address-to-coordinate mappings
     """
-    return len(geocoding_cache.cache)
+    return _geocoding_service.get_cache_size()
+
 
 def clear_geocoding_cache() -> None:
     """
-    Clear the geocoding cache.
+    Clear the geocoding cache (legacy compatibility)
     """
-    geocoding_cache.cache.clear()
-    if geocoding_cache.cache_file.exists():
-        geocoding_cache.cache_file.unlink()
+    _geocoding_service.clear_cache()
+
+
+# Modern API recommendations
+def get_modern_geocoding_service():
+    """
+    Get the modern geocoding service instance
+
+    Returns:
+        ModernGeocodingService instance
+    """
+    return _geocoding_service
+
+
+def get_modern_distance_calculator():
+    """
+    Get the modern distance calculator instance
+
+    Returns:
+        RouteDistanceCalculator instance
+    """
+    return _distance_calculator
+
+
+# Legacy function exports for backward compatibility
+def get_coordinates(address: str) -> Optional[Tuple[float, float]]:
+    """
+    Legacy function: Get coordinates for an address
+    DEPRECATED: Use app.services.geocoding_service directly
+    """
+    return _geocoding_service.get_coordinates(address)

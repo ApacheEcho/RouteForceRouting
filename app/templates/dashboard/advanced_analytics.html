@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RouteForce Advanced Analytics Dashboard</title>
+    
+    <!-- External Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://kit.fontawesome.com/your-kit-id.js" crossorigin="anonymous"></script>
+    
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .metric-card {
+            transition: all 0.3s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .alert-critical {
+            border-left: 4px solid #ef4444;
+        }
+        
+        .alert-warning {
+            border-left: 4px solid #f59e0b;
+        }
+        
+        .alert-info {
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .trend-up {
+            color: #10b981;
+        }
+        
+        .trend-down {
+            color: #ef4444;
+        }
+        
+        .trend-stable {
+            color: #6b7280;
+        }
+        
+        .health-excellent {
+            color: #10b981;
+        }
+        
+        .health-good {
+            color: #84cc16;
+        }
+        
+        .health-warning {
+            color: #f59e0b;
+        }
+        
+        .health-critical {
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <i class="fas fa-chart-line text-2xl"></i>
+                    <h1 class="text-2xl font-bold">RouteForce Advanced Analytics</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="glass-effect px-4 py-2 rounded-lg">
+                        <span class="text-sm">System Health: </span>
+                        <span id="headerHealthScore" class="font-bold">--</span>
+                    </div>
+                    <button id="refreshDashboard" class="glass-effect px-4 py-2 rounded-lg hover:bg-white/20 transition-colors">
+                        <i class="fas fa-sync-alt mr-2"></i>Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dashboard -->
+    <main class="container mx-auto px-6 py-8">
+        <!-- Key Metrics Row -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="metric-card bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">ML Models Status</p>
+                        <p id="mlModelsStatus" class="text-2xl font-bold text-blue-600">--</p>
+                    </div>
+                    <div class="bg-blue-100 p-3 rounded-full">
+                        <i class="fas fa-brain text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="metric-card bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">Prediction Accuracy</p>
+                        <p id="predictionAccuracy" class="text-2xl font-bold text-green-600">--</p>
+                    </div>
+                    <div class="bg-green-100 p-3 rounded-full">
+                        <i class="fas fa-bullseye text-green-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="metric-card bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">Active Alerts</p>
+                        <p id="activeAlerts" class="text-2xl font-bold text-orange-600">--</p>
+                    </div>
+                    <div class="bg-orange-100 p-3 rounded-full">
+                        <i class="fas fa-exclamation-triangle text-orange-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="metric-card bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">Data Points</p>
+                        <p id="dataPoints" class="text-2xl font-bold text-purple-600">--</p>
+                    </div>
+                    <div class="bg-purple-100 p-3 rounded-full">
+                        <i class="fas fa-database text-purple-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column - Performance Trends -->
+            <div class="lg:col-span-2 space-y-8">
+                <!-- Performance Trends Chart -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-bold text-gray-800">
+                            <i class="fas fa-chart-area mr-2 text-blue-600"></i>Performance Trends
+                        </h2>
+                        <select id="trendsTimeframe" class="border border-gray-300 rounded-lg px-3 py-2">
+                            <option value="1">Last Hour</option>
+                            <option value="6" selected>Last 6 Hours</option>
+                            <option value="24">Last 24 Hours</option>
+                        </select>
+                    </div>
+                    <canvas id="performanceTrendsChart" height="100"></canvas>
+                </div>
+
+                <!-- ML Model Insights -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-6">
+                        <i class="fas fa-robot mr-2 text-purple-600"></i>ML Model Insights
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div class="bg-gradient-to-r from-purple-100 to-blue-100 rounded-lg p-4">
+                            <h3 class="font-semibold text-gray-800 mb-2">Ensemble Status</h3>
+                            <div id="ensembleStatus" class="space-y-2">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gradient-to-r from-green-100 to-blue-100 rounded-lg p-4">
+                            <h3 class="font-semibold text-gray-800 mb-2">Model Performance</h3>
+                            <div id="modelPerformance" class="space-y-2">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h3 class="font-semibold text-gray-800 mb-3">Feature Importance</h3>
+                        <canvas id="featureImportanceChart" height="60"></canvas>
+                    </div>
+                </div>
+
+                <!-- Optimization Insights -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-6">
+                        <i class="fas fa-route mr-2 text-green-600"></i>Optimization Insights
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="text-center">
+                            <div class="bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3">
+                                <i class="fas fa-trophy text-green-600 text-xl"></i>
+                            </div>
+                            <h3 class="font-semibold text-gray-800">Best Algorithm</h3>
+                            <p id="bestAlgorithm" class="text-green-600 font-bold">--</p>
+                        </div>
+                        
+                        <div class="text-center">
+                            <div class="bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3">
+                                <i class="fas fa-clock text-blue-600 text-xl"></i>
+                            </div>
+                            <h3 class="font-semibold text-gray-800">Optimal Time</h3>
+                            <p id="optimalTime" class="text-blue-600 font-bold">--</p>
+                        </div>
+                        
+                        <div class="text-center">
+                            <div class="bg-purple-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3">
+                                <i class="fas fa-percentage text-purple-600 text-xl"></i>
+                            </div>
+                            <h3 class="font-semibold text-gray-800">Avg Improvement</h3>
+                            <p id="avgImprovement" class="text-purple-600 font-bold">--</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Alerts and Monitoring -->
+            <div class="space-y-8">
+                <!-- Real-time Alerts -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-6">
+                        <i class="fas fa-bell mr-2 text-red-600"></i>Real-time Alerts
+                    </h2>
+                    <div id="alertsList" class="space-y-3">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- System Health -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-6">
+                        <i class="fas fa-heartbeat mr-2 text-red-600"></i>System Health
+                    </h2>
+                    
+                    <div class="text-center mb-6">
+                        <div class="relative w-32 h-32 mx-auto">
+                            <canvas id="healthScoreChart"></canvas>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <div class="text-center">
+                                    <div id="healthScoreValue" class="text-2xl font-bold">--</div>
+                                    <div class="text-sm text-gray-600">Health Score</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="systemMetrics" class="space-y-3">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Predictive Analytics -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-6">
+                        <i class="fas fa-crystal-ball mr-2 text-indigo-600"></i>Predictions
+                    </h2>
+                    
+                    <div id="predictiveInsights" class="space-y-4">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Recommendations -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-6">
+                        <i class="fas fa-lightbulb mr-2 text-yellow-600"></i>Recommendations
+                    </h2>
+                    
+                    <div id="recommendationsList" class="space-y-3">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- JavaScript -->
+    <script>
+        class AdvancedAnalyticsDashboard {
+            constructor() {
+                this.charts = {};
+                this.refreshInterval = null;
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.loadDashboardData();
+                this.startAutoRefresh();
+            }
+
+            setupEventListeners() {
+                document.getElementById('refreshDashboard').addEventListener('click', () => {
+                    this.loadDashboardData();
+                });
+
+                document.getElementById('trendsTimeframe').addEventListener('change', (e) => {
+                    this.loadPerformanceTrends(e.target.value);
+                });
+            }
+
+            async loadDashboardData() {
+                try {
+                    // Load all dashboard data concurrently
+                    const [mlInsights, performanceTrends, predictiveAnalytics, realTimeAlerts, optimizationInsights] = await Promise.all([
+                        this.fetchMLInsights(),
+                        this.fetchPerformanceTrends(),
+                        this.fetchPredictiveAnalytics(),
+                        this.fetchRealTimeAlerts(),
+                        this.fetchOptimizationInsights()
+                    ]);
+
+                    // Update UI components
+                    this.updateMLInsights(mlInsights);
+                    this.updatePerformanceTrends(performanceTrends);
+                    this.updatePredictiveAnalytics(predictiveAnalytics);
+                    this.updateRealTimeAlerts(realTimeAlerts);
+                    this.updateOptimizationInsights(optimizationInsights);
+
+                } catch (error) {
+                    console.error('Failed to load dashboard data:', error);
+                    this.showError('Failed to load dashboard data');
+                }
+            }
+
+            async fetchMLInsights() {
+                const response = await fetch('/advanced/api/ml-insights');
+                return response.json();
+            }
+
+            async fetchPerformanceTrends(hours = 6) {
+                const response = await fetch(`/advanced/api/performance-trends?hours=${hours}`);
+                return response.json();
+            }
+
+            async fetchPredictiveAnalytics() {
+                const response = await fetch('/advanced/api/predictive-analytics');
+                return response.json();
+            }
+
+            async fetchRealTimeAlerts() {
+                const response = await fetch('/advanced/api/real-time-alerts');
+                return response.json();
+            }
+
+            async fetchOptimizationInsights() {
+                const response = await fetch('/advanced/api/optimization-insights');
+                return response.json();
+            }
+
+            updateMLInsights(data) {
+                if (!data.success) return;
+
+                const insights = data.ml_insights;
+
+                // Update key metrics
+                document.getElementById('mlModelsStatus').textContent = 
+                    insights.ensemble_status.models_trained ? 'Active' : 'Training';
+                
+                document.getElementById('predictionAccuracy').textContent = 
+                    `${Math.round(insights.uncertainty_metrics.model_confidence_avg * 100)}%`;
+                
+                document.getElementById('dataPoints').textContent = 
+                    insights.ensemble_status.data_points.toLocaleString();
+
+                // Update ensemble status
+                this.updateEnsembleStatus(insights.ensemble_status);
+
+                // Update feature importance chart
+                this.updateFeatureImportanceChart(insights.feature_importance);
+            }
+
+            updateEnsembleStatus(status) {
+                const container = document.getElementById('ensembleStatus');
+                container.innerHTML = `
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Models Trained:</span>
+                        <span class="font-semibold ${status.models_trained ? 'text-green-600' : 'text-orange-600'}">
+                            ${status.models_trained ? 'Yes' : 'No'}
+                        </span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Data Points:</span>
+                        <span class="font-semibold">${status.data_points}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Features:</span>
+                        <span class="font-semibold">${status.feature_count}</span>
+                    </div>
+                `;
+            }
+
+            updateFeatureImportanceChart(importance) {
+                if (Object.keys(importance).length === 0) return;
+
+                const ctx = document.getElementById('featureImportanceChart').getContext('2d');
+                
+                if (this.charts.featureImportance) {
+                    this.charts.featureImportance.destroy();
+                }
+
+                this.charts.featureImportance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(importance),
+                        datasets: [{
+                            label: 'Feature Importance',
+                            data: Object.values(importance),
+                            backgroundColor: 'rgba(147, 51, 234, 0.8)',
+                            borderColor: 'rgba(147, 51, 234, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+
+            updatePerformanceTrends(data) {
+                if (!data.success) return;
+
+                const trends = data.performance_trends;
+                const ctx = document.getElementById('performanceTrendsChart').getContext('2d');
+                
+                if (this.charts.performanceTrends) {
+                    this.charts.performanceTrends.destroy();
+                }
+
+                // Prepare chart data
+                const datasets = [];
+                const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b'];
+                let colorIndex = 0;
+
+                Object.keys(trends.metrics_history).forEach(metricType => {
+                    const history = trends.metrics_history[metricType];
+                    if (history.length > 0) {
+                        datasets.push({
+                            label: metricType.replace('_', ' ').toUpperCase(),
+                            data: history.map(item => ({
+                                x: new Date(item.timestamp),
+                                y: item.value
+                            })),
+                            borderColor: colors[colorIndex % colors.length],
+                            backgroundColor: colors[colorIndex % colors.length] + '20',
+                            tension: 0.4
+                        });
+                        colorIndex++;
+                    }
+                });
+
+                this.charts.performanceTrends = new Chart(ctx, {
+                    type: 'line',
+                    data: { datasets },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            x: {
+                                type: 'time',
+                                time: {
+                                    unit: 'hour'
+                                }
+                            },
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+
+            updateRealTimeAlerts(data) {
+                if (!data.success) return;
+
+                const alerts = data.real_time_alerts;
+                
+                // Update alert count
+                document.getElementById('activeAlerts').textContent = alerts.alert_summary.total_alerts;
+
+                // Update header health score
+                const healthScore = alerts.health_score.score;
+                document.getElementById('headerHealthScore').textContent = `${healthScore}%`;
+
+                // Update alerts list
+                const alertsList = document.getElementById('alertsList');
+                if (alerts.active_alerts.length === 0 && alerts.recommendations.length === 0) {
+                    alertsList.innerHTML = '<div class="text-gray-500 text-center py-4">No active alerts</div>';
+                } else {
+                    const allAlerts = [...alerts.active_alerts, ...alerts.recommendations];
+                    alertsList.innerHTML = allAlerts.map(alert => {
+                        const alertClass = `alert-${alert.severity || alert.priority}`;
+                        return `
+                            <div class="bg-gray-50 rounded-lg p-3 ${alertClass}">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex-1">
+                                        <h4 class="font-semibold text-sm">${alert.title}</h4>
+                                        <p class="text-xs text-gray-600 mt-1">${alert.description}</p>
+                                    </div>
+                                    <span class="text-xs px-2 py-1 rounded-full bg-white">
+                                        ${alert.severity || alert.priority}
+                                    </span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                // Update system health chart
+                this.updateHealthScoreChart(healthScore);
+            }
+
+            updateHealthScoreChart(score) {
+                const ctx = document.getElementById('healthScoreChart').getContext('2d');
+                
+                if (this.charts.healthScore) {
+                    this.charts.healthScore.destroy();
+                }
+
+                document.getElementById('healthScoreValue').textContent = `${score}%`;
+
+                const color = score >= 90 ? '#10b981' : score >= 70 ? '#84cc16' : score >= 50 ? '#f59e0b' : '#ef4444';
+
+                this.charts.healthScore = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        datasets: [{
+                            data: [score, 100 - score],
+                            backgroundColor: [color, '#e5e7eb'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '80%',
+                        plugins: {
+                            legend: { display: false }
+                        }
+                    }
+                });
+            }
+
+            updateOptimizationInsights(data) {
+                if (!data.success) return;
+
+                const insights = data.optimization_insights;
+                
+                // Find best performing algorithm
+                const algorithms = insights.algorithm_performance;
+                let bestAlgorithm = 'N/A';
+                let maxImprovement = 0;
+                
+                Object.keys(algorithms).forEach(algo => {
+                    if (algorithms[algo].avg_improvement > maxImprovement) {
+                        maxImprovement = algorithms[algo].avg_improvement;
+                        bestAlgorithm = algo.replace('_', ' ').toUpperCase();
+                    }
+                });
+
+                document.getElementById('bestAlgorithm').textContent = bestAlgorithm;
+                document.getElementById('optimalTime').textContent = insights.optimization_patterns.most_effective_time;
+                document.getElementById('avgImprovement').textContent = `${maxImprovement}%`;
+            }
+
+            updatePredictiveAnalytics(data) {
+                if (!data.success) return;
+
+                const analytics = data.predictive_analytics;
+                const container = document.getElementById('predictiveInsights');
+                
+                container.innerHTML = `
+                    <div class="bg-blue-50 rounded-lg p-3">
+                        <h4 class="font-semibold text-sm text-blue-800">Expected Routes Today</h4>
+                        <p class="text-blue-600 font-bold">${analytics.route_predictions.expected_routes_today}</p>
+                    </div>
+                    <div class="bg-green-50 rounded-lg p-3">
+                        <h4 class="font-semibold text-sm text-green-800">Avg Optimization Time</h4>
+                        <p class="text-green-600 font-bold">${analytics.route_predictions.avg_optimization_time}s</p>
+                    </div>
+                    <div class="bg-purple-50 rounded-lg p-3">
+                        <h4 class="font-semibold text-sm text-purple-800">Efficiency Improvement</h4>
+                        <p class="text-purple-600 font-bold">${analytics.route_predictions.efficiency_improvement}%</p>
+                    </div>
+                `;
+            }
+
+            startAutoRefresh() {
+                // Refresh every 30 seconds
+                this.refreshInterval = setInterval(() => {
+                    this.loadDashboardData();
+                }, 30000);
+            }
+
+            stopAutoRefresh() {
+                if (this.refreshInterval) {
+                    clearInterval(this.refreshInterval);
+                }
+            }
+
+            showError(message) {
+                // Simple error display - could be enhanced with a proper notification system
+                console.error(message);
+            }
+
+            destroy() {
+                this.stopAutoRefresh();
+                Object.values(this.charts).forEach(chart => chart.destroy());
+            }
+        }
+
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.advancedDashboard = new AdvancedAnalyticsDashboard();
+        });
+    </script>
+</body>
+</html>

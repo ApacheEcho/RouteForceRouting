@@ -1,0 +1,188 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "RouteForce Metrics Dashboard - Enhanced",
+    "tags": ["routeforce", "routing", "performance", "scoring"],
+    "timezone": "browser",
+    "refresh": "30s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Route Generation Performance",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "rate(route_generation_requests_total[5m])",
+            "legendFormat": "Routes/sec"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "reqps",
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": 0},
+                {"color": "yellow", "value": 5},
+                {"color": "red", "value": 10}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Route Generation Duration",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(route_generation_duration_seconds_bucket[5m]))",
+            "legendFormat": "95th percentile"
+          },
+          {
+            "expr": "histogram_quantile(0.50, rate(route_generation_duration_seconds_bucket[5m]))",
+            "legendFormat": "50th percentile"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Seconds",
+            "min": 0
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 6, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "Route Scoring Distribution",
+        "type": "histogram",
+        "targets": [
+          {
+            "expr": "route_total_score",
+            "legendFormat": "Route Scores"
+          }
+        ],
+        "options": {
+          "bucketSize": 5
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 18, "y": 0}
+      },
+      {
+        "id": 4,
+        "title": "Service Error Rates",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(route_generation_requests_total{status=\"error\"}[5m])",
+            "legendFormat": "Route Generation Errors"
+          },
+          {
+            "expr": "rate(geocoding_requests_total{status=\"error\"}[5m])",
+            "legendFormat": "Geocoding Errors"
+          },
+          {
+            "expr": "rate(distance_calculation_requests_total{status=\"error\"}[5m])",
+            "legendFormat": "Distance Calculation Errors"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Errors/sec",
+            "min": 0
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+      },
+      {
+        "id": 5,
+        "title": "Geocoding Cache Performance",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "rate(geocoding_cache_hits[5m]) / (rate(geocoding_cache_hits[5m]) + rate(geocoding_api_calls[5m])) * 100",
+            "legendFormat": "Cache Hit Rate %"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "yellow", "value": 70},
+                {"color": "green", "value": 90}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 12, "y": 8}
+      },
+      {
+        "id": 6,
+        "title": "Total Routes Generated",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(route_generation_requests_total)",
+            "legendFormat": "Total Routes"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "color": {
+              "mode": "continuous-GrYlRd"
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 18, "y": 8}
+      },
+      {
+        "id": 7,
+        "title": "Average Route Distance",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "avg(route_total_distance)",
+            "legendFormat": "Average Distance (km)"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Kilometers",
+            "min": 0
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16}
+      },
+      {
+        "id": 8,
+        "title": "Store Count per Route",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "avg(route_store_count)",
+            "legendFormat": "Average Stores per Route"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Store Count",
+            "min": 0
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16}
+      }
+    ]
+  }
+}

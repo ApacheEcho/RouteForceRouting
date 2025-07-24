@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RouteForce Analytics Dashboard</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        .pulse-dot {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div id="app" class="min-h-screen">
+        <!-- Header -->
+        <header class="gradient-bg text-white shadow-lg">
+            <div class="container mx-auto px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <i class="fas fa-route text-2xl mr-3"></i>
+                        <h1 class="text-3xl font-bold">RouteForce Analytics</h1>
+                        <span class="ml-4 bg-green-500 text-xs px-2 py-1 rounded-full flex items-center">
+                            <span class="pulse-dot w-2 h-2 bg-white rounded-full mr-2"></span>
+                            Live
+                        </span>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button @click="refreshData" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg transition-all">
+                            <i class="fas fa-sync-alt mr-2"></i>Refresh
+                        </button>
+                        <div class="text-sm">
+                            Last Updated: {{ lastUpdate }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Dashboard -->
+        <div class="container mx-auto px-6 py-8">
+            <!-- Key Metrics Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-lg p-6 card-hover transition-all duration-300">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm font-medium">Total Routes</p>
+                            <p class="text-3xl font-bold text-gray-900">{{ metrics.totalRoutes }}</p>
+                        </div>
+                        <div class="bg-blue-100 p-3 rounded-full">
+                            <i class="fas fa-map-marked-alt text-blue-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <span class="text-green-500 text-sm font-medium">+{{ metrics.routesGrowth }}%</span>
+                        <span class="text-gray-500 text-sm ml-2">vs last week</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-6 card-hover transition-all duration-300">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm font-medium">Fuel Efficiency</p>
+                            <p class="text-3xl font-bold text-gray-900">{{ metrics.fuelEfficiency }}<span class="text-lg">km/L</span></p>
+                        </div>
+                        <div class="bg-green-100 p-3 rounded-full">
+                            <i class="fas fa-gas-pump text-green-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <span :class="fuelTrendClass" class="text-sm font-medium">{{ fuelTrendText }}</span>
+                        <span class="text-gray-500 text-sm ml-2">trend</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-6 card-hover transition-all duration-300">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm font-medium">Avg Duration</p>
+                            <p class="text-3xl font-bold text-gray-900">{{ metrics.avgDuration }}<span class="text-lg">min</span></p>
+                        </div>
+                        <div class="bg-yellow-100 p-3 rounded-full">
+                            <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <span :class="durationTrendClass" class="text-sm font-medium">{{ durationTrendText }}</span>
+                        <span class="text-gray-500 text-sm ml-2">trend</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-6 card-hover transition-all duration-300">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm font-medium">Active Alerts</p>
+                            <p class="text-3xl font-bold text-gray-900">{{ alerts.length }}</p>
+                        </div>
+                        <div class="bg-red-100 p-3 rounded-full">
+                            <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <span class="text-red-500 text-sm font-medium">{{ criticalAlerts }} critical</span>
+                        <span class="text-gray-500 text-sm ml-2">alerts</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- Performance Trends Chart -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Performance Trends</h3>
+                    <div class="chart-container">
+                        <canvas ref="trendsChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Route Distribution Chart -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Route Distribution</h3>
+                    <div class="chart-container">
+                        <canvas ref="distributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alerts and Recommendations -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- Alerts Panel -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-gray-900">Performance Alerts</h3>
+                        <button @click="loadAlerts" class="text-blue-600 hover:text-blue-800">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                    <div class="space-y-4 max-h-80 overflow-y-auto">
+                        <div v-for="alert in alerts" :key="alert.id" 
+                             :class="alertClasses(alert.severity)"
+                             class="p-4 rounded-lg border-l-4">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <h4 class="font-semibold">{{ alert.title }}</h4>
+                                    <p class="text-sm text-gray-600 mt-1">{{ alert.message }}</p>
+                                    <div class="text-xs text-gray-500 mt-2">
+                                        {{ formatTime(alert.timestamp) }}
+                                    </div>
+                                </div>
+                                <span :class="severityBadge(alert.severity)" 
+                                      class="px-2 py-1 rounded-full text-xs font-medium">
+                                    {{ alert.severity.toUpperCase() }}
+                                </span>
+                            </div>
+                        </div>
+                        <div v-if="alerts.length === 0" class="text-center py-8 text-gray-500">
+                            <i class="fas fa-check-circle text-4xl text-green-500 mb-4"></i>
+                            <p>No active alerts - All systems optimal!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Recommendations -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">AI Recommendations</h3>
+                    <div class="space-y-3 max-h-80 overflow-y-auto">
+                        <div v-for="(recommendation, index) in recommendations" :key="index"
+                             class="flex items-start p-3 bg-blue-50 rounded-lg">
+                            <div class="flex-shrink-0 mr-3">
+                                <i class="fas fa-lightbulb text-yellow-500 text-lg"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-800">{{ recommendation }}</p>
+                            </div>
+                        </div>
+                        <div v-if="recommendations.length === 0" class="text-center py-8 text-gray-500">
+                            <i class="fas fa-brain text-4xl text-blue-500 mb-4"></i>
+                            <p>AI is analyzing your data...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Real-time Updates -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gray-900">Real-time Updates</h3>
+                    <div class="flex items-center">
+                        <span class="text-sm text-gray-500 mr-2">WebSocket:</span>
+                        <span :class="connectionStatusClass" class="text-sm font-medium">
+                            {{ connectionStatus }}
+                        </span>
+                    </div>
+                </div>
+                <div class="max-h-40 overflow-y-auto">
+                    <div v-for="update in realtimeUpdates" :key="update.id" 
+                         class="flex items-center py-2 border-b border-gray-100 last:border-b-0">
+                        <div class="flex-shrink-0 mr-3">
+                            <i :class="updateIcon(update.type)" class="text-sm"></i>
+                        </div>
+                        <div class="flex-grow">
+                            <p class="text-sm text-gray-800">{{ update.message }}</p>
+                        </div>
+                        <div class="text-xs text-gray-500">
+                            {{ formatTime(update.timestamp) }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    socket: null,
+                    lastUpdate: new Date().toLocaleTimeString(),
+                    connectionStatus: 'Connecting...',
+                    metrics: {
+                        totalRoutes: 0,
+                        fuelEfficiency: 0,
+                        avgDuration: 0,
+                        routesGrowth: 0
+                    },
+                    alerts: [],
+                    recommendations: [],
+                    realtimeUpdates: [],
+                    trends: [],
+                    trendsChart: null,
+                    distributionChart: null
+                }
+            },
+            computed: {
+                connectionStatusClass() {
+                    return this.connectionStatus === 'Connected' ? 'text-green-600' : 'text-red-600';
+                },
+                fuelTrendClass() {
+                    const trend = this.trends.find(t => t.metric === 'Fuel Efficiency');
+                    if (!trend) return 'text-gray-500';
+                    return trend.direction === 'improving' ? 'text-green-500' : 
+                           trend.direction === 'declining' ? 'text-red-500' : 'text-yellow-500';
+                },
+                fuelTrendText() {
+                    const trend = this.trends.find(t => t.metric === 'Fuel Efficiency');
+                    if (!trend) return 'No data';
+                    const arrow = trend.direction === 'improving' ? '↗' : 
+                                  trend.direction === 'declining' ? '↘' : '→';
+                    return `${arrow} ${Math.abs(trend.change || 0).toFixed(1)}%`;
+                },
+                durationTrendClass() {
+                    const trend = this.trends.find(t => t.metric === 'Average Duration');
+                    if (!trend) return 'text-gray-500';
+                    return trend.direction === 'improving' ? 'text-green-500' : 
+                           trend.direction === 'declining' ? 'text-red-500' : 'text-yellow-500';
+                },
+                durationTrendText() {
+                    const trend = this.trends.find(t => t.metric === 'Average Duration');
+                    if (!trend) return 'No data';
+                    const arrow = trend.direction === 'improving' ? '↗' : 
+                                  trend.direction === 'declining' ? '↘' : '→';
+                    return `${arrow} ${Math.abs(trend.change || 0).toFixed(1)}%`;
+                },
+                criticalAlerts() {
+                    return this.alerts.filter(a => a.severity === 'high').length;
+                }
+            },
+            mounted() {
+                this.initializeWebSocket();
+                this.loadDashboardData();
+                this.initializeCharts();
+                
+                // Auto-refresh every 30 seconds
+                setInterval(this.loadDashboardData, 30000);
+            },
+            methods: {
+                initializeWebSocket() {
+                    this.socket = io();
+                    
+                    this.socket.on('connect', () => {
+                        this.connectionStatus = 'Connected';
+                        this.addRealtimeUpdate('system', 'Connected to real-time updates');
+                        this.socket.emit('subscribe_analytics', { type: 'fleet', interval: 30 });
+                    });
+                    
+                    this.socket.on('disconnect', () => {
+                        this.connectionStatus = 'Disconnected';
+                        this.addRealtimeUpdate('error', 'Lost connection to server');
+                    });
+                    
+                    this.socket.on('analytics_update', (data) => {
+                        this.handleAnalyticsUpdate(data);
+                    });
+                    
+                    this.socket.on('performance_alert', (alert) => {
+                        this.handleNewAlert(alert);
+                    });
+                },
+                
+                async loadDashboardData() {
+                    try {
+                        // Load analytics summary
+                        const summaryResponse = await fetch('/dashboard/api/analytics/summary');
+                        const summaryData = await summaryResponse.json();
+                        
+                        if (summaryData.success) {
+                            this.updateMetrics(summaryData.summary);
+                            this.trends = summaryData.summary.trends || [];
+                            this.recommendations = summaryData.summary.recommendations || [];
+                        }
+                        
+                        // Load alerts
+                        await this.loadAlerts();
+                        
+                        this.lastUpdate = new Date().toLocaleTimeString();
+                        this.updateCharts();
+                        
+                    } catch (error) {
+                        console.error('Error loading dashboard data:', error);
+                        this.addRealtimeUpdate('error', 'Failed to load dashboard data');
+                    }
+                },
+                
+                async loadAlerts() {
+                    try {
+                        const alertsResponse = await fetch('/dashboard/api/performance/alerts');
+                        const alertsData = await alertsResponse.json();
+                        
+                        if (alertsData.success) {
+                            this.alerts = alertsData.alerts || [];
+                        }
+                    } catch (error) {
+                        console.error('Error loading alerts:', error);
+                    }
+                },
+                
+                updateMetrics(summary) {
+                    this.metrics.totalRoutes = summary.total_routes || 0;
+                    this.metrics.fuelEfficiency = (summary.avg_fuel_efficiency || 0).toFixed(1);
+                    this.metrics.avgDuration = Math.round(summary.avg_duration || 0);
+                    this.metrics.routesGrowth = Math.round(Math.random() * 10); // Simulated growth
+                },
+                
+                initializeCharts() {
+                    // Performance Trends Chart
+                    const trendsCtx = this.$refs.trendsChart.getContext('2d');
+                    this.trendsChart = new Chart(trendsCtx, {
+                        type: 'line',
+                        data: {
+                            labels: [],
+                            datasets: [{
+                                label: 'Fuel Efficiency',
+                                data: [],
+                                borderColor: 'rgb(59, 130, 246)',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                tension: 0.4
+                            }, {
+                                label: 'Duration',
+                                data: [],
+                                borderColor: 'rgb(16, 185, 129)',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                tension: 0.4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                    
+                    // Route Distribution Chart
+                    const distributionCtx = this.$refs.distributionChart.getContext('2d');
+                    this.distributionChart = new Chart(distributionCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Completed', 'In Progress', 'Pending'],
+                            datasets: [{
+                                data: [70, 20, 10],
+                                backgroundColor: [
+                                    'rgb(34, 197, 94)',
+                                    'rgb(251, 191, 36)',
+                                    'rgb(239, 68, 68)'
+                                ]
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                }
+                            }
+                        }
+                    });
+                },
+                
+                updateCharts() {
+                    if (this.trends.length > 0) {
+                        const labels = this.trends.map(t => t.metric);
+                        const values = this.trends.map(t => t.value || 0);
+                        
+                        this.trendsChart.data.labels = labels;
+                        this.trendsChart.data.datasets[0].data = values;
+                        this.trendsChart.update();
+                    }
+                },
+                
+                refreshData() {
+                    this.loadDashboardData();
+                    this.addRealtimeUpdate('system', 'Dashboard refreshed manually');
+                },
+                
+                handleAnalyticsUpdate(data) {
+                    if (data.fleet_insights) {
+                        this.updateMetrics(data.fleet_insights);
+                    }
+                    this.addRealtimeUpdate('analytics', 'Analytics data updated');
+                },
+                
+                handleNewAlert(alert) {
+                    this.alerts.unshift(alert);
+                    this.addRealtimeUpdate('alert', `New ${alert.severity} alert: ${alert.title}`);
+                },
+                
+                addRealtimeUpdate(type, message) {
+                    this.realtimeUpdates.unshift({
+                        id: Date.now(),
+                        type: type,
+                        message: message,
+                        timestamp: new Date().toISOString()
+                    });
+                    
+                    // Keep only last 10 updates
+                    if (this.realtimeUpdates.length > 10) {
+                        this.realtimeUpdates = this.realtimeUpdates.slice(0, 10);
+                    }
+                },
+                
+                alertClasses(severity) {
+                    const base = 'bg-opacity-50';
+                    switch (severity) {
+                        case 'high': return `bg-red-100 border-red-500 ${base}`;
+                        case 'medium': return `bg-yellow-100 border-yellow-500 ${base}`;
+                        default: return `bg-blue-100 border-blue-500 ${base}`;
+                    }
+                },
+                
+                severityBadge(severity) {
+                    switch (severity) {
+                        case 'high': return 'bg-red-100 text-red-800';
+                        case 'medium': return 'bg-yellow-100 text-yellow-800';
+                        default: return 'bg-blue-100 text-blue-800';
+                    }
+                },
+                
+                updateIcon(type) {
+                    switch (type) {
+                        case 'analytics': return 'fas fa-chart-line text-blue-500';
+                        case 'alert': return 'fas fa-exclamation-triangle text-red-500';
+                        case 'system': return 'fas fa-cog text-green-500';
+                        default: return 'fas fa-info-circle text-gray-500';
+                    }
+                },
+                
+                formatTime(timestamp) {
+                    return new Date(timestamp).toLocaleTimeString();
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

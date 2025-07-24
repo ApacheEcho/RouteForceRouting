@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RouteForce - Intelligent Route Optimization Platform</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+        }
+        .feature-card:hover { 
+            transform: translateY(-5px); 
+            transition: transform 0.3s ease; 
+        }
+        .hero-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <h1 class="text-2xl font-bold text-indigo-600">
+                            <i class="fas fa-route mr-2"></i>RouteForce
+                        </h1>
+                    </div>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="/" class="text-indigo-600 px-3 py-2 text-sm font-medium border-b-2 border-indigo-600">Home</a>
+                        <a href="/generate" class="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium">Route Generator</a>
+                        <a href="/dashboard" class="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium">Dashboard</a>
+                        <a href="/sitemap" class="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium">All Features</a>
+                        <a href="/auth/login" class="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700">Login</a>
+                    </div>
+                </div>
+                <div class="md:hidden">
+                    <button class="mobile-menu-button text-gray-700 hover:text-indigo-600">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile menu -->
+        <div class="mobile-menu hidden md:hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t">
+                <a href="/" class="text-indigo-600 block px-3 py-2 text-base font-medium">Home</a>
+                <a href="/generate" class="text-gray-700 hover:text-indigo-600 block px-3 py-2 text-base font-medium">Route Generator</a>
+                <a href="/dashboard" class="text-gray-700 hover:text-indigo-600 block px-3 py-2 text-base font-medium">Dashboard</a>
+                <a href="/sitemap" class="text-gray-700 hover:text-indigo-600 block px-3 py-2 text-base font-medium">All Features</a>
+                <a href="/auth/login" class="text-gray-700 hover:text-indigo-600 block px-3 py-2 text-base font-medium">Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="gradient-bg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+            <div class="text-center">
+                <div class="hero-animation mb-8">
+                    <i class="fas fa-shipping-fast text-6xl text-white mb-4"></i>
+                </div>
+                <h1 class="text-4xl md:text-6xl font-bold text-white mb-6">
+                    Intelligent Route <span class="text-yellow-300">Optimization</span>
+                </h1>
+                <p class="text-xl md:text-2xl text-white mb-8 max-w-3xl mx-auto">
+                    Transform your delivery operations with AI-powered route optimization. 
+                    Reduce costs, save time, and improve efficiency with enterprise-grade algorithms.
+                </p>
+                <div class="space-x-4">
+                    <a href="/generate" class="bg-yellow-400 text-gray-800 px-8 py-3 rounded-lg text-lg font-semibold hover:bg-yellow-300 transition duration-300">
+                        <i class="fas fa-route mr-2"></i>Generate Route
+                    </a>
+                    <a href="/dashboard" class="bg-transparent border-2 border-white text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-white hover:text-indigo-600 transition duration-300">
+                        <i class="fas fa-chart-line mr-2"></i>View Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+                    Powerful Features for Modern Logistics
+                </h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Comprehensive tools and algorithms designed for enterprise-scale route optimization
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Route Generation -->
+                <div class="feature-card bg-white p-6 rounded-lg shadow-lg border hover:shadow-xl">
+                    <div class="text-center">
+                        <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-route text-2xl text-blue-600"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3">Smart Route Generation</h3>
+                        <p class="text-gray-600 mb-4">Upload store lists and generate optimized routes using advanced algorithms including genetic optimization and simulated annealing.</p>
+                        <a href="/generate" class="text-blue-600 hover:text-blue-700 font-medium">
+                            Start Generating <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Analytics Dashboard -->
+                <div class="feature-card bg-white p-6 rounded-lg shadow-lg border hover:shadow-xl">
+                    <div class="text-center">
+                        <div class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-chart-line text-2xl text-green-600"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3">Advanced Analytics</h3>
+                        <p class="text-gray-600 mb-4">Real-time performance monitoring, algorithm comparison, and predictive analytics for data-driven decisions.</p>
+                        <a href="/dashboard" class="text-green-600 hover:text-green-700 font-medium">
+                            View Dashboard <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Enterprise Features -->
+                <div class="feature-card bg-white p-6 rounded-lg shadow-lg border hover:shadow-xl">
+                    <div class="text-center">
+                        <div class="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-building text-2xl text-purple-600"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3">Enterprise Ready</h3>
+                        <p class="text-gray-600 mb-4">User authentication, role-based access, organization management, and enterprise-grade security features.</p>
+                        <a href="/auth/login" class="text-purple-600 hover:text-purple-700 font-medium">
+                            Access Enterprise <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Performance Optimization -->
+                <div class="feature-card bg-white p-6 rounded-lg shadow-lg border hover:shadow-xl">
+                    <div class="text-center">
+                        <div class="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-tachometer-alt text-2xl text-red-600"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3">Performance Monitoring</h3>
+                        <p class="text-gray-600 mb-4">Real-time system monitoring, performance optimization, and automatic scaling with detailed metrics.</p>
+                        <a href="/api/monitoring/dashboard" class="text-red-600 hover:text-red-700 font-medium">
+                            View Metrics <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Machine Learning -->
+                <div class="feature-card bg-white p-6 rounded-lg shadow-lg border hover:shadow-xl">
+                    <div class="text-center">
+                        <div class="bg-yellow-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-brain text-2xl text-yellow-600"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3">AI & Machine Learning</h3>
+                        <p class="text-gray-600 mb-4">Advanced ML algorithms for route prediction, traffic analysis, and continuous optimization learning.</p>
+                        <a href="/api/ai/insights" class="text-yellow-600 hover:text-yellow-700 font-medium">
+                            Explore AI <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Mobile & API -->
+                <div class="feature-card bg-white p-6 rounded-lg shadow-lg border hover:shadow-xl">
+                    <div class="text-center">
+                        <div class="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-mobile-alt text-2xl text-indigo-600"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3">Mobile & API Access</h3>
+                        <p class="text-gray-600 mb-4">RESTful API endpoints and mobile-optimized interfaces for integration with existing systems.</p>
+                        <a href="/sitemap" class="text-indigo-600 hover:text-indigo-700 font-medium">
+                            View API Docs <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Start Section -->
+    <section class="py-16 bg-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Get Started in 3 Steps</h2>
+                <p class="text-xl text-gray-600">Start optimizing your routes immediately</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="text-center">
+                    <div class="bg-white w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                        <span class="text-2xl font-bold text-indigo-600">1</span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Upload Store Data</h3>
+                    <p class="text-gray-600">Upload your CSV file with store locations, or input data manually</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="bg-white w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                        <span class="text-2xl font-bold text-indigo-600">2</span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Configure Parameters</h3>
+                    <p class="text-gray-600">Set optimization preferences, constraints, and select algorithms</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="bg-white w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                        <span class="text-2xl font-bold text-indigo-600">3</span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Generate & Export</h3>
+                    <p class="text-gray-600">Get optimized routes and export results in various formats</p>
+                </div>
+            </div>
+            
+            <div class="text-center mt-12">
+                <a href="/generate" class="bg-indigo-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-indigo-700 transition duration-300">
+                    <i class="fas fa-rocket mr-2"></i>Start Now
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">
+                        <i class="fas fa-route mr-2"></i>RouteForce
+                    </h3>
+                    <p class="text-gray-400">
+                        Enterprise-grade route optimization platform powered by advanced AI algorithms.
+                    </p>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Features</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="/generate" class="hover:text-white">Route Generation</a></li>
+                        <li><a href="/dashboard" class="hover:text-white">Analytics Dashboard</a></li>
+                        <li><a href="/api/monitoring/dashboard" class="hover:text-white">Performance Monitoring</a></li>
+                        <li><a href="/auth/login" class="hover:text-white">Enterprise Features</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Resources</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="/sitemap" class="hover:text-white">API Documentation</a></li>
+                        <li><a href="/health" class="hover:text-white">System Health</a></li>
+                        <li><a href="/metrics" class="hover:text-white">System Metrics</a></li>
+                        <li><a href="/api/algorithms" class="hover:text-white">Available Algorithms</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">System Status</h4>
+                    <div class="space-y-2 text-gray-400">
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                            <span>All Systems Operational</span>
+                        </div>
+                        <div class="text-sm">
+                            <a href="/health" class="hover:text-white">View Health Check</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2025 RouteForce. Enterprise Route Optimization Platform.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        document.querySelector('.mobile-menu-button').addEventListener('click', function() {
+            document.querySelector('.mobile-menu').classList.toggle('hidden');
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Auto-hide mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const mobileMenu = document.querySelector('.mobile-menu');
+            const mobileButton = document.querySelector('.mobile-menu-button');
+            
+            if (!mobileMenu.contains(event.target) && !mobileButton.contains(event.target)) {
+                mobileMenu.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

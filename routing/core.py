@@ -1,113 +1,139 @@
-from typing import List, Dict
+"""
+Legacy routing core - Modernized with clean service architecture
+This module provides backward compatibility while using modern services internally
+"""
+
+import logging
 from datetime import datetime
+from typing import Dict, List, Optional
 
-def summarize_route(route: List[Dict], original_stores: List[Dict], playbook: Dict, visit_date: datetime = None) -> Dict:
-    summary = {
-        "total_stops": len(route),
-        "chains_in_route": list({store["chain"] for store in route}),
-        "priorities": {},
-        "skipped_due_to_visit_hours": 0
-    }
+# Import modern services
+from app.services.route_core import RouteConstraints, create_route_generator
+from app.services.route_core import generate_route as modern_generate_route
+from app.services.route_core import print_route_summary as modern_print_route_summary
+from app.services.route_core import summarize_route as modern_summarize_route
 
-    # Count priorities
-    for store in route:
-        chain = store.get("chain")
-        if chain and chain in playbook and "priority" in playbook[chain]:
-            p = playbook[chain]["priority"]
-            summary["priorities"][p] = summary["priorities"].get(p, 0) + 1
-
-    # Skipped due to visit_hours
-    for store in original_stores:
-        if store not in route:
-            chain = store.get("chain")
-            if chain in playbook and "visit_hours" in playbook[chain]:
-                try:
-                    now = visit_date or datetime.now()
-                    vh = playbook[chain]["visit_hours"]
-                    start = datetime.strptime(vh["start"], "%H:%M").time()
-                    end = datetime.strptime(vh["end"], "%H:%M").time()
-                    if not (start <= now.time() <= end):
-                        summary["skipped_due_to_visit_hours"] += 1
-                except Exception:
-                    continue
-
-    return summary
+logger = logging.getLogger(__name__)
 
 
-# Helper to print a route summary in a clean, readable format
-def print_route_summary(summary: Dict) -> None:
-    print("\n--- Route Summary ---")
-    print(f"Total Stops: {summary['total_stops']}")
-    print(f"Chains in Route: {', '.join(summary['chains_in_route'])}")
-    print("Priority Distribution:")
-    for priority, count in sorted(summary['priorities'].items(), reverse=True):
-        print(f"  Priority {priority}: {count} stop(s)")
-    print(f"Skipped Due to Visit Hours: {summary['skipped_due_to_visit_hours']}")
-    print("----------------------\n")
-
-def generate_route(stores: List[Dict], visit_date: datetime = None, playbook: Dict = None) -> List[Dict]:
+def generate_route(
+    stores: List[Dict],
+    visit_date: Optional[datetime] = None,
+    playbook: Optional[Dict] = None,
+) -> List[Dict]:
     """
-    Generate optimized route from stores list
-    
+    Generate optimized route from stores list (legacy compatibility)
+
     Args:
         stores: List of store dictionaries
         visit_date: Optional visit date for time-based filtering
         playbook: Optional playbook constraints
-        
+
     Returns:
         List of stores representing optimized route
     """
-    if not stores:
-        return []
-    
-    # Apply playbook constraints if provided
-    if playbook:
-        filtered_stores = apply_playbook_constraints(stores, playbook, visit_date)
-    else:
-        filtered_stores = stores.copy()
-    
-    # Simple optimization: sort by priority if available, then by name
-    def sort_key(store):
-        chain = store.get("chain", "")
-        priority = 0
-        if playbook and chain in playbook and "priority" in playbook[chain]:
-            priority = playbook[chain]["priority"]
-        return (-priority, store.get("name", ""))
-    
-    return sorted(filtered_stores, key=sort_key)
+    return modern_generate_route(stores, visit_date, playbook)
 
-def apply_playbook_constraints(stores: List[Dict], playbook: Dict, visit_date: datetime = None) -> List[Dict]:
-    """Apply playbook constraints to filter stores"""
-    filtered_stores = []
-    current_time = visit_date or datetime.now()
-    
-    for store in stores:
-        chain = store.get("chain", "")
-        
-        # Skip if chain not in playbook
-        if chain not in playbook:
-            filtered_stores.append(store)
-            continue
-            
-        constraints = playbook[chain]
-        
-        # Check visit hours
-        if "visit_hours" in constraints:
-            try:
-                vh = constraints["visit_hours"]
-                start = datetime.strptime(vh["start"], "%H:%M").time()
-                end = datetime.strptime(vh["end"], "%H:%M").time()
-                if not (start <= current_time.time() <= end):
-                    continue  # Skip this store
-            except Exception:
-                pass  # If parsing fails, include the store
-        
-        # Check max route stops (simplified - just limit total)
-        if "max_route_stops" in constraints:
-            max_stops = constraints["max_route_stops"]
-            if len(filtered_stores) >= max_stops:
-                break
-        
-        filtered_stores.append(store)
-    
-    return filtered_stores
+
+def summarize_route(
+    route: List[Dict],
+    original_stores: List[Dict],
+    playbook: Optional[Dict] = None,
+    visit_date: Optional[datetime] = None,
+) -> Dict:
+    """
+    Generate route summary with analysis (legacy compatibility)
+
+    Args:
+        route: Generated route
+        original_stores: Original store list
+        playbook: Optional playbook constraints
+        visit_date: Optional visit date
+
+    Returns:
+        Route summary dictionary
+    """
+    return modern_summarize_route(route, original_stores, playbook, visit_date)
+
+
+def print_route_summary(summary: Dict) -> None:
+    """
+    Print a route summary in a clean, readable format (legacy compatibility)
+
+    Args:
+        summary: Route summary dictionary
+    """
+    modern_print_route_summary(summary)
+
+
+def apply_playbook_constraints(
+    stores: List[Dict], playbook: Dict, visit_date: Optional[datetime] = None
+) -> List[Dict]:
+    """
+    Apply playbook constraints to filter stores (legacy compatibility)
+
+    Args:
+        stores: List of store dictionaries
+        playbook: Playbook constraints
+        visit_date: Optional visit date
+
+    Returns:
+        Filtered list of stores
+    """
+    logger.warning(
+        "apply_playbook_constraints is deprecated. Use RouteConstraints with ModernRouteGenerator instead."
+    )
+
+    # Convert playbook to constraints and use modern generator
+    constraints = RouteConstraints()
+    if visit_date:
+        constraints.visit_date = visit_date
+
+    # Convert playbook format to modern constraints
+    time_windows = {}
+    priority_weights = {}
+    max_stores = None
+
+    for chain, config in playbook.items():
+        if "visit_hours" in config:
+            time_windows[chain] = config["visit_hours"]
+        if "priority" in config:
+            priority_weights[chain] = config["priority"]
+        if "max_route_stops" in config:
+            max_stores = config["max_route_stops"]
+
+    constraints.time_windows = time_windows if time_windows else None
+    constraints.priority_weights = priority_weights if priority_weights else None
+    constraints.max_stores = max_stores
+
+    # Use modern route generator to apply constraints
+    generator = create_route_generator("priority")
+    route, _ = generator.generate_route(stores, constraints)
+    return route
+
+
+# Modern API recommendations
+def get_modern_route_generator(algorithm: str = "nearest_neighbor"):
+    """
+    Get a modern route generator instance
+
+    Args:
+        algorithm: Algorithm to use ("priority", "nearest_neighbor")
+
+    Returns:
+        ModernRouteGenerator instance
+    """
+    return create_route_generator(algorithm)
+
+
+def calculate_route_summary(route: List[Dict]) -> Dict:
+    """
+    Calculate route summary (legacy compatibility)
+
+    Args:
+        route: List of route stops
+
+    Returns:
+        Dictionary with route summary
+    """
+    return modern_summarize_route(route, route)

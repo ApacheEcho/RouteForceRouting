@@ -1,0 +1,61 @@
+# Prometheus Configuration for RouteForce Metrics
+# Add this job to your prometheus.yml configuration
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "routeforce_alerts.yml"
+
+scrape_configs:
+  - job_name: 'routeforce-app'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['localhost:8000']  # Adjust to your app's host:port
+    metrics_path: '/metrics'
+    scheme: 'http'  # Change to 'https' for production
+    
+  - job_name: 'routeforce-app-summary'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['localhost:8000']
+    metrics_path: '/metrics/summary'
+    scheme: 'http'
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+# Sample alerting rules (save as routeforce_alerts.yml)
+groups:
+  - name: routeforce.rules
+    rules:
+      - alert: HighRouteGenerationLatency
+        expr: histogram_quantile(0.95, rate(route_generation_duration_seconds_bucket[5m])) > 10
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High route generation latency detected"
+          description: "95th percentile route generation time is {{ $value }}s"
+          
+      - alert: HighErrorRate
+        expr: rate(route_generation_requests_total{status="error"}[5m]) > 0.1
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate in route generation"
+          description: "Error rate is {{ $value }} errors/sec"
+          
+      - alert: LowGeocodingCacheHitRate
+        expr: rate(geocoding_cache_hits[5m]) / (rate(geocoding_cache_hits[5m]) + rate(geocoding_api_calls[5m])) < 0.7
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low geocoding cache hit rate"
+          description: "Cache hit rate is {{ $value | humanizePercentage }}"

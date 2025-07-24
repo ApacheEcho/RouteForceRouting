@@ -7,8 +7,9 @@ import { OptimizationInsights } from './OptimizationInsights';
 import { MLInsights } from './MLInsights';
 import { PredictiveAnalytics } from './PredictiveAnalytics';
 import { Button } from '../ui/Button';
-import { RefreshCw, Download, Settings } from 'lucide-react';
+import { RefreshCw, Download, Settings, Wifi } from 'lucide-react';
 import { dashboardApi } from '../../services/api';
+import { useLiveSync, liveSyncService } from '../../services/liveSync';
 import { DashboardData } from '../../types/dashboard';
 
 interface DashboardProps {
@@ -21,6 +22,54 @@ export const Dashboard: React.FC<DashboardProps> = ({ className = '' }) => {
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+  const [liveUpdatesEnabled, setLiveUpdatesEnabled] = useState(true);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+
+  // LiveSync integration for real-time updates
+  useLiveSync('route_update', (event) => {
+    if (liveUpdatesEnabled) {
+      console.log('Route update received:', event);
+      setLastUpdate(new Date());
+      // Refresh specific route data without full reload
+      refreshRouteData();
+    }
+  });
+
+  useLiveSync('optimization_complete', (event) => {
+    if (liveUpdatesEnabled) {
+      console.log('Optimization complete:', event);
+      setLastUpdate(new Date());
+      // Refresh optimization insights
+      refreshOptimizationData();
+    }
+  });
+
+  useLiveSync('status_change', (event) => {
+    if (liveUpdatesEnabled) {
+      console.log('Status change received:', event);
+      setLastUpdate(new Date());
+      // Refresh relevant dashboard sections
+      fetchDashboardData();
+    }
+  });
+
+  const refreshRouteData = async () => {
+    try {
+      const performanceData = await dashboardApi.getPerformanceTrends();
+      setData(prev => prev ? { ...prev, performance: performanceData } : null);
+    } catch (err) {
+      console.error('Failed to refresh route data:', err);
+    }
+  };
+
+  const refreshOptimizationData = async () => {
+    try {
+      const optimizationData = await dashboardApi.getOptimizationInsights();
+      setData(prev => prev ? { ...prev, optimization: optimizationData } : null);
+    } catch (err) {
+      console.error('Failed to refresh optimization data:', err);
+    }
+  };
 
   const fetchDashboardData = async () => {
     try {

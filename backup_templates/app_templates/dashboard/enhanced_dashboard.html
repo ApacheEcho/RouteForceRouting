@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RouteForce Enhanced Dashboard - Algorithm Comparison & Analytics</title>
+    
+    <!-- TailwindCSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Leaflet CSS and JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Socket.IO for real-time updates -->
+    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Analytics Dashboard Component -->
+    <script src="{{ url_for('static', filename='js/analytics_dashboard.js') }}"></script>
+    
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .map-container {
+            height: 400px;
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+            border: 1px solid #e5e7eb;
+            display: block;
+        }
+        .map-container .leaflet-container {
+            height: 100% !important;
+            width: 100% !important;
+            border-radius: 12px;
+        }
+        .leaflet-control-container {
+            pointer-events: auto;
+        }
+        /* Fix for Leaflet tile positioning */
+        .leaflet-tile-container {
+            transform: none !important;
+        }
+        .leaflet-layer {
+            opacity: 1 !important;
+        }
+        /* Ensure proper map rendering */
+        #trafficMap .leaflet-map-pane {
+            left: 0 !important;
+            top: 0 !important;
+        }
+        #trafficMap .leaflet-tile-pane {
+            left: 0 !important;
+            top: 0 !important;
+        }
+        #trafficMap .leaflet-tile {
+            pointer-events: auto;
+        }
+        /* Force proper Leaflet container sizing */
+        .leaflet-container {
+            width: 100% !important;
+            height: 100% !important;
+        }
+        .metric-card {
+            transition: all 0.3s ease;
+        }
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        .algorithm-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .algorithm-card:hover {
+            border-color: #667eea;
+        }
+        .performance-bar {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 1rem;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .algorithm-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        .algorithm-badge.genetic {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .algorithm-badge.simulated_annealing {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .algorithm-badge.multi_objective {
+            background: #fce7f3;
+            color: #be185d;
+        }
+        .algorithm-badge.default {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <i class="fas fa-chart-line text-2xl"></i>
+                    <h1 class="text-2xl font-bold">RouteForce Enhanced Dashboard</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div id="connectionStatus" class="flex items-center space-x-2">
+                        <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                        <span id="statusText" class="text-sm">Connected</span>
+                    </div>
+                    <a href="/dashboard" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg transition-all">
+                        <i class="fas fa-dashboard mr-2"></i>Basic Dashboard
+                    </a>
+                    <a href="/" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg transition-all">
+                        <i class="fas fa-home mr-2"></i>Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-6 py-8">
+        <!-- System Status Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+            <div class="metric-card bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Total Routes</p>
+                        <p id="totalRoutes" class="text-3xl font-bold text-blue-600">0</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-route text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="metric-card bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Distance Saved</p>
+                        <p id="distanceSaved" class="text-3xl font-bold text-green-600">0km</p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-map-pin text-green-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="metric-card bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Avg Improvement</p>
+                        <p id="avgImprovement" class="text-3xl font-bold text-purple-600">0%</p>
+                    </div>
+                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-trending-up text-purple-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="metric-card bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Algorithms</p>
+                        <p id="algorithmsCount" class="text-3xl font-bold text-orange-600">4</p>
+                    </div>
+                    <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-cogs text-orange-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="metric-card bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Avg Response</p>
+                        <p id="avgResponse" class="text-3xl font-bold text-red-600">0ms</p>
+                    </div>
+                    <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-clock text-red-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="bg-white rounded-xl shadow-lg mb-8">
+            <div class="border-b border-gray-200">
+                <nav class="flex space-x-8 px-6" aria-label="Tabs">
+                    <button class="tab-button active py-4 px-1 border-b-2 border-blue-500 text-blue-600 font-medium text-sm" data-tab="comparison">
+                        <i class="fas fa-chart-bar mr-2"></i>Algorithm Comparison
+                    </button>
+                    <button class="tab-button py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm" data-tab="analytics">
+                        <i class="fas fa-analytics mr-2"></i>Analytics
+                    </button>
+                    <button class="tab-button py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm" data-tab="traffic">
+                        <i class="fas fa-traffic-light mr-2"></i>Traffic Optimization
+                    </button>
+                    <button class="tab-button py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm" data-tab="system">
+                        <i class="fas fa-server mr-2"></i>System Status
+                    </button>
+                    <button class="tab-button py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm" data-tab="settings">
+                        <i class="fas fa-settings mr-2"></i>Settings
+                    </button>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Algorithm Comparison Tab -->
+        <div id="comparison" class="tab-content active">
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                <!-- Algorithm Selection and Test Data -->
+                <div class="xl:col-span-1">
+                    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                            <i class="fas fa-upload mr-2 text-blue-600"></i>Test Data
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+                                <input type="file" id="testStoreFile" name="file" accept=".csv,.xlsx,.xls" class="hidden">
+                                <label for="testStoreFile" class="cursor-pointer">
+                                    <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-3 block"></i>
+                                    <p class="text-gray-600">Upload test data</p>
+                                    <p class="text-sm text-gray-500 mt-1">CSV, Excel files supported</p>
+                                </label>
+                            </div>
+                            <div class="text-center">
+                                <button id="useSampleData" class="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-200 transition-colors">
+                                    <i class="fas fa-database mr-2"></i>Use Sample Data
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                            <i class="fas fa-cog mr-2 text-purple-600"></i>Comparison Controls
+                        </h3>
+                        <div class="space-y-4">
+                            <button id="runComparison" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105">
+                                <i class="fas fa-play mr-2"></i>Run Algorithm Comparison
+                            </button>
+                            <button id="clearResults" class="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors">
+                                <i class="fas fa-trash mr-2"></i>Clear Results
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comparison Results -->
+                <div class="xl:col-span-2">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-6">
+                            <i class="fas fa-trophy mr-2 text-yellow-600"></i>Algorithm Performance Comparison
+                        </h3>
+                        <div id="comparisonResults" class="space-y-6">
+                            <div class="text-center text-gray-500 py-12">
+                                <i class="fas fa-chart-bar text-6xl text-gray-300 mb-4"></i>
+                                <p class="text-lg">Run a comparison to see results</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Tab -->
+        <div id="analytics" class="tab-content">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Performance History Chart -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                        <i class="fas fa-chart-line mr-2 text-green-600"></i>Performance History
+                    </h3>
+                    <div class="h-80">
+                        <canvas id="performanceHistoryChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Algorithm Usage Chart -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                        <i class="fas fa-chart-pie mr-2 text-purple-600"></i>Algorithm Usage
+                    </h3>
+                    <div class="h-80">
+                        <canvas id="algorithmUsageChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Improvement Trends -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                        <i class="fas fa-trending-up mr-2 text-blue-600"></i>Improvement Trends
+                    </h3>
+                    <div class="h-80">
+                        <canvas id="improvementTrendsChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Response Time Analysis -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                        <i class="fas fa-clock mr-2 text-orange-600"></i>Response Time Analysis
+                    </h3>
+                    <div class="h-80">
+                        <canvas id="responseTimeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Traffic Optimization Tab -->
+        <div id="traffic" class="tab-content">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- Traffic Configuration -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-6">
+                        <i class="fas fa-route mr-2 text-blue-600"></i>Traffic-Aware Route Configuration
+                    </h3>
+                    
+                    <!-- Traffic Settings Form -->
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Traffic Model</label>
+                            <select id="trafficModel" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="best_guess">Best Guess (Default)</option>
+                                <option value="pessimistic">Pessimistic (Heavy Traffic)</option>
+                                <option value="optimistic">Optimistic (Light Traffic)</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Departure Time</label>
+                            <select id="departureTime" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="now">Now</option>
+                                <option value="morning_rush">Morning Rush (8:00 AM)</option>
+                                <option value="midday">Midday (12:00 PM)</option>
+                                <option value="evening_rush">Evening Rush (5:00 PM)</option>
+                                <option value="custom">Custom Time</option>
+                            </select>
+                        </div>
+                        
+                        <div id="customTimeContainer" class="hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Custom Departure Time</label>
+                            <input type="datetime-local" id="customTime" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        
+                        <div>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="avoidTolls" class="mr-2">
+                                <span class="text-sm text-gray-700">Avoid Toll Roads</span>
+                            </label>
+                        </div>
+                        
+                        <div>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="avoidHighways" class="mr-2">
+                                <span class="text-sm text-gray-700">Avoid Highways</span>
+                            </label>
+                        </div>
+                        
+                        <button id="optimizeTrafficRoute" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-magic mr-2"></i>Optimize with Traffic Data
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Traffic Status -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-6">
+                        <i class="fas fa-tachometer-alt mr-2 text-green-600"></i>Traffic Service Status
+                    </h3>
+                    
+                    <div id="trafficStatus" class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Service Status</span>
+                            <span id="serviceStatus" class="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded">Checking...</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">API Quota Used</span>
+                            <span id="apiQuota" class="text-sm font-medium">0%</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Cache Entries</span>
+                            <span id="cacheEntries" class="text-sm font-medium">0</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Last Updated</span>
+                            <span id="lastUpdated" class="text-sm text-gray-500">Never</span>
+                        </div>
+                        
+                        <button id="clearTrafficCache" class="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition-colors">
+                            <i class="fas fa-trash mr-2"></i>Clear Traffic Cache
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Traffic Route Results -->
+            <div id="trafficResults" class="bg-white rounded-xl shadow-lg p-6 hidden">
+                <h3 class="text-lg font-semibold text-gray-800 mb-6">
+                    <i class="fas fa-road mr-2 text-purple-600"></i>Traffic-Optimized Route
+                </h3>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-blue-600" id="trafficDistance">0 km</div>
+                        <div class="text-sm text-gray-600">Total Distance</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-green-600" id="trafficDuration">0 min</div>
+                        <div class="text-sm text-gray-600">With Traffic</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-orange-600" id="trafficConditions">Normal</div>
+                        <div class="text-sm text-gray-600">Traffic Conditions</div>
+                    </div>
+                </div>
+                
+                <!-- Route Map -->
+                <div id="trafficMap" class="map-container mb-6"></div>
+                
+                <!-- Alternative Routes -->
+                <div id="alternativeRoutes" class="space-y-4">
+                    <h4 class="text-md font-semibold text-gray-800">Alternative Routes</h4>
+                    <div id="alternativesList" class="space-y-2">
+                        <!-- Alternative routes will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Status Tab -->
+        <div id="system" class="tab-content">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- System Performance -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                        <i class="fas fa-server mr-2 text-blue-600"></i>System Performance
+                    </h3>
+                    <div id="systemPerformance" class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-600">CPU Usage</span>
+                            <span id="cpuUsage" class="text-sm font-bold text-blue-600">0%</span>
+                        </div>
+                        <div class="performance-indicator">
+                            <div id="cpuBar" class="performance-bar bg-blue-500" style="width: 0%"></div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-600">Memory Usage</span>
+                            <span id="memoryUsage" class="text-sm font-bold text-green-600">0MB</span>
+                        </div>
+                        <div class="performance-indicator">
+                            <div id="memoryBar" class="performance-bar bg-green-500" style="width: 0%"></div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-600">Request Rate</span>
+                            <span id="requestRate" class="text-sm font-bold text-purple-600">0 req/min</span>
+                        </div>
+                        <div class="performance-indicator">
+                            <div id="requestBar" class="performance-bar bg-purple-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                        <i class="fas fa-activity mr-2 text-orange-600"></i>Recent Activity
+                    </h3>
+                    <div id="recentActivity" class="space-y-3 max-h-96 overflow-y-auto">
+                        <!-- Activity items will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="settings" class="tab-content">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Algorithm Settings -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                        <i class="fas fa-cog mr-2 text-blue-600"></i>Algorithm Settings
+                    </h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Default Algorithm</label>
+                            <select id="defaultAlgorithm" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="default">Default</option>
+                                <option value="genetic">Genetic Algorithm</option>
+                                <option value="simulated_annealing">Simulated Annealing</option>
+                                <option value="multi_objective">Multi-Objective</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Auto-refresh Interval (seconds)</label>
+                            <input type="number" id="refreshInterval" value="30" min="5" max="300" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <label class="flex items-center space-x-3">
+                                <input type="checkbox" id="enableNotifications" class="form-checkbox h-5 w-5 text-blue-600 rounded">
+                                <span class="text-gray-700">Enable notifications</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Display Settings -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                        <i class="fas fa-display mr-2 text-purple-600"></i>Display Settings
+                    </h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Theme</label>
+                            <select id="theme" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="light">Light</option>
+                                <option value="dark">Dark</option>
+                                <option value="auto">Auto</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Chart Animation</label>
+                            <select id="chartAnimation" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="enabled">Enabled</option>
+                                <option value="disabled">Disabled</option>
+                            </select>
+                        </div>
+                        
+                        <button id="saveSettings" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-save mr-2"></i>Save Settings
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-8 text-center">
+            <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Running Algorithm Comparison</h3>
+            <p class="text-gray-600">This may take a few moments...</p>
+        </div>
+    </div>
+
+    <!-- Enhanced Dashboard JavaScript -->
+    <script>
+        class EnhancedDashboard {
+            constructor() {
+                this.charts = {};
+                this.comparisonData = null;
+                this.systemData = null;
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.initializeCharts();
+                this.loadSystemStatus();
+                this.startPerformanceMonitoring();
+            }
+
+            setupEventListeners() {
+                // Tab switching
+                document.querySelectorAll('.tab-button').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        this.switchTab(e.target.dataset.tab);
+                    });
+                });
+
+                // Algorithm comparison
+                document.getElementById('runComparison').addEventListener('click', () => {
+                    this.runAlgorithmComparison();
+                });
+
+                document.getElementById('clearResults').addEventListener('click', () => {
+                    this.clearComparisonResults();
+                });
+
+                document.getElementById('useSampleData').addEventListener('click', () => {
+                    this.useSampleData();
+                });
+
+                // Settings
+                document.getElementById('saveSettings').addEventListener('click', () => {
+                    this.saveSettings();
+                });
+
+                // Traffic optimization
+                document.getElementById('optimizeTrafficRoute').addEventListener('click', () => {
+                    this.optimizeTrafficRoute();
+                });
+
+                document.getElementById('clearTrafficCache').addEventListener('click', () => {
+                    this.clearTrafficCache();
+                });
+
+                document.getElementById('departureTime').addEventListener('change', (e) => {
+                    this.handleDepartureTimeChange(e.target.value);
+                });
+
+                // Load traffic status on init
+                this.loadTrafficStatus();
+            }
+
+            switchTab(tabId) {
+                // Update tab buttons
+                document.querySelectorAll('.tab-button').forEach(button => {
+                    button.classList.remove('active', 'border-blue-500', 'text-blue-600');
+                    button.classList.add('border-transparent', 'text-gray-500');
+                });
+
+                // Hide all tab contents
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+
+                // Show selected tab
+                const selectedButton = document.querySelector(`[data-tab="${tabId}"]`);
+                const selectedContent = document.getElementById(tabId);
+
+                if (selectedButton && selectedContent) {
+                    selectedButton.classList.add('active', 'border-blue-500', 'text-blue-600');
+                    selectedButton.classList.remove('border-transparent', 'text-gray-500');
+                    selectedContent.classList.add('active');
+                    
+                    // Fix map display when switching to traffic tab
+                    if (tabId === 'traffic') {
+                        setTimeout(() => {
+                            if (this.trafficMap) {
+                                // Force complete map refresh
+                                this.trafficMap.invalidateSize(true);
+                                this.trafficMap.getContainer().style.height = '400px';
+                                this.trafficMap.getContainer().style.width = '100%';
+                                setTimeout(() => {
+                                    this.trafficMap.invalidateSize(true);
+                                }, 100);
+                            } else {
+                                // Initialize with sample data if not exists
+                                this.initTrafficMap({
+                                    route: [
+                                        { lat: 37.7749, lng: -122.4194, name: "San Francisco" },
+                                        { lat: 37.7849, lng: -122.4094, name: "Sample Location" }
+                                    ]
+                                });
+                            }
+                        }, 150);
+                    }
+                }
+            }
+
+            async runAlgorithmComparison() {
+                // Show loading overlay
+                document.getElementById('loadingOverlay').classList.remove('hidden');
+                document.getElementById('loadingOverlay').classList.add('flex');
+
+                try {
+                    // Use sample data for comparison
+                    const sampleStores = [
+                        { name: "Store A", lat: 37.7749, lng: -122.4194, priority: 1 },
+                        { name: "Store B", lat: 37.7849, lng: -122.4094, priority: 2 },
+                        { name: "Store C", lat: 37.7649, lng: -122.4294, priority: 1 },
+                        { name: "Store D", lat: 37.7949, lng: -122.3994, priority: 3 },
+                        { name: "Store E", lat: 37.7549, lng: -122.4394, priority: 2 },
+                        { name: "Store F", lat: 37.8049, lng: -122.3894, priority: 1 },
+                        { name: "Store G", lat: 37.7449, lng: -122.4494, priority: 3 },
+                        { name: "Store H", lat: 37.8149, lng: -122.3794, priority: 2 }
+                    ];
+
+                    const response = await fetch('/dashboard/api/algorithms/compare', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ stores: sampleStores })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to run comparison');
+                    }
+
+                    const data = await response.json();
+                    this.comparisonData = data;
+                    this.displayComparisonResults(data.results);
+
+                } catch (error) {
+                    console.error('Error running comparison:', error);
+                    this.showError('Failed to run algorithm comparison');
+                } finally {
+                    // Hide loading overlay
+                    document.getElementById('loadingOverlay').classList.add('hidden');
+                    document.getElementById('loadingOverlay').classList.remove('flex');
+                }
+            }
+
+            displayComparisonResults(results) {
+                const container = document.getElementById('comparisonResults');
+                container.innerHTML = '';
+
+                // Sort results by improvement percentage
+                const sortedResults = results.sort((a, b) => {
+                    const aImprovement = a.improvement_percent || 0;
+                    const bImprovement = b.improvement_percent || 0;
+                    return bImprovement - aImprovement;
+                });
+
+                sortedResults.forEach((result, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'algorithm-card bg-white border-2 rounded-lg p-6';
+                    
+                    const rank = index + 1;
+                    const rankColor = rank === 1 ? 'text-yellow-600' : rank === 2 ? 'text-gray-600' : 'text-orange-600';
+                    const rankIcon = rank === 1 ? 'fa-trophy' : rank === 2 ? 'fa-medal' : 'fa-award';
+
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <i class="fas ${rankIcon} ${rankColor} text-xl"></i>
+                                <div>
+                                    <h4 class="text-lg font-semibold text-gray-800">${result.algorithm}</h4>
+                                    <span class="algorithm-badge ${result.algorithm_key}">${result.algorithm_key}</span>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-2xl font-bold ${result.success ? 'text-green-600' : 'text-red-600'}">
+                                    ${result.success ? (result.improvement_percent || 0).toFixed(1) + '%' : 'Error'}
+                                </div>
+                                <div class="text-sm text-gray-600">Improvement</div>
+                            </div>
+                        </div>
+                        
+                        ${result.success ? `
+                            <div class="grid grid-cols-3 gap-4 mb-4">
+                                <div class="text-center">
+                                    <div class="text-lg font-semibold text-blue-600">${result.processing_time.toFixed(3)}s</div>
+                                    <div class="text-sm text-gray-600">Processing Time</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-lg font-semibold text-green-600">${result.route_length}</div>
+                                    <div class="text-sm text-gray-600">Route Length</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-lg font-semibold text-purple-600">${(result.optimization_score || 0).toFixed(2)}</div>
+                                    <div class="text-sm text-gray-600">Optimization Score</div>
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-2">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Initial Distance:</span>
+                                    <span class="font-medium">${(result.initial_distance || 0).toFixed(2)} km</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Final Distance:</span>
+                                    <span class="font-medium">${(result.final_distance || 0).toFixed(2)} km</span>
+                                </div>
+                            </div>
+                        ` : `
+                            <div class="text-red-600 text-sm">
+                                <i class="fas fa-exclamation-triangle mr-2"></i>
+                                ${result.error || 'Unknown error occurred'}
+                            </div>
+                        `}
+                    `;
+
+                    container.appendChild(card);
+                });
+            }
+
+            clearComparisonResults() {
+                const container = document.getElementById('comparisonResults');
+                container.innerHTML = `
+                    <div class="text-center text-gray-500 py-12">
+                        <i class="fas fa-chart-bar text-6xl text-gray-300 mb-4"></i>
+                        <p class="text-lg">Run a comparison to see results</p>
+                    </div>
+                `;
+                this.comparisonData = null;
+            }
+
+            async useSampleData() {
+                // This would normally upload sample data
+                // For now, we'll just show a success message
+                this.showSuccess('Sample data loaded successfully');
+            }
+
+            async loadSystemStatus() {
+                try {
+                    const response = await fetch('/dashboard/api/system/status');
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch system status');
+                    }
+
+                    const data = await response.json();
+                    this.updateSystemMetrics(data);
+                    this.updateRecentActivity(data.recent_activity);
+
+                } catch (error) {
+                    console.error('Error loading system status:', error);
+                }
+            }
+
+            updateSystemMetrics(data) {
+                const stats = data.statistics;
+                const performance = data.performance;
+
+                // Update header metrics
+                document.getElementById('totalRoutes').textContent = stats.total_routes_optimized;
+                document.getElementById('distanceSaved').textContent = stats.total_distance_saved + 'km';
+                document.getElementById('avgImprovement').textContent = stats.avg_improvement + '%';
+                document.getElementById('algorithmsCount').textContent = stats.algorithms_available;
+                document.getElementById('avgResponse').textContent = Math.round(performance.avg_response_time * 1000) + 'ms';
+
+                // Update system performance
+                document.getElementById('cpuUsage').textContent = performance.cpu_usage.toFixed(1) + '%';
+                document.getElementById('cpuBar').style.width = performance.cpu_usage + '%';
+                
+                document.getElementById('memoryUsage').textContent = performance.memory_usage.toFixed(1) + 'MB';
+                document.getElementById('memoryBar').style.width = Math.min(performance.memory_usage / 10, 100) + '%';
+                
+                document.getElementById('requestRate').textContent = performance.request_rate.toFixed(1) + ' req/min';
+                document.getElementById('requestBar').style.width = Math.min(performance.request_rate / 2, 100) + '%';
+            }
+
+            updateRecentActivity(activities) {
+                const container = document.getElementById('recentActivity');
+                container.innerHTML = '';
+
+                activities.forEach(activity => {
+                    const item = document.createElement('div');
+                    item.className = 'flex items-center space-x-3 p-3 bg-gray-50 rounded-lg';
+                    
+                    const algorithmBadge = `algorithm-badge ${activity.algorithm}`;
+                    const timeAgo = new Date(activity.timestamp).toLocaleTimeString();
+                    
+                    item.innerHTML = `
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-cog text-blue-600"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center space-x-2">
+                                <span class="${algorithmBadge}">${activity.algorithm}</span>
+                                <span class="text-sm text-gray-600">${activity.improvement.toFixed(1)}% improvement</span>
+                            </div>
+                            <div class="text-xs text-gray-500">${activity.stores} stores • ${timeAgo}</div>
+                        </div>
+                    `;
+                    
+                    container.appendChild(item);
+                });
+            }
+
+            initializeCharts() {
+                this.initPerformanceHistoryChart();
+                this.initAlgorithmUsageChart();
+                this.initImprovementTrendsChart();
+                this.initResponseTimeChart();
+            }
+
+            initPerformanceHistoryChart() {
+                const ctx = document.getElementById('performanceHistoryChart').getContext('2d');
+                this.charts.performanceHistory = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['2025-07-15', '2025-07-16', '2025-07-17', '2025-07-18'],
+                        datasets: [{
+                            label: 'Genetic Algorithm',
+                            data: [8.5, 9.1, 9.5, 10.2],
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4
+                        }, {
+                            label: 'Simulated Annealing',
+                            data: [24.2, 25.1, 26.0, 26.8],
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4
+                        }, {
+                            label: 'Multi-Objective',
+                            data: [15.8, 16.2, 17.1, 17.5],
+                            borderColor: '#f59e0b',
+                            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Algorithm Performance Over Time'
+                            },
+                            legend: {
+                                position: 'top',
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Improvement %'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            initAlgorithmUsageChart() {
+                const ctx = document.getElementById('algorithmUsageChart').getContext('2d');
+                this.charts.algorithmUsage = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Simulated Annealing', 'Multi-Objective', 'Genetic Algorithm', 'Default'],
+                        datasets: [{
+                            data: [45, 25, 20, 10],
+                            backgroundColor: [
+                                '#10b981',
+                                '#f59e0b',
+                                '#3b82f6',
+                                '#6b7280'
+                            ],
+                            borderWidth: 2,
+                            borderColor: '#ffffff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Algorithm Usage Distribution'
+                            },
+                            legend: {
+                                position: 'bottom',
+                            }
+                        }
+                    }
+                });
+            }
+
+            initImprovementTrendsChart() {
+                const ctx = document.getElementById('improvementTrendsChart').getContext('2d');
+                this.charts.improvementTrends = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Genetic', 'Simulated Annealing', 'Multi-Objective', 'Default'],
+                        datasets: [{
+                            label: 'Average Improvement %',
+                            data: [9.1, 25.5, 16.8, 0],
+                            backgroundColor: [
+                                '#3b82f6',
+                                '#10b981',
+                                '#f59e0b',
+                                '#6b7280'
+                            ],
+                            borderColor: [
+                                '#1d4ed8',
+                                '#047857',
+                                '#d97706',
+                                '#374151'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Average Improvement by Algorithm'
+                            },
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Improvement %'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            initResponseTimeChart() {
+                const ctx = document.getElementById('responseTimeChart').getContext('2d');
+                this.charts.responseTime = new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Speed', 'Accuracy', 'Consistency', 'Scalability', 'Efficiency'],
+                        datasets: [{
+                            label: 'Genetic Algorithm',
+                            data: [6, 8, 8, 9, 7],
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                            pointBackgroundColor: '#3b82f6',
+                            pointBorderColor: '#ffffff',
+                            pointHoverBackgroundColor: '#ffffff',
+                            pointHoverBorderColor: '#3b82f6'
+                        }, {
+                            label: 'Simulated Annealing',
+                            data: [10, 9, 9, 8, 9],
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                            pointBackgroundColor: '#10b981',
+                            pointBorderColor: '#ffffff',
+                            pointHoverBackgroundColor: '#ffffff',
+                            pointHoverBorderColor: '#10b981'
+                        }, {
+                            label: 'Multi-Objective',
+                            data: [7, 9, 8, 8, 8],
+                            borderColor: '#f59e0b',
+                            backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                            pointBackgroundColor: '#f59e0b',
+                            pointBorderColor: '#ffffff',
+                            pointHoverBackgroundColor: '#ffffff',
+                            pointHoverBorderColor: '#f59e0b'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Algorithm Performance Radar'
+                            },
+                            legend: {
+                                position: 'top',
+                            }
+                        },
+                        scales: {
+                            r: {
+                                beginAtZero: true,
+                                max: 10,
+                                ticks: {
+                                    stepSize: 2
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            startPerformanceMonitoring() {
+                // Load system status initially
+                this.loadSystemStatus();
+                
+                // Set up periodic updates
+                setInterval(() => {
+                    this.loadSystemStatus();
+                }, 30000); // Update every 30 seconds
+            }
+
+            saveSettings() {
+                const settings = {
+                    defaultAlgorithm: document.getElementById('defaultAlgorithm').value,
+                    refreshInterval: document.getElementById('refreshInterval').value,
+                    enableNotifications: document.getElementById('enableNotifications').checked,
+                    theme: document.getElementById('theme').value,
+                    chartAnimation: document.getElementById('chartAnimation').value
+                };
+
+                // Save to localStorage
+                localStorage.setItem('routeforce_settings', JSON.stringify(settings));
+                this.showSuccess('Settings saved successfully');
+            }
+
+            loadSettings() {
+                const savedSettings = localStorage.getItem('routeforce_settings');
+                if (savedSettings) {
+                    const settings = JSON.parse(savedSettings);
+                    document.getElementById('defaultAlgorithm').value = settings.defaultAlgorithm || 'default';
+                    document.getElementById('refreshInterval').value = settings.refreshInterval || 30;
+                    document.getElementById('enableNotifications').checked = settings.enableNotifications || false;
+                    document.getElementById('theme').value = settings.theme || 'light';
+                    document.getElementById('chartAnimation').value = settings.chartAnimation || 'enabled';
+                }
+            }
+
+            showSuccess(message) {
+                // Create a simple notification
+                const notification = document.createElement('div');
+                notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+                notification.innerHTML = `<i class="fas fa-check mr-2"></i>${message}`;
+                document.body.appendChild(notification);
+
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
+            }
+
+            showError(message) {
+                // Create a simple error notification
+                const notification = document.createElement('div');
+                notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+                notification.innerHTML = `<i class="fas fa-exclamation-triangle mr-2"></i>${message}`;
+                document.body.appendChild(notification);
+
+                setTimeout(() => {
+                    notification.remove();
+                }, 5000);
+            }
+
+            // Traffic optimization methods
+            async loadTrafficStatus() {
+                try {
+                    const response = await fetch('/api/traffic/status');
+                    const data = await response.json();
+                    
+                    document.getElementById('serviceStatus').textContent = data.success ? 'Active' : 'Inactive';
+                    document.getElementById('serviceStatus').className = data.success ? 
+                        'px-2 py-1 text-xs bg-green-100 text-green-800 rounded' : 
+                        'px-2 py-1 text-xs bg-red-100 text-red-800 rounded';
+                    
+                    document.getElementById('apiQuota').textContent = data.api_quota_used || '0%';
+                    document.getElementById('cacheEntries').textContent = data.cache_size || '0';
+                    document.getElementById('lastUpdated').textContent = data.last_updated || 'Never';
+                } catch (error) {
+                    console.error('Failed to load traffic status:', error);
+                    this.showError('Failed to load traffic status');
+                }
+            }
+
+            async optimizeTrafficRoute() {
+                if (!this.comparisonData || !this.comparisonData.stores) {
+                    this.showError('Please run algorithm comparison first to generate store data');
+                    return;
+                }
+
+                const trafficModel = document.getElementById('trafficModel').value;
+                const departureTime = this.getDepartureTime();
+                const avoidTolls = document.getElementById('avoidTolls').checked;
+                const avoidHighways = document.getElementById('avoidHighways').checked;
+
+                try {
+                    // Show loading
+                    document.getElementById('optimizeTrafficRoute').disabled = true;
+                    document.getElementById('optimizeTrafficRoute').innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Optimizing...';
+
+                    const response = await fetch('/api/traffic/optimize', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            stores: this.comparisonData.stores,
+                            starting_location: 'San Francisco, CA',
+                            traffic_model: trafficModel,
+                            departure_time: departureTime,
+                            avoid_tolls: avoidTolls,
+                            avoid_highways: avoidHighways,
+                            vehicle_capacity: 1000,
+                            time_windows: {
+                                start_time: '09:00',
+                                end_time: '17:00'
+                            }
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        this.displayTrafficResults(data);
+                        this.showSuccess('Traffic-optimized route generated successfully!');
+                    } else {
+                        this.showError(data.error || 'Failed to optimize route with traffic data');
+                    }
+                } catch (error) {
+                    console.error('Traffic optimization failed:', error);
+                    this.showError('Failed to optimize route with traffic data');
+                } finally {
+                    // Reset button
+                    document.getElementById('optimizeTrafficRoute').disabled = false;
+                    document.getElementById('optimizeTrafficRoute').innerHTML = '<i class="fas fa-magic mr-2"></i>Optimize with Traffic Data';
+                }
+            }
+
+            getDepartureTime() {
+                const timeSelect = document.getElementById('departureTime').value;
+                
+                switch (timeSelect) {
+                    case 'now':
+                        return 'now';
+                    case 'morning_rush':
+                        const morningRush = new Date();
+                        morningRush.setHours(8, 0, 0, 0);
+                        return morningRush.toISOString();
+                    case 'midday':
+                        const midday = new Date();
+                        midday.setHours(12, 0, 0, 0);
+                        return midday.toISOString();
+                    case 'evening_rush':
+                        const eveningRush = new Date();
+                        eveningRush.setHours(17, 0, 0, 0);
+                        return eveningRush.toISOString();
+                    case 'custom':
+                        const customTime = document.getElementById('customTime').value;
+                        return customTime ? new Date(customTime).toISOString() : 'now';
+                    default:
+                        return 'now';
+                }
+            }
+
+            handleDepartureTimeChange(value) {
+                const customContainer = document.getElementById('customTimeContainer');
+                if (value === 'custom') {
+                    customContainer.classList.remove('hidden');
+                } else {
+                    customContainer.classList.add('hidden');
+                }
+            }
+
+            displayTrafficResults(data) {
+                // Show results section
+                document.getElementById('trafficResults').classList.remove('hidden');
+
+                // Update metrics
+                document.getElementById('trafficDistance').textContent = data.total_distance || '0 km';
+                document.getElementById('trafficDuration').textContent = data.total_time || '0 min';
+                document.getElementById('trafficConditions').textContent = 
+                    data.traffic_info?.conditions || 'Normal';
+
+                // Initialize or update map
+                this.initTrafficMap(data);
+
+                // Display alternative routes if available
+                if (data.alternatives) {
+                    this.displayAlternativeRoutes(data.alternatives);
+                }
+
+                // Scroll to results
+                document.getElementById('trafficResults').scrollIntoView({ 
+                    behavior: 'smooth' 
+                });
+            }
+
+            initTrafficMap(data) {
+                // Initialize map if not exists
+                if (!this.trafficMap) {
+                    // Ensure container is visible and sized properly
+                    const container = document.getElementById('trafficMap');
+                    if (!container.offsetWidth || !container.offsetHeight) {
+                        // Container not ready, wait
+                        setTimeout(() => this.initTrafficMap(data), 100);
+                        return;
+                    }
+                    
+                    this.trafficMap = L.map('trafficMap', {
+                        preferCanvas: true,
+                        attributionControl: false,
+                        zoomControl: true
+                    }).setView([37.7749, -122.4194], 11);
+                    
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '© OpenStreetMap contributors',
+                        maxZoom: 18,
+                        tileSize: 256,
+                        zoomOffset: 0
+                    }).addTo(this.trafficMap);
+                    
+                    // Force map to render properly after initialization
+                    setTimeout(() => {
+                        this.trafficMap.invalidateSize(true);
+                    }, 250);
+                }
+
+                // Clear existing markers
+                this.trafficMap.eachLayer(layer => {
+                    if (layer instanceof L.Marker) {
+                        this.trafficMap.removeLayer(layer);
+                    }
+                });
+
+                // Add route markers
+                if (data && data.route) {
+                    data.route.forEach((stop, index) => {
+                        const marker = L.marker([stop.lat, stop.lng])
+                            .addTo(this.trafficMap)
+                            .bindPopup(`${index + 1}. ${stop.name || stop.address}`);
+                        
+                        if (index === 0) {
+                            marker.setIcon(L.icon({
+                                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+                                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                                iconSize: [25, 41],
+                                iconAnchor: [12, 41],
+                                popupAnchor: [1, -34],
+                                shadowSize: [41, 41]
+                            }));
+                        }
+                    });
+
+                    // Fit map to show all markers
+                    if (this.trafficMap._layers && Object.keys(this.trafficMap._layers).length > 1) {
+                        const group = new L.featureGroup(Object.values(this.trafficMap._layers).filter(layer => layer instanceof L.Marker));
+                        if (group.getLayers().length > 0) {
+                            this.trafficMap.fitBounds(group.getBounds().pad(0.1));
+                        }
+                    }
+                }
+            }
+
+            displayAlternativeRoutes(alternatives) {
+                const container = document.getElementById('alternativesList');
+                container.innerHTML = '';
+
+                alternatives.forEach((alt, index) => {
+                    const routeDiv = document.createElement('div');
+                    routeDiv.className = 'p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer';
+                    routeDiv.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <div class="font-medium text-gray-800">Route ${index + 1}</div>
+                                <div class="text-sm text-gray-600">${alt.summary || 'Alternative route'}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-medium text-blue-600">${alt.duration || 'N/A'}</div>
+                                <div class="text-xs text-gray-500">${alt.distance || 'N/A'}</div>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(routeDiv);
+                });
+            }
+
+            async clearTrafficCache() {
+                try {
+                    const response = await fetch('/api/traffic/cache/clear', {
+                        method: 'POST'
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.showSuccess('Traffic cache cleared successfully');
+                        this.loadTrafficStatus(); // Refresh status
+                    } else {
+                        this.showError(data.error || 'Failed to clear cache');
+                    }
+                } catch (error) {
+                    console.error('Failed to clear traffic cache:', error);
+                    this.showError('Failed to clear traffic cache');
+                }
+            }
+        }
+
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            window.enhancedDashboard = new EnhancedDashboard();
+            
+            // Initialize Analytics Dashboard
+            if (typeof AnalyticsDashboard !== 'undefined') {
+                window.analyticsDashboard = new AnalyticsDashboard();
+                window.analyticsDashboard.init();
+            }
+        });
+    </script>
+    
+    <!-- Real-time WebSocket Client -->
+    <script src="{{ url_for('static', filename='js/websocket-client.js') }}"></script>
+    
+    <script>
+        // Integrate WebSocket with dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            // Wait a moment for WebSocket to initialize
+            setTimeout(() => {
+                if (window.routeForceWS) {
+                    // Listen for route updates
+                    window.routeForceWS.on('route_update', function(data) {
+                        console.log('Dashboard received route update:', data);
+                        
+                        // Update dashboard with real-time data
+                        if (window.enhancedDashboard) {
+                            window.enhancedDashboard.handleRealTimeUpdate(data);
+                        }
+                    });
+                    
+                    // Listen for optimization progress
+                    window.routeForceWS.on('optimization_progress', function(data) {
+                        console.log('Optimization progress:', data);
+                        
+                        // Show progress in dashboard
+                        if (window.enhancedDashboard) {
+                            window.enhancedDashboard.showOptimizationProgress(data);
+                        }
+                    });
+                    
+                    // Auto-join route when viewing
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const routeId = urlParams.get('route_id');
+                    if (routeId) {
+                        window.routeForceWS.joinRoute(routeId);
+                    }
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

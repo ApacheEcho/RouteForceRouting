@@ -128,12 +128,15 @@ def generate_route():
 
         # Validate file type
         if not allowed_file(file.filename):
-            return jsonify(
-                {
-                    "error": "Invalid file type. Please upload CSV or Excel file.",
-                    "supported_formats": list(ALLOWED_EXTENSIONS),
-                }
-            ), 400
+            return (
+                jsonify(
+                    {
+                        "error": "Invalid file type. Please upload CSV or Excel file.",
+                        "supported_formats": list(ALLOWED_EXTENSIONS),
+                    }
+                ),
+                400,
+            )
 
         # Validate time window
         if time_start and time_end:
@@ -178,28 +181,34 @@ def generate_route():
                 f"Route generated successfully with {len(route_result) if route_result else 0} stops"
             )
 
-            return jsonify(
-                {
-                    "message": "Route generated successfully",
-                    "route": route_result,
-                    "filters_applied": {
-                        "proximity": proximity,
-                        "time_window": f"{time_start} - {time_end}"
-                        if time_start and time_end
-                        else None,
-                        "priority_only": priority_only,
-                        "exclude_days": exclude_days,
-                        "max_stores_per_chain": max_stores_per_chain,
-                        "min_sales_threshold": min_sales_threshold,
-                    },
-                }
-            ), 200
+            return (
+                jsonify(
+                    {
+                        "message": "Route generated successfully",
+                        "route": route_result,
+                        "filters_applied": {
+                            "proximity": proximity,
+                            "time_window": (
+                                f"{time_start} - {time_end}"
+                                if time_start and time_end
+                                else None
+                            ),
+                            "priority_only": priority_only,
+                            "exclude_days": exclude_days,
+                            "max_stores_per_chain": max_stores_per_chain,
+                            "min_sales_threshold": min_sales_threshold,
+                        },
+                    }
+                ),
+                200,
+            )
 
         except Exception as e:
             logger.error(f"Error generating route: {str(e)}")
-            return jsonify(
-                {"error": "Failed to generate route", "details": str(e)}
-            ), 500
+            return (
+                jsonify({"error": "Failed to generate route", "details": str(e)}),
+                500,
+            )
 
     except Exception as e:
         logger.error(f"Unexpected error in route generation: {str(e)}")
@@ -222,21 +231,25 @@ def generate_route_api():
             route_request = RouteRequest.from_request(request)
         except Exception as e:
             if "413" in str(e) or "Request Entity Too Large" in str(e):
-                return jsonify(
-                    {
-                        "error": "File size too large",
-                        "details": "Maximum file size is 16MB",
-                    }
-                ), 413
+                return (
+                    jsonify(
+                        {
+                            "error": "File size too large",
+                            "details": "Maximum file size is 16MB",
+                        }
+                    ),
+                    413,
+                )
             logger.error(f"Error parsing route request: {str(e)}")
             return jsonify({"error": "Invalid request format", "details": str(e)}), 400
 
         # Validate request
         validation_errors = route_request.validate()
         if validation_errors:
-            return jsonify(
-                {"error": "Validation failed", "details": validation_errors}
-            ), 400
+            return (
+                jsonify({"error": "Validation failed", "details": validation_errors}),
+                400,
+            )
 
         # Process file upload if provided
         stores = []
@@ -245,26 +258,33 @@ def generate_route_api():
                 stores = file_service.process_stores_file(route_request.file)
             except Exception as e:
                 logger.error(f"Error processing stores file: {str(e)}")
-                return jsonify(
-                    {"error": "File processing failed", "details": str(e)}
-                ), 400
+                return (
+                    jsonify({"error": "File processing failed", "details": str(e)}),
+                    400,
+                )
         elif route_request.stores:
             stores = route_request.stores
         else:
-            return jsonify(
-                {
-                    "error": "No stores provided",
-                    "details": "Either file upload or stores data required",
-                }
-            ), 400
+            return (
+                jsonify(
+                    {
+                        "error": "No stores provided",
+                        "details": "Either file upload or stores data required",
+                    }
+                ),
+                400,
+            )
 
         if not stores:
-            return jsonify(
-                {
-                    "error": "No valid stores found",
-                    "details": "File contains no processable store data",
-                }
-            ), 400
+            return (
+                jsonify(
+                    {
+                        "error": "No valid stores found",
+                        "details": "File contains no processable store data",
+                    }
+                ),
+                400,
+            )
 
         # Generate route with constraints
         try:
@@ -287,12 +307,12 @@ def generate_route_api():
             "route": route,
             "total_stores": len(route) if route else 0,
             "filters_applied": route_request.get_filters_summary(),
-            "processing_time": getattr(metrics, "processing_time", None)
-            if metrics
-            else None,
-            "optimization_score": getattr(metrics, "optimization_score", None)
-            if metrics
-            else None,
+            "processing_time": (
+                getattr(metrics, "processing_time", None) if metrics else None
+            ),
+            "optimization_score": (
+                getattr(metrics, "optimization_score", None) if metrics else None
+            ),
         }
 
         if metrics and hasattr(metrics, "algorithm_metrics"):
@@ -303,12 +323,15 @@ def generate_route_api():
 
     except Exception as e:
         logger.error(f"Unexpected error in route generation: {str(e)}")
-        return jsonify(
-            {
-                "error": "Internal server error",
-                "details": "An unexpected error occurred during route generation",
-            }
-        ), 500
+        return (
+            jsonify(
+                {
+                    "error": "Internal server error",
+                    "details": "An unexpected error occurred during route generation",
+                }
+            ),
+            500,
+        )
 
 
 @main_bp.route("/api/export", methods=["POST"])
@@ -364,12 +387,15 @@ def validate_upload():
             return jsonify({"error": "No file provided"}), 400
 
         if not allowed_file(file.filename):
-            return jsonify(
-                {
-                    "error": "Invalid file type",
-                    "allowed_types": list(ALLOWED_EXTENSIONS),
-                }
-            ), 400
+            return (
+                jsonify(
+                    {
+                        "error": "Invalid file type",
+                        "allowed_types": list(ALLOWED_EXTENSIONS),
+                    }
+                ),
+                400,
+            )
 
         # Initialize file service and validate
         file_service = FileService()
@@ -411,15 +437,18 @@ def validate_playbook_constraints():
         try:
             # Use file service to validate playbook
             validation_result = file_service.validate_playbook_file(playbook_file)
-            return jsonify(validation_result), 200 if validation_result.get(
-                "valid"
-            ) else 400
+            return jsonify(validation_result), (
+                200 if validation_result.get("valid") else 400
+            )
 
         except Exception as e:
             logger.error(f"Playbook validation failed: {e}")
-            return jsonify(
-                {"valid": False, "error": "Validation error", "details": str(e)}
-            ), 400
+            return (
+                jsonify(
+                    {"valid": False, "error": "Validation error", "details": str(e)}
+                ),
+                400,
+            )
 
     except Exception as e:
         logger.error(f"Unexpected error in playbook validation: {e}")

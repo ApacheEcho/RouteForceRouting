@@ -108,16 +108,19 @@ def create_app(config_name: str = "development") -> Flask:
                     "services": {"database": db_status, "cache": cache_status},
                     "system": system_metrics,
                 }
-            ), 200 if status == "healthy" else 503
+            ), (200 if status == "healthy" else 503)
 
         except Exception as e:
-            return jsonify(
-                {
-                    "status": "unhealthy",
-                    "timestamp": datetime.utcnow().isoformat(),
-                    "error": str(e),
-                }
-            ), 503
+            return (
+                jsonify(
+                    {
+                        "status": "unhealthy",
+                        "timestamp": datetime.utcnow().isoformat(),
+                        "error": str(e),
+                    }
+                ),
+                503,
+            )
 
     # Register metrics endpoint for Prometheus
     @app.route("/metrics")
@@ -196,6 +199,7 @@ def create_app(config_name: str = "development") -> Flask:
 
     # Initialize and start advanced performance monitoring
     from app.performance_monitor import get_performance_monitor
+
     # from app.performance.optimization_engine import PerformanceOptimizationEngine
 
     # Start legacy performance monitor

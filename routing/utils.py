@@ -7,7 +7,6 @@ import logging
 from typing import Any, Dict, List, Optional, Tuple
 
 from app.services.distance_service import create_distance_calculator
-
 # Import modern services
 from app.services.geocoding_service import create_geocoding_service
 

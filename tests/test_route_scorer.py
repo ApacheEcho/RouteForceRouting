@@ -1,26 +1,22 @@
 import pytest
-from routing.route_scorer import score_route, rank_routes
+
+from routing.route_scorer import rank_routes, score_route
+
 
 @pytest.fixture
 def sample_routes():
     route1 = {
         "distance_km": 10,
         "stops": ["A", "B", "C"],
-        "stores": [
-            {"priority": "high"},
-            {"priority": "medium"},
-            {"priority": "low"}
-        ]
+        "stores": [{"priority": "high"}, {"priority": "medium"}, {"priority": "low"}],
     }
     route2 = {
         "distance_km": 7,
         "stops": ["A", "B"],
-        "stores": [
-            {"priority": "medium"},
-            {"priority": "medium"}
-        ]
+        "stores": [{"priority": "medium"}, {"priority": "medium"}],
     }
     return [route1, route2]
+
 
 def test_score_route(sample_routes):
     score1 = score_route(sample_routes[0])
@@ -37,6 +33,7 @@ def test_score_route(sample_routes):
     # route2: distance=7, stops=2, avg_priority=(2+2)/2=2.0
     # score = 0.5*7 + 0.3*2 - 0.2*2 = 3.5 + 0.6 - 0.4 = 3.7
     assert score2 == 3.7
+
 
 def test_rank_routes(sample_routes):
     ranked = rank_routes(sample_routes)

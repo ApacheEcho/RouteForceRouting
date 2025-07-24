@@ -50,11 +50,14 @@ def score_route():
         elif "preset" in data:
             preset = data["preset"]
             if preset not in PRESET_WEIGHTS:
-                return jsonify(
-                    {
-                        "error": f"Invalid preset. Available: {list(PRESET_WEIGHTS.keys())}"
-                    }
-                ), 400
+                return (
+                    jsonify(
+                        {
+                            "error": f"Invalid preset. Available: {list(PRESET_WEIGHTS.keys())}"
+                        }
+                    ),
+                    400,
+                )
             scorer = create_route_scorer_preset(preset)
         else:
             scorer = create_route_scorer()  # Default balanced weights
@@ -97,9 +100,14 @@ def compare_routes():
         preset = data.get("preset", "balanced")
 
         if preset not in PRESET_WEIGHTS:
-            return jsonify(
-                {"error": f"Invalid preset. Available: {list(PRESET_WEIGHTS.keys())}"}
-            ), 400
+            return (
+                jsonify(
+                    {
+                        "error": f"Invalid preset. Available: {list(PRESET_WEIGHTS.keys())}"
+                    }
+                ),
+                400,
+            )
 
         scorer = create_route_scorer_preset(preset)
         comparison = scorer.compare_routes(routes, context)

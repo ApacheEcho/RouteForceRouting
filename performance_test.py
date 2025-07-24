@@ -173,9 +173,11 @@ def run_scalability_test(
                 "total_duration_hours": total_duration,
                 "total_stops": total_stops,
                 "avg_stops_per_route": total_stops / len(routes) if routes else 0,
-                "stores_per_second": size / perf_data["execution_time_seconds"]
-                if perf_data["execution_time_seconds"] > 0
-                else 0,
+                "stores_per_second": (
+                    size / perf_data["execution_time_seconds"]
+                    if perf_data["execution_time_seconds"] > 0
+                    else 0
+                ),
             }
 
             size_results["methods"][method.value] = method_results

@@ -47,14 +47,15 @@ TEST_STORES = [
         "name": "Store F",
         "latitude": 39.8000,
         "longitude": -89.6100,
-    }
+    },
 ]
+
 
 def test_genetic_algorithm():
     """Test genetic algorithm directly"""
     print("🧬 Testing Genetic Algorithm Implementation")
     print("=" * 50)
-    
+
     # Test with small config for quick testing
     config = GeneticConfig(
         population_size=20,
@@ -62,9 +63,9 @@ def test_genetic_algorithm():
         mutation_rate=0.02,
         crossover_rate=0.8,
         elite_size=5,
-        tournament_size=3
+        tournament_size=3,
     )
-    
+
     print(f"📊 Configuration:")
     print(f"  - Population Size: {config.population_size}")
     print(f"  - Generations: {config.generations}")
@@ -72,16 +73,16 @@ def test_genetic_algorithm():
     print(f"  - Crossover Rate: {config.crossover_rate}")
     print(f"  - Elite Size: {config.elite_size}")
     print(f"  - Tournament Size: {config.tournament_size}")
-    
+
     # Initialize genetic algorithm
     ga = GeneticAlgorithm(config)
-    
+
     # Run optimization
     print(f"\n🚀 Starting optimization with {len(TEST_STORES)} stores...")
-    
+
     try:
         optimized_route, metrics = ga.optimize(TEST_STORES)
-        
+
         print(f"✅ Optimization completed!")
         print(f"📊 Results:")
         print(f"  - Algorithm: {metrics.get('algorithm', 'unknown')}")
@@ -91,22 +92,25 @@ def test_genetic_algorithm():
         print(f"  - Improvement: {metrics.get('improvement_percent', 'N/A'):.1f}%")
         print(f"  - Population Size: {metrics.get('population_size', 'N/A')}")
         print(f"  - Best Fitness: {metrics.get('best_fitness', 'N/A'):.6f}")
-        
+
         print(f"\n🗺️  Optimized Route:")
         for i, store in enumerate(optimized_route):
-            print(f"  {i+1}. {store['name']} ({store['latitude']:.4f}, {store['longitude']:.4f})")
-        
+            print(
+                f"  {i+1}. {store['name']} ({store['latitude']:.4f}, {store['longitude']:.4f})"
+            )
+
         return True
-        
+
     except Exception as e:
         print(f"❌ Optimization failed: {e}")
         return False
+
 
 def test_edge_cases():
     """Test edge cases"""
     print("\n🔍 Testing Edge Cases")
     print("-" * 30)
-    
+
     # Test with minimal stores
     print("Testing with 2 stores...")
     try:
@@ -115,7 +119,7 @@ def test_edge_cases():
         print(f"✅ 2 stores: {metrics.get('improvement_percent', 0):.1f}% improvement")
     except Exception as e:
         print(f"❌ 2 stores failed: {e}")
-    
+
     # Test with single store
     print("Testing with 1 store...")
     try:
@@ -124,7 +128,7 @@ def test_edge_cases():
         print(f"✅ 1 store: Handled gracefully")
     except Exception as e:
         print(f"❌ 1 store failed: {e}")
-    
+
     # Test with empty stores
     print("Testing with 0 stores...")
     try:
@@ -134,15 +138,17 @@ def test_edge_cases():
     except Exception as e:
         print(f"❌ 0 stores failed: {e}")
 
+
 def main():
     """Main test function"""
     success = test_genetic_algorithm()
-    
+
     if success:
         test_edge_cases()
         print("\n🎉 All tests completed successfully!")
     else:
         print("\n❌ Tests failed!")
+
 
 if __name__ == "__main__":
     main()

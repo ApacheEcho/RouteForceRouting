@@ -15,7 +15,10 @@ def score_route(route):
         return 0.0
 
     total_distance = sum(
-        geodesic((store['latitude'], store['longitude']), (next_store['latitude'], next_store['longitude'])).km
+        geodesic(
+            (store["latitude"], store["longitude"]),
+            (next_store["latitude"], next_store["longitude"]),
+        ).km
         for store, next_store in zip(route[:-1], route[1:])
     )
 

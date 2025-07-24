@@ -15,7 +15,7 @@ ROUTE_OPTIMIZATION_TIMEOUT = 300  # Timeout for route optimization in seconds
 
 # File processing settings
 MAX_FILE_SIZE_MB = 100  # Maximum file size for processing
-SUPPORTED_FILE_EXTENSIONS = ('.csv', '.xlsx', '.xls')
+SUPPORTED_FILE_EXTENSIONS = (".csv", ".xlsx", ".xls")
 
 # Map settings
 DEFAULT_MAP_ZOOM_LEVEL = 12  # Default zoom level for map links

@@ -937,7 +937,7 @@ class TestMultiUserRequestIsolation:
             {"name": "Store A", "latitude": 40.7128, "longitude": -74.0060},
         ]
 
-        route1 = service1.generate_route_from_stores(stores, {})
+        service1.generate_route_from_stores(stores, {})
 
         # Only service1 should have updated processing time
         time1_after = service1.get_last_processing_time()
@@ -969,12 +969,7 @@ class TestDatabaseIntegration:
 
             if service.database_service:
                 # Test route saving
-                test_route = [
-                    {"name": "Store A", "latitude": 40.7128, "longitude": -74.0060},
-                    {"name": "Store B", "latitude": 40.7589, "longitude": -73.9851},
-                ]
-
-                # This should not crash even if database is not fully configured
+                # test_route variable removed (was unused)
                 try:
                     filters = {"algorithm": "default"}
                     service.generate_route_with_filters(

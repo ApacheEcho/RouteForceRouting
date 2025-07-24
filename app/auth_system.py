@@ -4,7 +4,13 @@ JWT-based authentication with role-based access control
 """
 
 from flask import Blueprint, request, jsonify, current_app, session
-from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required, verify_jwt_in_request
+from flask_jwt_extended import (
+    JWTManager,
+    create_access_token,
+    get_jwt_identity,
+    jwt_required,
+    verify_jwt_in_request,
+)
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 import secrets
@@ -18,390 +24,422 @@ logger = logging.getLogger(__name__)
 # Initialize JWT Manager
 jwt = JWTManager()
 
+
 def init_jwt(app):
     """Initialize JWT with app"""
     jwt.init_app(app)
-    
+
     # Configure JWT settings
-    app.config['JWT_SECRET_KEY'] = app.config.get('JWT_SECRET_KEY', secrets.token_hex(32))
-    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=24)
-    app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)
-    
+    app.config["JWT_SECRET_KEY"] = app.config.get(
+        "JWT_SECRET_KEY", secrets.token_hex(32)
+    )
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=24)
+    app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(days=30)
+
     # JWT error handlers
     @jwt.expired_token_loader
     def expired_token_callback(jwt_header, jwt_payload):
-        return jsonify({'error': 'Token has expired'}), 401
-    
+        return jsonify({"error": "Token has expired"}), 401
+
     @jwt.invalid_token_loader
     def invalid_token_callback(error):
-        return jsonify({'error': 'Invalid token'}), 401
-    
+        return jsonify({"error": "Invalid token"}), 401
+
     @jwt.unauthorized_loader
     def missing_token_callback(error):
-        return jsonify({'error': 'Authorization token required'}), 401
+        return jsonify({"error": "Authorization token required"}), 401
+
 
 # Auth Blueprint
-auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
+auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 # User roles and permissions
 ROLES = {
-    'admin': {
-        'permissions': ['all'],
-        'description': 'Full system access'
+    "admin": {"permissions": ["all"], "description": "Full system access"},
+    "dispatcher": {
+        "permissions": [
+            "view_analytics",
+            "manage_routes",
+            "view_drivers",
+            "send_notifications",
+        ],
+        "description": "Route management and analytics access",
     },
-    'dispatcher': {
-        'permissions': ['view_analytics', 'manage_routes', 'view_drivers', 'send_notifications'],
-        'description': 'Route management and analytics access'
+    "driver": {
+        "permissions": ["view_own_routes", "update_location", "view_basic_analytics"],
+        "description": "Limited access to own routes and updates",
     },
-    'driver': {
-        'permissions': ['view_own_routes', 'update_location', 'view_basic_analytics'],
-        'description': 'Limited access to own routes and updates'
+    "viewer": {
+        "permissions": ["view_analytics", "view_reports"],
+        "description": "Read-only access to analytics and reports",
     },
-    'viewer': {
-        'permissions': ['view_analytics', 'view_reports'],
-        'description': 'Read-only access to analytics and reports'
-    }
 }
 
 # In-memory user store (replace with database in production)
 users_db = {
-    'admin@routeforce.com': {
-        'id': 'user_001',
-        'email': 'admin@routeforce.com',
-        'name': 'System Administrator',
-        'password_hash': generate_password_hash('admin123'),
-        'role': 'admin',
-        'created_at': datetime.now().isoformat(),
-        'last_login': None,
-        'is_active': True
+    "admin@routeforce.com": {
+        "id": "user_001",
+        "email": "admin@routeforce.com",
+        "name": "System Administrator",
+        "password_hash": generate_password_hash("admin123"),
+        "role": "admin",
+        "created_at": datetime.now().isoformat(),
+        "last_login": None,
+        "is_active": True,
     },
-    'dispatcher@routeforce.com': {
-        'id': 'user_002',
-        'email': 'dispatcher@routeforce.com',
-        'name': 'Route Dispatcher',
-        'password_hash': generate_password_hash('dispatcher123'),
-        'role': 'dispatcher',
-        'created_at': datetime.now().isoformat(),
-        'last_login': None,
-        'is_active': True
+    "dispatcher@routeforce.com": {
+        "id": "user_002",
+        "email": "dispatcher@routeforce.com",
+        "name": "Route Dispatcher",
+        "password_hash": generate_password_hash("dispatcher123"),
+        "role": "dispatcher",
+        "created_at": datetime.now().isoformat(),
+        "last_login": None,
+        "is_active": True,
     },
-    'driver@routeforce.com': {
-        'id': 'user_003',
-        'email': 'driver@routeforce.com',
-        'name': 'Test Driver',
-        'password_hash': generate_password_hash('driver123'),
-        'role': 'driver',
-        'created_at': datetime.now().isoformat(),
-        'last_login': None,
-        'is_active': True
-    }
+    "driver@routeforce.com": {
+        "id": "user_003",
+        "email": "driver@routeforce.com",
+        "name": "Test Driver",
+        "password_hash": generate_password_hash("driver123"),
+        "role": "driver",
+        "created_at": datetime.now().isoformat(),
+        "last_login": None,
+        "is_active": True,
+    },
 }
+
 
 class AuthManager:
     """Authentication and authorization manager"""
-    
+
     def __init__(self, app=None):
         self.jwt = None
         if app:
             self.init_app(app)
-    
+
     def init_app(self, app):
         """Initialize JWT with Flask app"""
-        app.config['JWT_SECRET_KEY'] = app.config.get('JWT_SECRET_KEY', secrets.token_hex(32))
-        app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=24)
-        
+        app.config["JWT_SECRET_KEY"] = app.config.get(
+            "JWT_SECRET_KEY", secrets.token_hex(32)
+        )
+        app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=24)
+
         self.jwt = JWTManager(app)
-        
+
         @self.jwt.user_identity_loader
         def user_identity_lookup(user):
-            return user['id']
-        
+            return user["id"]
+
         @self.jwt.user_lookup_loader
         def user_lookup_callback(_jwt_header, jwt_data):
             identity = jwt_data["sub"]
             return self.get_user_by_id(identity)
-    
+
     def get_user_by_email(self, email: str) -> Optional[Dict[str, Any]]:
         """Get user by email"""
         return users_db.get(email)
-    
+
     def get_user_by_id(self, user_id: str) -> Optional[Dict[str, Any]]:
         """Get user by ID"""
         for user in users_db.values():
-            if user['id'] == user_id:
+            if user["id"] == user_id:
                 return user
         return None
-    
+
     def authenticate_user(self, email: str, password: str) -> Optional[Dict[str, Any]]:
         """Authenticate user with email and password"""
         user = self.get_user_by_email(email)
-        if user and user['is_active'] and check_password_hash(user['password_hash'], password):
+        if (
+            user
+            and user["is_active"]
+            and check_password_hash(user["password_hash"], password)
+        ):
             # Update last login
-            user['last_login'] = datetime.now().isoformat()
+            user["last_login"] = datetime.now().isoformat()
             return user
         return None
-    
-    def create_user(self, email: str, name: str, password: str, role: str = 'viewer') -> Dict[str, Any]:
+
+    def create_user(
+        self, email: str, name: str, password: str, role: str = "viewer"
+    ) -> Dict[str, Any]:
         """Create new user"""
         if email in users_db:
             raise ValueError("User already exists")
-        
+
         if role not in ROLES:
             raise ValueError("Invalid role")
-        
+
         user = {
-            'id': f"user_{len(users_db) + 1:03d}",
-            'email': email,
-            'name': name,
-            'password_hash': generate_password_hash(password),
-            'role': role,
-            'created_at': datetime.now().isoformat(),
-            'last_login': None,
-            'is_active': True
+            "id": f"user_{len(users_db) + 1:03d}",
+            "email": email,
+            "name": name,
+            "password_hash": generate_password_hash(password),
+            "role": role,
+            "created_at": datetime.now().isoformat(),
+            "last_login": None,
+            "is_active": True,
         }
-        
+
         users_db[email] = user
         return user
-    
+
     def has_permission(self, user: Dict[str, Any], permission: str) -> bool:
         """Check if user has specific permission"""
-        if not user or not user.get('is_active'):
+        if not user or not user.get("is_active"):
             return False
-        
-        user_role = user.get('role')
+
+        user_role = user.get("role")
         if not user_role or user_role not in ROLES:
             return False
-        
-        permissions = ROLES[user_role]['permissions']
-        return 'all' in permissions or permission in permissions
+
+        permissions = ROLES[user_role]["permissions"]
+        return "all" in permissions or permission in permissions
+
 
 # Global auth manager instance
 auth_manager = AuthManager()
 
+
 def requires_permission(permission: str):
     """Decorator to require specific permission"""
+
     def decorator(f):
         @wraps(f)
         @jwt_required()
         def decorated_function(*args, **kwargs):
             current_user = get_jwt_identity()
             user = auth_manager.get_user_by_id(current_user)
-            
+
             if not auth_manager.has_permission(user, permission):
-                return jsonify({'error': 'Insufficient permissions'}), 403
-            
+                return jsonify({"error": "Insufficient permissions"}), 403
+
             return f(*args, **kwargs)
+
         return decorated_function
+
     return decorator
+
 
 def requires_role(role: str):
     """Decorator to require specific role"""
+
     def decorator(f):
         @wraps(f)
         @jwt_required()
         def decorated_function(*args, **kwargs):
             current_user = get_jwt_identity()
             user = auth_manager.get_user_by_id(current_user)
-            
-            if not user or user.get('role') != role:
-                return jsonify({'error': f'Role {role} required'}), 403
-            
+
+            if not user or user.get("role") != role:
+                return jsonify({"error": f"Role {role} required"}), 403
+
             return f(*args, **kwargs)
+
         return decorated_function
+
     return decorator
 
-@auth_bp.route('/login', methods=['POST'])
+
+@auth_bp.route("/login", methods=["POST"])
 def login():
     """User login endpoint"""
     try:
         data = request.get_json()
-        email = data.get('email')
-        password = data.get('password')
-        
+        email = data.get("email")
+        password = data.get("password")
+
         if not email or not password:
-            return jsonify({'error': 'Email and password required'}), 400
-        
+            return jsonify({"error": "Email and password required"}), 400
+
         user = auth_manager.authenticate_user(email, password)
         if not user:
-            return jsonify({'error': 'Invalid credentials'}), 401
-        
+            return jsonify({"error": "Invalid credentials"}), 401
+
         # Create access token with user email as identity
-        access_token = create_access_token(identity=user['email'])
-        
+        access_token = create_access_token(identity=user["email"])
+
         # Return user info and token
-        return jsonify({
-            'success': True,
-            'access_token': access_token,
-            'user': {
-                'id': user['id'],
-                'email': user['email'],
-                'name': user['name'],
-                'role': user['role'],
-                'permissions': ROLES[user['role']]['permissions']
+        return jsonify(
+            {
+                "success": True,
+                "access_token": access_token,
+                "user": {
+                    "id": user["id"],
+                    "email": user["email"],
+                    "name": user["name"],
+                    "role": user["role"],
+                    "permissions": ROLES[user["role"]]["permissions"],
+                },
             }
-        })
-        
+        )
+
     except Exception as e:
         logger.error(f"Login error: {e}")
-        return jsonify({'error': 'Login failed'}), 500
+        return jsonify({"error": "Login failed"}), 500
 
-@auth_bp.route('/register', methods=['POST'])
+
+@auth_bp.route("/register", methods=["POST"])
 def register():
     """User registration endpoint"""
     try:
         data = request.get_json()
-        email = data.get('email')
-        name = data.get('name')
-        password = data.get('password')
-        role = data.get('role', 'viewer')
-        
+        email = data.get("email")
+        name = data.get("name")
+        password = data.get("password")
+        role = data.get("role", "viewer")
+
         if not email or not name or not password:
-            return jsonify({'error': 'Email, name, and password required'}), 400
-        
+            return jsonify({"error": "Email, name, and password required"}), 400
+
         # Create user
         user = auth_manager.create_user(email, name, password, role)
-        
-        return jsonify({
-            'success': True,
-            'message': 'User created successfully',
-            'user': {
-                'id': user['id'],
-                'email': user['email'],
-                'name': user['name'],
-                'role': user['role']
+
+        return jsonify(
+            {
+                "success": True,
+                "message": "User created successfully",
+                "user": {
+                    "id": user["id"],
+                    "email": user["email"],
+                    "name": user["name"],
+                    "role": user["role"],
+                },
             }
-        })
-        
+        )
+
     except ValueError as e:
-        return jsonify({'error': str(e)}), 400
+        return jsonify({"error": str(e)}), 400
     except Exception as e:
         logger.error(f"Registration error: {e}")
-        return jsonify({'error': 'Registration failed'}), 500
+        return jsonify({"error": "Registration failed"}), 500
 
-@auth_bp.route('/profile', methods=['GET'])
+
+@auth_bp.route("/profile", methods=["GET"])
 @jwt_required()
 def get_profile():
     """Get current user profile"""
     try:
         current_user_id = get_jwt_identity()
         user = auth_manager.get_user_by_id(current_user_id)
-        
+
         if not user:
-            return jsonify({'error': 'User not found'}), 404
-        
-        return jsonify({
-            'success': True,
-            'user': {
-                'id': user['id'],
-                'email': user['email'],
-                'name': user['name'],
-                'role': user['role'],
-                'permissions': ROLES[user['role']]['permissions'],
-                'created_at': user['created_at'],
-                'last_login': user['last_login']
+            return jsonify({"error": "User not found"}), 404
+
+        return jsonify(
+            {
+                "success": True,
+                "user": {
+                    "id": user["id"],
+                    "email": user["email"],
+                    "name": user["name"],
+                    "role": user["role"],
+                    "permissions": ROLES[user["role"]]["permissions"],
+                    "created_at": user["created_at"],
+                    "last_login": user["last_login"],
+                },
             }
-        })
-        
+        )
+
     except Exception as e:
         logger.error(f"Profile error: {e}")
-        return jsonify({'error': 'Failed to get profile'}), 500
+        return jsonify({"error": "Failed to get profile"}), 500
 
-@auth_bp.route('/users', methods=['GET'])
-@requires_permission('all')
+
+@auth_bp.route("/users", methods=["GET"])
+@requires_permission("all")
 def list_users():
     """List all users (admin only)"""
     try:
         users_list = []
         for user in users_db.values():
-            users_list.append({
-                'id': user['id'],
-                'email': user['email'],
-                'name': user['name'],
-                'role': user['role'],
-                'is_active': user['is_active'],
-                'created_at': user['created_at'],
-                'last_login': user['last_login']
-            })
-        
-        return jsonify({
-            'success': True,
-            'users': users_list,
-            'total': len(users_list)
-        })
-        
+            users_list.append(
+                {
+                    "id": user["id"],
+                    "email": user["email"],
+                    "name": user["name"],
+                    "role": user["role"],
+                    "is_active": user["is_active"],
+                    "created_at": user["created_at"],
+                    "last_login": user["last_login"],
+                }
+            )
+
+        return jsonify({"success": True, "users": users_list, "total": len(users_list)})
+
     except Exception as e:
         logger.error(f"List users error: {e}")
-        return jsonify({'error': 'Failed to list users'}), 500
+        return jsonify({"error": "Failed to list users"}), 500
 
-@auth_bp.route('/users/<user_id>/role', methods=['PUT'])
-@requires_permission('all')
+
+@auth_bp.route("/users/<user_id>/role", methods=["PUT"])
+@requires_permission("all")
 def update_user_role():
     """Update user role (admin only)"""
     try:
-        user_id = request.view_args['user_id']
+        user_id = request.view_args["user_id"]
         data = request.get_json()
-        new_role = data.get('role')
-        
+        new_role = data.get("role")
+
         if new_role not in ROLES:
-            return jsonify({'error': 'Invalid role'}), 400
-        
+            return jsonify({"error": "Invalid role"}), 400
+
         user = auth_manager.get_user_by_id(user_id)
         if not user:
-            return jsonify({'error': 'User not found'}), 404
-        
+            return jsonify({"error": "User not found"}), 404
+
         # Update role
         for stored_user in users_db.values():
-            if stored_user['id'] == user_id:
-                stored_user['role'] = new_role
+            if stored_user["id"] == user_id:
+                stored_user["role"] = new_role
                 break
-        
-        return jsonify({
-            'success': True,
-            'message': 'User role updated successfully'
-        })
-        
+
+        return jsonify({"success": True, "message": "User role updated successfully"})
+
     except Exception as e:
         logger.error(f"Update role error: {e}")
-        return jsonify({'error': 'Failed to update role'}), 500
+        return jsonify({"error": "Failed to update role"}), 500
 
-@auth_bp.route('/permissions', methods=['GET'])
+
+@auth_bp.route("/permissions", methods=["GET"])
 @jwt_required()
 def get_permissions():
     """Get available permissions and roles"""
-    return jsonify({
-        'success': True,
-        'roles': ROLES
-    })
+    return jsonify({"success": True, "roles": ROLES})
 
-@auth_bp.route('/validate', methods=['POST'])
+
+@auth_bp.route("/validate", methods=["POST"])
 @jwt_required()
 def validate_token():
     """Validate JWT token"""
     try:
         current_user_id = get_jwt_identity()
         user = auth_manager.get_user_by_id(current_user_id)
-        
-        if not user or not user['is_active']:
-            return jsonify({'valid': False, 'error': 'Invalid or inactive user'}), 401
-        
-        return jsonify({
-            'valid': True,
-            'user': {
-                'id': user['id'],
-                'email': user['email'],
-                'name': user['name'],
-                'role': user['role']
+
+        if not user or not user["is_active"]:
+            return jsonify({"valid": False, "error": "Invalid or inactive user"}), 401
+
+        return jsonify(
+            {
+                "valid": True,
+                "user": {
+                    "id": user["id"],
+                    "email": user["email"],
+                    "name": user["name"],
+                    "role": user["role"],
+                },
             }
-        })
-        
+        )
+
     except Exception as e:
-        return jsonify({'valid': False, 'error': str(e)}), 401
+        return jsonify({"valid": False, "error": str(e)}), 401
+
 
 # Login page route
-@auth_bp.route('/login-page')
+@auth_bp.route("/login-page")
 def login_page():
     """Serve login page"""
-    return '''
+    return """
     <!DOCTYPE html>
     <html>
     <head>
@@ -469,7 +507,8 @@ def login_page():
         </script>
     </body>
     </html>
-    '''
+    """
+
 
 def init_auth(app):
     """Initialize authentication system"""

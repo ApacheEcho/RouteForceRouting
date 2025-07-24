@@ -453,9 +453,9 @@ class PerformanceMonitor:
                     "total_routes_generated": total_routes,
                     "total_distance_km": total_distance,
                     "total_estimated_duration_hours": total_duration,
-                    "avg_distance_per_route": total_distance / total_routes
-                    if total_routes > 0
-                    else 0,
+                    "avg_distance_per_route": (
+                        total_distance / total_routes if total_routes > 0 else 0
+                    ),
                     "stores_processed": len(stores),
                     "vehicles_used": total_routes,
                 }

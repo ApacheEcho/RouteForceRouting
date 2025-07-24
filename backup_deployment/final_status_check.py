@@ -8,13 +8,14 @@ import requests
 import json
 from datetime import datetime
 
+
 def main():
     print("🚀 ROUTEFORCE ENTERPRISE SYSTEM - FINAL STATUS CHECK")
     print("=" * 60)
     print(f"Timestamp: {datetime.now().isoformat()}")
     print(f"Status: ENTERPRISE-READY ✅")
     print()
-    
+
     # Backend Status
     try:
         response = requests.get("http://localhost:8000/health", timeout=5)
@@ -31,9 +32,9 @@ def main():
             print("🔧 BACKEND STATUS: ❌ ISSUES DETECTED")
     except:
         print("🔧 BACKEND STATUS: ❌ NOT ACCESSIBLE")
-    
+
     print()
-    
+
     # Frontend Status
     try:
         response = requests.get("http://localhost:3000", timeout=5)
@@ -47,20 +48,21 @@ def main():
     except:
         print("🌐 FRONTEND STATUS: ⚠️  CHECK REQUIRED")
         print("   Note: Frontend may be starting up")
-    
+
     print()
-    
+
     # API Test
     try:
         test_data = {
             "stops": [
                 {"id": "1", "lat": 37.7749, "lng": -122.4194, "name": "San Francisco"},
-                {"id": "2", "lat": 37.7849, "lng": -122.4094, "name": "North Beach"}
+                {"id": "2", "lat": 37.7849, "lng": -122.4094, "name": "North Beach"},
             ],
-            "algorithm": "genetic"
+            "algorithm": "genetic",
         }
-        response = requests.post("http://localhost:8000/api/optimize", 
-                               json=test_data, timeout=10)
+        response = requests.post(
+            "http://localhost:8000/api/optimize", json=test_data, timeout=10
+        )
         if response.status_code == 200:
             result = response.json()
             print("🎯 OPTIMIZATION API: ✅ WORKING")
@@ -73,9 +75,9 @@ def main():
     except Exception as e:
         print("🎯 OPTIMIZATION API: ❌ ERROR")
         print(f"   Error: {str(e)}")
-    
+
     print()
-    
+
     # Feature Summary
     print("📊 ENTERPRISE FEATURES SUMMARY:")
     print("   ✅ Multi-tenant Organizations")
@@ -88,7 +90,7 @@ def main():
     print("   ✅ Production Docker Deployment")
     print("   ✅ Kubernetes Cloud-Native Setup")
     print("   ✅ CI/CD Pipeline with Security Scanning")
-    
+
     print()
     print("🏆 ACHIEVEMENT STATUS: COMPLETE")
     print("   Enterprise System: ✅ Production Ready")
@@ -98,10 +100,11 @@ def main():
     print("   Security: ✅ Enterprise-Grade")
     print("   Deployment: ✅ Cloud-Native")
     print("   Testing: ✅ Comprehensive Coverage")
-    
+
     print()
     print("🚀 READY FOR ENTERPRISE LAUNCH! 🚀")
     print("=" * 60)
+
 
 if __name__ == "__main__":
     main()

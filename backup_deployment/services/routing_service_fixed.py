@@ -1,6 +1,7 @@
 """
 Routing Service - Business logic for route generation with database integration
 """
+
 import time
 import logging
 from typing import List, Dict, Any, Optional
@@ -11,18 +12,24 @@ from geopy.distance import geodesic
 
 # Import optimization algorithms
 from app.optimization.genetic_algorithm import GeneticAlgorithm, GeneticConfig
-from app.optimization.simulated_annealing import SimulatedAnnealingOptimizer, SimulatedAnnealingConfig
+from app.optimization.simulated_annealing import (
+    SimulatedAnnealingOptimizer,
+    SimulatedAnnealingConfig,
+)
 
 logger = logging.getLogger(__name__)
 
-def cluster_by_proximity(stores: List[Dict], radius_km: float = 2.0) -> List[List[Dict]]:
+
+def cluster_by_proximity(
+    stores: List[Dict], radius_km: float = 2.0
+) -> List[List[Dict]]:
     """
     Cluster stores by proximity to optimize routing
-    
+
     Args:
         stores: List of store dictionaries with lat/lon coordinates
         radius_km: Maximum distance in kilometers for clustering
-        
+
     Returns:
         List of clusters, where each cluster is a list of nearby stores
     """
@@ -38,15 +45,16 @@ def cluster_by_proximity(stores: List[Dict], radius_km: float = 2.0) -> List[Lis
             clusters.append([store])
     return clusters
 
+
 def is_within_radius(store1: Dict, store2: Dict, radius_km: float) -> bool:
     """
     Check if two stores are within the specified radius
-    
+
     Args:
         store1: First store dictionary
         store2: Second store dictionary
         radius_km: Maximum distance in kilometers
-        
+
     Returns:
         True if stores are within radius, False otherwise
     """
@@ -56,9 +64,11 @@ def is_within_radius(store1: Dict, store2: Dict, radius_km: float) -> bool:
         return False
     return geodesic(coord1, coord2).km <= radius_km
 
+
 @dataclass
 class RoutingMetrics:
     """Metrics for route generation performance"""
+
     processing_time: float
     total_stores: int
     filtered_stores: int
@@ -69,339 +79,355 @@ class RoutingMetrics:
     algorithm_used: str = "default"
     algorithm_metrics: Dict[str, Any] = None
 
+
 class RoutingService:
     """Service for handling route generation and optimization with database integration"""
-    
+
     def __init__(self, user_id: Optional[int] = None):
         self.user_id = user_id
         self.last_processing_time = 0.0
         self.metrics = None
-        
+
         # Try to import database service, fall back to None if not available
         try:
             from app.services.database_service import DatabaseService
+
             self.database_service = DatabaseService()
         except ImportError:
             self.database_service = None
-            logger.warning("Database service not available, running without persistence")
-    
+            logger.warning(
+                "Database service not available, running without persistence"
+            )
+
     def generate_route_with_filters(
-        self, 
-        file_path: str, 
-        filters: Dict[str, Any],
-        save_to_db: bool = True
+        self, file_path: str, filters: Dict[str, Any], save_to_db: bool = True
     ) -> List[Dict[str, Any]]:
         """
         Generate route with comprehensive filtering and optimization
-        
+
         Args:
             file_path: Path to the stores file
             filters: Dictionary of routing filters
             save_to_db: Whether to save route to database
-            
+
         Returns:
             List of optimized route stops
         """
         start_time = time.time()
-        
+
         try:
             # Load stores from file
             from app.services.file_service import FileService
+
             file_service = FileService()
             stores = file_service.load_stores_from_file(file_path)
-            
+
             if not stores:
                 logger.warning("No stores found in file")
                 return []
-            
+
             original_count = len(stores)
             logger.info(f"Loaded {original_count} stores from file")
-            
+
             # If user_id is provided and database is available, save stores to database
             if self.user_id and save_to_db and self.database_service:
                 self._save_stores_to_db(stores)
-            
+
             # Build routing constraints
             constraints = self._build_constraints(filters)
-            
+
             # Apply filters
             filtered_stores = self._apply_filters(stores, filters)
             filtered_count = len(filtered_stores)
-            
+
             if not filtered_stores:
                 logger.warning("No stores remain after filtering")
                 self.last_processing_time = time.time() - start_time
                 return []
-            
+
             logger.info(f"Filtered to {filtered_count} stores based on criteria")
-            
+
             # Generate route using selected algorithm
             route, algorithm_metrics = self._generate_route_with_algorithm(
                 filtered_stores, constraints, filters
             )
-            
+
             if not route:
                 logger.warning("Route generation failed")
                 self.last_processing_time = time.time() - start_time
                 return []
-            
+
             processing_time = time.time() - start_time
             self.last_processing_time = processing_time
-            
+
             # Calculate optimization metrics
             optimization_score = self._calculate_optimization_score(route)
-            
+
             # Create metrics object
             self.metrics = RoutingMetrics(
                 processing_time=processing_time,
                 total_stores=original_count,
                 filtered_stores=filtered_count,
                 optimization_score=optimization_score,
-                algorithm_used=algorithm_metrics.get('algorithm', 'default'),
-                algorithm_metrics=algorithm_metrics
+                algorithm_used=algorithm_metrics.get("algorithm", "default"),
+                algorithm_metrics=algorithm_metrics,
             )
-            
+
             # Save route to database if requested and database is available
             if save_to_db and self.user_id and self.database_service:
                 route_record = self._save_route_to_db(route, filters, self.metrics)
                 if route_record:
                     self.metrics.route_id = route_record.id
-            
-            logger.info(f"Route generated successfully in {processing_time:.2f}s with score {optimization_score:.1f}")
+
+            logger.info(
+                f"Route generated successfully in {processing_time:.2f}s with score {optimization_score:.1f}"
+            )
             return route
-            
+
         except Exception as e:
             logger.error(f"Error generating route: {str(e)}")
             self.last_processing_time = time.time() - start_time
             raise
-    
+
     def generate_route_from_stores(
         self,
         stores: List[Dict[str, Any]],
         constraints: Optional[Dict[str, Any]] = None,
         save_to_db: bool = True,
         algorithm: str = "default",
-        algorithm_params: Optional[Dict[str, Any]] = None
+        algorithm_params: Optional[Dict[str, Any]] = None,
     ) -> List[Dict[str, Any]]:
         """
         Generate route directly from store data (for API usage)
-        
+
         Args:
             stores: List of store dictionaries
             constraints: Optional routing constraints
             save_to_db: Whether to save route to database
             algorithm: Algorithm to use for optimization
             algorithm_params: Parameters for the selected algorithm
-            
+
         Returns:
             List of optimized route stops
         """
         start_time = time.time()
-        
+
         try:
             if not stores:
                 logger.warning("No stores provided")
                 return []
-            
+
             # Build routing constraints
             route_constraints = constraints or {}
-            
+
             # Add algorithm selection to filters
-            algorithm_filters = {'algorithm': algorithm}
-            
+            algorithm_filters = {"algorithm": algorithm}
+
             # Add algorithm-specific parameters
             if algorithm_params:
                 algorithm_filters.update(algorithm_params)
-            
+
             # Generate route using selected algorithm
             route, algorithm_metrics = self._generate_route_with_algorithm(
                 stores, route_constraints, algorithm_filters
             )
-            
+
             if not route:
                 logger.warning("Route generation failed")
                 self.last_processing_time = time.time() - start_time
                 return []
-            
+
             processing_time = time.time() - start_time
             self.last_processing_time = processing_time
-            
+
             # Calculate optimization metrics
             optimization_score = self._calculate_optimization_score(route)
-            
+
             # Create metrics object
             self.metrics = RoutingMetrics(
                 processing_time=processing_time,
                 total_stores=len(stores),
                 filtered_stores=len(stores),
                 optimization_score=optimization_score,
-                algorithm_used=algorithm_metrics.get('algorithm', 'default'),
-                algorithm_metrics=algorithm_metrics
+                algorithm_used=algorithm_metrics.get("algorithm", "default"),
+                algorithm_metrics=algorithm_metrics,
             )
-            
+
             # Save route to database if requested and database is available
             if save_to_db and self.user_id and self.database_service:
-                route_record = self._save_route_to_db(route, algorithm_filters, self.metrics)
+                route_record = self._save_route_to_db(
+                    route, algorithm_filters, self.metrics
+                )
                 if route_record:
                     self.metrics.route_id = route_record.id
-            
-            logger.info(f"Route generated successfully in {processing_time:.2f}s with score {optimization_score:.1f}")
+
+            logger.info(
+                f"Route generated successfully in {processing_time:.2f}s with score {optimization_score:.1f}"
+            )
             return route
-            
+
         except Exception as e:
             logger.error(f"Error generating route: {str(e)}")
             self.last_processing_time = time.time() - start_time
             raise
-    
+
     def _generate_route_with_algorithm(
         self,
         stores: List[Dict[str, Any]],
         constraints: Dict[str, Any],
-        filters: Dict[str, Any]
+        filters: Dict[str, Any],
     ) -> tuple[List[Dict[str, Any]], Dict[str, Any]]:
         """
         Generate route using the specified algorithm
-        
+
         Args:
             stores: List of store dictionaries
             constraints: Routing constraints
             filters: Filters including algorithm selection
-            
+
         Returns:
             Tuple of (route, algorithm_metrics)
         """
-        algorithm = filters.get('algorithm', 'default').lower()
-        
-        if algorithm == 'genetic':
+        algorithm = filters.get("algorithm", "default").lower()
+
+        if algorithm == "genetic":
             return self._generate_route_genetic(stores, constraints, filters)
-        elif algorithm == 'simulated_annealing':
-            return self._generate_route_simulated_annealing(stores, constraints, filters)
+        elif algorithm == "simulated_annealing":
+            return self._generate_route_simulated_annealing(
+                stores, constraints, filters
+            )
         else:
             # Use default algorithm
             route = core_generate_route(stores, constraints)
-            return route, {'algorithm': 'default'}
-    
+            return route, {"algorithm": "default"}
+
     def _generate_route_genetic(
         self,
         stores: List[Dict[str, Any]],
         constraints: Dict[str, Any],
-        filters: Dict[str, Any]
+        filters: Dict[str, Any],
     ) -> tuple[List[Dict[str, Any]], Dict[str, Any]]:
         """
         Generate route using genetic algorithm
-        
+
         Args:
             stores: List of store dictionaries
             constraints: Routing constraints
             filters: Filters including genetic algorithm parameters
-            
+
         Returns:
             Tuple of (route, algorithm_metrics)
         """
-        logger.info(f"Using genetic algorithm for route optimization with {len(stores)} stores")
-        
+        logger.info(
+            f"Using genetic algorithm for route optimization with {len(stores)} stores"
+        )
+
         # Configure genetic algorithm
         config = GeneticConfig(
-            population_size=int(filters.get('ga_population_size', 100)),
-            generations=int(filters.get('ga_generations', 500)),
-            mutation_rate=float(filters.get('ga_mutation_rate', 0.02)),
-            crossover_rate=float(filters.get('ga_crossover_rate', 0.8)),
-            elite_size=int(filters.get('ga_elite_size', 20)),
-            tournament_size=int(filters.get('ga_tournament_size', 3))
+            population_size=int(filters.get("ga_population_size", 100)),
+            generations=int(filters.get("ga_generations", 500)),
+            mutation_rate=float(filters.get("ga_mutation_rate", 0.02)),
+            crossover_rate=float(filters.get("ga_crossover_rate", 0.8)),
+            elite_size=int(filters.get("ga_elite_size", 20)),
+            tournament_size=int(filters.get("ga_tournament_size", 3)),
         )
-        
+
         # Initialize and run genetic algorithm
         ga = GeneticAlgorithm(config)
         optimized_route, metrics = ga.optimize(stores, constraints)
-        
+
         return optimized_route, metrics
-    
+
     def _generate_route_simulated_annealing(
         self,
         stores: List[Dict[str, Any]],
         constraints: Dict[str, Any],
-        filters: Dict[str, Any]
+        filters: Dict[str, Any],
     ) -> tuple[List[Dict[str, Any]], Dict[str, Any]]:
         """
         Generate route using simulated annealing algorithm
-        
+
         Args:
             stores: List of store dictionaries
             constraints: Routing constraints
             filters: Filters including simulated annealing parameters
-            
+
         Returns:
             Tuple of (route, algorithm_metrics)
         """
-        logger.info(f"Using simulated annealing algorithm for route optimization with {len(stores)} stores")
-        
+        logger.info(
+            f"Using simulated annealing algorithm for route optimization with {len(stores)} stores"
+        )
+
         # Configure simulated annealing algorithm
         config = SimulatedAnnealingConfig(
-            initial_temperature=float(filters.get('sa_initial_temperature', 1000.0)),
-            final_temperature=float(filters.get('sa_final_temperature', 0.1)),
-            cooling_rate=float(filters.get('sa_cooling_rate', 0.99)),
-            max_iterations=int(filters.get('sa_max_iterations', 10000)),
-            iterations_per_temp=int(filters.get('sa_iterations_per_temp', 100)),
-            reheat_threshold=int(filters.get('sa_reheat_threshold', 1000)),
-            min_improvement_threshold=float(filters.get('sa_min_improvement_threshold', 0.001))
+            initial_temperature=float(filters.get("sa_initial_temperature", 1000.0)),
+            final_temperature=float(filters.get("sa_final_temperature", 0.1)),
+            cooling_rate=float(filters.get("sa_cooling_rate", 0.99)),
+            max_iterations=int(filters.get("sa_max_iterations", 10000)),
+            iterations_per_temp=int(filters.get("sa_iterations_per_temp", 100)),
+            reheat_threshold=int(filters.get("sa_reheat_threshold", 1000)),
+            min_improvement_threshold=float(
+                filters.get("sa_min_improvement_threshold", 0.001)
+            ),
         )
-        
+
         # Initialize and run simulated annealing algorithm
         sa = SimulatedAnnealingOptimizer(config)
         optimized_route, metrics = sa.optimize(stores)
-        
+
         return optimized_route, metrics
-    
+
     def get_user_stores(self) -> List[Dict[str, Any]]:
         """
         Get stores for the current user
-        
+
         Returns:
             List of store dictionaries
         """
         if not self.user_id or not self.database_service:
             return []
-        
+
         try:
             stores = self.database_service.get_stores_by_user(self.user_id)
             return [store.to_dict() for store in stores]
         except Exception as e:
             logger.error(f"Error retrieving user stores: {str(e)}")
             return []
-    
+
     def get_route_history(self, limit: int = 10) -> List[Dict[str, Any]]:
         """
         Get route history for the current user
-        
+
         Args:
             limit: Maximum number of routes to return
-            
+
         Returns:
             List of route history records
         """
         if not self.user_id or not self.database_service:
             return []
-        
+
         try:
             routes = self.database_service.get_routes_by_user(self.user_id, limit)
             return [route.to_dict() for route in routes]
         except Exception as e:
             logger.error(f"Error retrieving route history: {str(e)}")
             return []
-    
+
     def get_route_by_id(self, route_id: int) -> Optional[Dict[str, Any]]:
         """
         Get a specific route by ID
-        
+
         Args:
             route_id: Route ID to retrieve
-            
+
         Returns:
             Route data or None if not found
         """
         if not self.database_service:
             return None
-        
+
         try:
             route = self.database_service.get_route_by_id(route_id)
             if route and (not self.user_id or route.user_id == self.user_id):
@@ -410,47 +436,48 @@ class RoutingService:
         except Exception as e:
             logger.error(f"Error retrieving route {route_id}: {str(e)}")
             return None
-    
+
     def _save_stores_to_db(self, stores: List[Dict[str, Any]]) -> None:
         """Save stores to database if they don't already exist"""
         if not self.database_service:
             return
-        
+
         try:
             from app.models.database import Store
+
             for store_data in stores:
                 # Check if store already exists
                 existing_store = Store.query.filter_by(
-                    name=store_data.get('name'),
-                    latitude=store_data.get('lat'),
-                    longitude=store_data.get('lon'),
-                    user_id=self.user_id
+                    name=store_data.get("name"),
+                    latitude=store_data.get("lat"),
+                    longitude=store_data.get("lon"),
+                    user_id=self.user_id,
                 ).first()
-                
+
                 if not existing_store:
                     self.database_service.create_store(
-                        name=store_data.get('name', 'Unknown'),
-                        address=store_data.get('address'),
-                        latitude=store_data.get('lat'),
-                        longitude=store_data.get('lon'),
-                        chain=store_data.get('chain'),
-                        store_type=store_data.get('type'),
+                        name=store_data.get("name", "Unknown"),
+                        address=store_data.get("address"),
+                        latitude=store_data.get("lat"),
+                        longitude=store_data.get("lon"),
+                        chain=store_data.get("chain"),
+                        store_type=store_data.get("type"),
                         user_id=self.user_id,
-                        metadata=store_data
+                        metadata=store_data,
                     )
         except Exception as e:
             logger.error(f"Error saving stores to database: {str(e)}")
-    
+
     def _save_route_to_db(
         self,
         route: List[Dict[str, Any]],
         filters: Dict[str, Any],
-        metrics: RoutingMetrics
+        metrics: RoutingMetrics,
     ) -> Optional[object]:
         """Save route to database"""
         if not self.database_service:
             return None
-        
+
         try:
             route_name = f"Route {len(route)} stops - {time.strftime('%Y-%m-%d %H:%M')}"
             route_record = self.database_service.create_route(
@@ -462,16 +489,16 @@ class RoutingService:
                 optimization_score=metrics.optimization_score,
                 user_id=self.user_id,
                 metadata={
-                    'filters': filters,
-                    'metrics': {
-                        'processing_time': metrics.processing_time,
-                        'total_stores': metrics.total_stores,
-                        'filtered_stores': metrics.filtered_stores,
-                        'optimization_score': metrics.optimization_score
-                    }
-                }
+                    "filters": filters,
+                    "metrics": {
+                        "processing_time": metrics.processing_time,
+                        "total_stores": metrics.total_stores,
+                        "filtered_stores": metrics.filtered_stores,
+                        "optimization_score": metrics.optimization_score,
+                    },
+                },
             )
-            
+
             # Create optimization record
             if route_record:
                 self.database_service.create_route_optimization(
@@ -480,180 +507,189 @@ class RoutingService:
                     parameters=filters,
                     execution_time=metrics.processing_time,
                     memory_usage=0,  # TODO: Implement memory tracking
-                    optimization_score=metrics.optimization_score
+                    optimization_score=metrics.optimization_score,
                 )
-            
+
             return route_record
         except Exception as e:
             logger.error(f"Error saving route to database: {str(e)}")
             return None
-    
+
     def _calculate_total_distance(self, route: List[Dict[str, Any]]) -> float:
         """Calculate total distance of the route"""
         if not route or len(route) < 2:
             return 0.0
-        
+
         total_distance = 0.0
         for i in range(len(route) - 1):
-            coord1 = (route[i].get('lat', 0), route[i].get('lon', 0))
-            coord2 = (route[i + 1].get('lat', 0), route[i + 1].get('lon', 0))
-            
+            coord1 = (route[i].get("lat", 0), route[i].get("lon", 0))
+            coord2 = (route[i + 1].get("lat", 0), route[i + 1].get("lon", 0))
+
             if coord1 != (0, 0) and coord2 != (0, 0):
                 total_distance += geodesic(coord1, coord2).km
-        
+
         return total_distance
-    
+
     def _build_constraints(self, filters: Dict[str, Any]) -> Dict[str, Any]:
         """Build routing constraints from filters"""
         constraints = {}
-        
+
         # Maximum distance constraint
-        if filters.get('max_distance'):
-            constraints['max_distance'] = float(filters['max_distance'])
-        
+        if filters.get("max_distance"):
+            constraints["max_distance"] = float(filters["max_distance"])
+
         # Maximum stores constraint
-        if filters.get('max_stores'):
-            constraints['max_stores'] = int(filters['max_stores'])
-        
+        if filters.get("max_stores"):
+            constraints["max_stores"] = int(filters["max_stores"])
+
         # Proximity clustering
-        if filters.get('use_clustering', True):
-            constraints['use_clustering'] = True
-            constraints['cluster_radius'] = float(filters.get('cluster_radius', 2.0))
-        
+        if filters.get("use_clustering", True):
+            constraints["use_clustering"] = True
+            constraints["cluster_radius"] = float(filters.get("cluster_radius", 2.0))
+
         return constraints
-    
+
     def _apply_filters(self, stores: List[Dict], filters: Dict[str, Any]) -> List[Dict]:
         """Apply filtering logic to stores"""
         filtered_stores = stores.copy()
-        
+
         # Filter by chain
-        if filters.get('chain'):
-            chain_filter = filters['chain'].lower()
+        if filters.get("chain"):
+            chain_filter = filters["chain"].lower()
             filtered_stores = [
-                store for store in filtered_stores
-                if store.get('chain', '').lower() == chain_filter
+                store
+                for store in filtered_stores
+                if store.get("chain", "").lower() == chain_filter
             ]
-        
+
         # Filter by store type
-        if filters.get('store_type'):
-            type_filter = filters['store_type'].lower()
+        if filters.get("store_type"):
+            type_filter = filters["store_type"].lower()
             filtered_stores = [
-                store for store in filtered_stores
-                if store.get('type', '').lower() == type_filter
+                store
+                for store in filtered_stores
+                if store.get("type", "").lower() == type_filter
             ]
-        
+
         # Filter by geographic bounds
-        if filters.get('bounds'):
-            bounds = filters['bounds']
+        if filters.get("bounds"):
+            bounds = filters["bounds"]
             filtered_stores = [
-                store for store in filtered_stores
+                store
+                for store in filtered_stores
                 if self._is_within_bounds(store, bounds)
             ]
-        
+
         # Limit number of stores
-        max_stores = filters.get('max_stores')
+        max_stores = filters.get("max_stores")
         if max_stores and len(filtered_stores) > max_stores:
             filtered_stores = filtered_stores[:max_stores]
-        
+
         return filtered_stores
-    
+
     def _is_within_bounds(self, store: Dict, bounds: Dict) -> bool:
         """Check if store is within geographic bounds"""
-        lat = store.get('lat')
-        lon = store.get('lon')
-        
+        lat = store.get("lat")
+        lon = store.get("lon")
+
         if lat is None or lon is None:
             return False
-        
-        return (
-            bounds.get('south', -90) <= lat <= bounds.get('north', 90) and
-            bounds.get('west', -180) <= lon <= bounds.get('east', 180)
-        )
-    
+
+        return bounds.get("south", -90) <= lat <= bounds.get(
+            "north", 90
+        ) and bounds.get("west", -180) <= lon <= bounds.get("east", 180)
+
     def _calculate_optimization_score(self, route: List[Dict]) -> float:
         """
         Calculate optimization score for the route
-        
+
         Args:
             route: List of route stops
-            
+
         Returns:
             Optimization score as percentage (0-100)
         """
         if not route or len(route) < 2:
             return 0.0
-        
+
         # Calculate total distance
         total_distance = self._calculate_total_distance(route)
-        
+
         # Simple scoring based on distance efficiency
         # Lower distance = higher score
         if total_distance == 0:
             return 100.0
-        
+
         # Normalize score (arbitrary baseline of 100km for max score)
         baseline_distance = 100.0
         score = max(0, min(100, (baseline_distance / total_distance) * 100))
-        
+
         return round(score, 2)
-    
+
     def get_last_processing_time(self) -> float:
         """Get the last processing time"""
         return self.last_processing_time
-    
+
     def get_metrics(self) -> Optional[RoutingMetrics]:
         """Get the last routing metrics"""
         return self.metrics
-    
-    def generate_route(self, stores: List[Dict], constraints: Dict[str, Any], algorithm: str = "default") -> List[Dict[str, Any]]:
+
+    def generate_route(
+        self,
+        stores: List[Dict],
+        constraints: Dict[str, Any],
+        algorithm: str = "default",
+    ) -> List[Dict[str, Any]]:
         """
         Generate route from stores with constraints
-        
+
         Args:
             stores: List of store dictionaries
             constraints: Dictionary of routing constraints
             algorithm: Algorithm to use for optimization
-            
+
         Returns:
             List of optimized route stops
         """
         start_time = time.time()
-        
+
         try:
             if not stores:
                 logger.warning("No stores provided")
                 return []
-            
+
             # Generate route using selected algorithm
-            algorithm_filters = {'algorithm': algorithm}
+            algorithm_filters = {"algorithm": algorithm}
             route, algorithm_metrics = self._generate_route_with_algorithm(
                 stores, constraints, algorithm_filters
             )
-            
+
             if not route:
                 logger.warning("Route generation failed")
                 self.last_processing_time = time.time() - start_time
                 return []
-            
+
             processing_time = time.time() - start_time
             self.last_processing_time = processing_time
-            
+
             # Calculate optimization metrics
             optimization_score = self._calculate_optimization_score(route)
-            
+
             # Create metrics object
             self.metrics = RoutingMetrics(
                 processing_time=processing_time,
                 total_stores=len(stores),
                 filtered_stores=len(stores),
                 optimization_score=optimization_score,
-                algorithm_used=algorithm_metrics.get('algorithm', 'default'),
-                algorithm_metrics=algorithm_metrics
+                algorithm_used=algorithm_metrics.get("algorithm", "default"),
+                algorithm_metrics=algorithm_metrics,
             )
-            
-            logger.info(f"Route generated successfully in {processing_time:.2f}s with score {optimization_score:.1f}")
+
+            logger.info(
+                f"Route generated successfully in {processing_time:.2f}s with score {optimization_score:.1f}"
+            )
             return route
-            
+
         except Exception as e:
             logger.error(f"Error generating route: {str(e)}")
             self.last_processing_time = time.time() - start_time

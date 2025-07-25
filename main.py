@@ -10,7 +10,3 @@ from app import create_app
 
 # Create application instance
 app = create_app(os.getenv("FLASK_ENV", "production"))
-
-if __name__ == "__main__":
-    # For Render deployment
-    app.run(host="0.0.0.0", port=int(os.getenv("PORT", 10000)))

@@ -969,9 +969,9 @@ class TestDatabaseIntegration:
 
             if service.database_service:
                 # Test route saving
-                # test_route variable removed (was unused)
                 try:
                     filters = {"algorithm": "default"}
+                    # The file "test_file.csv" likely does not exist; this is expected.
                     service.generate_route_with_filters(
                         "test_file.csv", filters, save_to_db=False
                     )

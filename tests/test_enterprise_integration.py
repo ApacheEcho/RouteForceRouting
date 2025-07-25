@@ -3,8 +3,9 @@ Comprehensive Integration Tests for RouteForce Enterprise System
 """
 
 import time
-import requests
+
 import pytest
+import requests
 
 
 class TestEnterpriseIntegration:
@@ -286,9 +287,9 @@ class TestPerformanceBenchmarks:
             end_time = time.time()
 
             response_time = (end_time - start_time) * 1000  # Convert to milliseconds
-            assert (
-                response_time < 2000
-            ), f"Endpoint {endpoint} took {response_time}ms (too slow)"
+            assert response_time < 2000, (
+                f"Endpoint {endpoint} took {response_time}ms (too slow)"
+            )
 
     def test_memory_usage(self):
         """Test memory usage is within acceptable limits"""

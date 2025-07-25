@@ -5,26 +5,27 @@ This is the primary entry point for all routing functionality
 
 import logging
 import time
-from typing import List, Dict, Optional, Any
 from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
+
 from geopy.distance import geodesic
+
+# Import optimization algorithms
+from app.optimization.genetic_algorithm import GeneticAlgorithm, GeneticConfig
+from app.optimization.multi_objective import (
+    MultiObjectiveConfig,
+    MultiObjectiveOptimizer,
+)
+from app.optimization.simulated_annealing import (
+    SimulatedAnnealingConfig,
+    SimulatedAnnealingOptimizer,
+)
 
 # Import the unified routing service
 from app.services.routing_service_unified import (
     UnifiedRoutingMetrics,
     UnifiedRoutingService,
     create_unified_routing_service,
-)
-
-# Import optimization algorithms
-from app.optimization.genetic_algorithm import GeneticAlgorithm, GeneticConfig
-from app.optimization.simulated_annealing import (
-    SimulatedAnnealingOptimizer,
-    SimulatedAnnealingConfig,
-)
-from app.optimization.multi_objective import (
-    MultiObjectiveOptimizer,
-    MultiObjectiveConfig,
 )
 
 # Import Flask for current_app
@@ -41,7 +42,7 @@ except ImportError:
 
 # Import traffic service
 try:
-    from app.services.traffic_service import TrafficService, TrafficConfig
+    from app.services.traffic_service import TrafficConfig, TrafficService
 except ImportError:
     TrafficService = None
     TrafficConfig = None

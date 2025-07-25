@@ -13,12 +13,13 @@
 # The file is expected to have columns 'Store Name' and 'Address'.
 
 import argparse
+import gzip
 import os
 import sys  # noqa: F401
-from typing import Any, Dict, List
-import pandas as pd
-import gzip
 from io import TextIOWrapper
+from typing import Any, Dict, List
+
+import pandas as pd
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_STORE_PATH: str = os.path.join(script_dir, "sample_stores.xlsx")
@@ -95,7 +96,7 @@ def validate_store_rows(stores: List[Dict[str, Any]]) -> None:
     for i, store in enumerate(stores):
         if not store.get("name") or not store.get("address"):
             raise ValueError(
-                f"Store at row {i+1} is missing required fields: "
+                f"Store at row {i + 1} is missing required fields: "
                 f"name={store.get('name')}, address={store.get('address')}"
             )
 
@@ -135,7 +136,7 @@ if __name__ == "__main__":
             stores = load_stores(args.filepath)
             print(f"Stores loaded successfully: {len(stores)} stores")
             for i, store in enumerate(stores[:5]):  # Show first 5 stores
-                print(f"  {i+1}. Name: {store['name']}, Address: {store['address']}")
+                print(f"  {i + 1}. Name: {store['name']}, Address: {store['address']}")
             if len(stores) > 5:
                 print(f"  ... and {len(stores) - 5} more stores")
         except (FileNotFoundError, ValueError, RuntimeError) as e:

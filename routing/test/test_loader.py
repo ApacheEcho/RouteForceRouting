@@ -1,6 +1,7 @@
 import os
 import sys
 from pathlib import Path
+
 from routing.loader import load_stores
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))

@@ -37,6 +37,7 @@ xgboost==3.0.2
 scikit-optimize==0.10.2
 hyperopt==0.2.7
 gunicorn==23.0.0
+eventlet==0.36.1
 
 prometheus-client==0.21.1
 # Database support

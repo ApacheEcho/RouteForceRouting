@@ -229,7 +229,7 @@
 - [x] Pre-Routing Pruning
 - [x] Traffic-Weighted Optimization
 - [x] Store Visit Duration Handling
-- [ ] Sales Volume Weighting
+- [x] Sales Volume Weighting
 - [ ] Post-Routing Summary Report
 - [ ] Routing Error Handler
 - [ ] Route History Logging
@@ -246,3 +246,4 @@
 - [x] Pre-Routing Pruning
 - [x] Traffic-Weighted Optimization
 - [x] Store Visit Duration Handling
+- [x] Sales Volume Weighting

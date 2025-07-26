@@ -28,7 +28,7 @@
 - [x] Create `route_failures.md` log to list unscored or invalid route attempts with reasons
 - [x] Inject Copilot error output summaries into this file for audit trail
 - [x] Add advanced filtering UI (e.g., show only failing, only high-priority, only CVS)
-- [ ] Build map-clustering logic to reduce pin overlap when visualizing dense areas
+- [x] Build map-clustering logic to reduce pin overlap when visualizing dense areas
 - [ ] Generate proximity heatmap from recent route activity (past 7 days)
 - [ ] Create route reassignment tool for dragging or reordering stores manually
 - [ ] Inject sync logic to push new routes to external calendar providers (Google, iCal)
@@ -138,3 +138,4 @@
 - [x] Create `route_failures.md` log to list unscored or invalid route attempts with reasons
 - [x] Inject Copilot error output summaries into this file for audit trail
 - [x] Add advanced filtering UI (e.g., show only failing, only high-priority, only CVS)
+- [x] Build map-clustering logic to reduce pin overlap when visualizing dense areas

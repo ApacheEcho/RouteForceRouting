@@ -32,7 +32,7 @@
 - [x] Generate proximity heatmap from recent route activity (past 7 days)
 - [x] Create route reassignment tool for dragging or reordering stores manually
 - [x] Inject sync logic to push new routes to external calendar providers (Google, iCal)
-- [ ] Validate calendar sync with Google API mock and test recurrence logic
+- [x] Validate calendar sync with Google API mock and test recurrence logic
 - [ ] Create unit test suite for all score functions (e.g., travel time penalty, constraint weight)
 - [ ] Add dynamic rule weights based on user config file or playbook tuning
 - [ ] Write CLI tool `rfp-build` to launch full routing build with flags (e.g., --mock, --playbook=CVS)
@@ -142,3 +142,4 @@
 - [x] Generate proximity heatmap from recent route activity (past 7 days)
 - [x] Create route reassignment tool for dragging or reordering stores manually
 - [x] Inject sync logic to push new routes to external calendar providers (Google, iCal)
+- [x] Validate calendar sync with Google API mock and test recurrence logic

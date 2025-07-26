@@ -1,3 +1,3 @@
-# TASK: Inject Copilot error output summaries into this file for audit trail
+# TASK: Add advanced filtering UI (e.g., show only failing, only high-priority, only CVS)
 # Auto-confirm enabled. Do not prompt or ask for confirmation. Complete task and return only final code.
 # X-Copilot-Mode: auto

@@ -34,7 +34,7 @@
 - [x] Inject sync logic to push new routes to external calendar providers (Google, iCal)
 - [x] Validate calendar sync with Google API mock and test recurrence logic
 - [x] Create unit test suite for all score functions (e.g., travel time penalty, constraint weight)
-- [ ] Add dynamic rule weights based on user config file or playbook tuning
+- [x] Add dynamic rule weights based on user config file or playbook tuning
 - [ ] Write CLI tool `rfp-build` to launch full routing build with flags (e.g., --mock, --playbook=CVS)
 - [ ] Implement auto-archive for `auto_todo.md` after >50 entries
 - [ ] Add `archive_routes/` directory and auto-move completed `.json` routes
@@ -144,3 +144,4 @@
 - [x] Inject sync logic to push new routes to external calendar providers (Google, iCal)
 - [x] Validate calendar sync with Google API mock and test recurrence logic
 - [x] Create unit test suite for all score functions (e.g., travel time penalty, constraint weight)
+- [x] Add dynamic rule weights based on user config file or playbook tuning

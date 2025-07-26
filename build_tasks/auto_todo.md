@@ -4,5 +4,5 @@
 - [x] Integrate summary logs into dashboard
 - [x] Finalize Playbook GUI injection logic
 - [x] Wire preflight QA checklist into route generation
-- [ ] Improve routing traffic logic (Google Maps/OSRM)
+- [x] Improve routing traffic logic (Google Maps/OSRM)
 - [ ] Add error notifications for broken routes

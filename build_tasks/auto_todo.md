@@ -4,7 +4,7 @@
 - [x] Integrate route scoring engine into main route pipeline
 - [x] Finalize score weight config (distance, priority, traffic, playbook penalties)
 - [x] Add summary route score at end of each generated route
-- [ ] Write route score export to `/logs/route_scores/YYYY-MM-DD.json`
+- [x] Write route score export to `/logs/route_scores/YYYY-MM-DD.json`
 - [ ] Add per-store score justification log (penalties, bonuses)
 
 ## 🧠 Constraint & Playbook Injection
@@ -56,3 +56,4 @@
 - [x] Integrate route scoring engine into main route pipeline
 - [x] Finalize score weight config (distance, priority, traffic, playbook penalties)
 - [x] Add summary route score at end of each generated route
+- [x] Write route score export to `/logs/route_scores/YYYY-MM-DD.json`

@@ -204,7 +204,7 @@
 - [x] Add Multi-Day Route Continuity Check
 - [x] Build Interactive Debug Flag Inspector
 - [x] Integrate Route Scoring Threshold Overrides
-- [ ] Auto-Trim Low-Value Stores Pre-Routing
+- [x] Auto-Trim Low-Value Stores Pre-Routing
 - [x] Add real-time constraint violation monitor with audible alert for violations during build
 - [x] Build End-to-End Route Generation Trace Log
 - [x] Implement Constraint Violation Recovery Heuristics
@@ -220,3 +220,21 @@
 - [x] Add Multi-Day Route Continuity Check
 - [x] Build Interactive Debug Flag Inspector
 - [x] Integrate Route Scoring Threshold Overrides
+- [x] Auto-Trim Low-Value Stores Pre-Routing
+- [ ] Auto-Trim Low-Value Stores Pre-Routing
+- [ ] Store Clustering
+- [ ] Multi-Day Route Continuity
+- [ ] Flag Inspector
+- [ ] Score Threshold Override
+- [ ] Pre-Routing Pruning
+- [ ] Traffic-Weighted Optimization
+- [ ] Store Visit Duration Handling
+- [ ] Sales Volume Weighting
+- [ ] Post-Routing Summary Report
+- [ ] Routing Error Handler
+- [ ] Route History Logging
+- [ ] Confidence Score Visualization
+- [ ] Batch Route Retry Logic
+- [ ] Route Window Handling
+- [ ] Constraint Violation Detection
+- [ ] Google Maps Export Formatter

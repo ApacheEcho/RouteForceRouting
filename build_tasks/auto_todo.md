@@ -235,7 +235,7 @@
 - [x] Route History Logging
 - [x] Confidence Score Visualization
 - [x] Batch Route Retry Logic
-- [ ] Route Window Handling
+- [x] Route Window Handling
 - [ ] Constraint Violation Detection
 - [ ] Google Maps Export Formatter
 - [x] Auto-Trim Low-Value Stores Pre-Routing
@@ -252,3 +252,4 @@
 - [x] Route History Logging
 - [x] Confidence Score Visualization
 - [x] Batch Route Retry Logic
+- [x] Route Window Handling

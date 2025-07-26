@@ -41,7 +41,7 @@
 - [x] Log Copilot completions with timestamps to `build_log.md`
 - [x] Create retry logic for Copilot builds that timeout or fail midway
 - [x] Write test to simulate bad Copilot generation and ensure script retries
-- [ ] Auto-check for large diffs and flag with `# REVIEW LARGE CHANGE` in commit message
+- [x] Auto-check for large diffs and flag with `# REVIEW LARGE CHANGE` in commit message
 - [ ] Inject random 1–3 stretch goals to bottom of `auto_todo.md` for overflow work
 - [x] Inject playbook constraints into routing logic (hours, skip days, chain rules)
 ## 🔍 QA Engine & Preflight
@@ -151,3 +151,4 @@
 - [x] Log Copilot completions with timestamps to `build_log.md`
 - [x] Create retry logic for Copilot builds that timeout or fail midway
 - [x] Write test to simulate bad Copilot generation and ensure script retries
+- [x] Auto-check for large diffs and flag with `# REVIEW LARGE CHANGE` in commit message

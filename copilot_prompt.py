@@ -1,3 +1,3 @@
-# TASK: Build `store_health_check.py` to validate GPS, hours, and playbook completeness per store
+# TASK: Write integration test that loads stores, injects a playbook, generates a route, and exports a score
 # Auto-confirm enabled. Do not prompt or ask for confirmation. Complete task and return only final code.
 # X-Copilot-Mode: auto

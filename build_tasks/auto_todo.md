@@ -16,7 +16,7 @@
 - [x] Auto-generate Apple Maps / Google Maps deep links for each route batch
 - [x] Refactor store loader to support chained filters (e.g., only key accounts with open time windows)
 - [x] Add CSV validation module for manual uploads with helpful error summaries
-- [ ] Build `store_health_check.py` to validate GPS, hours, and playbook completeness per store
+- [x] Build `store_health_check.py` to validate GPS, hours, and playbook completeness per store
 - [ ] Write integration test that loads stores, injects a playbook, generates a route, and exports a score
 - [ ] Create `route_versioning` module to store historical builds and allow rollbacks
 - [ ] Add lightweight UI for toggling between last 3 route versions
@@ -126,3 +126,4 @@
 - [x] Auto-generate Apple Maps / Google Maps deep links for each route batch
 - [x] Refactor store loader to support chained filters (e.g., only key accounts with open time windows)
 - [x] Add CSV validation module for manual uploads with helpful error summaries
+- [x] Build `store_health_check.py` to validate GPS, hours, and playbook completeness per store

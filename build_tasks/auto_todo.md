@@ -23,7 +23,7 @@
 - [x] Add advanced CSV parsing (auto-detect schema, warn on mismatch)
 - [x] Build store-level validation (`store_validator.py`)
 - [x] Add `store_errors.log` file and route generator skip logic
-- [ ] Build retry queue for failed uploads
+- [x] Build retry queue for failed uploads
 
 ## 🧭 UX + Route Display
 - [ ] Build interactive map route viewer (Leaflet.js or Mapbox wrapper)
@@ -69,3 +69,4 @@
 - [x] Add advanced CSV parsing (auto-detect schema, warn on mismatch)
 - [x] Build store-level validation (`store_validator.py`)
 - [x] Add `store_errors.log` file and route generator skip logic
+- [x] Build retry queue for failed uploads

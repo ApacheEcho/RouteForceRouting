@@ -45,7 +45,7 @@
 
 ## 🧠 Advanced Optimization & Experimental Features
 
-- [ ] Implement genetic algorithm-based route optimizer and compare against current scoring method
+- [x] Implement genetic algorithm-based route optimizer and compare against current scoring method
 - [ ] Create dynamic batching module to split large store lists into optimal route sets
 - [ ] Integrate real-time traffic ingestion and simulate delay-based rerouting
 - [ ] Build 'what-if' simulation tool for alternate store visit orders and scoring
@@ -172,3 +172,4 @@
 - [x] Write test to simulate bad Copilot generation and ensure script retries
 - [x] Auto-check for large diffs and flag with `# REVIEW LARGE CHANGE` in commit message
 - [x] Inject random 1–3 stretch goals to bottom of `auto_todo.md` for overflow work
+- [x] Implement genetic algorithm-based route optimizer and compare against current scoring method

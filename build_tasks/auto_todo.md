@@ -46,7 +46,7 @@
 ## 🧠 Advanced Optimization & Experimental Features
 
 - [x] Implement genetic algorithm-based route optimizer and compare against current scoring method
-- [ ] Create dynamic batching module to split large store lists into optimal route sets
+- [x] Create dynamic batching module to split large store lists into optimal route sets
 - [ ] Integrate real-time traffic ingestion and simulate delay-based rerouting
 - [ ] Build 'what-if' simulation tool for alternate store visit orders and scoring
 - [ ] Generate AI-driven suggestions for route overrides using recent field history
@@ -173,3 +173,4 @@
 - [x] Auto-check for large diffs and flag with `# REVIEW LARGE CHANGE` in commit message
 - [x] Inject random 1–3 stretch goals to bottom of `auto_todo.md` for overflow work
 - [x] Implement genetic algorithm-based route optimizer and compare against current scoring method
+- [x] Create dynamic batching module to split large store lists into optimal route sets

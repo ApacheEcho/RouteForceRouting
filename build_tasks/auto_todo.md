@@ -193,7 +193,7 @@
 - [x] Build End-to-End Route Generation Trace Log
 - [x] Implement Constraint Violation Recovery Heuristics
 - [x] Build Route Scoring Visualizer (CLI Mode)
-- [ ] Auto-Generate `docs/route_rules.md`
+- [x] Auto-Generate `docs/route_rules.md`
 - [ ] Add Deep QA Lint Pass on Store Inputs
 - [ ] Implement Parallel Route Planner Mode
 - [ ] Build One-Click Rerun for Failed Builds
@@ -209,3 +209,4 @@
 - [x] Build End-to-End Route Generation Trace Log
 - [x] Implement Constraint Violation Recovery Heuristics
 - [x] Build Route Scoring Visualizer (CLI Mode)
+- [x] Auto-Generate `docs/route_rules.md`

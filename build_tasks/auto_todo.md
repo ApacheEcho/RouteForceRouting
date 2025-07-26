@@ -11,7 +11,7 @@
 - [x] Inject playbook constraints into routing logic (hours, skip days, chain rules)
 - [x] Add natural language rule support via `rules_parser.py`
 - [x] Build fallback handling for playbook overrides
-- [ ] Validate playbook constraints with test suite
+- [x] Validate playbook constraints with test suite
 
 ## 🔍 QA Engine & Preflight
 - [ ] Build `qa_engine.py` to validate route integrity (no duplicates, no empty days)
@@ -61,3 +61,4 @@
 - [x] Inject playbook constraints into routing logic (hours, skip days, chain rules)
 - [x] Add natural language rule support via `rules_parser.py`
 - [x] Build fallback handling for playbook overrides
+- [x] Validate playbook constraints with test suite

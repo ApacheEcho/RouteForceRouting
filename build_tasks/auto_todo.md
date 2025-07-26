@@ -14,7 +14,7 @@
 - [x] Validate playbook constraints with test suite
 
 ## 🔍 QA Engine & Preflight
-- [ ] Build `qa_engine.py` to validate route integrity (no duplicates, no empty days)
+- [x] Build `qa_engine.py` to validate route integrity (no duplicates, no empty days)
 - [ ] Inject QA preflight into route generation step
 - [ ] Log QA results to `logs/qa/YYYY-MM-DD.md`
 - [ ] Build auto-correction suggestion engine (e.g., missed high-priority store)
@@ -62,3 +62,4 @@
 - [x] Add natural language rule support via `rules_parser.py`
 - [x] Build fallback handling for playbook overrides
 - [x] Validate playbook constraints with test suite
+- [x] Build `qa_engine.py` to validate route integrity (no duplicates, no empty days)

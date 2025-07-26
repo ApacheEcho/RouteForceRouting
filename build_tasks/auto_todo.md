@@ -24,7 +24,7 @@
 - [x] Refactor constraint parser into reusable logic modules for cleaner injection
 - [x] Auto-retry failed route builds with exponential backoff and timeout
 - [x] Write `summarize_routes.py` to print scores, health, and errors per route to markdown
-- [ ] Implement GitHub Action to trigger route summary each night at 2AM EST
+- [x] Implement GitHub Action to trigger route summary each night at 2AM EST
 - [ ] Create `route_failures.md` log to list unscored or invalid route attempts with reasons
 - [ ] Inject Copilot error output summaries into this file for audit trail
 - [ ] Add advanced filtering UI (e.g., show only failing, only high-priority, only CVS)
@@ -134,3 +134,4 @@
 - [x] Refactor constraint parser into reusable logic modules for cleaner injection
 - [x] Auto-retry failed route builds with exponential backoff and timeout
 - [x] Write `summarize_routes.py` to print scores, health, and errors per route to markdown
+- [x] Implement GitHub Action to trigger route summary each night at 2AM EST

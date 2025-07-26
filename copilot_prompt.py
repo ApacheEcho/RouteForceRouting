@@ -1,2 +1,2 @@
-# TASK: Implement QA metrics and auto-correction logic
+# TASK: Integrate summary logs into dashboard
 # Please generate complete code for this task.

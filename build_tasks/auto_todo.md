@@ -48,7 +48,7 @@
 - [x] Implement genetic algorithm-based route optimizer and compare against current scoring method
 - [x] Create dynamic batching module to split large store lists into optimal route sets
 - [x] Integrate real-time traffic ingestion and simulate delay-based rerouting
-- [ ] Build 'what-if' simulation tool for alternate store visit orders and scoring
+- [x] Build 'what-if' simulation tool for alternate store visit orders and scoring
 - [ ] Generate AI-driven suggestions for route overrides using recent field history
 - [ ] Add predictive priority estimator using store visit frequency and time-of-day trends
 - [ ] Inject a 'playbook tuner' module that auto-suggests changes based on past performance
@@ -175,3 +175,4 @@
 - [x] Implement genetic algorithm-based route optimizer and compare against current scoring method
 - [x] Create dynamic batching module to split large store lists into optimal route sets
 - [x] Integrate real-time traffic ingestion and simulate delay-based rerouting
+- [x] Build 'what-if' simulation tool for alternate store visit orders and scoring

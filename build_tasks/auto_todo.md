@@ -191,7 +191,7 @@
 - [x] Add real-time constraint violation monitor with audible alert for violations during build
 - [x] Add real-time constraint violation monitor with audible alert for violations during build
 - [x] Build End-to-End Route Generation Trace Log
-- [ ] Implement Constraint Violation Recovery Heuristics
+- [x] Implement Constraint Violation Recovery Heuristics
 - [ ] Build Route Scoring Visualizer (CLI Mode)
 - [ ] Auto-Generate `docs/route_rules.md`
 - [ ] Add Deep QA Lint Pass on Store Inputs
@@ -207,3 +207,4 @@
 - [ ] Auto-Trim Low-Value Stores Pre-Routing
 - [x] Add real-time constraint violation monitor with audible alert for violations during build
 - [x] Build End-to-End Route Generation Trace Log
+- [x] Implement Constraint Violation Recovery Heuristics

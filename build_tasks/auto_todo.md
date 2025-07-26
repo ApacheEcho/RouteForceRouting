@@ -50,7 +50,7 @@
 - [x] Integrate real-time traffic ingestion and simulate delay-based rerouting
 - [x] Build 'what-if' simulation tool for alternate store visit orders and scoring
 - [x] Generate AI-driven suggestions for route overrides using recent field history
-- [ ] Add predictive priority estimator using store visit frequency and time-of-day trends
+- [x] Add predictive priority estimator using store visit frequency and time-of-day trends
 - [ ] Inject a 'playbook tuner' module that auto-suggests changes based on past performance
 - [ ] Build route editing UX with drag-and-drop reorder and live ETA recalculation
 - [ ] Construct audit mode that shows every routing decision and scoring breakdown step-by-step
@@ -177,3 +177,4 @@
 - [x] Integrate real-time traffic ingestion and simulate delay-based rerouting
 - [x] Build 'what-if' simulation tool for alternate store visit orders and scoring
 - [x] Generate AI-driven suggestions for route overrides using recent field history
+- [x] Add predictive priority estimator using store visit frequency and time-of-day trends

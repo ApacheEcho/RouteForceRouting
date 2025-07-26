@@ -257,5 +257,6 @@
 - [x] Google Maps Export Formatter
 - [x] Google Maps Export Formatter (Advanced Mode)
 - [x] Google Maps Export Formatter (Advanced Mode)
-- [ ] Google Maps Export Formatter (Advanced Mode)
+- [x] Google Maps Export Formatter (Advanced Mode)
 - [ ] Full Productionization Suite for RouteForce Pro
+- [x] Google Maps Export Formatter (Advanced Mode)

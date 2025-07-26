@@ -6,7 +6,7 @@
 - [x] Implement multi-phase route scoring algorithm with adjustable weights (e.g., distance, traffic, store value)
 - [x] Add modular score functions for time window adherence and customer priority
 - [x] Integrate external traffic API (e.g., Google Maps or OpenRoute) for ETA calculations
-- [ ] Build fallback mechanism for when traffic API fails (retry logic + local estimation)
+- [x] Build fallback mechanism for when traffic API fails (retry logic + local estimation)
 - [ ] Create `score_route()` unit test suite with mocked distance and priority data
 - [ ] Refactor playbook injection logic to support multiple simultaneous constraints
 - [ ] Validate playbook constraints with schema and throw user-friendly errors
@@ -116,3 +116,4 @@
 - [x] Implement multi-phase route scoring algorithm with adjustable weights (e.g., distance, traffic, store value)
 - [x] Add modular score functions for time window adherence and customer priority
 - [x] Integrate external traffic API (e.g., Google Maps or OpenRoute) for ETA calculations
+- [x] Build fallback mechanism for when traffic API fails (retry logic + local estimation)

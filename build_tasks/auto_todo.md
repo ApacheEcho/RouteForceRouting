@@ -226,7 +226,7 @@
 - [x] Multi-Day Route Continuity
 - [x] Flag Inspector
 - [x] Score Threshold Override
-- [ ] Pre-Routing Pruning
+- [x] Pre-Routing Pruning
 - [ ] Traffic-Weighted Optimization
 - [ ] Store Visit Duration Handling
 - [ ] Sales Volume Weighting
@@ -243,3 +243,4 @@
 - [x] Multi-Day Route Continuity
 - [x] Flag Inspector
 - [x] Score Threshold Override
+- [x] Pre-Routing Pruning

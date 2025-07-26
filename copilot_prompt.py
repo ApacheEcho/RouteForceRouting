@@ -1,3 +1,3 @@
-# TASK: Build End-to-End Route Generation Trace Log
+# TASK: Implement Constraint Violation Recovery Heuristics
 # Auto-confirm enabled. Do not prompt or ask for confirmation. Complete task and return only final code.
 # X-Copilot-Mode: auto

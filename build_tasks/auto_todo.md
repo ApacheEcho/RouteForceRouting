@@ -1,18 +1,49 @@
 # 🛠️ RouteForcePro – Autonomous Build Queue (8-Hour Sprint)
 
 ## ✅ Core Routing & Scoring Enhancements
-- [x] Integrate route scoring engine into main route pipeline
-- [x] Finalize score weight config (distance, priority, traffic, playbook penalties)
-- [x] Add summary route score at end of each generated route
-- [x] Write route score export to `/logs/route_scores/YYYY-MM-DD.json`
-- [x] Add per-store score justification log (penalties, bonuses)
+# 🛠️ RouteForcePro Deep Task Queue (2025-07-26)
 
-## 🧠 Constraint & Playbook Injection
+- [ ] Implement multi-phase route scoring algorithm with adjustable weights (e.g., distance, traffic, store value)
+- [ ] Add modular score functions for time window adherence and customer priority
+- [ ] Integrate external traffic API (e.g., Google Maps or OpenRoute) for ETA calculations
+- [ ] Build fallback mechanism for when traffic API fails (retry logic + local estimation)
+- [ ] Create `score_route()` unit test suite with mocked distance and priority data
+- [ ] Refactor playbook injection logic to support multiple simultaneous constraints
+- [ ] Validate playbook constraints with schema and throw user-friendly errors
+- [ ] Generate route debug logs (per store, per route) and export to timestamped `.log` files
+- [ ] Build route visualization map overlay using static map images (Google or OpenStreet)
+- [ ] Create HTMX frontend widget to preview daily routes inline before committing
+- [ ] Auto-generate Apple Maps / Google Maps deep links for each route batch
+- [ ] Refactor store loader to support chained filters (e.g., only key accounts with open time windows)
+- [ ] Add CSV validation module for manual uploads with helpful error summaries
+- [ ] Build `store_health_check.py` to validate GPS, hours, and playbook completeness per store
+- [ ] Write integration test that loads stores, injects a playbook, generates a route, and exports a score
+- [ ] Create `route_versioning` module to store historical builds and allow rollbacks
+- [ ] Add lightweight UI for toggling between last 3 route versions
+- [ ] Implement full logging and error capture with fallback to rotating file storage
+- [ ] Refactor constraint parser into reusable logic modules for cleaner injection
+- [ ] Auto-retry failed route builds with exponential backoff and timeout
+- [ ] Write `summarize_routes.py` to print scores, health, and errors per route to markdown
+- [ ] Implement GitHub Action to trigger route summary each night at 2AM EST
+- [ ] Create `route_failures.md` log to list unscored or invalid route attempts with reasons
+- [ ] Inject Copilot error output summaries into this file for audit trail
+- [ ] Add advanced filtering UI (e.g., show only failing, only high-priority, only CVS)
+- [ ] Build map-clustering logic to reduce pin overlap when visualizing dense areas
+- [ ] Generate proximity heatmap from recent route activity (past 7 days)
+- [ ] Create route reassignment tool for dragging or reordering stores manually
+- [ ] Inject sync logic to push new routes to external calendar providers (Google, iCal)
+- [ ] Validate calendar sync with Google API mock and test recurrence logic
+- [ ] Create unit test suite for all score functions (e.g., travel time penalty, constraint weight)
+- [ ] Add dynamic rule weights based on user config file or playbook tuning
+- [ ] Write CLI tool `rfp-build` to launch full routing build with flags (e.g., --mock, --playbook=CVS)
+- [ ] Implement auto-archive for `auto_todo.md` after >50 entries
+- [ ] Add `archive_routes/` directory and auto-move completed `.json` routes
+- [ ] Log Copilot completions with timestamps to `build_log.md`
+- [ ] Create retry logic for Copilot builds that timeout or fail midway
+- [ ] Write test to simulate bad Copilot generation and ensure script retries
+- [ ] Auto-check for large diffs and flag with `# REVIEW LARGE CHANGE` in commit message
+- [ ] Inject random 1–3 stretch goals to bottom of `auto_todo.md` for overflow work
 - [x] Inject playbook constraints into routing logic (hours, skip days, chain rules)
-- [x] Add natural language rule support via `rules_parser.py`
-- [x] Build fallback handling for playbook overrides
-- [x] Validate playbook constraints with test suite
-
 ## 🔍 QA Engine & Preflight
 - [x] Build `qa_engine.py` to validate route integrity (no duplicates, no empty days)
 - [x] Inject QA preflight into route generation step
@@ -41,7 +72,7 @@
 - [x] Self-generate next 5 tasks if list runs low (`autobuild.py`)
 - [x] Add random 1-minute pause between every 3 tasks to mimic human input
 - [x] Archive completed tasks to `archive/YYYY-MM-DD_done.md`
-- [ ] Clean up unused log files older than 7 days
+- [x] Clean up unused log files older than 7 days
 - [x] Add automated route health monitoring and alerting for persistent failures
 - [x] Build route scoring integration into main route pipeline
 - [x] Add user-facing score breakdown UI
@@ -81,3 +112,4 @@
 - [x] Self-generate next 5 tasks if list runs low (`autobuild.py`)
 - [x] Add random 1-minute pause between every 3 tasks to mimic human input
 - [x] Archive completed tasks to `archive/YYYY-MM-DD_done.md`
+- [x] Clean up unused log files older than 7 days

@@ -52,7 +52,7 @@
 - [x] Generate AI-driven suggestions for route overrides using recent field history
 - [x] Add predictive priority estimator using store visit frequency and time-of-day trends
 - [x] Inject a 'playbook tuner' module that auto-suggests changes based on past performance
-- [ ] Build route editing UX with drag-and-drop reorder and live ETA recalculation
+- [x] Build route editing UX with drag-and-drop reorder and live ETA recalculation
 - [ ] Construct audit mode that shows every routing decision and scoring breakdown step-by-step
 - [ ] Log score regression trends across 30-day route builds to detect optimization drift
 - [ ] Add store bundling logic: cluster stores by chain or location preference dynamically
@@ -179,3 +179,4 @@
 - [x] Generate AI-driven suggestions for route overrides using recent field history
 - [x] Add predictive priority estimator using store visit frequency and time-of-day trends
 - [x] Inject a 'playbook tuner' module that auto-suggests changes based on past performance
+- [x] Build route editing UX with drag-and-drop reorder and live ETA recalculation

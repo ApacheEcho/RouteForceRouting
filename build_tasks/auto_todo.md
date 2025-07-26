@@ -1,7 +1,7 @@
 # 🛠️ RouteForcePro – Autonomous Build Queue (8-Hour Sprint)
 
 ## ✅ Core Routing & Scoring Enhancements
-- [ ] Integrate route scoring engine into main route pipeline
+- [x] Integrate route scoring engine into main route pipeline
 - [ ] Finalize score weight config (distance, priority, traffic, playbook penalties)
 - [ ] Add summary route score at end of each generated route
 - [ ] Write route score export to `/logs/route_scores/YYYY-MM-DD.json`
@@ -53,3 +53,4 @@
 - [x] Add error notifications for broken routes
 - [x] Add automated route health monitoring and alerting for persistent failures
 - [x] Add automated route health monitoring and alerting for persistent failures
+- [x] Integrate route scoring engine into main route pipeline

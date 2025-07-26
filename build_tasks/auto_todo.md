@@ -222,7 +222,7 @@
 - [x] Integrate Route Scoring Threshold Overrides
 - [x] Auto-Trim Low-Value Stores Pre-Routing
 - [x] Auto-Trim Low-Value Stores Pre-Routing
-- [ ] Store Clustering
+- [x] Store Clustering
 - [ ] Multi-Day Route Continuity
 - [ ] Flag Inspector
 - [ ] Score Threshold Override
@@ -239,3 +239,4 @@
 - [ ] Constraint Violation Detection
 - [ ] Google Maps Export Formatter
 - [x] Auto-Trim Low-Value Stores Pre-Routing
+- [x] Store Clustering

@@ -38,7 +38,7 @@
 - [x] Write CLI tool `rfp-build` to launch full routing build with flags (e.g., --mock, --playbook=CVS)
 - [x] Implement auto-archive for `auto_todo.md` after >50 entries
 - [x] Add `archive_routes/` directory and auto-move completed `.json` routes
-- [ ] Log Copilot completions with timestamps to `build_log.md`
+- [x] Log Copilot completions with timestamps to `build_log.md`
 - [ ] Create retry logic for Copilot builds that timeout or fail midway
 - [ ] Write test to simulate bad Copilot generation and ensure script retries
 - [ ] Auto-check for large diffs and flag with `# REVIEW LARGE CHANGE` in commit message
@@ -148,3 +148,4 @@
 - [x] Write CLI tool `rfp-build` to launch full routing build with flags (e.g., --mock, --playbook=CVS)
 - [x] Implement auto-archive for `auto_todo.md` after >50 entries
 - [x] Add `archive_routes/` directory and auto-move completed `.json` routes
+- [x] Log Copilot completions with timestamps to `build_log.md`

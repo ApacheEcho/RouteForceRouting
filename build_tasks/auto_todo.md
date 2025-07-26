@@ -2,7 +2,7 @@
 
 ## ✅ Core Routing & Scoring Enhancements
 - [x] Integrate route scoring engine into main route pipeline
-- [ ] Finalize score weight config (distance, priority, traffic, playbook penalties)
+- [x] Finalize score weight config (distance, priority, traffic, playbook penalties)
 - [ ] Add summary route score at end of each generated route
 - [ ] Write route score export to `/logs/route_scores/YYYY-MM-DD.json`
 - [ ] Add per-store score justification log (penalties, bonuses)
@@ -54,3 +54,4 @@
 - [x] Add automated route health monitoring and alerting for persistent failures
 - [x] Add automated route health monitoring and alerting for persistent failures
 - [x] Integrate route scoring engine into main route pipeline
+- [x] Finalize score weight config (distance, priority, traffic, playbook penalties)

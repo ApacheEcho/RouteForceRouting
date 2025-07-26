@@ -203,7 +203,7 @@
 - [x] Implement Store Clustering Engine
 - [x] Add Multi-Day Route Continuity Check
 - [x] Build Interactive Debug Flag Inspector
-- [ ] Integrate Route Scoring Threshold Overrides
+- [x] Integrate Route Scoring Threshold Overrides
 - [ ] Auto-Trim Low-Value Stores Pre-Routing
 - [x] Add real-time constraint violation monitor with audible alert for violations during build
 - [x] Build End-to-End Route Generation Trace Log
@@ -219,3 +219,4 @@
 - [x] Implement Store Clustering Engine
 - [x] Add Multi-Day Route Continuity Check
 - [x] Build Interactive Debug Flag Inspector
+- [x] Integrate Route Scoring Threshold Overrides

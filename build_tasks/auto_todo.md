@@ -194,7 +194,7 @@
 - [x] Implement Constraint Violation Recovery Heuristics
 - [x] Build Route Scoring Visualizer (CLI Mode)
 - [x] Auto-Generate `docs/route_rules.md`
-- [ ] Add Deep QA Lint Pass on Store Inputs
+- [x] Add Deep QA Lint Pass on Store Inputs
 - [ ] Implement Parallel Route Planner Mode
 - [ ] Build One-Click Rerun for Failed Builds
 - [ ] Snapshot `main.py` and `core/` logic into `/archived_builds/YYYY-MM-DD-HHMM/`
@@ -210,3 +210,4 @@
 - [x] Implement Constraint Violation Recovery Heuristics
 - [x] Build Route Scoring Visualizer (CLI Mode)
 - [x] Auto-Generate `docs/route_rules.md`
+- [x] Add Deep QA Lint Pass on Store Inputs

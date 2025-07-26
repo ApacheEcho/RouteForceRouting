@@ -1,3 +1,3 @@
-# TASK: Add Deep QA Lint Pass on Store Inputs
+# TASK: Implement Parallel Route Planner Mode
 # Auto-confirm enabled. Do not prompt or ask for confirmation. Complete task and return only final code.
 # X-Copilot-Mode: auto

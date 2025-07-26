@@ -1,3 +1,3 @@
-# TASK: Log build decisions with timestamps to `build_log.md`
+# TASK: Implement auto-summarizer after every 10 tasks
 # Auto-confirm enabled. Do not prompt or ask for confirmation. Complete task and return only final code.
 # X-Copilot-Mode: auto

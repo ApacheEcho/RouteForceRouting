@@ -236,7 +236,7 @@
 - [x] Confidence Score Visualization
 - [x] Batch Route Retry Logic
 - [x] Route Window Handling
-- [ ] Constraint Violation Detection
+- [x] Constraint Violation Detection
 - [ ] Google Maps Export Formatter
 - [x] Auto-Trim Low-Value Stores Pre-Routing
 - [x] Store Clustering
@@ -253,3 +253,4 @@
 - [x] Confidence Score Visualization
 - [x] Batch Route Retry Logic
 - [x] Route Window Handling
+- [x] Constraint Violation Detection

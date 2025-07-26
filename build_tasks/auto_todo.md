@@ -199,7 +199,7 @@
 - [x] Build One-Click Rerun for Failed Builds
 - [x] Snapshot `main.py` and `core/` logic into `/archived_builds/YYYY-MM-DD-HHMM/`
 - [x] Generate Heatmap-Weighted Route Suggestion
-- [ ] Add Audible Alert for Build Errors (CLI Bell)
+- [x] Add Audible Alert for Build Errors (CLI Bell)
 - [ ] Implement Store Clustering Engine
 - [ ] Add Multi-Day Route Continuity Check
 - [ ] Build Interactive Debug Flag Inspector
@@ -215,3 +215,4 @@
 - [x] Build One-Click Rerun for Failed Builds
 - [x] Snapshot `main.py` and `core/` logic into `/archived_builds/YYYY-MM-DD-HHMM/`
 - [x] Generate Heatmap-Weighted Route Suggestion
+- [x] Add Audible Alert for Build Errors (CLI Bell)

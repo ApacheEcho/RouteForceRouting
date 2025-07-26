@@ -1,0 +1,8 @@
+- [ ] Build route scoring integration into main route pipeline
+- [ ] Add user-facing score breakdown UI
+- [ ] Implement QA metrics and auto-correction logic
+- [ ] Integrate summary logs into dashboard
+- [ ] Finalize Playbook GUI injection logic
+- [ ] Wire preflight QA checklist into route generation
+- [ ] Improve routing traffic logic (Google Maps/OSRM)
+- [ ] Add error notifications for broken routes

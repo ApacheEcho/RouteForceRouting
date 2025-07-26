@@ -138,9 +138,9 @@ class TestMultiVehicleRouting:
         total_assigned_stores = sum(
             len(stores) for stores in vehicle_assignments.values()
         )
-        assert total_assigned_stores <= len(large_store_dataset), (
-            "Cannot assign more stores than available"
-        )
+        assert total_assigned_stores <= len(
+            large_store_dataset
+        ), "Cannot assign more stores than available"
 
         # Verify capacity constraints are respected
         for vehicle_id, assigned_stores in vehicle_assignments.items():
@@ -149,17 +149,17 @@ class TestMultiVehicleRouting:
             total_weight = sum(store.weight_kg for store in assigned_stores)
             total_packages = sum(store.packages for store in assigned_stores)
 
-            assert total_weight <= vehicle.capacity_kg, (
-                f"Vehicle {vehicle_id} weight limit exceeded"
-            )
-            assert total_packages <= vehicle.max_packages, (
-                f"Vehicle {vehicle_id} package limit exceeded"
-            )
+            assert (
+                total_weight <= vehicle.capacity_kg
+            ), f"Vehicle {vehicle_id} weight limit exceeded"
+            assert (
+                total_packages <= vehicle.max_packages
+            ), f"Vehicle {vehicle_id} package limit exceeded"
 
         # Verify at least 2 vehicles are used for large dataset
-        assert len(vehicle_assignments) >= 2, (
-            "Should use multiple vehicles for large dataset"
-        )
+        assert (
+            len(vehicle_assignments) >= 2
+        ), "Should use multiple vehicles for large dataset"
 
         print(
             f"Distributed {len(large_store_dataset)} stores across {len(vehicle_assignments)} vehicles"
@@ -231,9 +231,9 @@ class TestMultiVehicleRouting:
 
         # Some stores may not be assignable due to size constraints
         total_assigned = sum(len(stores) for stores in vehicle_assignments.values())
-        assert total_assigned <= len(oversized_stores), (
-            "Cannot assign more stores than created"
-        )
+        assert total_assigned <= len(
+            oversized_stores
+        ), "Cannot assign more stores than created"
 
         print(
             f"Assigned {total_assigned} out of {len(oversized_stores)} oversized stores"
@@ -250,27 +250,27 @@ class TestMultiVehicleRouting:
         for route in routes:
             # Verify metrics are reasonable
             assert route.total_distance_km > 0, "Route should have positive distance"
-            assert route.estimated_duration_hours > 0, (
-                "Route should have positive duration"
-            )
+            assert (
+                route.estimated_duration_hours > 0
+            ), "Route should have positive duration"
             assert route.total_weight_kg > 0, "Route should have positive weight"
             assert route.total_packages > 0, "Route should have positive package count"
 
             # Check distance vs duration relationship (should be roughly correlated)
             # Assuming urban speeds of 20-60 km/h
             implied_speed = route.total_distance_km / route.estimated_duration_hours
-            assert 10 <= implied_speed <= 80, (
-                f"Implied speed {implied_speed} km/h seems unrealistic"
-            )
+            assert (
+                10 <= implied_speed <= 80
+            ), f"Implied speed {implied_speed} km/h seems unrealistic"
 
             # Verify stop count matches assigned stores
             expected_packages = sum(stop["packages"] for stop in route.stops)
             expected_weight = sum(stop["weight_kg"] for stop in route.stops)
 
             assert route.total_packages == expected_packages, "Package count mismatch"
-            assert abs(route.total_weight_kg - expected_weight) < 0.01, (
-                "Weight calculation mismatch"
-            )
+            assert (
+                abs(route.total_weight_kg - expected_weight) < 0.01
+            ), "Weight calculation mismatch"
 
     def test_constraint_validation(self, large_store_dataset, sample_vehicles):
         """Test route constraint validation."""
@@ -302,9 +302,9 @@ class TestMultiVehicleRouting:
             ]
             for key in expected_keys:
                 assert key in validation_results, f"Missing validation key: {key}"
-                assert isinstance(validation_results[key], bool), (
-                    f"Validation {key} should be boolean"
-                )
+                assert isinstance(
+                    validation_results[key], bool
+                ), f"Validation {key} should be boolean"
 
             # Print constraint violations for analysis
             violations = [
@@ -399,9 +399,9 @@ class TestPerformanceMonitoring:
         # Verify benchmark results structure
         for method in [OptimizationMethod.NEAREST_NEIGHBOR, OptimizationMethod.TWO_OPT]:
             method_name = method.value
-            assert method_name in benchmark_results, (
-                f"Missing benchmark for {method_name}"
-            )
+            assert (
+                method_name in benchmark_results
+            ), f"Missing benchmark for {method_name}"
 
             result = benchmark_results[method_name]
 
@@ -418,23 +418,23 @@ class TestPerformanceMonitoring:
                 ]
 
                 for metric in expected_metrics:
-                    assert metric in result, (
-                        f"Missing metric {metric} for {method_name}"
-                    )
-                    assert isinstance(result[metric], (int, float)), (
-                        f"Metric {metric} should be numeric"
-                    )
+                    assert (
+                        metric in result
+                    ), f"Missing metric {metric} for {method_name}"
+                    assert isinstance(
+                        result[metric], (int, float)
+                    ), f"Metric {metric} should be numeric"
 
                 # Verify reasonable performance values
-                assert result["execution_time_seconds"] > 0, (
-                    "Should have positive execution time"
-                )
-                assert result["stores_processed"] == len(large_store_dataset), (
-                    "Should process all stores"
-                )
-                assert result["total_routes_generated"] > 0, (
-                    "Should generate at least one route"
-                )
+                assert (
+                    result["execution_time_seconds"] > 0
+                ), "Should have positive execution time"
+                assert result["stores_processed"] == len(
+                    large_store_dataset
+                ), "Should process all stores"
+                assert (
+                    result["total_routes_generated"] > 0
+                ), "Should generate at least one route"
 
         print("Benchmark Results:")
         for method, metrics in benchmark_results.items():
@@ -470,29 +470,29 @@ class TestPerformanceMonitoring:
             ]
 
             for metric in expected_metrics:
-                assert metric in efficiency_metrics, (
-                    f"Missing efficiency metric: {metric}"
-                )
-                assert isinstance(efficiency_metrics[metric], (int, float)), (
-                    f"Metric {metric} should be numeric"
-                )
+                assert (
+                    metric in efficiency_metrics
+                ), f"Missing efficiency metric: {metric}"
+                assert isinstance(
+                    efficiency_metrics[metric], (int, float)
+                ), f"Metric {metric} should be numeric"
 
             # Verify reasonable value ranges
-            assert 0 <= efficiency_metrics["efficiency_score"] <= 100, (
-                "Efficiency score should be 0-100"
-            )
-            assert efficiency_metrics["distance_per_stop_km"] > 0, (
-                "Distance per stop should be positive"
-            )
-            assert efficiency_metrics["time_per_stop_hours"] > 0, (
-                "Time per stop should be positive"
-            )
-            assert 0 <= efficiency_metrics["weight_utilization_percent"] <= 100, (
-                "Weight utilization should be 0-100%"
-            )
-            assert 0 <= efficiency_metrics["high_priority_ratio"] <= 1, (
-                "Priority ratio should be 0-1"
-            )
+            assert (
+                0 <= efficiency_metrics["efficiency_score"] <= 100
+            ), "Efficiency score should be 0-100"
+            assert (
+                efficiency_metrics["distance_per_stop_km"] > 0
+            ), "Distance per stop should be positive"
+            assert (
+                efficiency_metrics["time_per_stop_hours"] > 0
+            ), "Time per stop should be positive"
+            assert (
+                0 <= efficiency_metrics["weight_utilization_percent"] <= 100
+            ), "Weight utilization should be 0-100%"
+            assert (
+                0 <= efficiency_metrics["high_priority_ratio"] <= 1
+            ), "Priority ratio should be 0-1"
 
             print(f"Route {route.route_id} Efficiency Analysis:")
             print(
@@ -544,9 +544,9 @@ class TestPerformanceMonitoring:
 
             # Verify performance is reasonable (should complete within reasonable time)
             max_expected_time = size * 0.1  # Allow 0.1 seconds per store maximum
-            assert execution_time <= max_expected_time, (
-                f"Optimization took too long for {size} stores: {execution_time}s"
-            )
+            assert (
+                execution_time <= max_expected_time
+            ), f"Optimization took too long for {size} stores: {execution_time}s"
 
             print(f"Dataset Size: {size} stores")
             print(f"  Execution Time: {execution_time:.3f}s")
@@ -590,9 +590,9 @@ class TestPerformanceMonitoring:
 
             # Memory growth should be reasonable (less than 10MB for test datasets)
             max_memory_mb = 10 * 1024 * 1024  # 10MB
-            assert memory_growth <= max_memory_mb, (
-                f"Excessive memory usage: {memory_growth} bytes"
-            )
+            assert (
+                memory_growth <= max_memory_mb
+            ), f"Excessive memory usage: {memory_growth} bytes"
 
             print(f"Dataset size {size}: Memory growth = {memory_growth} bytes")
 

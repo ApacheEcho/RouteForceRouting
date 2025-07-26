@@ -1,16 +1,10 @@
-# Example Render YAML for advanced deployment configuration
-# See: https://render.com/docs/yaml-spec for full options
+routing/core.py
+from routing.route_scoring import rank_routes
 
-services:
-  - type: web
-    name: routeforce-routing
-    runtime: python
-    region: oregon
-    plan: free
-    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
-    startCommand: gunicorn app:app --worker-class eventlet --bind 0.0.0.0:$PORT --workers 1
-    envVars:
-      - key: FLASK_ENV
-        value: production
-      - key: PYTHONPATH
-        value: /opt/render/project/src
+def generate_routes(...):  # existing signature
+    ...
+    # Assume route_candidates is the list of generated routes
+    ranked = rank_routes(route_candidates)
+    if ranked:
+        return ranked[0]["route"]
+    return None

@@ -10,8 +10,7 @@ from typing import Dict, List, Optional
 # Import modern services
 from app.services.route_core import RouteConstraints, create_route_generator
 from app.services.route_core import generate_route as modern_generate_route
-from app.services.route_core import \
-    print_route_summary as modern_print_route_summary
+from app.services.route_core import print_route_summary as modern_print_route_summary
 from app.services.route_core import summarize_route as modern_summarize_route
 
 logger = logging.getLogger(__name__)

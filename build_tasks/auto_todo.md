@@ -223,7 +223,7 @@
 - [x] Auto-Trim Low-Value Stores Pre-Routing
 - [x] Auto-Trim Low-Value Stores Pre-Routing
 - [x] Store Clustering
-- [ ] Multi-Day Route Continuity
+- [x] Multi-Day Route Continuity
 - [ ] Flag Inspector
 - [ ] Score Threshold Override
 - [ ] Pre-Routing Pruning
@@ -240,3 +240,4 @@
 - [ ] Google Maps Export Formatter
 - [x] Auto-Trim Low-Value Stores Pre-Routing
 - [x] Store Clustering
+- [x] Multi-Day Route Continuity

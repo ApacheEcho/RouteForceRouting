@@ -1,3 +1,47 @@
+# 🛠️ RouteForcePro – Autonomous Build Queue (8-Hour Sprint)
+
+## ✅ Core Routing & Scoring Enhancements
+- [ ] Integrate route scoring engine into main route pipeline
+- [ ] Finalize score weight config (distance, priority, traffic, playbook penalties)
+- [ ] Add summary route score at end of each generated route
+- [ ] Write route score export to `/logs/route_scores/YYYY-MM-DD.json`
+- [ ] Add per-store score justification log (penalties, bonuses)
+
+## 🧠 Constraint & Playbook Injection
+- [ ] Inject playbook constraints into routing logic (hours, skip days, chain rules)
+- [ ] Add natural language rule support via `rules_parser.py`
+- [ ] Build fallback handling for playbook overrides
+- [ ] Validate playbook constraints with test suite
+
+## 🔍 QA Engine & Preflight
+- [ ] Build `qa_engine.py` to validate route integrity (no duplicates, no empty days)
+- [ ] Inject QA preflight into route generation step
+- [ ] Log QA results to `logs/qa/YYYY-MM-DD.md`
+- [ ] Build auto-correction suggestion engine (e.g., missed high-priority store)
+
+## 🔄 Store Input + Error Handling
+- [ ] Add advanced CSV parsing (auto-detect schema, warn on mismatch)
+- [ ] Build store-level validation (`store_validator.py`)
+- [ ] Add `store_errors.log` file and route generator skip logic
+- [ ] Build retry queue for failed uploads
+
+## 🧭 UX + Route Display
+- [ ] Build interactive map route viewer (Leaflet.js or Mapbox wrapper)
+- [ ] Add store stop time display (from playbook estimates)
+- [ ] Inject route summary into `dashboard.html`
+- [ ] Export Apple/Google Maps links for each day
+
+## 💬 AI Support & Feedback
+- [ ] Add Copilot summary logger for each task completion
+- [ ] Add GPT summary route reviewer stub (`route_review.md`)
+- [ ] Log build decisions with timestamps to `build_log.md`
+- [ ] Implement auto-summarizer after every 10 tasks
+
+## ⚙️ Meta Tasks (Autoloop Support)
+- [ ] Self-generate next 5 tasks if list runs low (`autobuild.py`)
+- [ ] Add random 1-minute pause between every 3 tasks to mimic human input
+- [ ] Archive completed tasks to `archive/YYYY-MM-DD_done.md`
+- [ ] Clean up unused log files older than 7 days
 - [x] Add automated route health monitoring and alerting for persistent failures
 - [x] Build route scoring integration into main route pipeline
 - [x] Add user-facing score breakdown UI
@@ -7,4 +51,5 @@
 - [x] Wire preflight QA checklist into route generation
 - [x] Improve routing traffic logic (Google Maps/OSRM)
 - [x] Add error notifications for broken routes
-- [ ] Add automated route health monitoring and alerting for persistent failures
+- [x] Add automated route health monitoring and alerting for persistent failures
+- [x] Add automated route health monitoring and alerting for persistent failures

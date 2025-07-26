@@ -189,7 +189,7 @@
 - [x] Write benchmark harness to compare route build times and output quality across versions
 - [x] Tag all routes with metadata (version, playbook used, time of build, score)
 - [x] Add real-time constraint violation monitor with audible alert for violations during build
-- [ ] Add real-time constraint violation monitor with audible alert for violations during build
+- [x] Add real-time constraint violation monitor with audible alert for violations during build
 - [ ] Build End-to-End Route Generation Trace Log
 - [ ] Implement Constraint Violation Recovery Heuristics
 - [ ] Build Route Scoring Visualizer (CLI Mode)
@@ -205,3 +205,4 @@
 - [ ] Build Interactive Debug Flag Inspector
 - [ ] Integrate Route Scoring Threshold Overrides
 - [ ] Auto-Trim Low-Value Stores Pre-Routing
+- [x] Add real-time constraint violation monitor with audible alert for violations during build

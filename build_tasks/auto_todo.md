@@ -39,7 +39,7 @@
 - [x] Implement auto-archive for `auto_todo.md` after >50 entries
 - [x] Add `archive_routes/` directory and auto-move completed `.json` routes
 - [x] Log Copilot completions with timestamps to `build_log.md`
-- [ ] Create retry logic for Copilot builds that timeout or fail midway
+- [x] Create retry logic for Copilot builds that timeout or fail midway
 - [ ] Write test to simulate bad Copilot generation and ensure script retries
 - [ ] Auto-check for large diffs and flag with `# REVIEW LARGE CHANGE` in commit message
 - [ ] Inject random 1–3 stretch goals to bottom of `auto_todo.md` for overflow work
@@ -149,3 +149,4 @@
 - [x] Implement auto-archive for `auto_todo.md` after >50 entries
 - [x] Add `archive_routes/` directory and auto-move completed `.json` routes
 - [x] Log Copilot completions with timestamps to `build_log.md`
+- [x] Create retry logic for Copilot builds that timeout or fail midway

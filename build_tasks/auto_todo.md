@@ -22,7 +22,7 @@
 - [x] Add lightweight UI for toggling between last 3 route versions
 - [x] Implement full logging and error capture with fallback to rotating file storage
 - [x] Refactor constraint parser into reusable logic modules for cleaner injection
-- [ ] Auto-retry failed route builds with exponential backoff and timeout
+- [x] Auto-retry failed route builds with exponential backoff and timeout
 - [ ] Write `summarize_routes.py` to print scores, health, and errors per route to markdown
 - [ ] Implement GitHub Action to trigger route summary each night at 2AM EST
 - [ ] Create `route_failures.md` log to list unscored or invalid route attempts with reasons
@@ -132,3 +132,4 @@
 - [x] Add lightweight UI for toggling between last 3 route versions
 - [x] Implement full logging and error capture with fallback to rotating file storage
 - [x] Refactor constraint parser into reusable logic modules for cleaner injection
+- [x] Auto-retry failed route builds with exponential backoff and timeout

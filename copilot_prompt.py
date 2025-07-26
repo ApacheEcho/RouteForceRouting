@@ -1,3 +1,3 @@
-# TASK: Archive completed tasks to `archive/YYYY-MM-DD_done.md`
+# TASK: Clean up unused log files older than 7 days
 # Auto-confirm enabled. Do not prompt or ask for confirmation. Complete task and return only final code.
 # X-Copilot-Mode: auto

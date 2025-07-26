@@ -221,7 +221,7 @@
 - [x] Build Interactive Debug Flag Inspector
 - [x] Integrate Route Scoring Threshold Overrides
 - [x] Auto-Trim Low-Value Stores Pre-Routing
-- [ ] Auto-Trim Low-Value Stores Pre-Routing
+- [x] Auto-Trim Low-Value Stores Pre-Routing
 - [ ] Store Clustering
 - [ ] Multi-Day Route Continuity
 - [ ] Flag Inspector
@@ -238,3 +238,4 @@
 - [ ] Route Window Handling
 - [ ] Constraint Violation Detection
 - [ ] Google Maps Export Formatter
+- [x] Auto-Trim Low-Value Stores Pre-Routing

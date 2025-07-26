@@ -1,3 +1,3 @@
-# TASK: Auto-Trim Low-Value Stores Pre-Routing
+# TASK: Store Clustering
 # Auto-confirm enabled. Do not prompt or ask for confirmation. Complete task and return only final code.
 # X-Copilot-Mode: auto

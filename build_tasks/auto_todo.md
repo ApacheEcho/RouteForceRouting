@@ -56,7 +56,7 @@
 - [x] Construct audit mode that shows every routing decision and scoring breakdown step-by-step
 - [x] Log score regression trends across 30-day route builds to detect optimization drift
 - [x] Add store bundling logic: cluster stores by chain or location preference dynamically
-- [ ] Build offline fallback route builder using cached data only
+- [x] Build offline fallback route builder using cached data only
 - [ ] Add partial re-routing logic: adjust only part of route if new constraint is added
 - [ ] Export entire route plan as PDF with map, times, and constraints shown visually
 - [ ] Write benchmark harness to compare route build times and output quality across versions
@@ -183,3 +183,4 @@
 - [x] Construct audit mode that shows every routing decision and scoring breakdown step-by-step
 - [x] Log score regression trends across 30-day route builds to detect optimization drift
 - [x] Add store bundling logic: cluster stores by chain or location preference dynamically
+- [x] Build offline fallback route builder using cached data only

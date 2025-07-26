@@ -21,7 +21,7 @@
 
 ## 🔄 Store Input + Error Handling
 - [x] Add advanced CSV parsing (auto-detect schema, warn on mismatch)
-- [ ] Build store-level validation (`store_validator.py`)
+- [x] Build store-level validation (`store_validator.py`)
 - [ ] Add `store_errors.log` file and route generator skip logic
 - [ ] Build retry queue for failed uploads
 
@@ -67,3 +67,4 @@
 - [x] Log QA results to `logs/qa/YYYY-MM-DD.md`
 - [x] Build auto-correction suggestion engine (e.g., missed high-priority store)
 - [x] Add advanced CSV parsing (auto-detect schema, warn on mismatch)
+- [x] Build store-level validation (`store_validator.py`)

@@ -1,3 +1,3 @@
-# TASK: Implement Parallel Route Planner Mode
+# TASK: Build One-Click Rerun for Failed Builds
 # Auto-confirm enabled. Do not prompt or ask for confirmation. Complete task and return only final code.
 # X-Copilot-Mode: auto

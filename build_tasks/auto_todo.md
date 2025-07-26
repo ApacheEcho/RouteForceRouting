@@ -224,7 +224,7 @@
 - [x] Auto-Trim Low-Value Stores Pre-Routing
 - [x] Store Clustering
 - [x] Multi-Day Route Continuity
-- [ ] Flag Inspector
+- [x] Flag Inspector
 - [ ] Score Threshold Override
 - [ ] Pre-Routing Pruning
 - [ ] Traffic-Weighted Optimization
@@ -241,3 +241,4 @@
 - [x] Auto-Trim Low-Value Stores Pre-Routing
 - [x] Store Clustering
 - [x] Multi-Day Route Continuity
+- [x] Flag Inspector

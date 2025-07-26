@@ -54,7 +54,7 @@
 - [x] Inject a 'playbook tuner' module that auto-suggests changes based on past performance
 - [x] Build route editing UX with drag-and-drop reorder and live ETA recalculation
 - [x] Construct audit mode that shows every routing decision and scoring breakdown step-by-step
-- [ ] Log score regression trends across 30-day route builds to detect optimization drift
+- [x] Log score regression trends across 30-day route builds to detect optimization drift
 - [ ] Add store bundling logic: cluster stores by chain or location preference dynamically
 - [ ] Build offline fallback route builder using cached data only
 - [ ] Add partial re-routing logic: adjust only part of route if new constraint is added
@@ -181,3 +181,4 @@
 - [x] Inject a 'playbook tuner' module that auto-suggests changes based on past performance
 - [x] Build route editing UX with drag-and-drop reorder and live ETA recalculation
 - [x] Construct audit mode that shows every routing decision and scoring breakdown step-by-step
+- [x] Log score regression trends across 30-day route builds to detect optimization drift

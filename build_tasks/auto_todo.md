@@ -237,7 +237,7 @@
 - [x] Batch Route Retry Logic
 - [x] Route Window Handling
 - [x] Constraint Violation Detection
-- [ ] Google Maps Export Formatter
+- [x] Google Maps Export Formatter
 - [x] Auto-Trim Low-Value Stores Pre-Routing
 - [x] Store Clustering
 - [x] Multi-Day Route Continuity
@@ -254,3 +254,5 @@
 - [x] Batch Route Retry Logic
 - [x] Route Window Handling
 - [x] Constraint Violation Detection
+- [x] Google Maps Export Formatter
+- [ ] Google Maps Export Formatter (Advanced Mode)

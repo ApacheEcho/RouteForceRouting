@@ -58,7 +58,7 @@
 - [x] Add store bundling logic: cluster stores by chain or location preference dynamically
 - [x] Build offline fallback route builder using cached data only
 - [x] Add partial re-routing logic: adjust only part of route if new constraint is added
-- [ ] Export entire route plan as PDF with map, times, and constraints shown visually
+- [x] Export entire route plan as PDF with map, times, and constraints shown visually
 - [ ] Write benchmark harness to compare route build times and output quality across versions
 - [ ] Tag all routes with metadata (version, playbook used, time of build, score)
 - [ ] Add real-time constraint violation monitor with audible alert for violations during build
@@ -185,3 +185,4 @@
 - [x] Add store bundling logic: cluster stores by chain or location preference dynamically
 - [x] Build offline fallback route builder using cached data only
 - [x] Add partial re-routing logic: adjust only part of route if new constraint is added
+- [x] Export entire route plan as PDF with map, times, and constraints shown visually

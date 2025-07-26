@@ -38,7 +38,7 @@
 - [x] Implement auto-summarizer after every 10 tasks
 
 ## ⚙️ Meta Tasks (Autoloop Support)
-- [ ] Self-generate next 5 tasks if list runs low (`autobuild.py`)
+- [x] Self-generate next 5 tasks if list runs low (`autobuild.py`)
 - [ ] Add random 1-minute pause between every 3 tasks to mimic human input
 - [ ] Archive completed tasks to `archive/YYYY-MM-DD_done.md`
 - [ ] Clean up unused log files older than 7 days
@@ -78,3 +78,4 @@
 - [x] Add GPT summary route reviewer stub (`route_review.md`)
 - [x] Log build decisions with timestamps to `build_log.md`
 - [x] Implement auto-summarizer after every 10 tasks
+- [x] Self-generate next 5 tasks if list runs low (`autobuild.py`)

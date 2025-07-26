@@ -28,7 +28,7 @@
 ## 🧭 UX + Route Display
 - [x] Build interactive map route viewer (Leaflet.js or Mapbox wrapper)
 - [x] Add store stop time display (from playbook estimates)
-- [ ] Inject route summary into `dashboard.html`
+- [x] Inject route summary into `dashboard.html`
 - [ ] Export Apple/Google Maps links for each day
 
 ## 💬 AI Support & Feedback
@@ -72,3 +72,4 @@
 - [x] Build retry queue for failed uploads
 - [x] Build interactive map route viewer (Leaflet.js or Mapbox wrapper)
 - [x] Add store stop time display (from playbook estimates)
+- [x] Inject route summary into `dashboard.html`

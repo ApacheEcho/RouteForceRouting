@@ -233,7 +233,7 @@
 - [x] Post-Routing Summary Report
 - [x] Routing Error Handler
 - [x] Route History Logging
-- [ ] Confidence Score Visualization
+- [x] Confidence Score Visualization
 - [ ] Batch Route Retry Logic
 - [ ] Route Window Handling
 - [ ] Constraint Violation Detection
@@ -250,3 +250,4 @@
 - [x] Post-Routing Summary Report
 - [x] Routing Error Handler
 - [x] Route History Logging
+- [x] Confidence Score Visualization

@@ -10,7 +10,7 @@
 ## 🧠 Constraint & Playbook Injection
 - [x] Inject playbook constraints into routing logic (hours, skip days, chain rules)
 - [x] Add natural language rule support via `rules_parser.py`
-- [ ] Build fallback handling for playbook overrides
+- [x] Build fallback handling for playbook overrides
 - [ ] Validate playbook constraints with test suite
 
 ## 🔍 QA Engine & Preflight
@@ -60,3 +60,4 @@
 - [x] Add per-store score justification log (penalties, bonuses)
 - [x] Inject playbook constraints into routing logic (hours, skip days, chain rules)
 - [x] Add natural language rule support via `rules_parser.py`
+- [x] Build fallback handling for playbook overrides

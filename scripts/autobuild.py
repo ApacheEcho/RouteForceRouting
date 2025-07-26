@@ -1,5 +1,6 @@
 import subprocess
 import os
+import re
 
 TODO_PATH = "build_tasks/auto_todo.md"
 
@@ -21,6 +22,7 @@ def mark_task_done(task):
                 f.write(line)
 
 def run_copilot_autobuild():
+    extract_and_append_new_tasks()
     task = get_next_task()
     if not task:
         print("✅ All tasks completed.")
@@ -40,6 +42,18 @@ def run_copilot_autobuild():
 
     mark_task_done(task)
     run_copilot_autobuild()
+
+def extract_and_append_new_tasks():
+    if not os.path.exists("copilot_prompt.py"):
+        return
+    with open("copilot_prompt.py", "r") as f:
+        content = f.read()
+    new_tasks = re.findall(r"- \[ \] .+", content)
+    if new_tasks:
+        with open(TODO_PATH, "a") as f:
+            for task in new_tasks:
+                f.write(f"{task}\n")
+        print(f"🧠 Copilot suggested {len(new_tasks)} new task(s), added to todo list.")
 
 if __name__ == "__main__":
     run_copilot_autobuild()

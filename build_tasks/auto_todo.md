@@ -47,7 +47,7 @@
 
 - [x] Implement genetic algorithm-based route optimizer and compare against current scoring method
 - [x] Create dynamic batching module to split large store lists into optimal route sets
-- [ ] Integrate real-time traffic ingestion and simulate delay-based rerouting
+- [x] Integrate real-time traffic ingestion and simulate delay-based rerouting
 - [ ] Build 'what-if' simulation tool for alternate store visit orders and scoring
 - [ ] Generate AI-driven suggestions for route overrides using recent field history
 - [ ] Add predictive priority estimator using store visit frequency and time-of-day trends
@@ -174,3 +174,4 @@
 - [x] Inject random 1–3 stretch goals to bottom of `auto_todo.md` for overflow work
 - [x] Implement genetic algorithm-based route optimizer and compare against current scoring method
 - [x] Create dynamic batching module to split large store lists into optimal route sets
+- [x] Integrate real-time traffic ingestion and simulate delay-based rerouting

@@ -33,7 +33,7 @@
 
 ## 💬 AI Support & Feedback
 - [x] Add Copilot summary logger for each task completion
-- [ ] Add GPT summary route reviewer stub (`route_review.md`)
+- [x] Add GPT summary route reviewer stub (`route_review.md`)
 - [ ] Log build decisions with timestamps to `build_log.md`
 - [ ] Implement auto-summarizer after every 10 tasks
 
@@ -75,3 +75,4 @@
 - [x] Inject route summary into `dashboard.html`
 - [x] Export Apple/Google Maps links for each day
 - [x] Add Copilot summary logger for each task completion
+- [x] Add GPT summary route reviewer stub (`route_review.md`)

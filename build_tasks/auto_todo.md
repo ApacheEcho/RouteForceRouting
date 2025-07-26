@@ -227,7 +227,7 @@
 - [x] Flag Inspector
 - [x] Score Threshold Override
 - [x] Pre-Routing Pruning
-- [ ] Traffic-Weighted Optimization
+- [x] Traffic-Weighted Optimization
 - [ ] Store Visit Duration Handling
 - [ ] Sales Volume Weighting
 - [ ] Post-Routing Summary Report
@@ -244,3 +244,4 @@
 - [x] Flag Inspector
 - [x] Score Threshold Override
 - [x] Pre-Routing Pruning
+- [x] Traffic-Weighted Optimization

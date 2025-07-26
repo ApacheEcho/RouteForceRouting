@@ -61,7 +61,7 @@
 - [x] Export entire route plan as PDF with map, times, and constraints shown visually
 - [x] Write benchmark harness to compare route build times and output quality across versions
 - [x] Tag all routes with metadata (version, playbook used, time of build, score)
-- [ ] Add real-time constraint violation monitor with audible alert for violations during build
+- [x] Add real-time constraint violation monitor with audible alert for violations during build
 - [x] Inject playbook constraints into routing logic (hours, skip days, chain rules)
 ## 🔍 QA Engine & Preflight
 - [x] Build `qa_engine.py` to validate route integrity (no duplicates, no empty days)
@@ -188,3 +188,20 @@
 - [x] Export entire route plan as PDF with map, times, and constraints shown visually
 - [x] Write benchmark harness to compare route build times and output quality across versions
 - [x] Tag all routes with metadata (version, playbook used, time of build, score)
+- [x] Add real-time constraint violation monitor with audible alert for violations during build
+- [ ] Add real-time constraint violation monitor with audible alert for violations during build
+- [ ] Build End-to-End Route Generation Trace Log
+- [ ] Implement Constraint Violation Recovery Heuristics
+- [ ] Build Route Scoring Visualizer (CLI Mode)
+- [ ] Auto-Generate `docs/route_rules.md`
+- [ ] Add Deep QA Lint Pass on Store Inputs
+- [ ] Implement Parallel Route Planner Mode
+- [ ] Build One-Click Rerun for Failed Builds
+- [ ] Snapshot `main.py` and `core/` logic into `/archived_builds/YYYY-MM-DD-HHMM/`
+- [ ] Generate Heatmap-Weighted Route Suggestion
+- [ ] Add Audible Alert for Build Errors (CLI Bell)
+- [ ] Implement Store Clustering Engine
+- [ ] Add Multi-Day Route Continuity Check
+- [ ] Build Interactive Debug Flag Inspector
+- [ ] Integrate Route Scoring Threshold Overrides
+- [ ] Auto-Trim Low-Value Stores Pre-Routing

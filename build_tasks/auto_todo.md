@@ -19,7 +19,7 @@
 - [x] Build `store_health_check.py` to validate GPS, hours, and playbook completeness per store
 - [x] Write integration test that loads stores, injects a playbook, generates a route, and exports a score
 - [x] Create `route_versioning` module to store historical builds and allow rollbacks
-- [ ] Add lightweight UI for toggling between last 3 route versions
+- [x] Add lightweight UI for toggling between last 3 route versions
 - [ ] Implement full logging and error capture with fallback to rotating file storage
 - [ ] Refactor constraint parser into reusable logic modules for cleaner injection
 - [ ] Auto-retry failed route builds with exponential backoff and timeout
@@ -129,3 +129,4 @@
 - [x] Build `store_health_check.py` to validate GPS, hours, and playbook completeness per store
 - [x] Write integration test that loads stores, injects a playbook, generates a route, and exports a score
 - [x] Create `route_versioning` module to store historical builds and allow rollbacks
+- [x] Add lightweight UI for toggling between last 3 route versions

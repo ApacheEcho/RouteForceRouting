@@ -225,7 +225,7 @@
 - [x] Store Clustering
 - [x] Multi-Day Route Continuity
 - [x] Flag Inspector
-- [ ] Score Threshold Override
+- [x] Score Threshold Override
 - [ ] Pre-Routing Pruning
 - [ ] Traffic-Weighted Optimization
 - [ ] Store Visit Duration Handling
@@ -242,3 +242,4 @@
 - [x] Store Clustering
 - [x] Multi-Day Route Continuity
 - [x] Flag Inspector
+- [x] Score Threshold Override

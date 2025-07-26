@@ -1,5 +1,5 @@
 - [x] Build route scoring integration into main route pipeline
-- [ ] Add user-facing score breakdown UI
+- [x] Add user-facing score breakdown UI
 - [ ] Implement QA metrics and auto-correction logic
 - [ ] Integrate summary logs into dashboard
 - [ ] Finalize Playbook GUI injection logic

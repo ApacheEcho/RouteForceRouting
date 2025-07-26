@@ -1,4 +1,4 @@
-- [ ] Add automated route health monitoring and alerting for persistent failures
+- [x] Add automated route health monitoring and alerting for persistent failures
 - [x] Build route scoring integration into main route pipeline
 - [x] Add user-facing score breakdown UI
 - [x] Implement QA metrics and auto-correction logic
@@ -7,3 +7,4 @@
 - [x] Wire preflight QA checklist into route generation
 - [x] Improve routing traffic logic (Google Maps/OSRM)
 - [x] Add error notifications for broken routes
+- [ ] Add automated route health monitoring and alerting for persistent failures

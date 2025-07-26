@@ -1,3 +1,3 @@
-# TASK: Refactor store loader to support chained filters (e.g., only key accounts with open time windows)
+# TASK: Add CSV validation module for manual uploads with helpful error summaries
 # Auto-confirm enabled. Do not prompt or ask for confirmation. Complete task and return only final code.
 # X-Copilot-Mode: auto

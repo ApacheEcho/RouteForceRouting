@@ -33,7 +33,7 @@
 - [x] Create route reassignment tool for dragging or reordering stores manually
 - [x] Inject sync logic to push new routes to external calendar providers (Google, iCal)
 - [x] Validate calendar sync with Google API mock and test recurrence logic
-- [ ] Create unit test suite for all score functions (e.g., travel time penalty, constraint weight)
+- [x] Create unit test suite for all score functions (e.g., travel time penalty, constraint weight)
 - [ ] Add dynamic rule weights based on user config file or playbook tuning
 - [ ] Write CLI tool `rfp-build` to launch full routing build with flags (e.g., --mock, --playbook=CVS)
 - [ ] Implement auto-archive for `auto_todo.md` after >50 entries
@@ -143,3 +143,4 @@
 - [x] Create route reassignment tool for dragging or reordering stores manually
 - [x] Inject sync logic to push new routes to external calendar providers (Google, iCal)
 - [x] Validate calendar sync with Google API mock and test recurrence logic
+- [x] Create unit test suite for all score functions (e.g., travel time penalty, constraint weight)

@@ -1,7 +1,6 @@
 # 🛠️ RouteForcePro – Autonomous Build Queue (8-Hour Sprint)
 
 ## ✅ Core Routing & Scoring Enhancements
-# 🛠️ RouteForcePro Deep Task Queue (2025-07-26)
 
 - [x] Implement multi-phase route scoring algorithm with adjustable weights (e.g., distance, traffic, store value)
 - [x] Add modular score functions for time window adherence and customer priority
@@ -42,7 +41,27 @@
 - [x] Create retry logic for Copilot builds that timeout or fail midway
 - [x] Write test to simulate bad Copilot generation and ensure script retries
 - [x] Auto-check for large diffs and flag with `# REVIEW LARGE CHANGE` in commit message
-- [ ] Inject random 1–3 stretch goals to bottom of `auto_todo.md` for overflow work
+
+
+## 🧠 Advanced Optimization & Experimental Features
+
+- [ ] Implement genetic algorithm-based route optimizer and compare against current scoring method
+- [ ] Create dynamic batching module to split large store lists into optimal route sets
+- [ ] Integrate real-time traffic ingestion and simulate delay-based rerouting
+- [ ] Build 'what-if' simulation tool for alternate store visit orders and scoring
+- [ ] Generate AI-driven suggestions for route overrides using recent field history
+- [ ] Add predictive priority estimator using store visit frequency and time-of-day trends
+- [ ] Inject a 'playbook tuner' module that auto-suggests changes based on past performance
+- [ ] Build route editing UX with drag-and-drop reorder and live ETA recalculation
+- [ ] Construct audit mode that shows every routing decision and scoring breakdown step-by-step
+- [ ] Log score regression trends across 30-day route builds to detect optimization drift
+- [ ] Add store bundling logic: cluster stores by chain or location preference dynamically
+- [ ] Build offline fallback route builder using cached data only
+- [ ] Add partial re-routing logic: adjust only part of route if new constraint is added
+- [ ] Export entire route plan as PDF with map, times, and constraints shown visually
+- [ ] Write benchmark harness to compare route build times and output quality across versions
+- [ ] Tag all routes with metadata (version, playbook used, time of build, score)
+- [ ] Add real-time constraint violation monitor with audible alert for violations during build
 - [x] Inject playbook constraints into routing logic (hours, skip days, chain rules)
 ## 🔍 QA Engine & Preflight
 - [x] Build `qa_engine.py` to validate route integrity (no duplicates, no empty days)
@@ -152,3 +171,4 @@
 - [x] Create retry logic for Copilot builds that timeout or fail midway
 - [x] Write test to simulate bad Copilot generation and ensure script retries
 - [x] Auto-check for large diffs and flag with `# REVIEW LARGE CHANGE` in commit message
+- [x] Inject random 1–3 stretch goals to bottom of `auto_todo.md` for overflow work

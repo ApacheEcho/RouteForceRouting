@@ -255,4 +255,7 @@
 - [x] Route Window Handling
 - [x] Constraint Violation Detection
 - [x] Google Maps Export Formatter
+- [x] Google Maps Export Formatter (Advanced Mode)
+- [x] Google Maps Export Formatter (Advanced Mode)
 - [ ] Google Maps Export Formatter (Advanced Mode)
+- [ ] Full Productionization Suite for RouteForce Pro

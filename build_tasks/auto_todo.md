@@ -37,7 +37,7 @@
 - [x] Add dynamic rule weights based on user config file or playbook tuning
 - [x] Write CLI tool `rfp-build` to launch full routing build with flags (e.g., --mock, --playbook=CVS)
 - [x] Implement auto-archive for `auto_todo.md` after >50 entries
-- [ ] Add `archive_routes/` directory and auto-move completed `.json` routes
+- [x] Add `archive_routes/` directory and auto-move completed `.json` routes
 - [ ] Log Copilot completions with timestamps to `build_log.md`
 - [ ] Create retry logic for Copilot builds that timeout or fail midway
 - [ ] Write test to simulate bad Copilot generation and ensure script retries
@@ -147,3 +147,4 @@
 - [x] Add dynamic rule weights based on user config file or playbook tuning
 - [x] Write CLI tool `rfp-build` to launch full routing build with flags (e.g., --mock, --playbook=CVS)
 - [x] Implement auto-archive for `auto_todo.md` after >50 entries
+- [x] Add `archive_routes/` directory and auto-move completed `.json` routes

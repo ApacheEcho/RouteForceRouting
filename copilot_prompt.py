@@ -1,3 +1,3 @@
-# TASK: Add store stop time display (from playbook estimates)
+# TASK: Inject route summary into `dashboard.html`
 # Auto-confirm enabled. Do not prompt or ask for confirmation. Complete task and return only final code.
 # X-Copilot-Mode: auto

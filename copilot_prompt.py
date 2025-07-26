@@ -1,3 +1,3 @@
-# TASK: Create `score_route()` unit test suite with mocked distance and priority data
+# TASK: Refactor playbook injection logic to support multiple simultaneous constraints
 # Auto-confirm enabled. Do not prompt or ask for confirmation. Complete task and return only final code.
 # X-Copilot-Mode: auto

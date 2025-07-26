@@ -35,7 +35,7 @@
 - [x] Add Copilot summary logger for each task completion
 - [x] Add GPT summary route reviewer stub (`route_review.md`)
 - [x] Log build decisions with timestamps to `build_log.md`
-- [ ] Implement auto-summarizer after every 10 tasks
+- [x] Implement auto-summarizer after every 10 tasks
 
 ## ⚙️ Meta Tasks (Autoloop Support)
 - [ ] Self-generate next 5 tasks if list runs low (`autobuild.py`)
@@ -77,3 +77,4 @@
 - [x] Add Copilot summary logger for each task completion
 - [x] Add GPT summary route reviewer stub (`route_review.md`)
 - [x] Log build decisions with timestamps to `build_log.md`
+- [x] Implement auto-summarizer after every 10 tasks

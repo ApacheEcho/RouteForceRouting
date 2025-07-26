@@ -4,7 +4,7 @@
 # 🛠️ RouteForcePro Deep Task Queue (2025-07-26)
 
 - [x] Implement multi-phase route scoring algorithm with adjustable weights (e.g., distance, traffic, store value)
-- [ ] Add modular score functions for time window adherence and customer priority
+- [x] Add modular score functions for time window adherence and customer priority
 - [ ] Integrate external traffic API (e.g., Google Maps or OpenRoute) for ETA calculations
 - [ ] Build fallback mechanism for when traffic API fails (retry logic + local estimation)
 - [ ] Create `score_route()` unit test suite with mocked distance and priority data
@@ -114,3 +114,4 @@
 - [x] Archive completed tasks to `archive/YYYY-MM-DD_done.md`
 - [x] Clean up unused log files older than 7 days
 - [x] Implement multi-phase route scoring algorithm with adjustable weights (e.g., distance, traffic, store value)
+- [x] Add modular score functions for time window adherence and customer priority

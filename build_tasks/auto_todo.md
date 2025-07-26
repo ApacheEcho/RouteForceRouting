@@ -13,7 +13,7 @@
 - [x] Generate route debug logs (per store, per route) and export to timestamped `.log` files
 - [x] Build route visualization map overlay using static map images (Google or OpenStreet)
 - [x] Create HTMX frontend widget to preview daily routes inline before committing
-- [ ] Auto-generate Apple Maps / Google Maps deep links for each route batch
+- [x] Auto-generate Apple Maps / Google Maps deep links for each route batch
 - [ ] Refactor store loader to support chained filters (e.g., only key accounts with open time windows)
 - [ ] Add CSV validation module for manual uploads with helpful error summaries
 - [ ] Build `store_health_check.py` to validate GPS, hours, and playbook completeness per store
@@ -123,3 +123,4 @@
 - [x] Generate route debug logs (per store, per route) and export to timestamped `.log` files
 - [x] Build route visualization map overlay using static map images (Google or OpenStreet)
 - [x] Create HTMX frontend widget to preview daily routes inline before committing
+- [x] Auto-generate Apple Maps / Google Maps deep links for each route batch

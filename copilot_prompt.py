@@ -1,2 +1,2 @@
-# TASK: Build route scoring integration into main route pipeline
+# TASK: Add user-facing score breakdown UI
 # Please generate complete code for this task.

@@ -29,7 +29,7 @@
 - [x] Build interactive map route viewer (Leaflet.js or Mapbox wrapper)
 - [x] Add store stop time display (from playbook estimates)
 - [x] Inject route summary into `dashboard.html`
-- [ ] Export Apple/Google Maps links for each day
+- [x] Export Apple/Google Maps links for each day
 
 ## 💬 AI Support & Feedback
 - [ ] Add Copilot summary logger for each task completion
@@ -73,3 +73,4 @@
 - [x] Build interactive map route viewer (Leaflet.js or Mapbox wrapper)
 - [x] Add store stop time display (from playbook estimates)
 - [x] Inject route summary into `dashboard.html`
+- [x] Export Apple/Google Maps links for each day

@@ -8,7 +8,7 @@
 - [x] Add per-store score justification log (penalties, bonuses)
 
 ## 🧠 Constraint & Playbook Injection
-- [ ] Inject playbook constraints into routing logic (hours, skip days, chain rules)
+- [x] Inject playbook constraints into routing logic (hours, skip days, chain rules)
 - [ ] Add natural language rule support via `rules_parser.py`
 - [ ] Build fallback handling for playbook overrides
 - [ ] Validate playbook constraints with test suite
@@ -58,3 +58,4 @@
 - [x] Add summary route score at end of each generated route
 - [x] Write route score export to `/logs/route_scores/YYYY-MM-DD.json`
 - [x] Add per-store score justification log (penalties, bonuses)
+- [x] Inject playbook constraints into routing logic (hours, skip days, chain rules)

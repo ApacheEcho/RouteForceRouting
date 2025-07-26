@@ -10,7 +10,7 @@
 - [x] Create `score_route()` unit test suite with mocked distance and priority data
 - [x] Refactor playbook injection logic to support multiple simultaneous constraints
 - [x] Validate playbook constraints with schema and throw user-friendly errors
-- [ ] Generate route debug logs (per store, per route) and export to timestamped `.log` files
+- [x] Generate route debug logs (per store, per route) and export to timestamped `.log` files
 - [ ] Build route visualization map overlay using static map images (Google or OpenStreet)
 - [ ] Create HTMX frontend widget to preview daily routes inline before committing
 - [ ] Auto-generate Apple Maps / Google Maps deep links for each route batch
@@ -120,3 +120,4 @@
 - [x] Create `score_route()` unit test suite with mocked distance and priority data
 - [x] Refactor playbook injection logic to support multiple simultaneous constraints
 - [x] Validate playbook constraints with schema and throw user-friendly errors
+- [x] Generate route debug logs (per store, per route) and export to timestamped `.log` files

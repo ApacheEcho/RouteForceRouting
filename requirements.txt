@@ -5,7 +5,7 @@ et_xmlfile==2.0.0
 flake8==7.3.0
 flask==3.1.0
 flask-caching==2.1.0
-flask-cors==5.0.0
+flask-cors==6.0.0
 flask-limiter==3.8.0
 flask-socketio==5.3.6
 geographiclib==2.0
@@ -21,7 +21,7 @@ platformdirs==4.3.8
 psutil==6.1.0
 pytest==8.4.1
 redis==5.2.0
-requests==2.31.0
+requests==2.32.4
 six==1.17.0
 tzdata==2025.2
 python-dateutil==2.9.0.post0
@@ -37,7 +37,7 @@ xgboost==3.0.2
 scikit-optimize==0.10.2
 hyperopt==0.2.7
 gunicorn==23.0.0
-eventlet==0.36.1
+eventlet==0.37.0
 
 prometheus-client==0.21.1
 # Database support
@@ -50,7 +50,7 @@ alembic==1.14.1
 pyjwt==2.9.0
 flask-jwt-extended==4.6.0
 bcrypt==4.2.1
-cryptography==44.0.0
+cryptography==44.0.1
 # Async task processing
 celery==5.4.0
 kombu==5.4.2
@@ -63,3 +63,7 @@ plotly==5.24.1
 
 # Async HTTP client
 aiohttp==3.9.5
+dnspython>=2.6.1 # not directly required, pinned by Snyk to avoid a vulnerability
+h11>=0.16.0 # not directly required, pinned by Snyk to avoid a vulnerability
+urllib3>=2.5.0 # not directly required, pinned by Snyk to avoid a vulnerability
+zipp>=3.19.1 # not directly required, pinned by Snyk to avoid a vulnerability

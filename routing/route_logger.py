@@ -1,56 +1,78 @@
-(build_tasks/auto_todo.md)
-- [ ] Build route scoring integration into main route pipeline
-- [ ] Add user-facing score breakdown UI
-- [ ] Implement QA metrics and auto-correction logic
-- [ ] Integrate summary logs into dashboard
-- [ ] Finalize Playbook GUI injection logic
-- [ ] Wire preflight QA checklist into route generation
-- [ ] Improve routing traffic logic (Google Maps/OSRM)
-- [ ] Add error notifications for broken routes
+"""
+Route logging functionality for RouteForce routing system.
+"""
+import logging
+from datetime import datetime
+from typing import Dict, Any, Optional
 
-(scripts/autobuild.py)
-import subprocess
-import os
+# Configure logger
+logger = logging.getLogger(__name__)
 
-TODO_PATH = "build_tasks/auto_todo.md"
 
-def get_next_task():
-    with open(TODO_PATH, "r") as f:
-        for line in f:
-            if line.startswith("- [ ]"):
-                return line.strip().replace("- [ ] ", "")
-    return None
+def log_route_score(route_data: Dict[str, Any], score: float, breakdown: Optional[Dict[str, Any]] = None) -> None:
+    """
+    Log route scoring information for analysis and debugging.
+    
+    Args:
+        route_data: Dictionary containing route information
+        score: The calculated route score
+        breakdown: Optional breakdown of score components
+    """
+    timestamp = datetime.now().isoformat()
+    
+    log_entry = {
+        "timestamp": timestamp,
+        "route_id": route_data.get("id", "unknown"),
+        "score": score,
+        "breakdown": breakdown or {},
+        "route_summary": {
+            "origin": route_data.get("origin"),
+            "destination": route_data.get("destination"),
+            "distance": route_data.get("distance"),
+            "duration": route_data.get("duration")
+        }
+    }
+    
+    logger.info(f"Route scored: {score:.2f} for route {route_data.get('id', 'unknown')}")
+    logger.debug(f"Route scoring details: {log_entry}")
 
-def mark_task_done(task):
-    with open(TODO_PATH, "r") as f:
-        lines = f.readlines()
-    with open(TODO_PATH, "w") as f:
-        for line in lines:
-            if task in line and "- [ ]" in line:
-                f.write(line.replace("- [ ]", "- [x]"))
-            else:
-                f.write(line)
 
-def run_copilot_autobuild():
-    task = get_next_task()
-    if not task:
-        print("✅ All tasks completed.")
-        return
+def log_route_error(route_data: Dict[str, Any], error: str) -> None:
+    """
+    Log route processing errors.
+    
+    Args:
+        route_data: Dictionary containing route information
+        error: Error message or description
+    """
+    timestamp = datetime.now().isoformat()
+    
+    log_entry = {
+        "timestamp": timestamp,
+        "route_id": route_data.get("id", "unknown"),
+        "error": error,
+        "route_data": route_data
+    }
+    
+    logger.error(f"Route processing error for route {route_data.get('id', 'unknown')}: {error}")
+    logger.debug(f"Route error details: {log_entry}")
 
-    print(f"🔧 Running Copilot on task: {task}")
 
-    # Prompt Copilot indirectly by opening the file with an embedded comment prompt
-    prompt = f'# TASK: {task}\n# Please generate complete code for this task.\n'
-    with open("copilot_prompt.py", "w") as f:
-        f.write(prompt)
-
-    subprocess.run(["code", "copilot_prompt.py"])
-    print("✅ Auto-confirm enabled. Proceeding with commit and push...")
-
-    os.system(f'git add . && git commit -m "Auto: {task}" && git push')
-
-    mark_task_done(task)
-    run_copilot_autobuild()
-
-if __name__ == "__main__":
-    run_copilot_autobuild()
+def log_route_metrics(route_data: Dict[str, Any], metrics: Dict[str, Any]) -> None:
+    """
+    Log route performance and quality metrics.
+    
+    Args:
+        route_data: Dictionary containing route information
+        metrics: Dictionary containing various route metrics
+    """
+    timestamp = datetime.now().isoformat()
+    
+    log_entry = {
+        "timestamp": timestamp,
+        "route_id": route_data.get("id", "unknown"),
+        "metrics": metrics
+    }
+    
+    logger.info(f"Route metrics logged for route {route_data.get('id', 'unknown')}")
+    logger.debug(f"Route metrics: {log_entry}")

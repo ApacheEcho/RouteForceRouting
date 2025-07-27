@@ -53,7 +53,7 @@
     "typescript": "^5.2.2",
     "autoprefixer": "^10.4.16",
     "postcss": "^8.4.31",
-    "pwa-asset-generator": "^6.3.0"
+    "pwa-asset-generator": "^8.0.5"
   },
   "browserslist": {
     "production": [

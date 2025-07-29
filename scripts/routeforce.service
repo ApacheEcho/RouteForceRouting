@@ -1,0 +1,20 @@
+[Unit]
+Description=RouteForce Flask Application
+After=network.target postgresql.service redis.service
+
+[Service]
+Type=forking
+User=deploy
+Group=deploy
+WorkingDirectory=/home/deploy/routeforce
+Environment=PATH=/home/deploy/routeforce/venv/bin
+Environment=FLASK_ENV=production
+ExecStart=/home/deploy/routeforce/venv/bin/gunicorn app:app --bind 127.0.0.1:8000 --workers 4 --timeout 120 --daemon --pid /home/deploy/routeforce/app.pid
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStop=/bin/kill -TERM $MAINPID
+PIDFile=/home/deploy/routeforce/app.pid
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

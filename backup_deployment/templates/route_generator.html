@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RouteForce - Route Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <a href="/" class="text-2xl font-bold text-indigo-600">
+                        <i class="fas fa-route mr-2"></i>RouteForce
+                    </a>
+                </div>
+                <div class="flex space-x-4">
+                    <a href="/" class="text-gray-700 hover:text-indigo-600 px-3 py-2">Home</a>
+                    <a href="/generate" class="text-indigo-600 px-3 py-2 border-b-2 border-indigo-600">Generate Route</a>
+                    <a href="/dashboard" class="text-gray-700 hover:text-indigo-600 px-3 py-2">Dashboard</a>
+                    <a href="/sitemap" class="text-gray-700 hover:text-indigo-600 px-3 py-2">All Features</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 mb-4">
+                <i class="fas fa-route mr-3 text-indigo-600"></i>Route Generator
+            </h1>
+            <p class="text-xl text-gray-600">
+                Upload your store data and generate optimized routes using advanced algorithms
+            </p>
+        </div>
+
+        <!-- Route Generation Form -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <form id="routeForm" enctype="multipart/form-data">
+                <!-- File Upload Section -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-upload mr-2"></i>Upload Store Data
+                    </label>
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-indigo-400 transition">
+                        <input type="file" id="fileInput" name="file" accept=".csv,.xlsx,.xls" class="hidden">
+                        <div id="dropZone" class="cursor-pointer">
+                            <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
+                            <p class="text-lg font-medium text-gray-600">Click to upload or drag and drop</p>
+                            <p class="text-sm text-gray-500">CSV, Excel files (max 16MB)</p>
+                        </div>
+                        <div id="fileInfo" class="hidden mt-4">
+                            <div class="bg-green-50 border border-green-200 rounded p-3">
+                                <i class="fas fa-check-circle text-green-600 mr-2"></i>
+                                <span id="fileName" class="text-green-800"></span>
+                                <button type="button" id="removeFile" class="ml-2 text-red-600 hover:text-red-800">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Algorithm Selection -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-brain mr-2"></i>Optimization Algorithm
+                    </label>
+                    <select id="algorithm" name="algorithm" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                        <option value="genetic">Genetic Algorithm (Recommended)</option>
+                        <option value="simulated_annealing">Simulated Annealing</option>
+                        <option value="multi_objective">Multi-Objective Optimization</option>
+                        <option value="default">Default Optimization</option>
+                    </select>
+                </div>
+
+                <!-- Advanced Options -->
+                <div class="mb-6">
+                    <button type="button" id="toggleAdvanced" class="flex items-center text-indigo-600 hover:text-indigo-700 font-medium">
+                        <i class="fas fa-cog mr-2"></i>Advanced Options
+                        <i class="fas fa-chevron-down ml-2 transform transition-transform" id="advancedChevron"></i>
+                    </button>
+                    
+                    <div id="advancedOptions" class="hidden mt-4 p-4 bg-gray-50 rounded-lg">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Max Stores -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Max Stores per Route</label>
+                                <input type="number" id="maxStores" name="max_stores" min="1" max="1000" 
+                                       class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                            
+                            <!-- Time Window -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Time Window</label>
+                                <div class="flex space-x-2">
+                                    <input type="time" id="timeStart" name="time_start" 
+                                           class="flex-1 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500">
+                                    <input type="time" id="timeEnd" name="time_end" 
+                                           class="flex-1 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500">
+                                </div>
+                            </div>
+                            
+                            <!-- Priority Filter -->
+                            <div>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="priorityOnly" name="priority_only" 
+                                           class="mr-2 rounded focus:ring-2 focus:ring-indigo-500">
+                                    <span class="text-sm font-medium text-gray-700">Priority Stores Only</span>
+                                </label>
+                            </div>
+                            
+                            <!-- Proximity Sorting -->
+                            <div>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="proximity" name="proximity" checked 
+                                           class="mr-2 rounded focus:ring-2 focus:ring-indigo-500">
+                                    <span class="text-sm font-medium text-gray-700">Apply Proximity Sorting</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Generate Button -->
+                <button type="submit" id="generateBtn" 
+                        class="w-full bg-indigo-600 text-white py-3 px-6 rounded-lg text-lg font-semibold hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-200 transition">
+                    <i class="fas fa-route mr-2"></i>Generate Optimized Route
+                </button>
+            </form>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="hidden bg-white rounded-lg shadow-lg p-8 text-center">
+            <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+            <h3 class="text-xl font-semibold text-gray-800 mb-2">Generating Route...</h3>
+            <p class="text-gray-600">This may take a few moments for large datasets</p>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultsSection" class="hidden">
+            <!-- Route Summary -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                <h3 class="text-2xl font-semibold mb-4">
+                    <i class="fas fa-check-circle text-green-600 mr-2"></i>Route Generated Successfully
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="routeSummary">
+                    <!-- Summary stats will be populated here -->
+                </div>
+            </div>
+
+            <!-- Route Data Table -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold">
+                        <i class="fas fa-list mr-2"></i>Route Details
+                    </h3>
+                    <button id="exportBtn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
+                        <i class="fas fa-download mr-2"></i>Export CSV
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table id="routeTable" class="min-w-full table-auto">
+                        <thead class="bg-gray-50">
+                            <!-- Table headers will be populated dynamically -->
+                        </thead>
+                        <tbody>
+                            <!-- Route data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Generate Another Route -->
+            <div class="text-center">
+                <button id="newRouteBtn" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition">
+                    <i class="fas fa-plus mr-2"></i>Generate Another Route
+                </button>
+            </div>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" class="hidden bg-red-50 border border-red-200 rounded-lg p-6">
+            <div class="text-center">
+                <i class="fas fa-exclamation-triangle text-4xl text-red-600 mb-4"></i>
+                <h3 class="text-xl font-semibold text-red-800 mb-2">Error Generating Route</h3>
+                <p id="errorMessage" class="text-red-600 mb-4"></p>
+                <button id="retryBtn" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">
+                    <i class="fas fa-redo mr-2"></i>Try Again
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentRouteData = null;
+
+        // File upload handling
+        const fileInput = document.getElementById('fileInput');
+        const dropZone = document.getElementById('dropZone');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const removeFile = document.getElementById('removeFile');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('border-indigo-400', 'bg-indigo-50');
+        });
+
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-indigo-400', 'bg-indigo-50');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-indigo-400', 'bg-indigo-50');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                handleFileSelect();
+            }
+        });
+
+        fileInput.addEventListener('change', handleFileSelect);
+
+        function handleFileSelect() {
+            const file = fileInput.files[0];
+            if (file) {
+                fileName.textContent = file.name;
+                dropZone.classList.add('hidden');
+                fileInfo.classList.remove('hidden');
+            }
+        }
+
+        removeFile.addEventListener('click', () => {
+            fileInput.value = '';
+            dropZone.classList.remove('hidden');
+            fileInfo.classList.add('hidden');
+        });
+
+        // Advanced options toggle
+        const toggleAdvanced = document.getElementById('toggleAdvanced');
+        const advancedOptions = document.getElementById('advancedOptions');
+        const advancedChevron = document.getElementById('advancedChevron');
+
+        toggleAdvanced.addEventListener('click', () => {
+            advancedOptions.classList.toggle('hidden');
+            advancedChevron.classList.toggle('rotate-180');
+        });
+
+        // Form submission
+        const routeForm = document.getElementById('routeForm');
+        const generateBtn = document.getElementById('generateBtn');
+        const loadingState = document.getElementById('loadingState');
+        const resultsSection = document.getElementById('resultsSection');
+        const errorState = document.getElementById('errorState');
+
+        routeForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!fileInput.files[0]) {
+                alert('Please select a file first');
+                return;
+            }
+
+            showLoading();
+
+            const formData = new FormData(routeForm);
+            
+            try {
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    currentRouteData = result.route;
+                    showResults(result);
+                } else {
+                    showError(result.error || 'Unknown error occurred');
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            }
+        });
+
+        function showLoading() {
+            routeForm.classList.add('hidden');
+            resultsSection.classList.add('hidden');
+            errorState.classList.add('hidden');
+            loadingState.classList.remove('hidden');
+        }
+
+        function showResults(result) {
+            loadingState.classList.add('hidden');
+            errorState.classList.add('hidden');
+            
+            // Populate summary
+            const routeSummary = document.getElementById('routeSummary');
+            routeSummary.innerHTML = `
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-indigo-600">${result.total_stores}</div>
+                    <div class="text-sm text-gray-600">Total Stores</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-green-600">${result.processing_time ? Math.round(result.processing_time * 1000) + 'ms' : 'N/A'}</div>
+                    <div class="text-sm text-gray-600">Processing Time</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-purple-600">${result.optimization_score ? Math.round(result.optimization_score) + '%' : 'N/A'}</div>
+                    <div class="text-sm text-gray-600">Optimization Score</div>
+                </div>
+            `;
+
+            // Populate table
+            populateRouteTable(result.route);
+            
+            resultsSection.classList.remove('hidden');
+        }
+
+        function populateRouteTable(route) {
+            const table = document.getElementById('routeTable');
+            const thead = table.querySelector('thead');
+            const tbody = table.querySelector('tbody');
+
+            if (route && route.length > 0) {
+                // Get all unique keys for headers
+                const headers = [...new Set(route.flatMap(Object.keys))];
+                
+                // Create header row
+                thead.innerHTML = `
+                    <tr>
+                        <th class="px-4 py-2 text-left font-semibold">#</th>
+                        ${headers.map(header => `<th class="px-4 py-2 text-left font-semibold">${header}</th>`).join('')}
+                    </tr>
+                `;
+
+                // Create data rows
+                tbody.innerHTML = route.map((store, index) => `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="px-4 py-2 font-medium">${index + 1}</td>
+                        ${headers.map(header => `<td class="px-4 py-2">${store[header] || ''}</td>`).join('')}
+                    </tr>
+                `).join('');
+            }
+        }
+
+        function showError(message) {
+            loadingState.classList.add('hidden');
+            resultsSection.classList.add('hidden');
+            document.getElementById('errorMessage').textContent = message;
+            errorState.classList.remove('hidden');
+        }
+
+        // Export functionality
+        document.getElementById('exportBtn').addEventListener('click', async () => {
+            if (!currentRouteData) return;
+
+            try {
+                const response = await fetch('/api/export', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ route: currentRouteData })
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `routeforce_route_${currentRouteData.length}_stores.csv`;
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                } else {
+                    alert('Export failed');
+                }
+            } catch (error) {
+                alert('Export error: ' + error.message);
+            }
+        });
+
+        // New route button
+        document.getElementById('newRouteBtn').addEventListener('click', () => {
+            resultsSection.classList.add('hidden');
+            errorState.classList.add('hidden');
+            routeForm.classList.remove('hidden');
+            currentRouteData = null;
+        });
+
+        // Retry button
+        document.getElementById('retryBtn').addEventListener('click', () => {
+            errorState.classList.add('hidden');
+            routeForm.classList.remove('hidden');
+        });
+    </script>
+</body>
+</html>

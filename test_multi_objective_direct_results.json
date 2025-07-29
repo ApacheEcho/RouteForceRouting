@@ -1,0 +1,100 @@
+[
+  {
+    "test_case": "Distance + Time",
+    "success": true,
+    "processing_time": 0.08907127380371094,
+    "metrics": {
+      "algorithm": "multi_objective",
+      "pareto_front_size": 47,
+      "processing_time": 0.08892083168029785,
+      "total_generations": 100,
+      "objectives_optimized": [
+        "distance",
+        "time"
+      ],
+      "best_compromise_solution": {
+        "objectives": {
+          "distance": 45.50777716838404,
+          "time": 4.910155543367681
+        }
+      },
+      "hypervolume": 105.02162423495075
+    },
+    "route_length": 8
+  },
+  {
+    "test_case": "Distance + Priority",
+    "success": true,
+    "processing_time": 0.08612823486328125,
+    "metrics": {
+      "algorithm": "multi_objective",
+      "pareto_front_size": 46,
+      "processing_time": 0.08597993850708008,
+      "total_generations": 100,
+      "objectives_optimized": [
+        "distance",
+        "priority"
+      ],
+      "best_compromise_solution": {
+        "objectives": {
+          "distance": 45.50777716838404,
+          "priority": -81.0
+        }
+      },
+      "hypervolume": -1695.6197772939934
+    },
+    "route_length": 8
+  },
+  {
+    "test_case": "Distance + Time + Priority",
+    "success": true,
+    "processing_time": 0.17330312728881836,
+    "metrics": {
+      "algorithm": "multi_objective",
+      "pareto_front_size": 56,
+      "processing_time": 0.17315387725830078,
+      "total_generations": 120,
+      "objectives_optimized": [
+        "distance",
+        "time",
+        "priority"
+      ],
+      "best_compromise_solution": {
+        "objectives": {
+          "distance": 45.50777716838404,
+          "time": 4.910155543367681,
+          "priority": -81.0
+        }
+      },
+      "hypervolume": -1013.5703989994405
+    },
+    "route_length": 8
+  },
+  {
+    "test_case": "All Objectives",
+    "success": true,
+    "processing_time": 0.4059879779815674,
+    "metrics": {
+      "algorithm": "multi_objective",
+      "pareto_front_size": 71,
+      "processing_time": 0.40581297874450684,
+      "total_generations": 150,
+      "objectives_optimized": [
+        "distance",
+        "time",
+        "priority",
+        "fuel_cost"
+      ],
+      "best_compromise_solution": {
+        "objectives": {
+          "distance": 45.50777716838404,
+          "time": 4.910155543367681,
+          "priority": -81.0,
+          "fuel_cost": 5.460933260206084
+        }
+      },
+      "hypervolume": -701.7640384739364
+    },
+    "route_length": 8
+  }
+]

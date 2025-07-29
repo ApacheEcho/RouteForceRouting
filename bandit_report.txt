@@ -1,0 +1,645 @@
+Working... ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:00:01
+Run started:2025-07-28 00:10:42.922762
+
+Test results:
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b112_try_except_continue.html
+   Location: app/analytics_ai.py:1289:16
+1288	                    )
+1289	                except Exception:
+1290	                    continue
+1291	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: app/analytics_ai.py:1299:12
+1298	                )
+1299	            except Exception:
+1300	                pass
+1301	
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b112_try_except_continue.html
+   Location: app/analytics_ai_module.py:1286:16
+1285	                    )
+1286	                except Exception:
+1287	                    continue
+1288	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: app/analytics_ai_module.py:1296:12
+1295	                )
+1296	            except Exception:
+1297	                pass
+1298	
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/analytics_api.py:387:26
+386	            # Vary parameters realistically
+387	            stops_count = random.randint(3, 15)
+388	            distance = stops_count * random.uniform(1.5, 4.0)  # km per stop
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/analytics_api.py:388:37
+387	            stops_count = random.randint(3, 15)
+388	            distance = stops_count * random.uniform(1.5, 4.0)  # km per stop
+389	
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/analytics_api.py:391:33
+390	            # Time varies based on stops and traffic
+391	            base_time_per_stop = random.uniform(8, 20)  # minutes
+392	            traffic_factor = random.uniform(0.8, 1.4)
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/analytics_api.py:392:29
+391	            base_time_per_stop = random.uniform(8, 20)  # minutes
+392	            traffic_factor = random.uniform(0.8, 1.4)
+393	            duration = stops_count * base_time_per_stop * traffic_factor
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/analytics_api.py:396:30
+395	            # Fuel varies with distance and efficiency
+396	            fuel_efficiency = random.uniform(7, 12)  # km per liter
+397	            fuel_used = distance / fuel_efficiency
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/analytics_api.py:401:44
+400	            route_time = base_time + \
+401	                timedelta(days=i / 2, hours=random.randint(7, 18))
+402	
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/analytics_api.py:410:39
+409	                "timestamp": route_time.isoformat(),
+410	                "driver_id": f"driver_{random.randint(1, 10)}",
+411	                "vehicle_type": random.choice(["van", "truck", "car"]),
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/analytics_api.py:411:32
+410	                "driver_id": f"driver_{random.randint(1, 10)}",
+411	                "vehicle_type": random.choice(["van", "truck", "car"]),
+412	            }
+
+--------------------------------------------------
+>> Issue: [B404:blacklist] Consider possible security implications associated with the subprocess module.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_imports.html#b404-import-subprocess
+   Location: app/automation/auto_build_loop.py:7:0
+6	import os
+7	import subprocess
+8	import time
+
+--------------------------------------------------
+>> Issue: [B607:start_process_with_partial_path] Starting a process with a partial executable path
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b607_start_process_with_partial_path.html
+   Location: app/automation/auto_build_loop.py:35:13
+34	    print("[auto_build_loop] Running: pytest -v")
+35	    result = subprocess.run(["pytest", "-v"], capture_output=True, text=True)
+36	    print(result.stdout)
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: app/automation/auto_build_loop.py:35:13
+34	    print("[auto_build_loop] Running: pytest -v")
+35	    result = subprocess.run(["pytest", "-v"], capture_output=True, text=True)
+36	    print(result.stdout)
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'demo123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b106_hardcoded_password_funcarg.html
+   Location: app/enterprise/users.py:232:16
+231	            for user_data in demo_users:
+232	                self.create_user(user_data, password="demo123")
+233	
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/external_apis.py:329:20
+328	        conditions_list = ["Clear", "Clouds", "Rain", "Fog"]
+329	        condition = random.choice(conditions_list)
+330	
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/external_apis.py:332:24
+331	        return WeatherInfo(
+332	            temperature=random.uniform(15, 30),
+333	            humidity=random.uniform(40, 80),
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/external_apis.py:333:21
+332	            temperature=random.uniform(15, 30),
+333	            humidity=random.uniform(40, 80),
+334	            wind_speed=random.uniform(0, 15),
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/external_apis.py:334:23
+333	            humidity=random.uniform(40, 80),
+334	            wind_speed=random.uniform(0, 15),
+335	            visibility=random.uniform(5, 10),
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/external_apis.py:335:23
+334	            wind_speed=random.uniform(0, 15),
+335	            visibility=random.uniform(5, 10),
+336	            conditions=condition,
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/external_apis.py:337:26
+336	            conditions=condition,
+337	            precipitation=random.uniform(0, 5) if condition == "Rain" else 0,
+338	            impact_score=random.uniform(0, 0.5),
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/external_apis.py:338:25
+337	            precipitation=random.uniform(0, 5) if condition == "Rain" else 0,
+338	            impact_score=random.uniform(0, 0.5),
+339	        )
+
+--------------------------------------------------
+>> Issue: [B324:hashlib] Use of weak MD5 hash for security. Consider usedforsecurity=False
+   Severity: High   Confidence: High
+   CWE: CWE-327 (https://cwe.mitre.org/data/definitions/327.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b324_hashlib.html
+   Location: app/models/route_request.py:128:15
+127	        cache_string = json.dumps(cache_data, sort_keys=True)
+128	        return hashlib.md5(cache_string.encode()).hexdigest()
+129	
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/optimization/genetic_algorithm.py:226:15
+225	            # Crossover
+226	            if random.random() < self.config.crossover_rate:
+227	                child1, child2 = self._order_crossover(parent1, parent2)
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/optimization/genetic_algorithm.py:232:15
+231	            # Mutation
+232	            if random.random() < self.config.mutation_rate:
+233	                child1 = self._mutate(child1)
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/optimization/genetic_algorithm.py:234:15
+233	                child1 = self._mutate(child1)
+234	            if random.random() < self.config.mutation_rate:
+235	                child2 = self._mutate(child2)
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/optimization/genetic_algorithm.py:253:21
+252	        """Select individual using tournament selection"""
+253	        tournament = random.sample(
+254	            self.population, self.config.tournament_size)
+255	        return min(tournament)  # Best fitness (lowest distance)
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/optimization/genetic_algorithm.py:264:28
+263	        # Select crossover points
+264	        start, end = sorted(random.sample(range(size), 2))
+265	
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/optimization/genetic_algorithm.py:304:25
+303	        if len(mutated_route) > 1:
+304	            idx1, idx2 = random.sample(range(len(mutated_route)), 2)
+305	            mutated_route[idx1], mutated_route[idx2] = (
+
+--------------------------------------------------
+>> Issue: [B403:blacklist] Consider possible security implications associated with pickle module.
+   Severity: Low   Confidence: High
+   CWE: CWE-502 (https://cwe.mitre.org/data/definitions/502.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_imports.html#b403-import-pickle
+   Location: app/optimization/ml_predictor.py:7:0
+6	import numpy as np
+7	import pickle
+8	import logging
+
+--------------------------------------------------
+>> Issue: [B301:blacklist] Pickle and modules that wrap it can be unsafe when used to deserialize untrusted data, possible security issue.
+   Severity: Medium   Confidence: High
+   CWE: CWE-502 (https://cwe.mitre.org/data/definitions/502.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b301-pickle
+   Location: app/optimization/ml_predictor.py:622:33
+621	                with open(self.model_path, "rb") as f:
+622	                    model_data = pickle.load(f)
+623	
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/optimization/multi_objective.py:318:15
+317	            # Crossover
+318	            if random.random() < self.config.crossover_rate:
+319	                child1, child2 = self._crossover(
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/optimization/multi_objective.py:326:15
+325	            # Mutation
+326	            if random.random() < self.config.mutation_rate:
+327	                child1 = self._mutate(child1)
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/optimization/multi_objective.py:328:15
+327	                child1 = self._mutate(child1)
+328	            if random.random() < self.config.mutation_rate:
+329	                child2 = self._mutate(child2)
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/optimization/multi_objective.py:363:21
+362	        """Tournament selection based on dominance and crowding distance"""
+363	        candidates = random.sample(
+364	            range(
+365	                len(population)), min(
+366	                self.config.tournament_size, len(population)))
+367	
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/optimization/multi_objective.py:398:28
+397	        # Choose crossover points
+398	        start, end = sorted(random.sample(range(n), 2))
+399	
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/optimization/multi_objective.py:431:19
+430	        if len(mutated) >= 2:
+431	            i, j = random.sample(range(len(mutated)), 2)
+432	            mutated[i], mutated[j] = mutated[j], mutated[i]
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/optimization/simulated_annealing.py:186:36
+185	                    # Accept or reject the neighbor
+186	                    if delta < 0 or random.random() < math.exp(-delta / temperature):
+187	                        # Accept the neighbor
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/optimization/simulated_annealing.py:380:15
+379	
+380	        i, j = random.sample(range(len(route)), 2)
+381	        route[i], route[j] = route[j], route[i]
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/optimization/simulated_annealing.py:390:12
+389	        # Remove node from random position
+390	        i = random.randint(0, len(route) - 1)
+391	        node = route.pop(i)
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/optimization/simulated_annealing.py:394:12
+393	        # Insert at different random position
+394	        j = random.randint(0, len(route))
+395	        route.insert(j, node)
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/optimization/simulated_annealing.py:405:22
+404	        # Choose two random points
+405	        i, j = sorted(random.sample(range(len(route)), 2))
+406	
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/optimization/simulated_annealing.py:418:20
+417	            self._reverse_segment]
+418	        operation = random.choice(operations)
+419	        return operation(route)
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/performance_monitor.py:165:28
+164	
+165	        api_response_time = random.uniform(
+166	            50, 300)  # Simulated response time in ms
+167	        self._add_metric(
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/performance_monitor.py:174:24
+173	        # Active Routes (would come from route tracking system)
+174	        active_routes = random.randint(5, 15)
+175	        self._add_metric("active_routes", active_routes, "count", timestamp)
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/performance_monitor.py:178:29
+177	        # Analytics Requests (would come from analytics engine)
+178	        analytics_requests = random.randint(10, 50)
+179	        self._add_metric(
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/performance_monitor.py:186:21
+185	        # Error Rate (would come from error tracking)
+186	        error_rate = random.uniform(0.1, 2.0)
+187	        self._add_metric("error_rate", error_rate, "percent", timestamp)
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: app/routes/api.py:1261:8
+1260	                        scores) / len(scores)
+1261	        except Exception:
+1262	            pass  # Continue with default values
+1263	
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/routes/enterprise_dashboard.py:448:19
+447	
+448	    for i in range(random.randint(3, 8)):
+449	        progress = random.randint(10, 95)
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/routes/enterprise_dashboard.py:449:19
+448	    for i in range(random.randint(3, 8)):
+449	        progress = random.randint(10, 95)
+450	        status = random.choice(route_statuses)
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/routes/enterprise_dashboard.py:450:17
+449	        progress = random.randint(10, 95)
+450	        status = random.choice(route_statuses)
+451	
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/routes/enterprise_dashboard.py:455:31
+454	            status = "completed"
+455	        elif progress < 30 and random.random() < 0.3:
+456	            status = "delayed"
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/routes/enterprise_dashboard.py:461:27
+460	            "route_id": f"RT{str(i + 1).zfill(3)}",
+461	            "driver_name": random.choice(driver_names),
+462	            "progress": progress,
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/routes/enterprise_dashboard.py:463:22
+462	            "progress": progress,
+463	            "eta": f"{random.randint(13, 18)}:{random.randint(10, 59):02d}",
+464	            "status": status,
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/routes/enterprise_dashboard.py:463:47
+462	            "progress": progress,
+463	            "eta": f"{random.randint(13, 18)}:{random.randint(10, 59):02d}",
+464	            "status": status,
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/routes/enterprise_dashboard.py:466:33
+465	            "current_location": {
+466	                "lat": 40.7128 + random.uniform(-0.1, 0.1),
+467	                "lon": -74.0060 + random.uniform(-0.1, 0.1),
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: app/routes/enterprise_dashboard.py:467:34
+466	                "lat": 40.7128 + random.uniform(-0.1, 0.1),
+467	                "lon": -74.0060 + random.uniform(-0.1, 0.1),
+468	            },
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: app/routes/main_enhanced.py:103:12
+102	                )
+103	            except Exception:
+104	                pass  # Skip routes that can't be built
+105	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: app/services/geocoding_cache.py:119:12
+118	                redis_keys = len(self.redis_client.keys("geocode:*"))
+119	            except Exception:
+120	                pass
+121	
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b112_try_except_continue.html
+   Location: app/utils/clustering.py:165:12
+164	                    nearest_idx = idx
+165	            except Exception:
+166	                continue
+167	
+
+--------------------------------------------------
+
+Code scanned:
+	Total lines of code: 23249
+	Total lines skipped (#nosec): 0
+	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 0
+
+Run metrics:
+	Total issues (by severity):
+		Undefined: 0
+		Low: 59
+		Medium: 1
+		High: 1
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 0
+		Medium: 1
+		High: 60
+Files skipped (0):

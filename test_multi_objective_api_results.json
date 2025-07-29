@@ -1,0 +1,35 @@
+[
+  {
+    "test_case": "Distance + Time (Small)",
+    "success": true,
+    "status_code": 201,
+    "api_time": 0.003354787826538086,
+    "processing_time": 1.0013580322265625e-05,
+    "route_length": 8,
+    "metrics": {
+      "algorithm": "default"
+    }
+  },
+  {
+    "test_case": "Distance + Priority (Medium)",
+    "success": true,
+    "status_code": 201,
+    "api_time": 0.002441883087158203,
+    "processing_time": 4.76837158203125e-06,
+    "route_length": 8,
+    "metrics": {
+      "algorithm": "default"
+    }
+  },
+  {
+    "test_case": "Triple Objective (Large)",
+    "success": true,
+    "status_code": 201,
+    "api_time": 0.00214385986328125,
+    "processing_time": 3.0994415283203125e-06,
+    "route_length": 8,
+    "metrics": {
+      "algorithm": "default"
+    }
+  }
+]

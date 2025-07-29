@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RouteForce - Enterprise Analytics Dashboard</title>
+    
+    <!-- CSS Dependencies -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- JavaScript Dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.5.0/dist/axios.min.js"></script>
+    
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-shadow {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .metric-card {
+            transition: transform 0.2s ease-in-out;
+        }
+        .metric-card:hover {
+            transform: translateY(-2px);
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        .notification {
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-online { background-color: #10b981; }
+        .status-warning { background-color: #f59e0b; }
+        .status-offline { background-color: #ef4444; }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div id="app">
+        <!-- Navigation Bar -->
+        <nav class="gradient-bg text-white shadow-lg">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <div class="flex items-center">
+                        <i class="fas fa-route text-2xl mr-3"></i>
+                        <h1 class="text-xl font-bold">RouteForce Analytics</h1>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="relative">
+                            <button @click="showNotifications = !showNotifications" class="relative p-2 rounded-full hover:bg-white hover:bg-opacity-20">
+                                <i class="fas fa-bell text-lg"></i>
+                                <span v-if="notifications.length > 0" class="absolute -top-1 -right-1 bg-red-500 text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                    {{ notifications.length }}
+                                </span>
+                            </button>
+                            
+                            <!-- Notifications Dropdown -->
+                            <div v-if="showNotifications" class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg z-50">
+                                <div class="p-4 border-b">
+                                    <h3 class="text-gray-800 font-semibold">Recent Notifications</h3>
+                                </div>
+                                <div class="max-h-64 overflow-y-auto">
+                                    <div v-for="notification in notifications" :key="notification.id" 
+                                         class="p-3 border-b last:border-b-0 hover:bg-gray-50">
+                                        <div class="flex items-start">
+                                            <i :class="getNotificationIcon(notification.type)" 
+                                               class="mt-1 mr-3 text-sm"></i>
+                                            <div class="flex-1">
+                                                <p class="text-gray-800 text-sm font-medium">{{ notification.title }}</p>
+                                                <p class="text-gray-600 text-xs">{{ notification.message }}</p>
+                                                <p class="text-gray-400 text-xs mt-1">{{ formatTime(notification.timestamp) }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div v-if="notifications.length === 0" class="p-4 text-center text-gray-500">
+                                    No new notifications
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- User Menu -->
+                        <div class="relative">
+                            <button @click="showUserMenu = !showUserMenu" class="flex items-center space-x-2 p-2 rounded-full hover:bg-white hover:bg-opacity-20">
+                                <i class="fas fa-user text-lg"></i>
+                                <span class="hidden md:block">{{ currentUser.name }}</span>
+                                <i class="fas fa-chevron-down text-sm"></i>
+                            </button>
+                            
+                            <!-- User Dropdown -->
+                            <div v-if="showUserMenu" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-50">
+                                <div class="p-3 border-b">
+                                    <p class="text-gray-800 font-medium">{{ currentUser.name }}</p>
+                                    <p class="text-gray-600 text-sm">{{ currentUser.role }}</p>
+                                </div>
+                                <div class="py-1">
+                                    <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</a>
+                                    <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Settings</a>
+                                    <hr class="my-1">
+                                    <a href="#" @click="logout" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Logout</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            
+            <!-- Status Bar -->
+            <div class="mb-6 bg-white rounded-lg shadow p-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-6">
+                        <div class="flex items-center">
+                            <span class="status-indicator" :class="systemStatus.analytics"></span>
+                            <span class="text-sm font-medium">Analytics Engine: {{ getStatusText(systemStatus.analytics) }}</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="status-indicator" :class="systemStatus.realtime"></span>
+                            <span class="text-sm font-medium">Real-time Updates: {{ getStatusText(systemStatus.realtime) }}</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="status-indicator" :class="systemStatus.external"></span>
+                            <span class="text-sm font-medium">External APIs: {{ getStatusText(systemStatus.external) }}</span>
+                        </div>
+                    </div>
+                    <div class="text-sm text-gray-500">
+                        Last updated: {{ formatTime(lastUpdateTime) }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Metrics Row -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                <div v-for="metric in keyMetrics" :key="metric.id" 
+                     class="bg-white rounded-lg shadow card-shadow metric-card p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <i :class="metric.icon" class="text-2xl" :style="{ color: metric.color }"></i>
+                        </div>
+                        <div class="ml-4 flex-1">
+                            <p class="text-sm font-medium text-gray-600">{{ metric.label }}</p>
+                            <p class="text-2xl font-bold text-gray-900">{{ metric.value }}</p>
+                            <div class="flex items-center mt-1">
+                                <i :class="metric.trend.icon" :class="metric.trend.color" class="text-sm mr-1"></i>
+                                <span :class="metric.trend.color" class="text-sm font-medium">{{ metric.trend.value }}</span>
+                                <span class="text-gray-500 text-sm ml-1">vs last period</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- Performance Trends Chart -->
+                <div class="bg-white rounded-lg shadow card-shadow p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Performance Trends</h3>
+                        <select v-model="trendsTimeframe" @change="updateTrendsChart" 
+                                class="border border-gray-300 rounded px-3 py-1 text-sm">
+                            <option value="7">Last 7 days</option>
+                            <option value="30">Last 30 days</option>
+                            <option value="90">Last 90 days</option>
+                        </select>
+                    </div>
+                    <div class="chart-container">
+                        <canvas ref="trendsChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Route Distribution Chart -->
+                <div class="bg-white rounded-lg shadow card-shadow p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Route Distribution</h3>
+                        <div class="flex space-x-2">
+                            <button @click="routeChartType = 'efficiency'" 
+                                    :class="routeChartType === 'efficiency' ? 'bg-blue-500 text-white' : 'bg-gray-200'"
+                                    class="px-3 py-1 rounded text-xs font-medium">Efficiency</button>
+                            <button @click="routeChartType = 'duration'" 
+                                    :class="routeChartType === 'duration' ? 'bg-blue-500 text-white' : 'bg-gray-200'"
+                                    class="px-3 py-1 rounded text-xs font-medium">Duration</button>
+                            <button @click="routeChartType = 'distance'" 
+                                    :class="routeChartType === 'distance' ? 'bg-blue-500 text-white' : 'bg-gray-200'"
+                                    class="px-3 py-1 rounded text-xs font-medium">Distance</button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas ref="distributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Insights and Recommendations Row -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- Recent Insights -->
+                <div class="bg-white rounded-lg shadow card-shadow p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Recent Insights</h3>
+                        <button @click="refreshInsights" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                            <i class="fas fa-refresh mr-1"></i>Refresh
+                        </button>
+                    </div>
+                    <div class="space-y-3 max-h-64 overflow-y-auto">
+                        <div v-for="insight in recentInsights" :key="insight.id" 
+                             class="border-l-4 pl-4 py-2" :class="getInsightBorderColor(insight.severity)">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <h4 class="text-sm font-medium text-gray-900">{{ insight.title }}</h4>
+                                    <p class="text-sm text-gray-600 mt-1">{{ insight.description }}</p>
+                                    <div class="flex items-center mt-2 space-x-4">
+                                        <span class="text-xs text-gray-500">
+                                            Impact: {{ insight.impact_score }}%
+                                        </span>
+                                        <span class="text-xs text-gray-500">
+                                            Confidence: {{ Math.round(insight.confidence * 100) }}%
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="flex-shrink-0 ml-4">
+                                    <span :class="getInsightSeverityClass(insight.severity)" 
+                                          class="px-2 py-1 text-xs font-medium rounded-full">
+                                        {{ insight.severity }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-if="recentInsights.length === 0" class="text-center text-gray-500 py-8">
+                        No recent insights available
+                    </div>
+                </div>
+
+                <!-- Smart Recommendations -->
+                <div class="bg-white rounded-lg shadow card-shadow p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Smart Recommendations</h3>
+                        <button @click="generateRecommendations" class="text-green-600 hover:text-green-800 text-sm font-medium">
+                            <i class="fas fa-magic mr-1"></i>Generate
+                        </button>
+                    </div>
+                    <div class="space-y-3 max-h-64 overflow-y-auto">
+                        <div v-for="recommendation in smartRecommendations" :key="recommendation.id" 
+                             class="bg-green-50 border border-green-200 rounded-lg p-3">
+                            <div class="flex items-start">
+                                <i class="fas fa-lightbulb text-green-500 mt-1 mr-3"></i>
+                                <div class="flex-1">
+                                    <h4 class="text-sm font-medium text-green-900">{{ recommendation.title }}</h4>
+                                    <p class="text-sm text-green-700 mt-1">{{ recommendation.description }}</p>
+                                    <div class="mt-2">
+                                        <span class="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
+                                            Potential Impact: {{ recommendation.impact }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-if="smartRecommendations.length === 0" class="text-center text-gray-500 py-8">
+                        Click "Generate" to get AI-powered recommendations
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Routes Monitoring -->
+            <div class="bg-white rounded-lg shadow card-shadow p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900">Active Routes Monitoring</h3>
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center">
+                            <span class="text-sm text-gray-600 mr-2">Real-time updates:</span>
+                            <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                        </div>
+                        <button @click="toggleRouteTracking" 
+                                :class="routeTrackingEnabled ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'"
+                                class="text-white px-4 py-2 rounded text-sm font-medium">
+                            {{ routeTrackingEnabled ? 'Stop Tracking' : 'Start Tracking' }}
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Route ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Driver</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Progress</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ETA</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr v-for="route in activeRoutes" :key="route.id" class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    {{ route.route_id }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ route.driver_name }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="bg-blue-600 h-2 rounded-full" :style="{ width: route.progress + '%' }"></div>
+                                    </div>
+                                    <span class="text-xs text-gray-500 mt-1">{{ route.progress }}%</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ route.eta }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span :class="getRouteStatusClass(route.status)" 
+                                          class="px-2 py-1 text-xs font-medium rounded-full">
+                                        {{ route.status }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <button @click="viewRouteDetails(route)" class="text-blue-600 hover:text-blue-900 mr-3">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button @click="optimizeRoute(route)" class="text-green-600 hover:text-green-900">
+                                        <i class="fas fa-route"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div v-if="activeRoutes.length === 0" class="text-center text-gray-500 py-8">
+                    No active routes at the moment
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    // User and authentication
+                    currentUser: {
+                        name: 'Admin User',
+                        role: 'Administrator',
+                        email: 'admin@routeforce.com'
+                    },
+                    showNotifications: false,
+                    showUserMenu: false,
+                    
+                    // System status
+                    systemStatus: {
+                        analytics: 'status-online',
+                        realtime: 'status-online',
+                        external: 'status-warning'
+                    },
+                    lastUpdateTime: new Date(),
+                    
+                    // Notifications
+                    notifications: [],
+                    
+                    // Metrics
+                    keyMetrics: [
+                        {
+                            id: 'total_routes',
+                            label: 'Total Routes Today',
+                            value: '47',
+                            icon: 'fas fa-route',
+                            color: '#3b82f6',
+                            trend: { icon: 'fas fa-arrow-up', color: 'text-green-500', value: '+12%' }
+                        },
+                        {
+                            id: 'avg_efficiency',
+                            label: 'Avg Fuel Efficiency',
+                            value: '8.2 km/L',
+                            icon: 'fas fa-gas-pump',
+                            color: '#10b981',
+                            trend: { icon: 'fas fa-arrow-up', color: 'text-green-500', value: '+5%' }
+                        },
+                        {
+                            id: 'active_drivers',
+                            label: 'Active Drivers',
+                            value: '23',
+                            icon: 'fas fa-users',
+                            color: '#8b5cf6',
+                            trend: { icon: 'fas fa-arrow-down', color: 'text-red-500', value: '-2' }
+                        },
+                        {
+                            id: 'cost_savings',
+                            label: 'Cost Savings',
+                            value: '$1,247',
+                            icon: 'fas fa-dollar-sign',
+                            color: '#f59e0b',
+                            trend: { icon: 'fas fa-arrow-up', color: 'text-green-500', value: '+8%' }
+                        }
+                    ],
+                    
+                    // Charts
+                    trendsTimeframe: '7',
+                    routeChartType: 'efficiency',
+                    trendsChart: null,
+                    distributionChart: null,
+                    
+                    // Insights and recommendations
+                    recentInsights: [],
+                    smartRecommendations: [],
+                    
+                    // Active routes
+                    activeRoutes: [],
+                    routeTrackingEnabled: true,
+                    
+                    // WebSocket connection
+                    socket: null
+                }
+            },
+            
+            mounted() {
+                this.initializeCharts();
+                this.connectWebSocket();
+                this.loadInitialData();
+                this.startPeriodicUpdates();
+            },
+            
+            beforeUnmount() {
+                if (this.socket) {
+                    this.socket.disconnect();
+                }
+            },
+            
+            methods: {
+                // Authentication and user management
+                logout() {
+                    // Implement logout logic
+                    window.location.href = '/auth/logout';
+                },
+                
+                // System status helpers
+                getStatusText(statusClass) {
+                    const statusMap = {
+                        'status-online': 'Online',
+                        'status-warning': 'Warning',
+                        'status-offline': 'Offline'
+                    };
+                    return statusMap[statusClass] || 'Unknown';
+                },
+                
+                // Notification helpers
+                getNotificationIcon(type) {
+                    const iconMap = {
+                        'info': 'fas fa-info-circle text-blue-500',
+                        'warning': 'fas fa-exclamation-triangle text-yellow-500',
+                        'error': 'fas fa-times-circle text-red-500',
+                        'success': 'fas fa-check-circle text-green-500'
+                    };
+                    return iconMap[type] || 'fas fa-bell text-gray-500';
+                },
+                
+                // Time formatting
+                formatTime(timestamp) {
+                    return new Date(timestamp).toLocaleTimeString();
+                },
+                
+                // Insight helpers
+                getInsightBorderColor(severity) {
+                    const colorMap = {
+                        'high': 'border-red-400',
+                        'medium': 'border-yellow-400',
+                        'low': 'border-green-400'
+                    };
+                    return colorMap[severity] || 'border-gray-400';
+                },
+                
+                getInsightSeverityClass(severity) {
+                    const classMap = {
+                        'high': 'bg-red-100 text-red-800',
+                        'medium': 'bg-yellow-100 text-yellow-800',
+                        'low': 'bg-green-100 text-green-800'
+                    };
+                    return classMap[severity] || 'bg-gray-100 text-gray-800';
+                },
+                
+                // Route status helpers
+                getRouteStatusClass(status) {
+                    const classMap = {
+                        'on_time': 'bg-green-100 text-green-800',
+                        'delayed': 'bg-yellow-100 text-yellow-800',
+                        'critical': 'bg-red-100 text-red-800',
+                        'completed': 'bg-blue-100 text-blue-800'
+                    };
+                    return classMap[status] || 'bg-gray-100 text-gray-800';
+                },
+                
+                // Chart initialization
+                initializeCharts() {
+                    this.initTrendsChart();
+                    this.initDistributionChart();
+                },
+                
+                initTrendsChart() {
+                    const ctx = this.$refs.trendsChart.getContext('2d');
+                    this.trendsChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
+                            datasets: [{
+                                label: 'Fuel Efficiency',
+                                data: [7.8, 8.1, 7.9, 8.3, 8.0, 8.5, 8.2],
+                                borderColor: '#3b82f6',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                tension: 0.4
+                            }, {
+                                label: 'Route Optimization',
+                                data: [85, 87, 86, 89, 88, 91, 90],
+                                borderColor: '#10b981',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                tension: 0.4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom'
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                },
+                
+                initDistributionChart() {
+                    const ctx = this.$refs.distributionChart.getContext('2d');
+                    this.distributionChart = new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Excellent', 'Good', 'Average', 'Poor'],
+                            datasets: [{
+                                data: [35, 40, 20, 5],
+                                backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom'
+                                }
+                            }
+                        }
+                    });
+                },
+                
+                // Chart updates
+                updateTrendsChart() {
+                    // Implement timeframe-based chart updates
+                    console.log('Updating trends chart for', this.trendsTimeframe, 'days');
+                },
+                
+                // Data loading
+                async loadInitialData() {
+                    try {
+                        await Promise.all([
+                            this.loadInsights(),
+                            this.loadActiveRoutes(),
+                            this.loadNotifications()
+                        ]);
+                    } catch (error) {
+                        console.error('Error loading initial data:', error);
+                    }
+                },
+                
+                async loadInsights() {
+                    try {
+                        const response = await axios.get('/api/ai/insights/recent');
+                        if (response.data.success) {
+                            this.recentInsights = response.data.insights || [];
+                        }
+                    } catch (error) {
+                        console.error('Error loading insights:', error);
+                    }
+                },
+                
+                async loadActiveRoutes() {
+                    try {
+                        const response = await axios.get('/api/routes/active');
+                        if (response.data.success) {
+                            this.activeRoutes = response.data.routes || [];
+                        }
+                    } catch (error) {
+                        console.error('Error loading active routes:', error);
+                        // Mock data for demonstration
+                        this.activeRoutes = [
+                            {
+                                id: 1,
+                                route_id: 'RT001',
+                                driver_name: 'John Smith',
+                                progress: 75,
+                                eta: '14:30',
+                                status: 'on_time'
+                            },
+                            {
+                                id: 2,
+                                route_id: 'RT002',
+                                driver_name: 'Jane Doe',
+                                progress: 45,
+                                eta: '15:15',
+                                status: 'delayed'
+                            }
+                        ];
+                    }
+                },
+                
+                async loadNotifications() {
+                    // Mock notifications for demonstration
+                    this.notifications = [
+                        {
+                            id: 1,
+                            type: 'info',
+                            title: 'Route Optimization Complete',
+                            message: 'Route RT001 has been optimized for better fuel efficiency',
+                            timestamp: new Date()
+                        },
+                        {
+                            id: 2,
+                            type: 'warning',
+                            title: 'Traffic Alert',
+                            message: 'Heavy traffic detected on Route RT002',
+                            timestamp: new Date(Date.now() - 300000)
+                        }
+                    ];
+                },
+                
+                // Actions
+                async refreshInsights() {
+                    await this.loadInsights();
+                },
+                
+                async generateRecommendations() {
+                    try {
+                        const response = await axios.get('/api/ai/recommendations/smart');
+                        if (response.data.success) {
+                            this.smartRecommendations = response.data.recommendations || [];
+                        }
+                    } catch (error) {
+                        console.error('Error generating recommendations:', error);
+                        // Mock recommendations
+                        this.smartRecommendations = [
+                            {
+                                id: 1,
+                                title: 'Optimize Morning Routes',
+                                description: 'Consider adjusting departure times for morning routes to avoid rush hour traffic',
+                                impact: '+15% efficiency'
+                            },
+                            {
+                                id: 2,
+                                title: 'Driver Training Opportunity',
+                                description: 'Driver #12 could benefit from eco-driving training to improve fuel efficiency',
+                                impact: '+8% fuel savings'
+                            }
+                        ];
+                    }
+                },
+                
+                viewRouteDetails(route) {
+                    // Implement route details view
+                    console.log('Viewing details for route:', route);
+                },
+                
+                optimizeRoute(route) {
+                    // Implement route optimization
+                    console.log('Optimizing route:', route);
+                },
+                
+                toggleRouteTracking() {
+                    this.routeTrackingEnabled = !this.routeTrackingEnabled;
+                    if (this.routeTrackingEnabled) {
+                        this.startPeriodicUpdates();
+                    }
+                },
+                
+                // WebSocket connection
+                connectWebSocket() {
+                    try {
+                        this.socket = io();
+                        
+                        this.socket.on('connect', () => {
+                            console.log('Connected to WebSocket');
+                            this.systemStatus.realtime = 'status-online';
+                        });
+                        
+                        this.socket.on('disconnect', () => {
+                            console.log('Disconnected from WebSocket');
+                            this.systemStatus.realtime = 'status-offline';
+                        });
+                        
+                        this.socket.on('route_update', (data) => {
+                            this.handleRouteUpdate(data);
+                        });
+                        
+                        this.socket.on('analytics_update', (data) => {
+                            this.handleAnalyticsUpdate(data);
+                        });
+                        
+                        this.socket.on('notification', (data) => {
+                            this.addNotification(data);
+                        });
+                        
+                    } catch (error) {
+                        console.error('WebSocket connection error:', error);
+                        this.systemStatus.realtime = 'status-offline';
+                    }
+                },
+                
+                handleRouteUpdate(data) {
+                    // Update active routes with real-time data
+                    const routeIndex = this.activeRoutes.findIndex(r => r.id === data.route_id);
+                    if (routeIndex >= 0) {
+                        this.activeRoutes[routeIndex] = { ...this.activeRoutes[routeIndex], ...data };
+                    }
+                },
+                
+                handleAnalyticsUpdate(data) {
+                    // Update metrics with real-time analytics
+                    this.lastUpdateTime = new Date();
+                    if (data.metrics) {
+                        // Update key metrics
+                        Object.keys(data.metrics).forEach(key => {
+                            const metric = this.keyMetrics.find(m => m.id === key);
+                            if (metric) {
+                                metric.value = data.metrics[key];
+                            }
+                        });
+                    }
+                },
+                
+                addNotification(notification) {
+                    this.notifications.unshift(notification);
+                    if (this.notifications.length > 10) {
+                        this.notifications = this.notifications.slice(0, 10);
+                    }
+                },
+                
+                // Periodic updates
+                startPeriodicUpdates() {
+                    setInterval(() => {
+                        if (this.routeTrackingEnabled) {
+                            this.loadActiveRoutes();
+                            this.lastUpdateTime = new Date();
+                        }
+                    }, 30000); // Update every 30 seconds
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

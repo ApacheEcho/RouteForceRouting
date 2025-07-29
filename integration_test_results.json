@@ -1,0 +1,101 @@
+{
+  "timestamp": "2025-07-20T18:49:45.082225",
+  "summary": {
+    "total_tests": 15,
+    "passed_tests": 7,
+    "failed_tests": 8,
+    "success_rate": 46.666666666666664
+  },
+  "test_results": [
+    {
+      "test": "Backend Health",
+      "success": true,
+      "message": "Status: healthy",
+      "timestamp": "2025-07-20T18:49:45.027188"
+    },
+    {
+      "test": "Frontend Accessibility",
+      "success": false,
+      "message": "HTTP 404",
+      "timestamp": "2025-07-20T18:49:45.034306"
+    },
+    {
+      "test": "API /api/optimize",
+      "success": true,
+      "message": "HTTP 200",
+      "timestamp": "2025-07-20T18:49:45.044274"
+    },
+    {
+      "test": "API /api/analytics",
+      "success": true,
+      "message": "HTTP 200",
+      "timestamp": "2025-07-20T18:49:45.048021"
+    },
+    {
+      "test": "API /advanced/api/ml-insights",
+      "success": false,
+      "message": "HTTP 401",
+      "timestamp": "2025-07-20T18:49:45.052006"
+    },
+    {
+      "test": "API /advanced/api/performance-trends",
+      "success": false,
+      "message": "HTTP 401",
+      "timestamp": "2025-07-20T18:49:45.055172"
+    },
+    {
+      "test": "API /advanced/api/predictive-analytics",
+      "success": false,
+      "message": "HTTP 401",
+      "timestamp": "2025-07-20T18:49:45.058374"
+    },
+    {
+      "test": "API /advanced/api/real-time-alerts",
+      "success": false,
+      "message": "HTTP 401",
+      "timestamp": "2025-07-20T18:49:45.061029"
+    },
+    {
+      "test": "API /advanced/api/optimization-insights",
+      "success": false,
+      "message": "HTTP 401",
+      "timestamp": "2025-07-20T18:49:45.064268"
+    },
+    {
+      "test": "Database Integration",
+      "success": true,
+      "message": "Analytics data retrieved",
+      "timestamp": "2025-07-20T18:49:45.067573"
+    },
+    {
+      "test": "ML Integration",
+      "success": false,
+      "message": "HTTP 401",
+      "timestamp": "2025-07-20T18:49:45.070244"
+    },
+    {
+      "test": "Performance Monitoring",
+      "success": false,
+      "message": "HTTP 401",
+      "timestamp": "2025-07-20T18:49:45.073514"
+    },
+    {
+      "test": "Algorithm genetic",
+      "success": true,
+      "message": "Optimized route with 4 stops",
+      "timestamp": "2025-07-20T18:49:45.076055"
+    },
+    {
+      "test": "Algorithm simulated_annealing",
+      "success": true,
+      "message": "Optimized route with 4 stops",
+      "timestamp": "2025-07-20T18:49:45.079111"
+    },
+    {
+      "test": "Algorithm multi_objective",
+      "success": true,
+      "message": "Optimized route with 4 stops",
+      "timestamp": "2025-07-20T18:49:45.081971"
+    }
+  ]
+}

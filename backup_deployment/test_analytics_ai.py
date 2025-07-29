@@ -1,0 +1,96 @@
+#!/usr/bin/env python3
+"""
+Test script for the Advanced Analytics Engine
+"""
+
+# Import get_analytics_engine using importlib from its file path
+import importlib.util
+import os
+import sys
+from datetime import datetime
+
+
+def import_from_path(module_name, file_path):
+    spec = importlib.util.spec_from_file_location(module_name, file_path)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+analytics_ai_module_path = os.path.join(project_root, "app/analytics_ai_module.py")
+
+analytics_ai_mod = import_from_path("analytics_ai_module", analytics_ai_module_path)
+get_analytics_engine = analytics_ai_mod.get_analytics_engine
+
+
+def test_analytics_engine():
+    """Test the analytics engine functionality"""
+
+    print("=== Testing Advanced Analytics Engine ===\n")
+
+    # Initialize analytics engine
+    analytics = get_analytics_engine()
+    print("✅ Analytics engine created successfully")
+
+    # Test adding sample data
+    sample_route = {
+        "route_id": "test_001",
+        "distance": 25.5,
+        "duration": 85.0,
+        "stops": ["Stop A", "Stop B", "Stop C"],
+        "fuel_used": 3.2,
+        "timestamp": datetime.now().isoformat(),
+    }
+
+    analytics.add_route_data(sample_route)
+    print("✅ Sample route data added")
+
+    # Test generating insights
+    insight = analytics.analyze_route_efficiency("test_001", sample_route)
+    print(f"✅ Generated insight: {insight.title}")
+    print(f"   Impact Score: {insight.impact_score}")
+    print(f"   Recommendations: {len(insight.recommendations)}")
+    print(f"   Type: {insight.insight_type}")
+
+    # Test prediction
+    prediction = analytics.predict_route_performance(sample_route)
+    print(f"✅ Generated prediction: {prediction.predicted_duration:.1f} minutes")
+    print(f"   Fuel cost: ${prediction.predicted_fuel_cost:.2f}")
+    print(f"   Risk factors: {len(prediction.risk_factors)}")
+    print(f"   Suggestions: {len(prediction.optimization_suggestions)}")
+
+    # Test fleet insights
+    fleet_insights = analytics.get_fleet_insights()
+    print("✅ Fleet insights generated")
+    print(f"   Total routes: {fleet_insights['total_routes']}")
+    print(f"   Recommendations: {len(fleet_insights['recommendations'])}")
+
+    # Test with multiple sample routes
+    print("\n--- Adding multiple sample routes for ML training ---")
+    import random
+
+    for i in range(20):
+        route_data = {
+            "route_id": f"sample_{i:03d}",
+            "distance": random.uniform(10, 50),
+            "duration": random.uniform(30, 150),
+            "stops": [f"Stop_{j}" for j in range(random.randint(3, 10))],
+            "fuel_used": random.uniform(1.5, 6.0),
+            "timestamp": datetime.now().isoformat(),
+        }
+        analytics.add_route_data(route_data)
+
+    print("✅ Added 20 sample routes for ML training")
+
+    # Test trends after adding data
+    trends = analytics.detect_performance_trends()
+    print(f"✅ Performance trends detected: {len(trends)} metrics")
+
+    print("\n🎉 Advanced Analytics Engine is working perfectly!")
+    print("🚀 Ready for API integration and production use!")
+
+
+if __name__ == "__main__":
+    test_analytics_engine()

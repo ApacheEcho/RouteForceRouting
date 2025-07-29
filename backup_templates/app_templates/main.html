@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RouteForce Routing</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .navbar-brand {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #667eea;
+        }
+        
+        .navbar-nav {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .nav-link {
+            color: #666;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .nav-link:hover {
+            color: #667eea;
+        }
+        
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert-info {
+            background: #cce7ff;
+            color: #004085;
+            border: 1px solid #b8daff;
+        }
+        
+        .user-welcome {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+        }
+        
+        .user-welcome h2 {
+            margin-bottom: 10px;
+            font-size: 1.8em;
+        }
+        
+        .user-welcome p {
+            opacity: 0.9;
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .nav-buttons {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .dashboard-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #4f46e5, #06b6d4);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+        
+        .dashboard-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+        }
+        
+        .btn-icon {
+            font-size: 1.2em;
+        }
+        
+        .form-group { 
+            margin-bottom: 20px; 
+        }
+        
+        label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-weight: 600; 
+            color: #333;
+            font-size: 0.9em;
+        }
+        
+        input[type="file"], input[type="time"], input[type="number"] { 
+            padding: 12px; 
+            width: 100%; 
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="file"]:focus, input[type="time"]:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+        }
+        
+        .checkbox-wrapper input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+        
+        .checkbox-wrapper label {
+            margin-bottom: 0;
+            font-weight: 400;
+            cursor: pointer;
+        }
+        
+        .checkbox-group { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .checkbox-group .checkbox-wrapper {
+            padding: 5px;
+        }
+        
+        .submit-btn { 
+            padding: 15px 40px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; 
+            border: none; 
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .submit-btn:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+        
+        .form-section {
+            border: 1px solid #eee;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .form-section h3 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+        
+        .required {
+            color: #e74c3c;
+        }
+        
+        .help-text {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        /* Navigation Bar Styles */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 20px;
+        }
+        
+        .navbar-brand {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #333;
+        }
+        
+        .navbar-nav {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .nav-link {
+            text-decoration: none;
+            color: #667eea;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .nav-link:hover {
+            color: #764ba2;
+        }
+        
+        /* Alert Styles */
+        .alert {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        /* User Welcome Styles */
+        .user-welcome {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .user-welcome h2 {
+            font-size: 1.8em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .user-welcome p {
+            font-size: 1.1em;
+            color: #666;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .checkbox-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation Bar -->
+        <nav class="navbar">
+            <div class="navbar-brand">
+                <i class="fas fa-route"></i> RouteForce Routing
+            </div>
+            <div class="navbar-nav">
+                {% if session.user_id %}
+                    <a href="{{ url_for('main.dashboard') }}" class="nav-link">Dashboard</a>
+                    <a href="{{ url_for('auth.profile') }}" class="nav-link">Profile</a>
+                    <a href="{{ url_for('auth.logout') }}" class="nav-link">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="nav-link">Login</a>
+                    <a href="{{ url_for('auth.register') }}" class="nav-link">Register</a>
+                {% endif %}
+            </div>
+        </nav>
+        
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- User Welcome -->
+        {% if session.user_id %}
+            <div class="user-welcome">
+                <h2>Welcome back, {{ session.username }}!</h2>
+                <p>Ready to optimize your routes?</p>
+            </div>
+        {% endif %}
+        
+        <h1>🚀 RouteForce Routing</h1>
+        <div class="subtitle">Intelligent Route Optimization System</div>
+        
+        <div class="nav-buttons">
+            <a href="/dashboard" class="dashboard-btn">
+                <span class="btn-icon">📊</span>
+                <span class="btn-text">Real-Time Dashboard</span>
+            </a>
+            <a href="{{ url_for('dashboard.dashboard') }}" class="dashboard-btn" style="margin-left: 10px;">
+                <span class="btn-icon">📈</span>
+                <span class="btn-text">Enhanced Analytics</span>
+            </a>
+        </div>
+        
+        <form action="/generate" method="post" enctype="multipart/form-data">
+            <div class="form-section">
+                <h3>📄 Store Data</h3>
+                <div class="form-group">
+                    <label for="file">Upload Stores File <span class="required">*</span></label>
+                    <input type="file" id="file" name="file" accept=".xlsx,.csv" required>
+                    <div class="help-text">Supported formats: CSV, Excel (.xlsx, .xls)</div>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h3>🎯 Routing Options</h3>
+                <div class="form-group">
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="proximity" name="proximity" value="1">
+                        <label for="proximity">Enable Proximity-Based Routing</label>
+                    </div>
+                    <div class="help-text">Orders stops by geographic proximity for shorter routes</div>
+                </div>
+                
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" id="priority_only" name="priority_only" value="1">
+                    <label for="priority_only">Priority Stores Only</label>
+                </div>
+                <div class="help-text">Include only high-priority stores in the route</div>
+            </div>
+            
+            <div class="form-section">
+                <h3>🕐 Time Constraints</h3>
+                <div class="form-group">
+                    <label for="time_start">Time Window Start</label>
+                    <input type="time" id="time_start" name="time_start">
+                </div>
+                
+                <div class="form-group">
+                    <label for="time_end">Time Window End</label>
+                    <input type="time" id="time_end" name="time_end">
+                    <div class="help-text">Leave empty to allow all-day visits</div>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h3>📅 Day Exclusions</h3>
+                <div class="form-group">
+                    <label>Exclude Days from Route</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" id="monday" name="exclude_days" value="Monday">
+                            <label for="monday">Monday</label>
+                        </div>
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" id="tuesday" name="exclude_days" value="Tuesday">
+                            <label for="tuesday">Tuesday</label>
+                        </div>
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" id="wednesday" name="exclude_days" value="Wednesday">
+                            <label for="wednesday">Wednesday</label>
+                        </div>
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" id="thursday" name="exclude_days" value="Thursday">
+                            <label for="thursday">Thursday</label>
+                        </div>
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" id="friday" name="exclude_days" value="Friday">
+                            <label for="friday">Friday</label>
+                        </div>
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" id="saturday" name="exclude_days" value="Saturday">
+                            <label for="saturday">Saturday</label>
+                        </div>
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" id="sunday" name="exclude_days" value="Sunday">
+                            <label for="sunday">Sunday</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h3>🎛️ Business Constraints</h3>
+                <div class="form-group">
+                    <label for="max_stores_per_chain">Max Stores per Chain</label>
+                    <input type="number" id="max_stores_per_chain" name="max_stores_per_chain" min="1" placeholder="e.g., 10">
+                    <div class="help-text">Limit the number of stores per retail chain</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="min_sales_threshold">Min Sales Threshold</label>
+                    <input type="number" id="min_sales_threshold" name="min_sales_threshold" step="0.01" min="0" placeholder="e.g., 1000.00">
+                    <div class="help-text">Minimum sales amount to include store in route</div>
+                </div>
+            </div>
+            
+            <button type="submit" class="submit-btn">🚀 Generate Optimized Route</button>
+        </form

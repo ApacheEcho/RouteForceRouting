@@ -1,0 +1,70 @@
+[
+  {
+    "algorithm": "Genetic Algorithm",
+    "success": true,
+    "processing_time": 2.0368707180023193,
+    "improvement": 24.725761022145367,
+    "route_length": 12,
+    "metrics": {
+      "algorithm": "genetic",
+      "generations": 52,
+      "initial_distance": 193.54868170817113,
+      "final_distance": 145.69229720749595,
+      "improvement_percent": 24.725761022145367,
+      "population_size": 100,
+      "best_fitness": 0.006816990523950293
+    }
+  },
+  {
+    "algorithm": "Simulated Annealing",
+    "success": true,
+    "processing_time": 0.009536027908325195,
+    "improvement": 40.96326440484553,
+    "route_length": 12,
+    "metrics": {
+      "algorithm": "simulated_annealing",
+      "initial_distance": 279.9539541214308,
+      "final_distance": 165.27567568284914,
+      "improvement_percent": 40.96326440484553,
+      "total_iterations": 5000,
+      "temperature_reductions": 50,
+      "accepted_moves": 4965,
+      "rejected_moves": 35,
+      "acceptance_rate": 0.993,
+      "reheats": 3,
+      "processing_time": 0.009525060653686523,
+      "convergence_iteration": 1471,
+      "final_temperature": 2041.8954765891845,
+      "cooling_schedule": "exponential",
+      "neighborhood_operator": "swap"
+    }
+  },
+  {
+    "algorithm": "Multi-Objective NSGA-II",
+    "success": true,
+    "processing_time": 0.554253101348877,
+    "improvement": 0,
+    "route_length": 12,
+    "metrics": {
+      "algorithm": "multi_objective",
+      "pareto_front_size": 41,
+      "processing_time": 0.5542142391204834,
+      "total_generations": 150,
+      "objectives_optimized": [
+        "distance",
+        "time",
+        "priority",
+        "fuel_cost"
+      ],
+      "best_compromise_solution": {
+        "objectives": {
+          "distance": 157.29120256490904,
+          "time": 9.145824051298181,
+          "priority": -184.0,
+          "fuel_cost": 18.874944307789086
+        }
+      },
+      "hypervolume": -135773.4009740643
+    }
+  }
+]

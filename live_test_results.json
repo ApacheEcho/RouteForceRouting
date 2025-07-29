@@ -1,0 +1,56 @@
+[
+  {
+    "test": "Health Endpoint",
+    "status": "PASS",
+    "timestamp": "2025-07-20T20:39:38.764258",
+    "details": "System status: healthy"
+  },
+  {
+    "test": "Small Delivery Route",
+    "status": "PASS",
+    "timestamp": "2025-07-20T20:39:38.770333",
+    "details": "Optimized 4 stops in 0.01s"
+  },
+  {
+    "test": "Medium Service Route",
+    "status": "PASS",
+    "timestamp": "2025-07-20T20:39:38.774377",
+    "details": "Optimized 6 stops in 0.00s"
+  },
+  {
+    "test": "Large Multi-Stop Route",
+    "status": "PASS",
+    "timestamp": "2025-07-20T20:39:38.778343",
+    "details": "Optimized 8 stops in 0.00s"
+  },
+  {
+    "test": "Concurrent Load Test",
+    "status": "FAIL",
+    "timestamp": "2025-07-20T20:39:38.798708",
+    "details": "Only 70.0% success rate"
+  },
+  {
+    "test": "Cross-Country Route",
+    "status": "FAIL",
+    "timestamp": "2025-07-20T20:39:38.801712",
+    "details": "Status: 429"
+  },
+  {
+    "test": "Empty Request",
+    "status": "FAIL",
+    "timestamp": "2025-07-20T20:39:38.804120",
+    "details": "Unexpected status: 429"
+  },
+  {
+    "test": "Invalid Coordinates",
+    "status": "FAIL",
+    "timestamp": "2025-07-20T20:39:38.806415",
+    "details": "Unexpected status: 429"
+  },
+  {
+    "test": "Single Stop",
+    "status": "FAIL",
+    "timestamp": "2025-07-20T20:39:38.808354",
+    "details": "Unexpected status: 429"
+  }
+]

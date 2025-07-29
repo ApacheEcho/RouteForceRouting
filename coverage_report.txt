@@ -1,0 +1,86 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.8, pytest-8.4.1, pluggy-1.6.0
+rootdir: /Users/frank/RouteForceRouting
+configfile: pytest.ini
+plugins: anyio-4.9.0, cov-6.2.1
+collected 201 items / 5 errors
+
+==================================== ERRORS ====================================
+________________ ERROR collecting backup_deployment/test_app.py ________________
+ImportError while importing test module '/Users/frank/RouteForceRouting/backup_deployment/test_app.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backup_deployment/test_app.py:3: in <module>
+    from main import app
+main.py:12: in <module>
+    app = create_app(os.getenv("FLASK_ENV", "production"))
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+app/__init__.py:170: in create_app
+    from app.middleware.analytics import init_analytics_middleware
+app/middleware/analytics.py:10: in <module>
+    from ..services.analytics_service import AnalyticsService
+E   ImportError: cannot import name 'AnalyticsService' from 'app.services.analytics_service' (/Users/frank/RouteForceRouting/app/services/analytics_service/__init__.py)
+------------------------------- Captured stderr --------------------------------
+Server initialized for threading.
+_____ ERROR collecting backup_deployment/test_mobile_api_comprehensive.py ______
+ImportError while importing test module '/Users/frank/RouteForceRouting/backup_deployment/test_mobile_api_comprehensive.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backup_deployment/test_mobile_api_comprehensive.py:18: in <module>
+    from app.services.analytics_service import AnalyticsService
+E   ImportError: cannot import name 'AnalyticsService' from 'app.services.analytics_service' (/Users/frank/RouteForceRouting/app/services/analytics_service/__init__.py)
+____________________ ERROR collecting test_analytics_ai.py _____________________
+ImportError while importing test module '/Users/frank/RouteForceRouting/test_analytics_ai.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+test_analytics_ai.py:8: in <module>
+    from app.analytics_ai.analytics_ai import get_analytics_engine
+app/analytics_ai/__init__.py:3: in <module>
+    from app.analytics_ai import get_analytics_engine
+E   ImportError: cannot import name 'get_analytics_engine' from partially initialized module 'app.analytics_ai' (most likely due to a circular import) (/Users/frank/RouteForceRouting/app/analytics_ai/__init__.py)
+_________________________ ERROR collecting test_app.py _________________________
+ImportError while importing test module '/Users/frank/RouteForceRouting/test_app.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+test_app.py:4: in <module>
+    from main import app
+main.py:12: in <module>
+    app = create_app(os.getenv("FLASK_ENV", "production"))
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+app/__init__.py:170: in create_app
+    from app.middleware.analytics import init_analytics_middleware
+app/middleware/analytics.py:10: in <module>
+    from ..services.analytics_service import AnalyticsService
+E   ImportError: cannot import name 'AnalyticsService' from 'app.services.analytics_service' (/Users/frank/RouteForceRouting/app/services/analytics_service/__init__.py)
+------------------------------- Captured stderr --------------------------------
+Server initialized for threading.
+______________ ERROR collecting test_mobile_api_comprehensive.py _______________
+ImportError while importing test module '/Users/frank/RouteForceRouting/test_mobile_api_comprehensive.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+test_mobile_api_comprehensive.py:18: in <module>
+    from app.services.analytics_service import AnalyticsService
+E   ImportError: cannot import name 'AnalyticsService' from 'app.services.analytics_service' (/Users/frank/RouteForceRouting/app/services/analytics_service/__init__.py)
+=========================== short test summary info ============================
+ERROR backup_deployment/test_app.py
+ERROR backup_deployment/test_mobile_api_comprehensive.py
+ERROR test_analytics_ai.py
+ERROR test_app.py
+ERROR test_mobile_api_comprehensive.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 5 errors during collection !!!!!!!!!!!!!!!!!!!!
+============================== 5 errors in 3.52s ===============================

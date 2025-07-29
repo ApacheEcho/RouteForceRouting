@@ -1,0 +1,8 @@
+
+# Example valid YAML structure for route rendering
+route:
+  core: routing/core.py
+  scoring: routing/route_scoring.py
+  generate:
+    description: Generates routes and ranks them
+    output: Best route or None

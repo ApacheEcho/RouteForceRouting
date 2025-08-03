@@ -47,14 +47,18 @@ def log_route_error(route_data: Dict[str, Any], error: str) -> None:
     """
     timestamp = datetime.now().isoformat()
     
+    raw_route_id = route_data.get("id", "unknown")
+    sanitized_route_id = sanitize_for_log(raw_route_id)
+    sanitized_error = sanitize_for_log(error)
+
     log_entry = {
         "timestamp": timestamp,
-        "route_id": route_data.get("id", "unknown"),
-        "error": error,
+        "route_id": sanitized_route_id,
+        "error": sanitized_error,
         "route_data": route_data
     }
     
-    logger.error(f"Route processing error for route {route_data.get('id', 'unknown')}: {error}")
+    logger.error(f"Route processing error for route {sanitized_route_id}: {sanitized_error}")
     logger.debug(f"Route error details: {log_entry}")
 
 

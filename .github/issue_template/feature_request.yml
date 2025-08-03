@@ -1,0 +1,40 @@
+name: Feature Request
+description: Suggest a new feature or improvement for RouteForcePro
+labels:
+  - feature request
+  - enhancement
+body:
+  - type: textarea
+    attributes:
+      label: Summary
+      description: Provide a concise summary of the feature you are proposing.
+      placeholder: e.g. "Add ability to generate daily route optimization reports"
+      required: true
+  - type: textarea
+    attributes:
+      label: Problem It Solves
+      description: Explain the problem this feature would address.
+      placeholder: e.g. "Helps dispatchers quickly identify optimal routes"
+      required: true
+  - type: textarea
+    attributes:
+      label: Suggested Solution
+      description: Describe your proposed solution or how the feature should work.
+      placeholder: e.g. "Integrate a new route planning algorithm that considers traffic conditions"
+      required: true
+  - type: dropdown
+    attributes:
+      label: Impact
+      description: Estimated impact if implemented.
+      options:
+        - Low
+        - Medium
+        - High
+      required: true
+  - type: textarea
+    attributes:
+      label: Additional Notes
+      description: Any additional context, references, or examples to support your request.
+      placeholder: Optional
+      required: false
+[oai_citation:6‡feature_request.yml](file-service://file-9JrFRxbaW61Y2JbDbtmdjD)

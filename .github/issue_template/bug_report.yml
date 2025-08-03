@@ -1,0 +1,42 @@
+name: Bug Report
+description: Report a problem or unexpected behavior
+labels:
+  - bug
+body:
+  - type: textarea
+    attributes:
+      label: Describe the Bug
+      description: Provide a clear and concise description of what the bug is.
+      placeholder: e.g. "When I press submit, nothing happens..."
+      required: true
+  - type: textarea
+    attributes:
+      label: Steps to Reproduce
+      description: Outline the steps we can follow to reproduce the issue.
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. Scroll down to '...'
+        4. See error
+      required: true
+  - type: textarea
+    attributes:
+      label: Expected Behavior
+      description: Describe what you expected to happen.
+      required: true
+  - type: textarea
+    attributes:
+      label: Actual Behavior
+      description: Describe what actually happened when you encountered the bug.
+      required: true
+  - type: dropdown
+    attributes:
+      label: Severity
+      description: Rate the severity of the bug.
+      options:
+        - Low
+        - Medium
+        - High
+        - Critical
+      required: true
+       [oai_citation:7‡bug_report.yml](file-service://file-5c9Qdp6HVum7m9GWZofkLo)

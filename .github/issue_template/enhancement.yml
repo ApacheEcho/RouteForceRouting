@@ -1,0 +1,29 @@
+name: Enhancement
+description: Propose improvements or refinements to existing functionality
+labels:
+  - enhancement
+body:
+  - type: textarea
+    attributes:
+      label: Summary of Enhancement
+      description: Provide a concise summary of the enhancement you are proposing.
+      placeholder: e.g. "Improve dashboard loading times"
+      required: true
+  - type: textarea
+    attributes:
+      label: Area of Codebase Affected
+      description: Specify the modules, components, or features that would be affected.
+      placeholder: e.g. "Route optimization service"
+      required: true
+  - type: textarea
+    attributes:
+      label: Benefit of Change
+      description: Explain the benefits or desired outcomes of this enhancement.
+      placeholder: e.g. "Better user experience due to faster response times"
+      required: true
+  - type: textarea
+    attributes:
+      label: Any Alternatives Considered
+      description: Describe any alternative solutions or approaches you have considered.
+      placeholder: e.g. "Add caching layer instead of rewriting algorithm"
+      required: false

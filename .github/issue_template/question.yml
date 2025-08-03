@@ -1,0 +1,26 @@
+name: Question
+description: Ask a question about RouteForcePro
+labels:
+  - question
+body:
+  - type: textarea
+    attributes:
+      label: What’s your question?
+      description: Clearly state your question or clarification needed.
+      required: true
+  - type: textarea
+    attributes:
+      label: What have you tried so far?
+      description: Describe any steps, research, or solutions you have attempted.
+      required: false
+  - type: textarea
+    attributes:
+      label: Context or Background
+      description: Provide relevant context or background information to help us answer effectively.
+      required: true
+  - type: textarea
+    attributes:
+      label: Helpful Links / References
+      description: Share any links, logs, or references that may help address your question.
+      required: false
+       [oai_citation:8‡question.yml](file-service://file-KXHqiqUR6TDwCkTWdwLwrt)

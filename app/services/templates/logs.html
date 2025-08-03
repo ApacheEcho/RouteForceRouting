@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>RouteForce Audit Log Explorer</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-4">
+    <h2>Audit Log Explorer</h2>
+    <form class="row g-3 mb-3" method="get" action="/logs">
+        <div class="col-auto">
+            <input type="text" class="form-control" name="route_id" placeholder="Route ID" value="{{ route_id or '' }}">
+        </div>
+        <div class="col-auto">
+            <input type="text" class="form-control" name="user_id" placeholder="User ID" value="{{ user_id or '' }}">
+        </div>
+        <div class="col-auto">
+            <input type="date" class="form-control" name="start" value="{{ start or '' }}">
+        </div>
+        <div class="col-auto">
+            <input type="date" class="form-control" name="end" value="{{ end or '' }}">
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">Filter</button>
+        </div>
+        <div class="col-auto">
+            <a href="/export?route_id={{ route_id }}&user_id={{ user_id }}&start={{ start }}&end={{ end }}&format=json" class="btn btn-secondary">Export JSON</a>
+            <a href="/export?route_id={{ route_id }}&user_id={{ user_id }}&start={{ start }}&end={{ end }}&format=csv" class="btn btn-secondary">Export CSV</a>
+        </div>
+        <div class="col-auto">
+            <a href="/logout" class="btn btn-outline-danger">Logout</a>
+        </div>
+    </form>
+    <table class="table table-bordered table-sm">
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>Timestamp</th>
+            <th>User</th>
+            <th>Route ID</th>
+            <th>Event</th>
+            <th>Metadata</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for log in logs %}
+            <tr>
+                <td>{{ loop.index + (page-1)*per_page }}</td>
+                <td>{{ log.timestamp }}</td>
+                <td>{{ log.actor }}</td>
+                <td>{{ log.metadata.route_id if log.metadata and 'route_id' in log.metadata else '' }}</td>
+                <td>{{ log.event }}</td>
+                <td><pre style="white-space: pre-wrap; word-break: break-all;">{{ log.metadata | tojson(indent=0) }}</pre></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <nav>
+        <ul class="pagination">
+            {% for p in range(1, (total // per_page) + 2) %}
+                <li class="page-item {% if p == page %}active{% endif %}"><a class="page-link" href="?page={{ p }}&route_id={{ route_id }}&user_id={{ user_id }}&start={{ start }}&end={{ end }}">{{ p }}</a></li>
+            {% endfor %}
+        </ul>
+    </nav>
+</div>
+</body>
+</html>

@@ -1,10 +1,16 @@
+
 name: RouteForce CI/CD Pipeline
+
+permissions:
+  contents: read
+  security-events: write
+
 
 on:
   push:
     branches: [main, develop]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
 
 env:
   DOCKER_REGISTRY: ghcr.io
@@ -112,6 +118,7 @@ jobs:
   # Security and vulnerability scanning
   security:
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

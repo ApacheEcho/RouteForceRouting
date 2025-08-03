@@ -1,6 +1,24 @@
-# RouteForceRouting
+# RouteForcePro
 
-A route optimization engine for field execution teams. This application helps optimize routes for visiting multiple locations efficiently.
+AI-powered routing and sales execution platform built for Direct Store Delivery (DSD) teams.
+
+## 🚀 Setup
+
+### 📦 Local Development (Docker)
+
+```bash
+# Clone the repo and enter the directory
+git clone https://github.com/your-org/RouteForcePro.git
+cd RouteForcePro
+
+# Copy example environment file and configure secrets
+cp .env.example .env
+
+# Build and start services
+docker-compose up --build
+```
+
+App will be available at: [http://localhost:8080](http://localhost:8080)
 
 ## 🚨 **IMPORTANT SECURITY NOTICE**
 

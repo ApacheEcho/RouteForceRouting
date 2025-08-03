@@ -496,9 +496,7 @@ class AdvancedAnalytics:
                 "severity": (
                     "high"
                     if impact_score > 70
-                    else "medium"
-                    if impact_score > 40
-                    else "low"
+                    else "medium" if impact_score > 40 else "low"
                 ),
                 "confidence": 0.85,
                 "impact": impact_score,

@@ -1,45 +1,32 @@
-"""
-RouteForce Routing Application
-Modern Flask application with enterprise-grade architecture and real-time features.
-"""
 
-import os
 from dotenv import load_dotenv
-
-# Load environment variables from .env file
 load_dotenv()
 
-import sentry_sdk
-from sentry_sdk.integrations.flask import FlaskIntegration
+from flask import Flask
+from config import Config
+from sentry_config import init_sentry
+from models.db import init_db
+from routes.user_routes import user_bp
 
-from routeforcepro.app import create_app
+def create_app():
+    # Initialize the Flask application
+    app = Flask(__name__)
 
-# Initialize Sentry for error tracking and performance monitoring
-sentry_sdk.init(
-    dsn=os.getenv("SENTRY_DSN", "https://<your-key>@o<org-id>.ingest.sentry.io/<project-id>"),
-    integrations=[FlaskIntegration()],
-    traces_sample_rate=float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.2")),
-    environment=os.getenv("FLASK_ENV", "production"),
-)
+    # Load configuration settings
+    app.config.from_object(Config)
 
-def main() -> "Flask":
-    """
-    Main entry point for the application.
-    Returns a Flask application instance.
-    """
-    env = os.getenv("FLASK_ENV", "development")
-    app = create_app(env)
+    # Initialize Sentry monitoring
+    init_sentry(app)
+
+    # Initialize database connection
+    init_db(app)
+
+    # Register user-related routes under '/api/users'
+    app.register_blueprint(user_bp, url_prefix='/api/users')
+
     return app
 
-# Application instance for WSGI servers (e.g. Gunicorn, uWSGI)
-app = main()
-
-if __name__ == "__main__":
-    # Sentry test: raise an exception and send to Sentry if env var is set
-    if os.getenv("SENTRY_TEST", "0") == "1":
-        raise Exception("This is a Sentry test!")  # Sentry test exception
-
-    host = os.getenv("FLASK_HOST", "127.0.0.1")
-    port = int(os.getenv("FLASK_PORT", 5000))
-    debug = os.getenv("FLASK_ENV", "development") == "development"
-    app.run(debug=debug, host=host, port=port)
+if __name__ == '__main__':
+    # Run the app on all network interfaces at port 5000
+    app = create_app()
+    app.run(host='0.0.0.0', port=5000)

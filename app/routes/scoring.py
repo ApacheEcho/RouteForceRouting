@@ -3,7 +3,11 @@ Route Scoring API endpoints
 Provides REST API for route scoring functionality
 """
 
+
+
 import logging
+from services.route_scoring_debug import debug_route_score
+from services.audit_log_service import record_scoring_event
 
 from flask import Blueprint, jsonify, request
 
@@ -65,7 +69,23 @@ def score_route():
         # Calculate score
         score = scorer.score_route(route, context)
 
-        return jsonify({"success": True, "score": score.to_dict()})
+        # Audit log event (user_id is None unless JWT is used; add JWT if available)
+        user_id = context.get("user_id", "anonymous")
+        preset = data.get("preset", "balanced")
+        route_id = context.get("route_id")
+        record_scoring_event(user_id, score.total_score, preset, route_id)
+
+        # Check for debug param (GET or POST)
+        debug_requested = False
+        if request.method == "GET":
+            debug_requested = request.args.get("debug", "false").lower() == "true"
+        else:
+            debug_requested = request.args.get("debug", "false").lower() == "true"
+
+        response = {"success": True, "score": score.to_dict()}
+        if debug_requested:
+            response["debug"] = debug_route_score(score)
+        return jsonify(response)
 
     except Exception as e:
         logger.error(f"Error in score_route endpoint: {e}")

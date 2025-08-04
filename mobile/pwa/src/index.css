@@ -1,7 +1,25 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-    @apply block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500;
+/* This file should be processed with Tailwind CLI or PostCSS to generate the final CSS. */
+/* If you see 'Unknown at rule @tailwind', make sure to build your CSS with Tailwind. */
+/* @tailwind directives removed because Tailwind CSS is not being processed */
+/* If you want to apply these styles globally, use a selector like .form-input */
+.form-input {
+  display: block;
+  width: 100%;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-width: 1px;
+  border-color: #D1D5DB;
+  border-radius: 0.375rem;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  outline: none;
+}
+
+.form-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.5);
+  border-color: #6366F1;
 }
 
 /* Custom utility styles */

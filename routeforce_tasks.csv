@@ -1,0 +1,5 @@
+task_name,store_name,priority,due_date,rep_name,description,route_id
+"Check Pepsi Display",Store #1234,high,2025-01-15,"John Smith","Verify endcap display is set up correctly",R001
+"Rotate Stock",Store #1235,medium,2025-01-16,"Jane Doe","Rotate older products to front",R001
+"New Product Launch",Store #1236,high,2025-01-14,"John Smith","Set up new Mountain Dew flavor display",R002
+"Inventory Count",Store #1234,low,2025-01-20,"Jane Doe","Monthly inventory verification",R001

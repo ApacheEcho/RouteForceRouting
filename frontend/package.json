@@ -47,7 +47,7 @@
     "@types/react-dom": "^18.3.7",
     "@typescript-eslint/eslint-plugin": "^5.52.0",
     "@typescript-eslint/parser": "^5.52.0",
-    "@vitejs/plugin-react": "^3.1.0",
+    "@vitejs/plugin-react": "^4.7.0",
     "autoprefixer": "^10.4.21",
     "eslint": "^8.34.0",
     "eslint-plugin-react": "^7.32.2",
@@ -57,7 +57,7 @@
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
     "typescript": "^4.9.5",
-    "vite": "^4.1.0"
+    "vite": "^7.0.6"
   },
   "keywords": [
     "route-optimization",

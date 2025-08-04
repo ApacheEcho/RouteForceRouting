@@ -1,0 +1,30 @@
+name: Import Issues from CSV
+
+on:
+  push:
+    paths:
+      - 'routeforce_tasks.csv'
+      - 'imports/*.csv'
+  workflow_dispatch:  # Also allow manual trigger
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        pip install pandas PyGithub
+    
+    - name: Run import script
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        python scripts/import_issues.py

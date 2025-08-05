@@ -1,0 +1,106 @@
+name: Setup Project Labels
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/setup-labels.yml'
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  create-labels:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            
+            // Define all labels needed for project automation
+            const labels = [
+              // Priority labels
+              { name: 'high-priority', color: 'FF0000', description: 'High priority issues that need immediate attention' },
+              { name: 'medium-priority', color: 'FFA500', description: 'Medium priority tasks' },
+              { name: 'low-priority', color: '008000', description: 'Low priority tasks' },
+              
+              // Component labels
+              { name: 'component:backend', color: '0052CC', description: 'Backend/API related issues' },
+              { name: 'component:frontend', color: '5319E7', description: 'Frontend/UI related issues' },
+              { name: 'component:mobile', color: 'F9D71C', description: 'Mobile app related issues' },
+              { name: 'component:ml', color: 'E99695', description: 'Machine learning/algorithms' },
+              { name: 'component:infrastructure', color: '0E8A16', description: 'DevOps/Infrastructure' },
+              { name: 'component:testing', color: 'FBCA04', description: 'Testing related issues' },
+              
+              // Type labels  
+              { name: 'bug', color: 'D73A49', description: 'Something is not working' },
+              { name: 'enhancement', color: 'A2EEEF', description: 'New feature or request' },
+              { name: 'documentation', color: '0075CA', description: 'Improvements or additions to documentation' },
+              { name: 'performance', color: 'FF6B6B', description: 'Performance improvements' },
+              { name: 'security', color: '8B0000', description: 'Security related issues' },
+              
+              // Status labels
+              { name: 'status:backlog', color: 'D4C5F9', description: 'Issues in the backlog' },
+              { name: 'status:in-progress', color: 'FFEB3B', description: 'Work in progress' },
+              { name: 'status:review', color: '9C27B0', description: 'Under review' },
+              { name: 'status:done', color: '4CAF50', description: 'Completed' },
+              { name: 'status:draft', color: 'BDBDBD', description: 'Draft pull request' },
+              
+              // Workflow labels
+              { name: 'blocked', color: 'B60205', description: 'Blocked by dependencies' },
+              { name: 'approved', color: '0E8A16', description: 'Approved for merge' },
+              { name: 'changes-requested', color: 'D93F0B', description: 'Changes requested' },
+              { name: 'review-requested', color: '1D76DB', description: 'Review requested' },
+              { name: 'stale', color: '795548', description: 'Stale issue/PR' },
+              { name: 'keep-open', color: 'FF9800', description: 'Prevent auto-closure' },
+              { name: 'pinned', color: '9C27B0', description: 'Pinned issue' },
+              
+              // Special labels
+              { name: 'good first issue', color: '7057FF', description: 'Good for newcomers' },
+              { name: 'help wanted', color: '008672', description: 'Extra attention is needed' },
+              { name: 'question', color: 'D876E3', description: 'Further information is requested' },
+              { name: 'wontfix', color: 'FFFFFF', description: 'This will not be worked on' },
+              { name: 'duplicate', color: 'CFD3D7', description: 'This issue or pull request already exists' }
+            ];
+            
+            // Get existing labels
+            const existingLabels = await github.rest.issues.listLabelsForRepo({
+              owner,
+              repo
+            });
+            
+            const existingLabelNames = existingLabels.data.map(label => label.name);
+            
+            // Create or update labels
+            for (const label of labels) {
+              try {
+                if (existingLabelNames.includes(label.name)) {
+                  // Update existing label
+                  await github.rest.issues.updateLabel({
+                    owner,
+                    repo,
+                    name: label.name,
+                    color: label.color,
+                    description: label.description
+                  });
+                  console.log(`Updated label: ${label.name}`);
+                } else {
+                  // Create new label
+                  await github.rest.issues.createLabel({
+                    owner,
+                    repo,
+                    name: label.name,
+                    color: label.color,
+                    description: label.description
+                  });
+                  console.log(`Created label: ${label.name}`);
+                }
+              } catch (error) {
+                console.log(`Error with label ${label.name}: ${error.message}`);
+              }
+            }
+            
+            console.log('Label setup completed!');

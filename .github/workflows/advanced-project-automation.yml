@@ -43,3 +43,37 @@ jobs:
                 labels: ['high-priority']
               });
             }
+            
+            // Add automation for project management
+            if (issue.title.toLowerCase().includes('bug') || 
+                issue.title.toLowerCase().includes('fix')) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: ['bug', 'needs-investigation']
+              });
+            }
+            
+            // Feature requests automation
+            if (issue.title.toLowerCase().includes('feature') || 
+                issue.title.toLowerCase().includes('enhancement')) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: ['enhancement', 'feature-request']
+              });
+            }
+            
+            // Automation setup tasks
+            if (issue.title.toLowerCase().includes('automation') || 
+                issue.title.toLowerCase().includes('setup') ||
+                issue.title.toLowerCase().includes('configure')) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: ['automation', 'configuration']
+              });
+            }

@@ -220,6 +220,13 @@ def create_app(config_name: str = "development") -> Flask:
     app.db_pool = db_pool
     logging.info("Optimized database connection pool initialized")
 
+    # Initialize auto-commit service for background code backup
+    from app.services.auto_commit_service import start_auto_commit_service
+    
+    if app.config.get("AUTO_COMMIT_ENABLED", True):
+        start_auto_commit_service()
+        logging.info("Auto-commit background service started")
+
     return app
 
 

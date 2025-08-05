@@ -64,6 +64,10 @@ else
     exit 1
 fi
 
+# Run full environment verification
+echo "🔍 Running full environment verification..."
+python .devcontainer/verify_environment.py
+
 echo ""
 echo "🎉 RouteForce Routing development environment is ready!"
 echo ""

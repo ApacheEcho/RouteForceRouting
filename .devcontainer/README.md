@@ -12,12 +12,21 @@ Main configuration file that sets up:
 - **Environment variables** for development mode
 - **Code formatting** and linting configuration
 
+### `verify_environment.py`
+Environment validation script that checks:
+- Python version compatibility (3.12+)
+- Core package availability (Flask, NumPy, pandas, etc.)
+- Development tool functionality (Black, Flake8, pytest)
+- Flask application creation and configuration
+- Provides helpful next steps and command references
+
 ### `postCreateCommand.sh`
 Automated setup script that runs after container creation:
 - Installs Python dependencies from `requirements.txt`
 - Creates necessary directories (`uploads`, `instance`, `logs`)
 - Generates a sample `.env` file with configuration templates
 - Validates the Flask application setup
+- Runs full environment verification
 - Provides quick start instructions
 
 ## Getting Started with Codespaces
@@ -87,9 +96,10 @@ These can be added later via docker-compose if needed for specific development t
 
 If you encounter issues:
 
-1. **Dependencies fail to install**: Check the terminal output during setup
-2. **Flask app won't start**: Ensure your `.env` file has valid configuration
-3. **Port forwarding issues**: Verify ports 5000/8000 are properly forwarded in Codespaces
-4. **API errors**: Add your Google Maps API key to the `.env` file
+1. **Run environment verification**: `python .devcontainer/verify_environment.py`
+2. **Dependencies fail to install**: Check the terminal output during setup
+3. **Flask app won't start**: Ensure your `.env` file has valid configuration
+4. **Port forwarding issues**: Verify ports 5000/8000 are properly forwarded in Codespaces
+5. **API errors**: Add your Google Maps API key to the `.env` file
 
 For additional help, check the main project README.md or open an issue.

@@ -34,7 +34,42 @@ def get_analytics_service():
 def analytics_health_check():
     """
     Analytics API health check endpoint
-    Returns service status and capabilities
+    ---
+    tags:
+      - Analytics
+    summary: Health check for Analytics API
+    description: Returns service status and capabilities for the analytics service
+    responses:
+      200:
+        description: Service is healthy
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: "healthy"
+            service:
+              type: string
+              example: "RouteForce Analytics API"
+            version:
+              type: string
+              example: "1.0.0"
+            timestamp:
+              type: string
+              format: date-time
+            capabilities:
+              type: array
+              items:
+                type: string
+              example: ["mobile_analytics", "driver_performance", "route_optimization_analytics"]
+      500:
+        description: Health check failed
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "Health check failed"
     """
     try:
         return (
@@ -67,7 +102,62 @@ def analytics_health_check():
 def get_mobile_analytics():
     """
     Get mobile app usage analytics
-    Query params: timeframe (1h, 24h, 7d, 30d)
+    ---
+    tags:
+      - Analytics
+    summary: Get mobile app usage analytics
+    description: Retrieve analytics data for mobile app usage with specified timeframe
+    security:
+      - ApiKeyAuth: []
+    parameters:
+      - name: timeframe
+        in: query
+        type: string
+        enum: ["1h", "24h", "7d", "30d"]
+        default: "24h"
+        description: Time period for analytics data
+        required: false
+    responses:
+      200:
+        description: Mobile analytics data retrieved successfully
+        schema:
+          type: object
+          properties:
+            success:
+              type: boolean
+              example: true
+            data:
+              type: object
+              description: Mobile analytics data
+            generated_at:
+              type: string
+              format: date-time
+      400:
+        description: Invalid timeframe parameter
+        schema:
+          type: object
+          properties:
+            success:
+              type: boolean
+              example: false
+            error:
+              type: string
+              example: "Invalid timeframe. Use: 1h, 24h, 7d, 30d"
+      401:
+        description: Unauthorized - invalid API key
+      500:
+        description: Failed to retrieve mobile analytics
+        schema:
+          type: object
+          properties:
+            success:
+              type: boolean
+              example: false
+            error:
+              type: string
+              example: "Failed to retrieve mobile analytics"
+      503:
+        description: Analytics service not available
     """
     try:
         timeframe = request.args.get("timeframe", "24h")
@@ -117,7 +207,44 @@ def get_mobile_analytics():
 def get_driver_analytics():
     """
     Get driver performance analytics
-    Query params: timeframe (1h, 24h, 7d, 30d)
+    ---
+    tags:
+      - Analytics
+    summary: Get driver performance analytics
+    description: Retrieve analytics data for driver performance metrics
+    security:
+      - ApiKeyAuth: []
+    parameters:
+      - name: timeframe
+        in: query
+        type: string
+        enum: ["1h", "24h", "7d", "30d"]
+        default: "24h"
+        description: Time period for analytics data
+        required: false
+    responses:
+      200:
+        description: Driver analytics data retrieved successfully
+        schema:
+          type: object
+          properties:
+            success:
+              type: boolean
+              example: true
+            data:
+              type: object
+              description: Driver performance analytics data
+            generated_at:
+              type: string
+              format: date-time
+      400:
+        description: Invalid timeframe parameter
+      401:
+        description: Unauthorized - invalid API key
+      500:
+        description: Failed to retrieve driver analytics
+      503:
+        description: Analytics service not available
     """
     try:
         timeframe = request.args.get("timeframe", "24h")
@@ -353,6 +480,73 @@ def get_analytics_report():
 def track_mobile_session():
     """
     Track mobile app session for analytics
+    ---
+    tags:
+      - Analytics
+    summary: Track mobile app session
+    description: Track mobile app session data for analytics purposes
+    security:
+      - ApiKeyAuth: []
+    parameters:
+      - name: session_data
+        in: body
+        required: true
+        schema:
+          type: object
+          required:
+            - device_id
+          properties:
+            device_id:
+              type: string
+              description: Unique device identifier
+              example: "device_123456"
+            app_version:
+              type: string
+              description: Application version
+              example: "1.0.0"
+            device_type:
+              type: string
+              description: Type of device
+              example: "mobile"
+            features_used:
+              type: array
+              items:
+                type: string
+              description: List of features used in session
+              example: ["routing", "maps", "analytics"]
+            api_calls:
+              type: integer
+              description: Number of API calls made
+              example: 15
+    responses:
+      200:
+        description: Session tracked successfully
+        schema:
+          type: object
+          properties:
+            success:
+              type: boolean
+              example: true
+            message:
+              type: string
+              example: "Session tracked successfully"
+      400:
+        description: Bad request - device_id is required
+        schema:
+          type: object
+          properties:
+            success:
+              type: boolean
+              example: false
+            error:
+              type: string
+              example: "device_id is required"
+      401:
+        description: Unauthorized - invalid API key
+      500:
+        description: Failed to track session
+      503:
+        description: Analytics service not available
     """
     try:
         data = request.get_json()

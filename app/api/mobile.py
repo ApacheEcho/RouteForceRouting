@@ -33,7 +33,36 @@ logger = logging.getLogger(__name__)
 def mobile_health_check():
     """
     Mobile API health check endpoint
-    Returns service status and mobile-specific information
+    ---
+    tags:
+      - Mobile
+    summary: Health check for Mobile API
+    description: Returns service status and mobile-specific capabilities
+    responses:
+      200:
+        description: Service is healthy
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: "healthy"
+            service:
+              type: string
+              example: "RouteForce Mobile API"
+            version:
+              type: string
+              example: "1.0.0"
+            timestamp:
+              type: string
+              format: date-time
+            capabilities:
+              type: array
+              items:
+                type: string
+              example: ["route_optimization", "traffic_aware_routing", "real_time_updates"]
+      500:
+        description: Health check failed
     """
     try:
         return (
@@ -118,7 +147,102 @@ def mobile_auth():
 def mobile_optimize_route():
     """
     Mobile-optimized route optimization
-    Provides compressed data suitable for mobile consumption
+    ---
+    tags:
+      - Mobile
+    summary: Optimize route for mobile app
+    description: Provides route optimization with compressed data suitable for mobile consumption
+    security:
+      - ApiKeyAuth: []
+    parameters:
+      - name: route_data
+        in: body
+        required: true
+        schema:
+          type: object
+          required:
+            - stores
+          properties:
+            stores:
+              type: array
+              description: List of stores to visit
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: "Store A"
+                  address:
+                    type: string
+                    example: "123 Main St, New York, NY"
+                  lat:
+                    type: number
+                    format: float
+                    example: 40.7128
+                  lng:
+                    type: number
+                    format: float
+                    example: -74.0060
+            preferences:
+              type: object
+              description: Route optimization preferences
+              properties:
+                algorithm:
+                  type: string
+                  enum: ["nearest_neighbor", "genetic", "simulated_annealing"]
+                  example: "genetic"
+                traffic_aware:
+                  type: boolean
+                  example: true
+            device_id:
+              type: string
+              description: Device identifier for analytics
+              example: "mobile_device_123"
+            app_version:
+              type: string
+              example: "1.0.0"
+            device_type:
+              type: string
+              example: "android"
+    responses:
+      200:
+        description: Route optimized successfully
+        schema:
+          type: object
+          properties:
+            success:
+              type: boolean
+              example: true
+            data:
+              type: object
+              properties:
+                route_id:
+                  type: string
+                  example: "route_abc123"
+                optimized_route:
+                  type: array
+                  items:
+                    type: object
+                total_distance:
+                  type: number
+                  format: float
+                  example: 45.6
+                total_time:
+                  type: number
+                  format: float
+                  example: 120.5
+                algorithm_used:
+                  type: string
+                  example: "genetic"
+            generated_at:
+              type: string
+              format: date-time
+      400:
+        description: Bad request - missing required fields
+      401:
+        description: Unauthorized - invalid API key
+      500:
+        description: Route optimization failed
     """
     try:
         data = request.get_json()

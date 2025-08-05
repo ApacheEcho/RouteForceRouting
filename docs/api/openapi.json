@@ -1,0 +1,263 @@
+{
+  "swagger": "2.0",
+  "basePath": "/api",
+  "paths": {
+    "/health": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/HealthCheck"
+            }
+          }
+        },
+        "summary": "Get API health status",
+        "operationId": "health_check",
+        "parameters": [
+          {
+            "name": "X-Fields",
+            "in": "header",
+            "type": "string",
+            "format": "mask",
+            "description": "An optional fields mask"
+          }
+        ],
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/routes": {
+      "post": {
+        "responses": {
+          "201": {
+            "description": "Route created successfully",
+            "schema": {
+              "$ref": "#/definitions/RouteResponse"
+            }
+          },
+          "400": {
+            "description": "Bad request - invalid input data"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "summary": "Create a new route via API",
+        "description": "Create a new optimized route for field execution teams\nThis endpoint accepts a list of stores and generates an optimized route\nusing various algorithms including genetic algorithm and simulated annealing.",
+        "operationId": "create_route",
+        "parameters": [
+          {
+            "name": "payload",
+            "required": true,
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/RouteRequest"
+            }
+          },
+          {
+            "name": "X-Fields",
+            "in": "header",
+            "type": "string",
+            "format": "mask",
+            "description": "An optional fields mask"
+          }
+        ],
+        "tags": [
+          "routes"
+        ]
+      },
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/RouteResponse"
+              }
+            }
+          }
+        },
+        "summary": "Get route history for current user with pagination",
+        "description": "Get route history with pagination",
+        "operationId": "get_routes",
+        "parameters": [
+          {
+            "description": "Page number (default: 1)",
+            "name": "page",
+            "type": "string",
+            "in": "query"
+          },
+          {
+            "description": "Items per page (default: 10)",
+            "name": "per_page",
+            "type": "string",
+            "in": "query"
+          },
+          {
+            "name": "X-Fields",
+            "in": "header",
+            "type": "string",
+            "format": "mask",
+            "description": "An optional fields mask"
+          }
+        ],
+        "tags": [
+          "routes"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "RouteForce Routing API",
+    "version": "1.0.0",
+    "description": "Enterprise-grade route optimization and field execution API",
+    "license": {
+      "name": "MIT"
+    }
+  },
+  "produces": [
+    "application/json"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "tags": [
+    {
+      "name": "routes",
+      "description": "Route optimization operations"
+    },
+    {
+      "name": "health",
+      "description": "Health check operations"
+    }
+  ],
+  "definitions": {
+    "RouteRequest": {
+      "required": [
+        "stores"
+      ],
+      "properties": {
+        "stores": {
+          "type": "array",
+          "description": "List of stores to visit",
+          "items": {
+            "$ref": "#/definitions/Store"
+          }
+        },
+        "algorithm": {
+          "type": "string",
+          "description": "Optimization algorithm",
+          "example": "genetic",
+          "enum": [
+            "default",
+            "genetic",
+            "simulated_annealing"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "Store": {
+      "required": [
+        "address",
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Store name",
+          "example": "Store A"
+        },
+        "address": {
+          "type": "string",
+          "description": "Store address",
+          "example": "123 Main St, New York, NY 10001"
+        },
+        "latitude": {
+          "type": "number",
+          "description": "Store latitude",
+          "example": 40.7128
+        },
+        "longitude": {
+          "type": "number",
+          "description": "Store longitude",
+          "example": -74.006
+        },
+        "priority": {
+          "type": "integer",
+          "description": "Store priority (1-10)",
+          "example": 5
+        }
+      },
+      "type": "object"
+    },
+    "RouteResponse": {
+      "required": [
+        "route_id"
+      ],
+      "properties": {
+        "route_id": {
+          "type": "string",
+          "description": "Unique route identifier"
+        },
+        "optimized_route": {
+          "type": "array",
+          "description": "Optimized store sequence",
+          "items": {
+            "$ref": "#/definitions/Store"
+          }
+        },
+        "total_distance": {
+          "type": "number",
+          "description": "Total route distance in kilometers"
+        },
+        "total_duration": {
+          "type": "integer",
+          "description": "Total route duration in minutes"
+        },
+        "google_maps_url": {
+          "type": "string",
+          "description": "Google Maps URL for the route"
+        }
+      },
+      "type": "object"
+    },
+    "HealthCheck": {
+      "required": [
+        "status",
+        "timestamp",
+        "version"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "description": "Service health status",
+          "example": "healthy"
+        },
+        "version": {
+          "type": "string",
+          "description": "API version",
+          "example": "1.0.0"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Health check timestamp"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "responses": {
+    "ParseError": {
+      "description": "When a mask can't be parsed"
+    },
+    "MaskError": {
+      "description": "When any error occurs on mask"
+    }
+  },
+  "host": "localhost:5000"
+}

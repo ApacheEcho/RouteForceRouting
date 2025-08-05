@@ -279,6 +279,10 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(organizations_bp)
     app.register_blueprint(users_bp)
 
+    # Register API documentation
+    from app.api_docs import get_documentation_blueprint
+    app.register_blueprint(get_documentation_blueprint(), url_prefix="/api")
+
 
 def register_error_handlers(app: Flask) -> None:
     """Register application error handlers"""

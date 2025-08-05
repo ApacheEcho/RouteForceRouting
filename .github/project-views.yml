@@ -1,0 +1,32 @@
+views:
+  - name: "Sprint Board"
+    layout: board
+    columns:
+      - name: "Backlog"
+        filters:
+          - "status:open"
+          - "-label:in-progress"
+          - "-label:review"
+      - name: "In Progress"
+        filters:
+          - "status:open"
+          - "label:in-progress"
+      - name: "Review"
+        filters:
+          - "status:open"
+          - "label:review"
+      - name: "Done"
+        filters:
+          - "status:closed"
+  
+  - name: "Priority View"
+    layout: table
+    columns:
+      - field: title
+      - field: assignees
+      - field: labels
+      - field: milestone
+    groupBy: priority
+    sort:
+      - field: priority
+        direction: desc

@@ -1,0 +1,39 @@
+name: Feature Request
+description: Suggest a new feature for RouteForce
+title: "[FEATURE]: "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to suggest a new feature!
+  
+  - type: input
+    id: feature-name
+    attributes:
+      label: Feature Name
+      description: Brief name for the feature
+      placeholder: ex. Multi-stop route optimization
+    validations:
+      required: true
+  
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature?
+      options:
+        - Critical
+        - High
+        - Medium
+        - Low
+    validations:
+      required: true
+  
+  - type: textarea
+    id: description
+    attributes:
+      label: Feature Description
+      description: Detailed description of the feature
+    validations:
+      required: true

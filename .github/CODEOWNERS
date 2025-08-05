@@ -1,0 +1,40 @@
+# CODEOWNERS file for RouteForceRouting
+# This file defines the default reviewers for pull requests
+
+# Global ownership - all files require review from the project owner
+* @ApacheEcho
+
+# GitHub-specific files and workflows
+/.github/ @ApacheEcho
+/.github/workflows/ @ApacheEcho
+
+# Core application code
+/app/ @ApacheEcho
+/routing/ @ApacheEcho
+
+# Configuration files
+/requirements.txt @ApacheEcho
+/Dockerfile* @ApacheEcho
+/docker-compose*.yml @ApacheEcho
+/nginx.conf @ApacheEcho
+/nginx/ @ApacheEcho
+
+# Deployment and infrastructure
+/k8s/ @ApacheEcho
+/deploy*.sh @ApacheEcho
+/render.yaml @ApacheEcho
+/Procfile @ApacheEcho
+
+# Tests and quality assurance
+/tests/ @ApacheEcho
+/pytest.ini @ApacheEcho
+/conftest.py @ApacheEcho
+
+# Documentation
+README.md @ApacheEcho
+/*.md @ApacheEcho
+/docs/ @ApacheEcho
+
+# Security and compliance
+/.env.example @ApacheEcho
+/.gitignore @ApacheEcho

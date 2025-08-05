@@ -1,56 +1,46 @@
-(build_tasks/auto_todo.md)
-- [ ] Build route scoring integration into main route pipeline
-- [ ] Add user-facing score breakdown UI
-- [ ] Implement QA metrics and auto-correction logic
-- [ ] Integrate summary logs into dashboard
-- [ ] Finalize Playbook GUI injection logic
-- [ ] Wire preflight QA checklist into route generation
-- [ ] Improve routing traffic logic (Google Maps/OSRM)
-- [ ] Add error notifications for broken routes
+"""
+Route logging utilities for RouteForceRouting
+"""
 
-(scripts/autobuild.py)
-import subprocess
-import os
+import logging
+from datetime import datetime
+from typing import Dict, Any, List
 
-TODO_PATH = "build_tasks/auto_todo.md"
 
-def get_next_task():
-    with open(TODO_PATH, "r") as f:
-        for line in f:
-            if line.startswith("- [ ]"):
-                return line.strip().replace("- [ ] ", "")
-    return None
+def log_route_score(route_data: Dict[str, Any], score: float) -> None:
+    """
+    Log route scoring information
 
-def mark_task_done(task):
-    with open(TODO_PATH, "r") as f:
-        lines = f.readlines()
-    with open(TODO_PATH, "w") as f:
-        for line in lines:
-            if task in line and "- [ ]" in line:
-                f.write(line.replace("- [ ]", "- [x]"))
-            else:
-                f.write(line)
+    Args:
+        route_data: Dictionary containing route information
+        score: Calculated route score
+    """
+    logger = logging.getLogger(__name__)
+    logger.info(
+        f"Route scored: {score:.2f} for route with {len(route_data.get('stops', []))} stops"
+    )
 
-def run_copilot_autobuild():
-    task = get_next_task()
-    if not task:
-        print("✅ All tasks completed.")
-        return
 
-    print(f"🔧 Running Copilot on task: {task}")
+def log_route_generation(route_id: str, num_stops: int, duration: float) -> None:
+    """
+    Log route generation information
 
-    # Prompt Copilot indirectly by opening the file with an embedded comment prompt
-    prompt = f'# TASK: {task}\n# Please generate complete code for this task.\n'
-    with open("copilot_prompt.py", "w") as f:
-        f.write(prompt)
+    Args:
+        route_id: Unique identifier for the route
+        num_stops: Number of stops in the route
+        duration: Time taken to generate the route in seconds
+    """
+    logger = logging.getLogger(__name__)
+    logger.info(f"Route {route_id} generated with {num_stops} stops in {duration:.2f}s")
 
-    subprocess.run(["code", "copilot_prompt.py"])
-    print("✅ Auto-confirm enabled. Proceeding with commit and push...")
 
-    os.system(f'git add . && git commit -m "Auto: {task}" && git push')
+def log_route_error(route_id: str, error: str) -> None:
+    """
+    Log route generation errors
 
-    mark_task_done(task)
-    run_copilot_autobuild()
-
-if __name__ == "__main__":
-    run_copilot_autobuild()
+    Args:
+        route_id: Unique identifier for the route
+        error: Error message
+    """
+    logger = logging.getLogger(__name__)
+    logger.error(f"Route {route_id} generation failed: {error}")

@@ -1,0 +1,82 @@
+name: Standardize GitHub Labels
+
+on:
+  push:
+    paths:
+      - '.github/labels.yml'
+      - 'scripts/standardize_labels.py'
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      validate_only:
+        description: 'Only validate labels without making changes'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  standardize-labels:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      repository-projects: write
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install PyGithub PyYAML
+
+      - name: Validate label configuration
+        run: |
+          python -c "
+          import yaml
+          with open('.github/labels.yml', 'r') as f:
+              config = yaml.safe_load(f)
+          print('✅ Label configuration is valid YAML')
+          print(f'Found {len(config.get(\"labels\", []))} labels to configure')
+          "
+
+      - name: Validate labels only
+        if: ${{ github.event.inputs.validate_only == 'true' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          python scripts/standardize_labels.py --validate-only
+
+      - name: Apply label standardization
+        if: ${{ github.event.inputs.validate_only != 'true' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          python scripts/standardize_labels.py
+
+      - name: Create summary
+        if: always()
+        run: |
+          echo "## Label Standardization Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Configuration" >> $GITHUB_STEP_SUMMARY
+          echo "- **Repository**: ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Validation Only**: ${{ github.event.inputs.validate_only || 'false' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Label Categories" >> $GITHUB_STEP_SUMMARY
+          echo "- 🚨 **Priority**: critical, high, medium, low" >> $GITHUB_STEP_SUMMARY
+          echo "- 🏷️ **Type**: bug, feature, enhancement, documentation, security, etc." >> $GITHUB_STEP_SUMMARY
+          echo "- 📊 **Status**: triage, in-progress, review, blocked, ready-for-merge" >> $GITHUB_STEP_SUMMARY
+          echo "- 🧩 **Component**: backend, frontend, mobile, api, database, etc." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Check the workflow logs for detailed results."

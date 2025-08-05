@@ -5,16 +5,16 @@ views:
       - name: "Backlog"
         filters:
           - "status:open"
-          - "-label:in-progress"
-          - "-label:review"
+          - "-label:status:in-progress"
+          - "-label:status:review"
       - name: "In Progress"
         filters:
           - "status:open"
-          - "label:in-progress"
+          - "label:status:in-progress"
       - name: "Review"
         filters:
           - "status:open"
-          - "label:review"
+          - "label:status:review"
       - name: "Done"
         filters:
           - "status:closed"

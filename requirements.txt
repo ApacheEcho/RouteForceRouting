@@ -67,3 +67,9 @@ dnspython>=2.6.1 # not directly required, pinned by Snyk to avoid a vulnerabilit
 h11>=0.16.0 # not directly required, pinned by Snyk to avoid a vulnerability
 urllib3>=2.5.0 # not directly required, pinned by Snyk to avoid a vulnerability
 zipp>=3.19.1 # not directly required, pinned by Snyk to avoid a vulnerability
+
+# Voice-to-Code Dependencies
+speechrecognition==3.10.1
+pyaudio==0.2.14
+pydub==0.25.1
+pyperclip==1.9.0

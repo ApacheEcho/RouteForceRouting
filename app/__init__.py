@@ -279,6 +279,15 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(organizations_bp)
     app.register_blueprint(users_bp)
 
+    # Register voice integration blueprint
+    try:
+        from mobile.voice_integration import mobile_voice_bp
+        app.register_blueprint(mobile_voice_bp, url_prefix="/api/mobile/voice")
+        logging.info("Voice integration API registered successfully")
+    except ImportError as e:
+        logging.warning(f"Voice integration not available: {e}")
+        logging.info("Install voice dependencies: pip install speechrecognition pyaudio")
+
 
 def register_error_handlers(app: Flask) -> None:
     """Register application error handlers"""

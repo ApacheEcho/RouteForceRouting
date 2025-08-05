@@ -126,19 +126,7 @@ jobs:
           if [ -f evening_priorities.json ]; then
             echo "📋 Evening Priorities Summary:"
             echo "================================"
-            python -c "
-import json
-with open('evening_priorities.json', 'r') as f:
-    data = json.load(f)
-    print(f'Generated: {data[\"generated_at\"]}')
-    print(f'Branch: {data[\"git_status\"][\"branch\"]}')
-    print(f'Recommendations: {len(data[\"recommendations\"])}')
-    print(f'TODO items found: {len(data[\"todo_items\"])}')
-    print(f'Recent files modified: {data[\"file_changes\"][\"file_count\"]}')
-    print('\\nTop 5 Recommendations:')
-    for i, rec in enumerate(data['recommendations'][:5], 1):
-        print(f'  {i}. {rec}')
-            "
+            python -c 'import json; f=open("evening_priorities.json","r"); data=json.load(f); f.close(); print(f"Generated: {data[\"generated_at\"]}"); print(f"Branch: {data[\"git_status\"][\"branch\"]}"); print(f"Recommendations: {len(data[\"recommendations\"])}"); print(f"TODO items: {len(data[\"todo_items\"])}"); print(f"Recent files: {data[\"file_changes\"][\"file_count\"]}")'
           fi
           
           echo "✅ Evening priorities generated"
@@ -149,10 +137,11 @@ with open('evening_priorities.json', 'r') as f:
           echo "📊 Creating workflow summary..."
           
           # Create summary file
-          cat > evening_summary.md << 'EOF'
+          TIMESTAMP=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
+          cat > evening_summary.md << EOF
           # 🌅 Evening Automation Summary
           
-          **Timestamp:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+          **Timestamp:** $TIMESTAMP
           
           ## ✅ Completed Tasks
           
@@ -166,7 +155,7 @@ with open('evening_priorities.json', 'r') as f:
           The development environment is now prepared for the 6:00 PM coding session.
           
           ### Quick Actions:
-          - Review `evening_priorities.json` for specific recommendations
+          - Review evening_priorities.json for specific recommendations
           - Check test results for any failures that need attention
           - Workspace cleaned and ready for development
           

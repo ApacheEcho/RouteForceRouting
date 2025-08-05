@@ -26,3 +26,8 @@ logs/
 
 # OS files
 Thumbs.db
+
+# Test files
+test_auto_commit.sh
+test_demo_file.txt
+*test_temp_file*

@@ -42,11 +42,11 @@ jobs:
             
             // Auto-priority based on keywords
             const highPriorityKeywords = ['critical', 'urgent', 'security', 'breaking', 'crash', 'data loss'];
-            const mediumPriorityKeywords = ['important', 'enhancement', 'feature'];
+            const mediumPriorityKeywords = ['important', 'enhancement', 'feature', 'automation', 'setup', 'configure'];
             const lowPriorityKeywords = ['documentation', 'typo', 'cleanup', 'refactor'];
             
             // Component detection based on content and files changed
-            const backendKeywords = ['api', 'backend', 'server', 'database', 'routing', 'algorithm'];
+            const backendKeywords = ['api', 'backend', 'server', 'database', 'routing', 'algorithm', 'auth', 'authentication', 'login', 'endpoint'];
             const frontendKeywords = ['ui', 'frontend', 'interface', 'dashboard', 'css', 'html'];
             const mobileKeywords = ['mobile', 'ios', 'android', 'app'];
             const mlKeywords = ['machine learning', 'ml', 'genetic', 'optimization', 'algorithm'];

@@ -113,7 +113,9 @@ jobs:
               
               // Enhancement detection  
               if (issueTitleLower.includes('feature') || issueTitleLower.includes('enhancement') ||
-                  issueTitleLower.includes('add') || issueTitleLower.includes('implement')) {
+                  issueTitleLower.includes('add') || issueTitleLower.includes('implement') ||
+                  issueTitleLower.includes('setup') || issueTitleLower.includes('configure') ||
+                  issueTitleLower.includes('set up')) {
                 labels.push('enhancement');
               }
               

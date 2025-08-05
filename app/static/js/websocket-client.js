@@ -50,15 +50,10 @@ class RouteForceWebSocket {
             this.showNotification('Lost connection to real-time updates', 'warning');
             this.trigger('disconnected', reason);
             
-            // AUTO-PILOT: Prevent overlapping reconnection attempts
-            if (reason === 'io client disconnect') {
-                if (this.reconnectionTimer) {
-                    clearTimeout(this.reconnectionTimer);
-                }
-                this.reconnectionTimer = setTimeout(() => {
-                    this.attemptReconnection();
-                    this.reconnectionTimer = null;
-                }, 1000);
+            // AUTO-PILOT: Enhanced reconnection with better debouncing
+            if (reason !== 'io client disconnect') {
+                // Server-initiated disconnect, attempt reconnection with debouncing
+                this.attemptReconnection();
             }
         });
         
@@ -198,14 +193,23 @@ class RouteForceWebSocket {
         }
     }
     
-    // Internal methods
+    // Internal methods - Enhanced with debouncing
     attemptReconnection() {
+        // AUTO-PILOT: Enhanced debouncing to prevent race conditions
+        if (this.reconnectionTimer) {
+            clearTimeout(this.reconnectionTimer);
+            this.reconnectionTimer = null;
+        }
+        
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
             this.reconnectAttempts++;
             console.log(`Attempting reconnection ${this.reconnectAttempts}/${this.maxReconnectAttempts}`);
             
-            setTimeout(() => {
-                this.socket.connect();
+            this.reconnectionTimer = setTimeout(() => {
+                if (this.socket && !this.isConnected) {
+                    this.socket.connect();
+                }
+                this.reconnectionTimer = null;
             }, this.reconnectDelay * this.reconnectAttempts);
         } else {
             console.error('Max reconnection attempts reached');

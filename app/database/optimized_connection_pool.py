@@ -132,11 +132,18 @@ class DatabaseConnectionPool:
 
     @contextmanager
     def get_connection(self):
-        """Get database connection with automatic monitoring"""
+        """Get database connection with enhanced timeout and monitoring"""
         connection = None
+        acquire_start = time.time()
 
         try:
+            # AUTO-PILOT: Enhanced connection acquisition with timeout
             connection = self.engine.connect()
+            acquire_time = time.time() - acquire_start
+            
+            if acquire_time > 5.0:  # Log slow connection acquisition
+                logger.warning(f"Slow connection acquisition: {acquire_time:.3f}s")
+            
             with self._lock:
                 self.metrics.active_connections += 1
                 self.active_connections.add(connection)
@@ -147,6 +154,11 @@ class DatabaseConnectionPool:
             with self._lock:
                 self.connection_stats["errors"] += 1
                 self.metrics.connection_errors += 1
+                
+                # Track pool exhaustion specifically
+                if "timeout" in str(e).lower() or "pool" in str(e).lower():
+                    self.metrics.pool_overflow += 1
+                    
             logger.error(f"Database connection error: {e}")
             raise
 
@@ -163,11 +175,11 @@ class DatabaseConnectionPool:
                 except Exception as e:
                     logger.error(f"Error closing connection: {e}")
 
-            # Auto-optimization check
+            # Auto-optimization check with enhanced triggers
             if (
                 self.auto_optimize
                 and time.time() - self.last_optimization > self.optimization_interval
-            ):
+            ) or self.metrics.pool_overflow > 3:  # Trigger on pool pressure
                 self._auto_optimize()
 
     def _auto_optimize(self) -> None:

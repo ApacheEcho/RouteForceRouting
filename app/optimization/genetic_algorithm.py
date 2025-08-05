@@ -4,7 +4,7 @@ Advanced TSP (Traveling Salesman Problem) solver using evolutionary algorithms
 """
 
 import random
-from typing import List, Dict, Tuple, Any
+from typing import List, Dict, Tuple, Any, Optional, Union
 from dataclasses import dataclass
 from geopy.distance import geodesic
 import logging
@@ -55,14 +55,14 @@ class GeneticConfig:
 class Individual:
     """Represents a single route solution"""
 
-    def __init__(self, route: List[int], stores: List[Dict[str, Any]]):
-        self.route = route
-        self.stores = stores
-        self.fitness = 0.0
-        self.distance = 0.0
+    def __init__(self, route: List[int], stores: List[Dict[str, Any]]) -> None:
+        self.route: List[int] = route
+        self.stores: List[Dict[str, Any]] = stores
+        self.fitness: float = 0.0
+        self.distance: float = 0.0
         self.calculate_fitness()
 
-    def calculate_fitness(self):
+    def calculate_fitness(self) -> None:
         """Calculate fitness based on total route distance"""
         total_distance = 0.0
 

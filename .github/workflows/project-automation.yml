@@ -2,9 +2,11 @@ name: Project Board Automation
 
 on:
   issues:
-    types: [opened, closed, assigned, labeled]
+    types: [opened, closed, assigned, labeled, unlabeled]
   pull_request:
-    types: [opened, closed, merged]
+    types: [opened, closed, merged, ready_for_review]
+  issue_comment:
+    types: [created]
 
 jobs:
   auto-add-to-project:
@@ -12,5 +14,193 @@ jobs:
     steps:
       - uses: actions/add-to-project@v0.5.0
         with:
-          project-url: https://github.com/users/ApacheEcho/projects/YOUR_PROJECT_NUMBER
+          project-url: https://github.com/orgs/ApacheEcho/projects/1
           github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  project-board-automation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const pullRequest = context.payload.pull_request;
+            const comment = context.payload.comment;
+            
+            // Function to move items in project board
+            async function moveToColumn(itemId, columnName) {
+              console.log(`Moving item ${itemId} to ${columnName}`);
+              // This would typically use GraphQL API for Projects v2
+              // For now, we'll use labels to simulate board columns
+              const labelMap = {
+                'To Do': 'status:todo',
+                'In Progress': 'status:in-progress', 
+                'Review': 'status:review',
+                'Done': 'status:done'
+              };
+              
+              if (labelMap[columnName]) {
+                // Remove other status labels first
+                const currentLabels = issue?.labels || pullRequest?.labels || [];
+                const statusLabels = currentLabels.filter(label => 
+                  label.name.startsWith('status:')
+                );
+                
+                for (const label of statusLabels) {
+                  try {
+                    await github.rest.issues.removeLabel({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      issue_number: issue?.number || pullRequest?.number,
+                      name: label.name
+                    });
+                  } catch (e) {
+                    console.log(`Label ${label.name} not found, skipping removal`);
+                  }
+                }
+                
+                // Add new status label
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue?.number || pullRequest?.number,
+                  labels: [labelMap[columnName]]
+                });
+              }
+            }
+            
+            // Handle new issues - move to "To Do"
+            if (context.eventName === 'issues' && context.payload.action === 'opened') {
+              await moveToColumn(issue.id, 'To Do');
+              
+              // Auto-assign based on labels
+              const autoAssignMap = {
+                'component:backend': ['ApacheEcho'],
+                'component:frontend': ['ApacheEcho'], 
+                'component:api': ['ApacheEcho'],
+                'component:devops': ['ApacheEcho']
+              };
+              
+              for (const label of issue.labels) {
+                if (autoAssignMap[label.name]) {
+                  await github.rest.issues.addAssignees({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issue.number,
+                    assignees: autoAssignMap[label.name]
+                  });
+                  break;
+                }
+              }
+            }
+            
+            // Handle issue assignment - move to "In Progress"
+            if (context.eventName === 'issues' && context.payload.action === 'assigned') {
+              await moveToColumn(issue.id, 'In Progress');
+            }
+            
+            // Handle PR opened - move to "Review" 
+            if (context.eventName === 'pull_request' && context.payload.action === 'opened') {
+              await moveToColumn(pullRequest.id, 'Review');
+            }
+            
+            // Handle PR ready for review
+            if (context.eventName === 'pull_request' && context.payload.action === 'ready_for_review') {
+              await moveToColumn(pullRequest.id, 'Review');
+            }
+            
+            // Handle issue/PR closed - move to "Done"
+            if ((context.eventName === 'issues' && context.payload.action === 'closed') ||
+                (context.eventName === 'pull_request' && (context.payload.action === 'closed' || context.payload.action === 'merged'))) {
+              const item = issue || pullRequest;
+              await moveToColumn(item.id, 'Done');
+              
+              // Add completion timestamp
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: item.number,
+                body: `✅ Completed on ${new Date().toISOString().split('T')[0]}`
+              });
+            }
+            
+            // Handle comments that indicate status changes
+            if (context.eventName === 'issue_comment' && comment) {
+              const commentBody = comment.body.toLowerCase();
+              
+              if (commentBody.includes('/in-progress') || commentBody.includes('/start')) {
+                await moveToColumn(issue.id, 'In Progress');
+                await github.rest.issues.addAssignees({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  assignees: [comment.user.login]
+                });
+              }
+              
+              if (commentBody.includes('/review') || commentBody.includes('/ready')) {
+                await moveToColumn(issue.id, 'Review');
+              }
+              
+              if (commentBody.includes('/done') || commentBody.includes('/complete')) {
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  state: 'closed'
+                });
+              }
+              
+              if (commentBody.includes('/todo') || commentBody.includes('/backlog')) {
+                await moveToColumn(issue.id, 'To Do');
+              }
+            }
+            
+            // Auto-prioritize based on labels and keywords
+            if (issue && (context.payload.action === 'opened' || context.payload.action === 'labeled')) {
+              const title = issue.title.toLowerCase();
+              const body = (issue.body || '').toLowerCase();
+              
+              // High priority keywords
+              const highPriorityKeywords = ['urgent', 'critical', 'blocking', 'hotfix', 'security'];
+              const mediumPriorityKeywords = ['bug', 'issue', 'problem', 'enhancement'];
+              
+              let priorityLabel = null;
+              
+              if (highPriorityKeywords.some(keyword => title.includes(keyword) || body.includes(keyword))) {
+                priorityLabel = 'high-priority';
+              } else if (mediumPriorityKeywords.some(keyword => title.includes(keyword) || body.includes(keyword))) {
+                priorityLabel = 'medium-priority';
+              } else {
+                priorityLabel = 'low-priority';
+              }
+              
+              if (priorityLabel) {
+                // Remove existing priority labels
+                const currentLabels = issue.labels || [];
+                const priorityLabels = currentLabels.filter(label => 
+                  label.name.includes('priority')
+                );
+                
+                for (const label of priorityLabels) {
+                  try {
+                    await github.rest.issues.removeLabel({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      issue_number: issue.number,
+                      name: label.name
+                    });
+                  } catch (e) {
+                    console.log(`Priority label ${label.name} not found, skipping removal`);
+                  }
+                }
+                
+                // Add new priority label
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  labels: [priorityLabel]
+                });
+              }
+            }

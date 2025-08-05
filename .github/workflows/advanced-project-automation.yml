@@ -2,9 +2,13 @@ name: Advanced Project Automation
 
 on:
   issues:
-    types: [opened, labeled, unlabeled, assigned]
+    types: [opened, labeled, unlabeled, assigned, closed]
   issue_comment:
     types: [created]
+  pull_request:
+    types: [opened, closed, merged, review_requested]
+  schedule:
+    - cron: '0 9 * * 1'  # Weekly automation on Mondays at 9 AM
 
 jobs:
   auto-triage:
@@ -15,13 +19,86 @@ jobs:
           script: |
             const issue = context.payload.issue;
             const comment = context.payload.comment;
+            const pullRequest = context.payload.pull_request;
             
             // Auto-assign based on component labels
             const componentAssignments = {
               'component:backend': 'ApacheEcho',
-              'component:frontend': 'frontend-dev',
-              'component:api': 'api-team'
+              'component:frontend': 'ApacheEcho',
+              'component:api': 'ApacheEcho',
+              'component:devops': 'ApacheEcho',
+              'component:docs': 'ApacheEcho'
             };
+            
+            // Enhanced issue analysis and labeling
+            if (issue && (context.payload.action === 'opened' || context.payload.action === 'labeled')) {
+              const title = issue.title.toLowerCase();
+              const body = (issue.body || '').toLowerCase();
+              const labelsToAdd = [];
+              
+              // Component detection
+              if (title.includes('api') || body.includes('endpoint') || body.includes('route')) {
+                labelsToAdd.push('component:api');
+              }
+              if (title.includes('frontend') || body.includes('ui') || body.includes('interface')) {
+                labelsToAdd.push('component:frontend');
+              }
+              if (title.includes('backend') || body.includes('server') || body.includes('database')) {
+                labelsToAdd.push('component:backend');
+              }
+              if (title.includes('deploy') || body.includes('docker') || body.includes('ci/cd')) {
+                labelsToAdd.push('component:devops');
+              }
+              if (title.includes('doc') || body.includes('documentation') || body.includes('readme')) {
+                labelsToAdd.push('component:docs');
+              }
+              
+              // Type detection
+              if (title.includes('bug') || title.includes('error') || title.includes('fix')) {
+                labelsToAdd.push('type:bug');
+              }
+              if (title.includes('feature') || title.includes('enhancement') || title.includes('add')) {
+                labelsToAdd.push('type:feature');
+              }
+              if (title.includes('refactor') || title.includes('improve') || title.includes('optimize')) {
+                labelsToAdd.push('type:enhancement');
+              }
+              if (title.includes('test') || body.includes('testing') || title.includes('spec')) {
+                labelsToAdd.push('type:testing');
+              }
+              
+              // Effort estimation
+              if (title.includes('quick') || title.includes('small') || body.includes('simple')) {
+                labelsToAdd.push('effort:small');
+              } else if (title.includes('complex') || title.includes('major') || body.includes('significant')) {
+                labelsToAdd.push('effort:large');
+              } else {
+                labelsToAdd.push('effort:medium');
+              }
+              
+              // Add detected labels
+              if (labelsToAdd.length > 0) {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  labels: labelsToAdd
+                });
+              }
+              
+              // Auto-assign based on component
+              for (const label of labelsToAdd) {
+                if (componentAssignments[label]) {
+                  await github.rest.issues.addAssignees({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issue.number,
+                    assignees: [componentAssignments[label]]
+                  });
+                  break;
+                }
+              }
+            }
             
             // Check for blocking issues
             if (comment && comment.body.includes('blocked by #')) {
@@ -33,13 +110,116 @@ jobs:
               });
             }
             
-            // Auto-prioritize based on keywords
-            if (issue.title.toLowerCase().includes('critical') || 
-                issue.title.toLowerCase().includes('urgent')) {
-              await github.rest.issues.addLabels({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: issue.number,
-                labels: ['high-priority']
-              });
+            // Handle issue dependencies
+            if (comment && comment.body.match(/depends on #(\d+)/i)) {
+              const dependencyMatch = comment.body.match(/depends on #(\d+)/i);
+              if (dependencyMatch) {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  labels: ['has-dependency']
+                });
+              }
             }
+            
+            // Auto-prioritize based on keywords and labels
+            if (issue && (context.payload.action === 'opened' || context.payload.action === 'labeled')) {
+              const title = issue.title.toLowerCase();
+              const body = (issue.body || '').toLowerCase();
+              
+              if (title.includes('critical') || title.includes('urgent') || 
+                  title.includes('security') || title.includes('hotfix')) {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  labels: ['high-priority']
+                });
+              }
+            }
+            
+            // Handle PR automation
+            if (pullRequest && context.payload.action === 'opened') {
+              const prTitle = pullRequest.title.toLowerCase();
+              const prLabels = [];
+              
+              if (prTitle.includes('fix') || prTitle.includes('bug')) {
+                prLabels.push('type:bugfix');
+              }
+              if (prTitle.includes('feat') || prTitle.includes('feature')) {
+                prLabels.push('type:feature');
+              }
+              if (prTitle.includes('docs') || prTitle.includes('documentation')) {
+                prLabels.push('type:documentation');
+              }
+              if (prTitle.includes('refactor')) {
+                prLabels.push('type:refactor');
+              }
+              
+              if (prLabels.length > 0) {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: pullRequest.number,
+                  labels: prLabels
+                });
+              }
+            }
+
+  weekly-maintenance:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            // Weekly project maintenance tasks
+            console.log('Running weekly project maintenance...');
+            
+            // Close stale issues that have been inactive for 30 days
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            
+            const staleIssues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'stale',
+              since: thirtyDaysAgo.toISOString()
+            });
+            
+            for (const issue of staleIssues.data) {
+              const lastActivity = new Date(issue.updated_at);
+              if (lastActivity < thirtyDaysAgo) {
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  state: 'closed'
+                });
+                
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  body: '🤖 Auto-closed due to inactivity. Please reopen if still relevant.'
+                });
+              }
+            }
+            
+            // Generate weekly project summary
+            const openIssues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open'
+            });
+            
+            const closedThisWeek = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'closed',
+              since: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+            });
+            
+            console.log(`Weekly Summary: ${openIssues.data.length} open issues, ${closedThisWeek.data.length} closed this week`);

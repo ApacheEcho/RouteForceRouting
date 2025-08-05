@@ -5,19 +5,21 @@ views:
       - name: "Backlog"
         filters:
           - "status:open"
-          - "-label:in-progress"
-          - "-label:review"
+          - "label:status:todo"
+          - "-label:status:in-progress"
+          - "-label:status:review"
       - name: "In Progress"
         filters:
           - "status:open"
-          - "label:in-progress"
+          - "label:status:in-progress"
       - name: "Review"
         filters:
           - "status:open"
-          - "label:review"
+          - "label:status:review"
       - name: "Done"
         filters:
           - "status:closed"
+          - "label:status:done"
   
   - name: "Priority View"
     layout: table
@@ -26,7 +28,195 @@ views:
       - field: assignees
       - field: labels
       - field: milestone
+      - field: priority
     groupBy: priority
     sort:
       - field: priority
         direction: desc
+      - field: created_at
+        direction: desc
+
+  - name: "Component View"
+    layout: board
+    columns:
+      - name: "Backend"
+        filters:
+          - "status:open"
+          - "label:component:backend"
+      - name: "Frontend"
+        filters:
+          - "status:open"
+          - "label:component:frontend"
+      - name: "API"
+        filters:
+          - "status:open"
+          - "label:component:api"
+      - name: "DevOps"
+        filters:
+          - "status:open"
+          - "label:component:devops"
+      - name: "Documentation"
+        filters:
+          - "status:open"
+          - "label:component:docs"
+
+  - name: "Effort Planning"
+    layout: table
+    columns:
+      - field: title
+      - field: assignees
+      - field: labels
+      - field: effort
+      - field: priority
+    groupBy: effort
+    sort:
+      - field: priority
+        direction: desc
+
+  - name: "Bug Tracking"
+    layout: board
+    columns:
+      - name: "New Bugs"
+        filters:
+          - "status:open"
+          - "label:type:bug"
+          - "label:status:todo"
+      - name: "In Progress"
+        filters:
+          - "status:open"
+          - "label:type:bug"
+          - "label:status:in-progress"
+      - name: "Testing"
+        filters:
+          - "status:open"
+          - "label:type:bug"
+          - "label:status:review"
+      - name: "Fixed"
+        filters:
+          - "status:closed"
+          - "label:type:bug"
+
+automation_rules:
+  # Issue lifecycle automation
+  - name: "New Issue to Backlog"
+    trigger: "issue_opened"
+    actions:
+      - add_label: "status:todo"
+      - auto_assign_by_component
+      - estimate_effort
+      - set_priority
+  
+  - name: "Issue Assignment to In Progress"
+    trigger: "issue_assigned"
+    actions:
+      - remove_label: "status:todo"
+      - add_label: "status:in-progress"
+  
+  - name: "Issue Close to Done"
+    trigger: "issue_closed"
+    actions:
+      - remove_label: "status:in-progress"
+      - remove_label: "status:review"
+      - add_label: "status:done"
+      - add_completion_comment
+  
+  # Pull Request automation
+  - name: "PR to Review"
+    trigger: "pull_request_opened"
+    actions:
+      - add_label: "status:review"
+      - request_reviewers
+  
+  - name: "PR Merge to Done"
+    trigger: "pull_request_merged"
+    actions:
+      - add_label: "status:done"
+      - close_linked_issues
+  
+  # Comment-based automation
+  - name: "Status Change Commands"
+    trigger: "comment_created"
+    conditions:
+      - comment_contains: ["/in-progress", "/review", "/done", "/todo"]
+    actions:
+      - update_status_by_command
+      - auto_assign_commenter
+
+labels:
+  # Status labels
+  - name: "status:todo"
+    color: "d4edda"
+    description: "Ready to be worked on"
+  - name: "status:in-progress" 
+    color: "fff3cd"
+    description: "Currently being worked on"
+  - name: "status:review"
+    color: "d1ecf1"
+    description: "Ready for review"
+  - name: "status:done"
+    color: "c3e6cb"
+    description: "Completed"
+
+  # Priority labels
+  - name: "high-priority"
+    color: "d73a49"
+    description: "High priority"
+  - name: "medium-priority"
+    color: "fb8500"
+    description: "Medium priority"
+  - name: "low-priority"
+    color: "0366d6"
+    description: "Low priority"
+
+  # Component labels
+  - name: "component:backend"
+    color: "7057ff"
+    description: "Backend/server related"
+  - name: "component:frontend"
+    color: "008672"
+    description: "Frontend/UI related"
+  - name: "component:api"
+    color: "1d76db"
+    description: "API related"
+  - name: "component:devops"
+    color: "f9d71c"
+    description: "DevOps/deployment related"
+  - name: "component:docs"
+    color: "5319e7"
+    description: "Documentation related"
+
+  # Type labels
+  - name: "type:bug"
+    color: "d73a49"
+    description: "Bug report"
+  - name: "type:feature"
+    color: "a2eeef"
+    description: "New feature"
+  - name: "type:enhancement"
+    color: "84b6eb"
+    description: "Enhancement to existing feature"
+  - name: "type:testing"
+    color: "d4c5f9"
+    description: "Testing related"
+
+  # Effort labels
+  - name: "effort:small"
+    color: "c2e0c6"
+    description: "Small effort (< 4 hours)"
+  - name: "effort:medium"
+    color: "fef2c0"
+    description: "Medium effort (4-16 hours)"
+  - name: "effort:large"
+    color: "f9c2c2"
+    description: "Large effort (> 16 hours)"
+
+  # Special labels
+  - name: "blocked"
+    color: "b60205"
+    description: "Blocked by external dependency"
+  - name: "has-dependency"
+    color: "f29513"
+    description: "Depends on other issues"
+  - name: "stale"
+    color: "959da5"
+    description: "Inactive for extended period"

@@ -32,6 +32,34 @@ This is a **pre-alpha** version with the following capabilities:
 
 ## 🚀 **Quick Start**
 
+### Option 1: Development Containers (Recommended) 🐳
+
+For the fastest and most consistent development experience:
+
+**Prerequisites:**
+- [Visual Studio Code](https://code.visualstudio.com/)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+
+**Setup:**
+1. Clone the repository: `git clone https://github.com/ApacheEcho/RouteForceRouting.git`
+2. Open in VS Code: `code RouteForceRouting`
+3. When prompted, click "Reopen in Container" or use Ctrl+Shift+P → "Dev Containers: Reopen in Container"
+4. Wait for the container to build (first time only)
+5. Update `.env` with your Google Maps API key
+6. Start developing! 🎉
+
+The dev container includes:
+- ✅ Pre-configured Python 3.10 environment
+- ✅ All dependencies installed
+- ✅ VS Code extensions for Python development
+- ✅ Testing, linting, and formatting tools
+- ✅ Port forwarding for Flask development
+
+**📚 [Full dev container documentation](.devcontainer/README.md)**
+
+### Option 2: Manual Setup
+
 ### Prerequisites
 
 ```bash

@@ -1,0 +1,53 @@
+{
+  "generated_at": "2025-08-05T16:32:44.059647",
+  "session_type": "evening_development",
+  "git_status": {
+    "branch": "copilot/fix-0b8e2fb3-494c-4b1f-8181-adbb8763ed18",
+    "uncommitted_changes": true,
+    "unpushed_commits": false,
+    "ahead_behind": ""
+  },
+  "test_status": {
+    "last_run": "2025-08-05T16:26:45.221060",
+    "passed": 0,
+    "failed": 0,
+    "skipped": 0,
+    "coverage": null
+  },
+  "todo_items": [
+    "test_app.py:307: # TODO: Create test for GET '/' to confirm HTMX input form presence",
+    "test_app.py:308: # TODO: Create test for POST '/generate' with store file only, check HTML result rendering",
+    "test_app.py:309: # TODO: Create test for POST '/export' with store + playbook file, check CSV download",
+    "test_app.py:312: # TODO: Add tests for new proximity filter when integrated (e.g. distance radius, corridor grouping)",
+    "while_task_runner.py:3: #   1. Read next unchecked task from auto_todo.md",
+    "while_task_runner.py:9: #   7. Append to auto_todo.md",
+    "while_task_runner.py:19: with open(\"build_tasks/auto_todo.md\", \"r\") as f:",
+    "while_task_runner.py:25: with open(\"build_tasks/auto_todo.md\", \"w\") as f:",
+    "while_task_runner.py:64: with open(\"build_tasks/auto_todo.md\", \"a\") as f:",
+    "routing/route_logger.py:4: TODO (build_tasks/auto_todo.md):"
+  ],
+  "file_changes": {
+    "recent_files": [
+      "mobile/pwa/node_modules/@headlessui/react/dist/hooks/use-inert-others.js",
+      "mobile/react-native/node_modules/@react-native/eslint-config/node_modules/@typescript-eslint/scope-manager/dist/definition/index.d.ts.map",
+      "frontend/node_modules/@eslint/eslintrc/lib/shared/types.js",
+      "mobile/react-native/node_modules/date-fns/locale/cs/_lib/match.mjs",
+      "mobile/pwa/node_modules/puppeteer-core/lib/cjs/puppeteer/node/ChromeLauncher.d.ts",
+      "mobile/pwa/node_modules/source-map/lib/quick-sort.js",
+      "mobile/pwa/node_modules/@babel/runtime/helpers/esm/classPrivateGetter.js",
+      "mobile/react-native/node_modules/moment/dist/locale/es.js",
+      "mobile/react-native/node_modules/react-native-orientation-locker/example/android/gradle/wrapper/gradle-wrapper.jar",
+      "mobile/react-native/node_modules/react-native-safe-area-context/lib/commonjs/SafeAreaView.web.js"
+    ],
+    "file_count": 118320
+  },
+  "recommendations": [
+    "\ud83d\udd27 Review and commit pending changes",
+    "\ud83d\udcdd Address 10 TODO items",
+    "\ud83d\udccb Review recent file changes for consistency",
+    "\ud83c\udfaf Focus on high-priority features",
+    "\ud83d\udcca Review performance metrics",
+    "\ud83d\udd0d Code review pending PRs",
+    "\ud83d\udcda Update documentation if needed"
+  ]
+}

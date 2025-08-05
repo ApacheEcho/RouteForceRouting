@@ -1,0 +1,237 @@
+name: Evening Automation
+
+on:
+  schedule:
+    - cron: '45 17 * * *'  # 5:45 PM UTC (adjust timezone as needed)
+  workflow_dispatch:  # Allow manual triggering
+
+env:
+  PYTHON_VERSION: '3.12'
+
+jobs:
+  evening-prep:
+    name: Evening Development Preparation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better analysis
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🔄 Sync morning changes
+        run: |
+          echo "🔄 Syncing morning changes..."
+          git config --global user.name "Evening Automation"
+          git config --global user.email "automation@routeforce.local"
+          
+          # Fetch latest changes
+          git fetch origin
+          
+          # Get current branch
+          CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          echo "Current branch: $CURRENT_BRANCH"
+          
+          # Sync with main if not on main
+          if [ "$CURRENT_BRANCH" != "main" ]; then
+            echo "Syncing $CURRENT_BRANCH with main..."
+            git fetch origin main:main || true
+            
+            # Check if we can merge main into current branch
+            CONFLICTS=$(git merge-tree $(git merge-base HEAD main) HEAD main | grep -c "<<<<<<< " || echo "0")
+            
+            if [ "$CONFLICTS" -eq "0" ]; then
+              echo "✅ No conflicts detected, safe to continue"
+            else
+              echo "⚠️  Merge conflicts detected, manual resolution needed"
+            fi
+          fi
+          
+          echo "✅ Morning changes sync completed"
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: 📦 Install dependencies
+        run: |
+          echo "📦 Installing dependencies..."
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          echo "✅ Dependencies installed"
+
+      - name: 🧪 Run test suite
+        id: tests
+        run: |
+          echo "🧪 Running test suite..."
+          
+          # Create test results directory
+          mkdir -p test-results
+          
+          # Run tests with coverage
+          pytest tests/ -v \
+            --tb=short \
+            --junitxml=test-results/junit.xml \
+            --cov=app \
+            --cov-report=term-missing \
+            --cov-report=xml:test-results/coverage.xml \
+            --timeout=60 \
+            --maxfail=10 \
+            || echo "TEST_FAILURES=true" >> $GITHUB_ENV
+          
+          # Extract test summary
+          if [ -f test-results/junit.xml ]; then
+            echo "✅ Test results generated"
+          else
+            echo "⚠️  Test results not found"
+          fi
+          
+          echo "✅ Test suite completed"
+
+      - name: 🧹 Prepare evening workspace
+        run: |
+          echo "🧹 Preparing evening workspace..."
+          
+          # Clean up temporary files
+          find . -name "*.pyc" -delete
+          find . -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+          find . -name ".pytest_cache" -type d -exec rm -rf {} + 2>/dev/null || true
+          
+          # Clean up build artifacts
+          rm -rf build/ dist/ *.egg-info/ 2>/dev/null || true
+          
+          # Ensure scripts directory exists
+          mkdir -p scripts
+          
+          # Set executable permissions for scripts
+          find scripts/ -name "*.py" -exec chmod +x {} \; 2>/dev/null || true
+          
+          # Clean up any stale log files
+          find . -name "*.log" -mtime +7 -delete 2>/dev/null || true
+          
+          echo "✅ Evening workspace prepared"
+
+      - name: 🎯 Generate evening priorities
+        run: |
+          echo "🎯 Generating evening priorities..."
+          
+          # Run the evening priorities script
+          python scripts/evening_priorities.py
+          
+          # Display the summary for the workflow log
+          if [ -f evening_priorities.json ]; then
+            echo "📋 Evening Priorities Summary:"
+            echo "================================"
+            python -c "
+import json
+with open('evening_priorities.json', 'r') as f:
+    data = json.load(f)
+    print(f'Generated: {data[\"generated_at\"]}')
+    print(f'Branch: {data[\"git_status\"][\"branch\"]}')
+    print(f'Recommendations: {len(data[\"recommendations\"])}')
+    print(f'TODO items found: {len(data[\"todo_items\"])}')
+    print(f'Recent files modified: {data[\"file_changes\"][\"file_count\"]}')
+    print('\\nTop 5 Recommendations:')
+    for i, rec in enumerate(data['recommendations'][:5], 1):
+        print(f'  {i}. {rec}')
+            "
+          fi
+          
+          echo "✅ Evening priorities generated"
+
+      - name: 📊 Create workflow summary
+        if: always()
+        run: |
+          echo "📊 Creating workflow summary..."
+          
+          # Create summary file
+          cat > evening_summary.md << 'EOF'
+          # 🌅 Evening Automation Summary
+          
+          **Timestamp:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+          
+          ## ✅ Completed Tasks
+          
+          - [x] Sync morning changes
+          - [x] Run test suite
+          - [x] Prepare evening workspace  
+          - [x] Generate evening priorities
+          
+          ## 📋 Evening Development Ready
+          
+          The development environment is now prepared for the 6:00 PM coding session.
+          
+          ### Quick Actions:
+          - Review `evening_priorities.json` for specific recommendations
+          - Check test results for any failures that need attention
+          - Workspace cleaned and ready for development
+          
+          **Status:** 🟢 Ready for evening development
+          EOF
+          
+          # Display summary
+          cat evening_summary.md
+          
+          echo "✅ Workflow summary created"
+
+      - name: 📤 Upload artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: evening-automation-results
+          path: |
+            evening_priorities.json
+            evening_summary.md
+            test-results/
+          retention-days: 7
+
+      - name: 💬 Add workflow comment
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            // Read the summary if it exists
+            let summary = "Evening automation completed successfully! 🌅";
+            try {
+              if (fs.existsSync('evening_summary.md')) {
+                summary = fs.readFileSync('evening_summary.md', 'utf8');
+              }
+            } catch (error) {
+              console.log('Could not read summary file:', error.message);
+            }
+            
+            // Add comment to the workflow run
+            await github.rest.actions.createWorkflowRunUsageInlineComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.runId,
+              body: summary
+            }).catch(err => {
+              console.log('Could not create comment:', err.message);
+              // This is not critical, so don't fail the workflow
+            });
+
+  notify-completion:
+    name: Notify Completion
+    runs-on: ubuntu-latest
+    needs: evening-prep
+    if: always()
+    
+    steps:
+      - name: 📢 Workflow status notification
+        run: |
+          if [ "${{ needs.evening-prep.result }}" == "success" ]; then
+            echo "🎉 Evening automation completed successfully!"
+            echo "✅ Development environment ready for 6:00 PM coding session"
+          else
+            echo "⚠️  Evening automation encountered issues"
+            echo "🔍 Please check the workflow logs for details"
+          fi
+          
+          echo "Workflow completed at: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"

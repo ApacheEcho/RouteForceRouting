@@ -17,6 +17,7 @@ A route optimization engine for field execution teams. This application helps op
 - ✅ **Performance**: Dramatic speedup for repeated geocoding operations
 - ✅ **Error Handling**: Improved error handling and user experience
 - ✅ **User Interface**: Better CLI with progress indicators and cache statistics
+- ✅ **Dependabot Setup**: Automated dependency updates and security scanning across all platforms
 
 ## 📋 **Current Status**
 
@@ -136,6 +137,32 @@ routing/
 - [ ] Add unit tests
 - [ ] Add configuration management
 - [ ] Add performance optimizations
+
+## 🔄 **Automated Dependency Management**
+
+This project uses **Dependabot** for automated dependency updates and security scanning:
+
+### Features
+- ✅ **Automated Updates**: Weekly dependency updates across all package managers
+- ✅ **Security Scanning**: Immediate security vulnerability updates
+- ✅ **Multi-Platform**: Python, Node.js, Docker, and GitHub Actions
+- ✅ **Auto-Testing**: Automated testing and merging of safe updates
+- ✅ **Smart Grouping**: Related updates bundled together for easier review
+
+### Covered Dependencies
+- **Python Backend**: `requirements.txt` (Flask, ML libraries, testing tools)
+- **Frontend**: `/frontend/package.json` (React, TypeScript, Vite)
+- **Mobile React Native**: `/mobile/react-native/package.json`
+- **Mobile PWA**: `/mobile/pwa/package.json` (PWA tools, Workbox)
+- **Docker Images**: Base images and security updates
+- **GitHub Actions**: CI/CD pipeline updates
+
+### Security Integration
+- **Priority**: Security updates processed immediately
+- **Scanning**: Integrates with existing Trivy vulnerability scanning
+- **Monitoring**: Security alerts tracked in GitHub Security tab
+
+📖 **Documentation**: See [`docs/DEPENDABOT_SETUP.md`](docs/DEPENDABOT_SETUP.md) for complete configuration details.
 
 ## 🐛 **Troubleshooting**
 

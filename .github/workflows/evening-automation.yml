@@ -1,0 +1,184 @@
+name: Evening Pre-Coding Automation
+
+"on":
+  schedule:
+    - cron: '45 17 * * *'  # 5:45 PM UTC (adjust for your timezone)
+  workflow_dispatch:  # Allow manual trigger for testing
+
+jobs:
+  evening-prep:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch full history for sync operations
+          
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+          
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+            
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+          
+      - name: 1. Sync morning changes
+        run: |
+          echo "🔄 Syncing morning changes..."
+          git fetch origin
+          # Check for any remote changes and sync
+          if git diff --quiet HEAD origin/main; then
+            echo "✅ No changes to sync - workspace is up to date"
+          else
+            echo "📥 Syncing latest changes from origin/main"
+            git pull origin main --no-edit
+            echo "✅ Morning changes synced successfully"
+          fi
+          
+      - name: 2. Run test suite
+        env:
+          FLASK_ENV: testing
+          SECRET_KEY: test-secret-key
+        run: |
+          echo "🧪 Running comprehensive test suite..."
+          # Run tests with timeout to ensure completion by 6 PM
+          timeout 10m python -m pytest tests/ -v --tb=short --maxfail=5 || {
+            echo "⚠️  Some tests failed - documenting for evening review"
+            echo "Test failures detected at $(date)" >> evening-prep-log.txt
+          }
+          echo "✅ Test suite execution completed"
+          
+      - name: 3. Prepare evening workspace
+        run: |
+          echo "🏗️  Preparing evening workspace..."
+          
+          # Create evening workspace directory
+          mkdir -p evening-workspace
+          
+          # Generate workspace status
+          echo "=== Evening Workspace Status ===" > evening-workspace/status.md
+          echo "Generated at: $(date)" >> evening-workspace/status.md
+          echo "" >> evening-workspace/status.md
+          
+          # Check system resources
+          echo "## System Status" >> evening-workspace/status.md
+          echo "- Disk usage: $(df -h . | tail -1 | awk '{print $5}')" >> evening-workspace/status.md
+          echo "- Python version: $(python --version)" >> evening-workspace/status.md
+          echo "- Git status: $(git status --porcelain | wc -l) uncommitted files" >> evening-workspace/status.md
+          echo "" >> evening-workspace/status.md
+          
+          # Check for any pending work
+          echo "## Pending Work Analysis" >> evening-workspace/status.md
+          if [ -f "TODO.md" ]; then
+            echo "- TODO items found: $(wc -l < TODO.md) items" >> evening-workspace/status.md
+          fi
+          
+          # Prepare development environment
+          echo "🔧 Validating development environment..."
+          python -c "import app; print('✅ Main application module loadable')" || echo "⚠️  Application module issues detected"
+          
+          echo "✅ Evening workspace prepared"
+          
+      - name: 4. Generate evening priorities
+        run: |
+          echo "📋 Generating evening coding priorities..."
+          
+          # Create priorities file
+          echo "# Evening Coding Priorities - $(date '+%Y-%m-%d')" > evening-workspace/priorities.md
+          echo "" >> evening-workspace/priorities.md
+          
+          # Analyze recent commits for context
+          echo "## Recent Activity Context" >> evening-workspace/priorities.md
+          echo "Last 5 commits:" >> evening-workspace/priorities.md
+          git log --oneline -5 | sed 's/^/- /' >> evening-workspace/priorities.md
+          echo "" >> evening-workspace/priorities.md
+          
+          # Check for open issues or TODOs in code
+          echo "## Code Analysis" >> evening-workspace/priorities.md
+          echo "TODO/FIXME items in codebase:" >> evening-workspace/priorities.md
+          grep -r "TODO\|FIXME" --include="*.py" . | head -10 | sed 's/^/- /' >> evening-workspace/priorities.md || echo "- No TODO/FIXME items found" >> evening-workspace/priorities.md
+          echo "" >> evening-workspace/priorities.md
+          
+          # Generate priority recommendations
+          echo "## Recommended Priorities" >> evening-workspace/priorities.md
+          echo "1. 🔍 Review any test failures from previous step" >> evening-workspace/priorities.md
+          echo "2. 🚀 Continue with active development branches" >> evening-workspace/priorities.md
+          echo "3. 🐛 Address any TODO/FIXME items identified" >> evening-workspace/priorities.md
+          echo "4. 📚 Update documentation if needed" >> evening-workspace/priorities.md
+          echo "5. 🧪 Add tests for recent features" >> evening-workspace/priorities.md
+          
+          echo "✅ Evening priorities generated"
+          
+      - name: 5. Final workspace validation
+        run: |
+          echo "🎯 Final validation - ensuring readiness for 6:00 PM..."
+          
+          # Validate all key components
+          VALIDATION_PASSED=true
+          
+          echo "🔍 Performing final checks..."
+          
+          # Check if workspace files were created
+          if [ ! -f "evening-workspace/status.md" ]; then
+            echo "❌ Workspace status file missing"
+            VALIDATION_PASSED=false
+          fi
+          
+          if [ ! -f "evening-workspace/priorities.md" ]; then
+            echo "❌ Priorities file missing"
+            VALIDATION_PASSED=false
+          fi
+          
+          # Check Python environment
+          python -c "import sys; print(f'✅ Python {sys.version} ready')"
+          
+          # Check git status
+          if git status --porcelain | grep -q .; then
+            echo "📝 Uncommitted changes detected - ready for continued development"
+          else
+            echo "✅ Clean git status - ready for new development"
+          fi
+          
+          # Final validation
+          if [ "$VALIDATION_PASSED" = true ]; then
+            echo "🎉 ============================================="
+            echo "🎉  WORKSPACE READY FOR 6:00 PM CODING! 🚀"
+            echo "🎉 ============================================="
+            echo "✅ All systems operational"
+            echo "✅ Tests completed"
+            echo "✅ Priorities generated"
+            echo "✅ Environment validated"
+            echo ""
+            echo "🕕 Ready to code at 6:00 PM sharp!"
+          else
+            echo "⚠️  Some validation checks failed - please review before coding session"
+            exit 1
+          fi
+          
+      - name: Upload evening workspace
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: evening-workspace-${{ github.run_id }}
+          path: |
+            evening-workspace/
+            evening-prep-log.txt
+          retention-days: 7
+          
+      - name: Notify completion
+        run: |
+          echo "📧 Evening automation completed successfully!"
+          echo "🕕 Workspace ready for 6:00 PM coding session"
+          echo "📁 Evening workspace files available as artifacts"

@@ -3,6 +3,21 @@ __pycache__/
 *.pyc
 .DS_Store
 
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.tgz
+*.tar.gz
+
+# Build outputs
+dist/
+build/
+.vite/
+.next/
+.nuxt/
+
 # Environment and configuration files
 .env*
 *.env

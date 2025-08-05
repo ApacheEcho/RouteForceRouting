@@ -1,0 +1,32 @@
+name: "RouteForce CodeQL Config"
+
+disable-default-queries: false
+
+queries:
+  - uses: security-extended
+  - uses: security-and-quality
+
+paths-ignore:
+  - "**/*.min.js"
+  - "**/node_modules/**"
+  - "**/dist/**"
+  - "**/build/**"
+  - "**/__pycache__/**"
+  - "**/*.pyc"
+  - "**/migrations/**"
+  - "**/venv/**"
+  - "**/env/**"
+  - "**/.git/**"
+  - "**/docs/**"
+  - "**/*.md"
+  - "**/*.txt"
+  - "**/*.yml"
+  - "**/*.yaml"
+  - "**/*.json"
+
+paths:
+  - "app/**"
+  - "frontend/src/**"
+  - "mobile/pwa/src/**"
+  - "routing/**"
+  - "*.py"

@@ -1,0 +1,111 @@
+name: Bug Report
+description: Report a bug to help us improve RouteForce
+title: "[BUG]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill out the information below to help us understand and fix the issue.
+
+  - type: input
+    id: bug-summary
+    attributes:
+      label: Bug Summary
+      description: Brief description of the bug
+      placeholder: ex. Route optimization fails with more than 10 locations
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Please provide detailed steps to reproduce the bug
+      placeholder: |
+        1. Open the application
+        2. Load a CSV file with 15 locations
+        3. Click 'Optimize Route'
+        4. See error message
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+      placeholder: The route should be optimized and displayed successfully
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: 'Application crashes with error message "IndexError: list index out of range"'
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: How severe is this bug?
+      options:
+        - Critical (Blocks main functionality)
+        - High (Major feature broken)
+        - Medium (Minor feature issue)
+        - Low (Cosmetic or edge case)
+    validations:
+      required: true
+
+  - type: input
+    id: python-version
+    attributes:
+      label: Python Version
+      description: What version of Python are you using?
+      placeholder: ex. Python 3.9.7
+    validations:
+      required: true
+
+  - type: input
+    id: operating-system
+    attributes:
+      label: Operating System
+      description: What operating system are you using?
+      placeholder: ex. Windows 11, macOS 12.1, Ubuntu 20.04
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment-details
+    attributes:
+      label: Environment Details
+      description: Any additional environment information that might be relevant
+      placeholder: |
+        - Browser: Chrome 96.0.4664.110 (if using web interface)
+        - Google Maps API version: v3
+        - Any special network configurations
+        - Virtual environment details
+
+  - type: textarea
+    id: error-logs
+    attributes:
+      label: Error Logs/Messages
+      description: Please paste any error messages or logs
+      placeholder: |
+        Paste error messages here. Include full stack traces if available.
+      render: shell
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem here
+      placeholder: |
+        - Screenshots (if applicable)
+        - Sample data files that cause the issue
+        - Workarounds you've tried
+        - Related issues or discussions

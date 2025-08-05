@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 📖 Documentation
+    url: https://github.com/ApacheEcho/RouteForceRouting/blob/main/README.md
+    about: Check the README for setup instructions and basic usage
+  - name: 💬 Discussions
+    url: https://github.com/ApacheEcho/RouteForceRouting/discussions
+    about: Join community discussions, share ideas, and get help from other users
+  - name: 🔒 Security Issues
+    url: https://github.com/ApacheEcho/RouteForceRouting/security/advisories/new
+    about: Report security vulnerabilities privately

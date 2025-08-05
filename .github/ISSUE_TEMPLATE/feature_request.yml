@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to suggest a new feature!
+        Thanks for taking the time to suggest a new feature! Please provide as much detail as possible to help us understand your request.
   
   - type: input
     id: feature-name
@@ -17,6 +17,41 @@ body:
     validations:
       required: true
   
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: Describe the problem or scenario this feature would solve
+      placeholder: |
+        As a delivery driver, I need to optimize routes for multiple stops because currently I have to manually plan the most efficient order of deliveries, which wastes time and fuel.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed Solution
+      description: Describe how you envision this feature working
+      placeholder: |
+        Add a new "Multi-stop Optimization" option that:
+        1. Accepts a list of addresses with delivery time windows
+        2. Calculates the most efficient route considering traffic patterns
+        3. Provides turn-by-turn directions for the optimized route
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives-considered
+    attributes:
+      label: Alternatives Considered
+      description: What other solutions or workarounds have you considered?
+      placeholder: |
+        - Using Google Maps manually for each route segment
+        - Third-party route optimization tools (expensive)
+        - Manual planning based on geographic proximity
+    validations:
+      required: false
+
   - type: dropdown
     id: priority
     attributes:
@@ -29,11 +64,42 @@ body:
         - Low
     validations:
       required: true
+
+  - type: dropdown
+    id: feature-category
+    attributes:
+      label: Feature Category
+      description: What area of the application does this feature relate to?
+      options:
+        - Route Optimization Algorithm
+        - User Interface/Experience
+        - Data Import/Export
+        - Performance/Scalability
+        - Integration (APIs, Maps, etc.)
+        - Mobile/Cross-platform
+        - Analytics/Reporting
+        - Other
+    validations:
+      required: true
   
   - type: textarea
     id: description
     attributes:
-      label: Feature Description
-      description: Detailed description of the feature
-    validations:
-      required: true
+      label: Additional Details
+      description: Any additional information, mockups, or technical details
+      placeholder: |
+        - Screenshots or mockups of the desired interface
+        - Technical requirements or constraints
+        - Expected user workflow
+        - Success criteria for the feature
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: How will we know when this feature is complete and working correctly?
+      placeholder: |
+        - [ ] Feature accepts input of N delivery addresses
+        - [ ] Optimization completes within X seconds for up to Y locations
+        - [ ] Generated route reduces total travel time by at least Z%
+        - [ ] Integration with Google Maps for turn-by-turn directions

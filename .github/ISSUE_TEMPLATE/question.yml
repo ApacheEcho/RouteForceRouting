@@ -1,0 +1,120 @@
+name: Question or General Discussion
+description: Ask questions, seek help, or start a general discussion about RouteForce
+title: "[QUESTION]: "
+labels: ["question", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reaching out! This template is for questions, support requests, discussions, or any other type of issue that doesn't fit the bug report or feature request categories.
+
+  - type: dropdown
+    id: issue-type
+    attributes:
+      label: Type of Request
+      description: What type of question or request is this?
+      options:
+        - General Question
+        - How-to/Usage Help
+        - Documentation Clarification
+        - Installation/Setup Issue
+        - Performance Question
+        - API/Integration Question
+        - Discussion/Feedback
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: subject
+    attributes:
+      label: Subject
+      description: Brief description of your question or topic
+      placeholder: ex. How to handle large datasets with 1000+ locations
+    validations:
+      required: true
+
+  - type: textarea
+    id: question-details
+    attributes:
+      label: Question/Request Details
+      description: Please provide as much detail as possible about your question or request
+      placeholder: |
+        - What are you trying to accomplish?
+        - What specific aspect needs clarification?
+        - What have you already tried?
+        - Any relevant context or background information
+    validations:
+      required: true
+
+  - type: dropdown
+    id: experience-level
+    attributes:
+      label: Experience Level
+      description: How familiar are you with RouteForce or similar tools?
+      options:
+        - Beginner (new to route optimization)
+        - Intermediate (some experience with routing tools)
+        - Advanced (experienced with routing algorithms)
+        - Expert (deep technical background)
+    validations:
+      required: false
+
+  - type: textarea
+    id: current-setup
+    attributes:
+      label: Current Setup (if applicable)
+      description: Describe your current environment or setup if relevant to your question
+      placeholder: |
+        - Operating System: 
+        - Python Version: 
+        - Installation method: 
+        - Data size/scope: 
+        - Use case context:
+
+  - type: textarea
+    id: what-tried
+    attributes:
+      label: What Have You Tried?
+      description: What steps have you already taken to find an answer or solve the issue?
+      placeholder: |
+        - Documentation sections reviewed
+        - Stack Overflow searches
+        - Similar issues reviewed
+        - Code/configurations attempted
+
+  - type: textarea
+    id: expected-outcome
+    attributes:
+      label: Expected Outcome
+      description: What would a successful resolution look like for you?
+      placeholder: |
+        - Clear explanation of the concept
+        - Working code example
+        - Step-by-step instructions
+        - Pointer to relevant documentation
+
+  - type: dropdown
+    id: urgency
+    attributes:
+      label: Urgency
+      description: How urgent is this question for you?
+      options:
+        - Low (whenever convenient)
+        - Medium (within a week)
+        - High (within a few days)
+        - Critical (ASAP)
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Any other information that might be helpful
+      placeholder: |
+        - Links to related resources
+        - Screenshots or diagrams
+        - Sample data or code snippets
+        - Timeline or project constraints
+        - Team size or collaboration needs

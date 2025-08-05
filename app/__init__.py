@@ -247,6 +247,7 @@ def register_blueprints(app: Flask) -> None:
     from app.api.analytics import analytics_bp
     from app.api.mobile import mobile_bp
     from app.api.traffic import traffic_bp
+    from app.api.voice import voice_bp  # Voice-to-code integration API
     from app.auth_system import auth_bp  # Use JWT-based auth system
     from app.monitoring_api import monitoring_bp
     from app.routes.api import api_bp
@@ -256,6 +257,7 @@ def register_blueprints(app: Flask) -> None:
     from app.routes.main_enhanced import main_bp  # Use enhanced main blueprint
     from app.routes.metrics import metrics_bp
     from app.routes.scoring import scoring_bp
+    from app.routes.voice_dashboard import voice_dashboard_bp  # Voice dashboard route
 
     app.register_blueprint(main_bp)
     app.register_blueprint(api_bp, url_prefix="/api")
@@ -265,10 +267,12 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(enhanced_dashboard_bp)
     app.register_blueprint(enterprise_bp)
+    app.register_blueprint(voice_dashboard_bp)  # Voice dashboard
     app.register_blueprint(traffic_bp, url_prefix="/api/traffic")
     app.register_blueprint(mobile_bp, url_prefix="/api/mobile")
     app.register_blueprint(analytics_bp, url_prefix="/api/analytics")
     app.register_blueprint(analytics_ai_bp, url_prefix="/api/ai")
+    app.register_blueprint(voice_bp, url_prefix="/api/voice")  # Voice-to-code API
     app.register_blueprint(monitoring_bp)
     app.register_blueprint(advanced_dashboard_bp)  # Register advanced dashboard
 

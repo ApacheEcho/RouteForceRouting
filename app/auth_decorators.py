@@ -115,6 +115,11 @@ def auth_required(
     return decorator
 
 
+def require_auth(f: Callable) -> Callable:
+    """Simple authentication requirement decorator (alias for auth_required)"""
+    return auth_required()(f)
+
+
 def admin_required(f: Callable) -> Callable:
     """Decorator for admin-only endpoints"""
     return auth_required(roles=["admin"])(f)

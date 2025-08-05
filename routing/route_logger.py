@@ -1,56 +1,69 @@
-(build_tasks/auto_todo.md)
-- [ ] Build route scoring integration into main route pipeline
-- [ ] Add user-facing score breakdown UI
-- [ ] Implement QA metrics and auto-correction logic
-- [ ] Integrate summary logs into dashboard
-- [ ] Finalize Playbook GUI injection logic
-- [ ] Wire preflight QA checklist into route generation
-- [ ] Improve routing traffic logic (Google Maps/OSRM)
-- [ ] Add error notifications for broken routes
+"""
+Route logging functionality for RouteForce.
+Handles logging of route scores and performance metrics.
+"""
 
-(scripts/autobuild.py)
-import subprocess
 import os
+import json
+from datetime import datetime
+from typing import Dict, Any, Optional
 
-TODO_PATH = "build_tasks/auto_todo.md"
 
-def get_next_task():
-    with open(TODO_PATH, "r") as f:
+def log_route_score(route_data: Dict[str, Any], score: float,
+                    metadata: Optional[Dict[str, Any]] = None) -> None:
+    """
+    Log route score data for analysis and debugging.
+
+    Args:
+        route_data: Dictionary containing route information
+        score: Calculated route score
+        metadata: Optional additional metadata
+    """
+    log_entry = {
+        "timestamp": datetime.now().isoformat(),
+        "route_data": route_data,
+        "score": score,
+        "metadata": metadata or {}
+    }
+
+    # Create logs directory if it doesn't exist
+    log_dir = "logs"
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+
+    # Log to file
+    log_file = os.path.join(log_dir, "route_scores.log")
+    with open(log_file, "a") as f:
+        f.write(json.dumps(log_entry) + "\n")
+
+
+def get_route_score_logs(limit: int = 100) -> list:
+    """
+    Retrieve recent route score logs.
+
+    Args:
+        limit: Maximum number of logs to return
+
+    Returns:
+        List of log entries
+    """
+    log_file = os.path.join("logs", "route_scores.log")
+    if not os.path.exists(log_file):
+        return []
+
+    logs = []
+    with open(log_file, "r") as f:
         for line in f:
-            if line.startswith("- [ ]"):
-                return line.strip().replace("- [ ] ", "")
-    return None
+            try:
+                logs.append(json.loads(line.strip()))
+            except json.JSONDecodeError:
+                continue
 
-def mark_task_done(task):
-    with open(TODO_PATH, "r") as f:
-        lines = f.readlines()
-    with open(TODO_PATH, "w") as f:
-        for line in lines:
-            if task in line and "- [ ]" in line:
-                f.write(line.replace("- [ ]", "- [x]"))
-            else:
-                f.write(line)
+    return logs[-limit:] if logs else []
 
-def run_copilot_autobuild():
-    task = get_next_task()
-    if not task:
-        print("✅ All tasks completed.")
-        return
 
-    print(f"🔧 Running Copilot on task: {task}")
-
-    # Prompt Copilot indirectly by opening the file with an embedded comment prompt
-    prompt = f'# TASK: {task}\n# Please generate complete code for this task.\n'
-    with open("copilot_prompt.py", "w") as f:
-        f.write(prompt)
-
-    subprocess.run(["code", "copilot_prompt.py"])
-    print("✅ Auto-confirm enabled. Proceeding with commit and push...")
-
-    os.system(f'git add . && git commit -m "Auto: {task}" && git push')
-
-    mark_task_done(task)
-    run_copilot_autobuild()
-
-if __name__ == "__main__":
-    run_copilot_autobuild()
+def clear_route_score_logs() -> None:
+    """Clear all route score logs."""
+    log_file = os.path.join("logs", "route_scores.log")
+    if os.path.exists(log_file):
+        os.remove(log_file)

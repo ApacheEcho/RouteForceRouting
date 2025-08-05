@@ -1,0 +1,202 @@
+version: 2
+updates:
+  # Python dependencies (main backend)
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "ApacheEcho"
+    assignees:
+      - "ApacheEcho"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "python"
+    allow:
+      - dependency-type: "all"
+    groups:
+      security-updates:
+        applies-to: security-updates
+        patterns:
+          - "*"
+      major-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "version-update:semver-major"
+      minor-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "version-update:semver-minor"
+
+  # Frontend npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:30"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "ApacheEcho"
+    assignees:
+      - "ApacheEcho"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "frontend"
+      - "javascript"
+    allow:
+      - dependency-type: "all"
+    groups:
+      security-updates:
+        applies-to: security-updates
+        patterns:
+          - "*"
+      react-ecosystem:
+        patterns:
+          - "react*"
+          - "@types/react*"
+          - "@vitejs/*"
+          - "vite"
+      testing-tools:
+        patterns:
+          - "jest"
+          - "vitest"
+          - "@testing-library/*"
+          - "eslint*"
+          - "@typescript-eslint/*"
+
+  # Mobile React Native dependencies
+  - package-ecosystem: "npm"
+    directory: "/mobile/react-native"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "05:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "ApacheEcho"
+    assignees:
+      - "ApacheEcho"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "mobile"
+      - "react-native"
+    allow:
+      - dependency-type: "all"
+    groups:
+      security-updates:
+        applies-to: security-updates
+        patterns:
+          - "*"
+      react-native-core:
+        patterns:
+          - "react-native"
+          - "react"
+          - "@react-native/*"
+          - "@react-navigation/*"
+      react-native-community:
+        patterns:
+          - "@react-native-community/*"
+          - "@react-native-async-storage/*"
+
+  # Mobile PWA dependencies
+  - package-ecosystem: "npm"
+    directory: "/mobile/pwa"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "05:30"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "ApacheEcho"
+    assignees:
+      - "ApacheEcho"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "mobile"
+      - "pwa"
+    allow:
+      - dependency-type: "all"
+    groups:
+      security-updates:
+        applies-to: security-updates
+        patterns:
+          - "*"
+      pwa-tools:
+        patterns:
+          - "vite*"
+          - "@vitejs/*"
+          - "workbox*"
+          - "vite-plugin-pwa"
+
+  # Docker dependencies
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "ApacheEcho"
+    assignees:
+      - "ApacheEcho"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "docker"
+
+  # GitHub Actions dependencies
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:30"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "ApacheEcho"
+    assignees:
+      - "ApacheEcho"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    groups:
+      actions-core:
+        patterns:
+          - "actions/*"
+      setup-actions:
+        patterns:
+          - "actions/setup-*"

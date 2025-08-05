@@ -1,0 +1,40 @@
+name: Solo Dev Power Automation (EST)
+on:
+  schedule:
+    # EST = UTC-5 (or UTC-4 during daylight saving)
+    - cron: '55 9 * * *'   # 4:55 AM EST = 9:55 AM UTC
+    - cron: '30 11 * * *'  # 6:30 AM EST = 11:30 AM UTC  
+    - cron: '55 22 * * *'  # 5:55 PM EST = 10:55 PM UTC
+    - cron: '0 1 * * *'    # 8:00 PM EST = 1:00 AM UTC (next day)
+  push:
+    branches: ['**']
+  workflow_dispatch:
+
+env:
+  TZ: America/New_York
+
+jobs:
+  morning-prep:
+    if: github.event.schedule == '55 9 * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Prepare Morning Workspace (5 AM EST)
+        run: |
+          echo "🌅 Good morning from Fairfield, CT!"
+          echo "# Morning Session: $(TZ=America/New_York date +%Y-%m-%d)" > morning-todo.md
+          echo "Time: 5:00-6:30 AM EST (90 minutes)" >> morning-todo.md
+          echo "## Today's Top 3 Priorities:" >> morning-todo.md
+          gh issue list --assignee ApacheEcho --label "critical-priority" --state open --limit 3 >> morning-todo.md
+          
+  evening-prep:
+    if: github.event.schedule == '55 22 * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Prepare Evening Workspace (6 PM EST)
+        run: |
+          echo "🌙 Good evening from Fairfield, CT!"
+          echo "# Evening Session: $(TZ=America/New_York date +%Y-%m-%d)" > evening-todo.md
+          echo "Time: 6:00-8:00 PM EST (120 minutes)" >> evening-todo.md
+          gh issue list --assignee ApacheEcho --state open --limit 5 >> evening-todo.md

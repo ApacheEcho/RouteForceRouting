@@ -2,15 +2,167 @@ name: Project Board Automation
 
 on:
   issues:
-    types: [opened, closed, assigned, labeled]
+    types: [opened, closed, assigned, labeled, unlabeled]
   pull_request:
-    types: [opened, closed, merged]
+    types: [opened, closed, merged, ready_for_review, converted_to_draft]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
 
 jobs:
   auto-add-to-project:
     runs-on: ubuntu-latest
+    if: github.event.action == 'opened'
     steps:
-      - uses: actions/add-to-project@v0.5.0
+      - uses: actions/add-to-project@v1.0.2
         with:
-          project-url: https://github.com/users/ApacheEcho/projects/YOUR_PROJECT_NUMBER
+          # Using organization/repository project syntax - will be auto-created if not exists
+          project-url: https://github.com/orgs/ApacheEcho/projects/1
           github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  auto-triage-and-label:
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened' || github.event.action == 'labeled' || github.event.action == 'unlabeled'
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const issue = context.payload.issue || context.payload.pull_request;
+            
+            if (!issue) return;
+            
+            const issueTitleLower = issue.title.toLowerCase();
+            const issueBodyLower = (issue.body || '').toLowerCase();
+            const issueNumber = issue.number;
+            
+            // Auto-priority based on keywords
+            const highPriorityKeywords = ['critical', 'urgent', 'security', 'breaking', 'crash', 'data loss'];
+            const mediumPriorityKeywords = ['important', 'enhancement', 'feature', 'automation', 'setup', 'configure'];
+            const lowPriorityKeywords = ['documentation', 'typo', 'cleanup', 'refactor'];
+            
+            // Component detection based on content and files changed
+            const backendKeywords = ['api', 'backend', 'server', 'database', 'routing', 'algorithm', 'auth', 'authentication', 'login', 'endpoint'];
+            const frontendKeywords = ['ui', 'frontend', 'interface', 'dashboard', 'css', 'html'];
+            const mobileKeywords = ['mobile', 'ios', 'android', 'app'];
+            const mlKeywords = ['machine learning', 'ml', 'genetic', 'optimization', 'algorithm'];
+            const infraKeywords = ['docker', 'deployment', 'ci', 'cd', 'infrastructure'];
+            
+            const labels = [];
+            
+            // Priority labeling
+            if (highPriorityKeywords.some(keyword => 
+                issueTitleLower.includes(keyword) || issueBodyLower.includes(keyword))) {
+              labels.push('high-priority');
+            } else if (mediumPriorityKeywords.some(keyword => 
+                issueTitleLower.includes(keyword) || issueBodyLower.includes(keyword))) {
+              labels.push('medium-priority');
+            } else if (lowPriorityKeywords.some(keyword => 
+                issueTitleLower.includes(keyword) || issueBodyLower.includes(keyword))) {
+              labels.push('low-priority');
+            }
+            
+            // Component labeling
+            if (backendKeywords.some(keyword => 
+                issueTitleLower.includes(keyword) || issueBodyLower.includes(keyword))) {
+              labels.push('component:backend');
+            }
+            if (frontendKeywords.some(keyword => 
+                issueTitleLower.includes(keyword) || issueBodyLower.includes(keyword))) {
+              labels.push('component:frontend');
+            }
+            if (mobileKeywords.some(keyword => 
+                issueTitleLower.includes(keyword) || issueBodyLower.includes(keyword))) {
+              labels.push('component:mobile');
+            }
+            if (mlKeywords.some(keyword => 
+                issueTitleLower.includes(keyword) || issueBodyLower.includes(keyword))) {
+              labels.push('component:ml');
+            }
+            if (infraKeywords.some(keyword => 
+                issueTitleLower.includes(keyword) || issueBodyLower.includes(keyword))) {
+              labels.push('component:infrastructure');
+            }
+            
+            // Auto-assign based on component
+            let assignees = [];
+            const currentLabels = issue.labels.map(label => typeof label === 'string' ? label : label.name);
+            
+            // Add component labels based on detection
+            if (labels.length > 0) {
+              try {
+                await github.rest.issues.addLabels({
+                  owner,
+                  repo,
+                  issue_number: issueNumber,
+                  labels: labels
+                });
+                console.log(`Added labels: ${labels.join(', ')}`);
+              } catch (error) {
+                console.log(`Error adding labels: ${error.message}`);
+              }
+            }
+            
+            // Auto-assign to project owner for high priority items
+            if (labels.includes('high-priority') || issueTitleLower.includes('critical')) {
+              assignees.push('ApacheEcho');
+            }
+            
+            if (assignees.length > 0) {
+              try {
+                await github.rest.issues.addAssignees({
+                  owner,
+                  repo,
+                  issue_number: issueNumber,
+                  assignees: assignees
+                });
+                console.log(`Assigned to: ${assignees.join(', ')}`);
+              } catch (error) {
+                console.log(`Error assigning: ${error.message}`);
+              }
+            }
+
+  auto-milestone-assignment:
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened'
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const issue = context.payload.issue || context.payload.pull_request;
+            
+            if (!issue) return;
+            
+            // Get current milestones
+            const milestones = await github.rest.issues.listMilestones({
+              owner,
+              repo,
+              state: 'open'
+            });
+            
+            // Find or create "Current Sprint" milestone
+            let currentMilestone = milestones.data.find(m => m.title === 'Current Sprint');
+            
+            if (!currentMilestone && milestones.data.length > 0) {
+              // Use the first open milestone
+              currentMilestone = milestones.data[0];
+            }
+            
+            if (currentMilestone) {
+              try {
+                await github.rest.issues.update({
+                  owner,
+                  repo,
+                  issue_number: issue.number,
+                  milestone: currentMilestone.number
+                });
+                console.log(`Assigned to milestone: ${currentMilestone.title}`);
+              } catch (error) {
+                console.log(`Error assigning milestone: ${error.message}`);
+              }
+            }

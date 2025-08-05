@@ -17,10 +17,10 @@ from flask_socketio import SocketIO
 
 # Initialize extensions
 cache = Cache()
-limiter = Limiter(
-    key_func=get_remote_address, default_limits=["200 per day", "50 per hour"]
-)
 socketio = SocketIO(cors_allowed_origins="*", logger=True, engineio_logger=True)
+
+# Limiter will be initialized later after configuration is loaded
+limiter = None
 
 
 def create_app(config_name: str = "development") -> Flask:
@@ -183,9 +183,14 @@ def create_app(config_name: str = "development") -> Flask:
     # Store analytics service in app context for global access
     app.analytics_service = analytics_service
 
-    # Configure limiter with storage URI
-    if app.config.get("RATELIMIT_STORAGE_URI"):
-        limiter.storage_uri = app.config["RATELIMIT_STORAGE_URI"]
+    # Initialize limiter with proper storage URI
+    global limiter
+    storage_uri = app.config.get("RATELIMIT_STORAGE_URI", "memory://")
+    limiter = Limiter(
+        key_func=get_remote_address, 
+        default_limits=["200 per day", "50 per hour"],
+        storage_uri=storage_uri
+    )
     limiter.init_app(app)
 
     # Configure logging

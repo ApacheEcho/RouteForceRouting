@@ -137,6 +137,7 @@ class TestingConfig(Config):
     UPLOAD_FOLDER = "test_uploads"
     CACHE_TYPE = "flask_caching.backends.null"  # Disable cache for testing
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"  # In-memory database for testing
+    RATELIMIT_STORAGE_URI = "memory://"  # Use memory storage for rate limiting in tests
 
 
 # Configuration dictionary

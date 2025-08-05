@@ -1,0 +1,21 @@
+[flake8]
+max-line-length = 127
+max-complexity = 10
+ignore = E203, E501, W503, E231
+exclude = 
+    .git,
+    __pycache__,
+    .tox,
+    .eggs,
+    *.egg,
+    build,
+    dist,
+    .venv,
+    venv,
+    migrations,
+    instance
+per-file-ignores =
+    __init__.py:F401
+    # Allow unused imports in test files
+    test_*.py:F401,F841
+    *_test.py:F401,F841

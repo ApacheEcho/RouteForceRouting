@@ -1,4 +1,7 @@
-(build_tasks/auto_todo.md)
+"""
+Route logger functionality for scoring integration.
+
+TODO (build_tasks/auto_todo.md):
 - [ ] Build route scoring integration into main route pipeline
 - [ ] Add user-facing score breakdown UI
 - [ ] Implement QA metrics and auto-correction logic
@@ -7,50 +10,27 @@
 - [ ] Wire preflight QA checklist into route generation
 - [ ] Improve routing traffic logic (Google Maps/OSRM)
 - [ ] Add error notifications for broken routes
+"""
 
-(scripts/autobuild.py)
-import subprocess
-import os
+import logging
+from typing import Dict, Any, List
 
-TODO_PATH = "build_tasks/auto_todo.md"
 
-def get_next_task():
-    with open(TODO_PATH, "r") as f:
-        for line in f:
-            if line.startswith("- [ ]"):
-                return line.strip().replace("- [ ] ", "")
-    return None
+def log_route_score(route_data: Dict[str, Any], score: float) -> None:
+    """Log route scoring information for debugging and analysis."""
+    logger = logging.getLogger(__name__)
+    logger.info(f"Route scored: {score:.2f} for {len(route_data.get('stops', []))} stops")
 
-def mark_task_done(task):
-    with open(TODO_PATH, "r") as f:
-        lines = f.readlines()
-    with open(TODO_PATH, "w") as f:
-        for line in lines:
-            if task in line and "- [ ]" in line:
-                f.write(line.replace("- [ ]", "- [x]"))
-            else:
-                f.write(line)
 
-def run_copilot_autobuild():
-    task = get_next_task()
-    if not task:
-        print("✅ All tasks completed.")
-        return
+def log_route_metrics(metrics: Dict[str, Any]) -> None:
+    """Log route metrics for analysis."""
+    logger = logging.getLogger(__name__)
+    logger.info(f"Route metrics: {metrics}")
 
-    print(f"🔧 Running Copilot on task: {task}")
 
-    # Prompt Copilot indirectly by opening the file with an embedded comment prompt
-    prompt = f'# TASK: {task}\n# Please generate complete code for this task.\n'
-    with open("copilot_prompt.py", "w") as f:
-        f.write(prompt)
-
-    subprocess.run(["code", "copilot_prompt.py"])
-    print("✅ Auto-confirm enabled. Proceeding with commit and push...")
-
-    os.system(f'git add . && git commit -m "Auto: {task}" && git push')
-
-    mark_task_done(task)
-    run_copilot_autobuild()
-
-if __name__ == "__main__":
-    run_copilot_autobuild()
+def setup_route_logging() -> None:
+    """Setup logging configuration for route operations."""
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )

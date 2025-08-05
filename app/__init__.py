@@ -2,6 +2,8 @@
 RouteForce Routing Application Factory
 """
 
+__version__ = "0.1.0"
+
 import logging
 import time
 import warnings

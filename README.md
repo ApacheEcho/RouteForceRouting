@@ -174,6 +174,17 @@ routing/
 4. Add tests if applicable
 5. Submit a pull request
 
+## 🚀 **Releases**
+
+This project uses automated release management:
+
+- **Creating Releases:** Use `./scripts/release.sh 1.0.0` for new releases
+- **Changelog:** Automatically generated from commit history
+- **Versioning:** Follows [Semantic Versioning](https://semver.org/)
+- **Documentation:** See [Release Automation Guide](docs/RELEASE_AUTOMATION.md)
+
+**Latest Release:** Check [GitHub Releases](https://github.com/ApacheEcho/RouteForceRouting/releases) for the most recent version.
+
 ## 📄 **License**
 
 [Add your license information here]

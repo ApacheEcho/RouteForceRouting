@@ -26,3 +26,18 @@ logs/
 
 # OS files
 Thumbs.db
+
+# Build artifacts and distributions
+build/
+dist/
+*.egg-info/
+*.egg
+*.py[cod]
+*$py.class
+*.so
+
+# Release and deployment artifacts
+routeforce-*.tar.gz
+*.whl
+release_notes.md
+CHANGELOG_new.md

@@ -54,10 +54,10 @@ jobs:
     - name: Test Flask app import
       env:
         FLASK_ENV: testing
-        DATABASE_URL: sqlite:///:memory:
+        DATABASE_URL: "sqlite:///:memory:"
         REDIS_URL: ""
         SECRET_KEY: test-secret-key
-        RATELIMIT_STORAGE_URI: memory://
+        RATELIMIT_STORAGE_URI: "memory://"
       run: |
         # Test basic app functionality
         python -c "
@@ -72,10 +72,10 @@ jobs:
     - name: Run basic health checks
       env:
         FLASK_ENV: testing
-        DATABASE_URL: sqlite:///:memory:
+        DATABASE_URL: "sqlite:///:memory:"
         REDIS_URL: ""
         SECRET_KEY: test-secret-key
-        RATELIMIT_STORAGE_URI: memory://
+        RATELIMIT_STORAGE_URI: "memory://"
       run: |
         # Test if key modules can be imported
         python -c "
@@ -98,10 +98,10 @@ jobs:
     - name: Run available tests
       env:
         FLASK_ENV: testing
-        DATABASE_URL: sqlite:///:memory:
+        DATABASE_URL: "sqlite:///:memory:"
         REDIS_URL: ""
         SECRET_KEY: test-secret-key
-        RATELIMIT_STORAGE_URI: memory://
+        RATELIMIT_STORAGE_URI: "memory://"
       run: |
         # Run only tests that can pass without Redis
         python -m pytest --tb=short --maxfail=5 -x || echo "⚠️ Some tests failed, but continuing CI process"
@@ -153,8 +153,8 @@ jobs:
       env:
         FLASK_ENV: production
         SECRET_KEY: build-test-secret-key
-        DATABASE_URL: sqlite:///build_test.db
-        RATELIMIT_STORAGE_URI: memory://
+        DATABASE_URL: "sqlite:///build_test.db"
+        RATELIMIT_STORAGE_URI: "memory://"
       run: |
         # Test production-like build
         python -c "

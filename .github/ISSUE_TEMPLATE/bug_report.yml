@@ -1,0 +1,96 @@
+name: Bug Report
+description: File a bug report to help us improve
+title: "[BUG]: "
+labels: ["type/bug", "status/triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+  
+  - type: input
+    id: summary
+    attributes:
+      label: Bug Summary
+      description: Brief description of the bug
+      placeholder: ex. Route optimization fails for large datasets
+    validations:
+      required: true
+  
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How severe is this bug?
+      options:
+        - priority/critical
+        - priority/high
+        - priority/medium
+        - priority/low
+    validations:
+      required: true
+  
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which component is affected?
+      options:
+        - component/routing
+        - component/ui
+        - component/api
+        - component/database
+        - component/deployment
+        - component/mobile
+        - component/analytics
+      multiple: true
+  
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe what actually happened
+      placeholder: Tell us what you see!
+    validations:
+      required: true
+  
+  - type: textarea
+    id: expected
+    attributes:
+      label: What should have happened?
+      description: Describe the expected behavior
+      placeholder: Tell us what should happen!
+    validations:
+      required: true
+  
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior
+      placeholder: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+    validations:
+      required: true
+  
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Environment details
+      placeholder: |
+        - OS: [e.g. macOS, Windows, Linux]
+        - Browser: [e.g. Chrome, Safari]
+        - Version: [e.g. 1.2.3]
+        - Python version: [e.g. 3.11.0]
+      render: shell
+  
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: Please copy and paste any relevant log output
+      render: shell

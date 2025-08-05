@@ -1,0 +1,70 @@
+name: Documentation Request
+description: Request improvements or additions to documentation
+title: "[DOCS]: "
+labels: ["type/documentation", "status/triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve our documentation!
+  
+  - type: input
+    id: title
+    attributes:
+      label: Documentation Title
+      description: What documentation needs to be added or improved?
+      placeholder: ex. API endpoint documentation for route optimization
+    validations:
+      required: true
+  
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this documentation?
+      options:
+        - priority/critical
+        - priority/high
+        - priority/medium
+        - priority/low
+    validations:
+      required: true
+  
+  - type: dropdown
+    id: doc_type
+    attributes:
+      label: Documentation Type
+      description: What type of documentation is this?
+      options:
+        - API Documentation
+        - User Guide
+        - Developer Guide
+        - Installation Guide
+        - Tutorial
+        - Code Comments
+        - README Update
+      validations:
+        required: true
+  
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Detailed description of what documentation is needed
+      placeholder: Describe what documentation should be created or improved
+    validations:
+      required: true
+  
+  - type: textarea
+    id: current_state
+    attributes:
+      label: Current State
+      description: What documentation currently exists (if any)?
+      placeholder: Describe current documentation or note if none exists
+  
+  - type: textarea
+    id: target_audience
+    attributes:
+      label: Target Audience
+      description: Who is the intended audience for this documentation?
+      placeholder: ex. End users, developers, system administrators

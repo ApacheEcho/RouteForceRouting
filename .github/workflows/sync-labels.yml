@@ -1,0 +1,71 @@
+name: Sync GitHub Labels
+
+on:
+  push:
+    paths:
+      - '.github/labels.yml'
+      - 'scripts/manage_labels.py'
+    branches:
+      - main
+      - master
+  workflow_dispatch:  # Allow manual trigger
+    inputs:
+      dry_run:
+        description: 'Dry run (preview changes only)'
+        required: false
+        default: 'false'
+        type: boolean
+      cleanup:
+        description: 'Remove deprecated labels'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  sync-labels:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        pip install PyGithub PyYAML
+    
+    - name: Validate labels configuration
+      run: |
+        python scripts/manage_labels.py validate
+    
+    - name: Sync labels (dry run)
+      if: github.event.inputs.dry_run == 'true' || github.event_name == 'pull_request'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        python scripts/manage_labels.py sync --dry-run ${{ github.event.inputs.cleanup == 'true' && '--cleanup' || '' }}
+    
+    - name: Sync labels (apply changes)
+      if: github.event.inputs.dry_run != 'true' && github.event_name != 'pull_request'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        python scripts/manage_labels.py sync ${{ github.event.inputs.cleanup == 'true' && '--cleanup' || '' }}
+    
+    - name: Generate labels documentation
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        python scripts/manage_labels.py export --format markdown --output .github/LABELS.md
+    
+    - name: Commit documentation update
+      if: github.event.inputs.dry_run != 'true' && github.event_name != 'pull_request'
+      uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+        commit_message: 'docs: update labels documentation [skip ci]'
+        file_pattern: '.github/LABELS.md'
+        commit_author: 'github-actions[bot] <github-actions[bot]@users.noreply.github.com>'

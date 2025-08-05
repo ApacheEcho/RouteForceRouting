@@ -174,6 +174,16 @@ routing/
 4. Add tests if applicable
 5. Submit a pull request
 
+### 🏷️ **Issue Labels**
+
+We use a comprehensive labeling system to organize issues and PRs:
+- **Priority**: `priority/critical`, `priority/high`, `priority/medium`, `priority/low`
+- **Type**: `type/bug`, `type/feature`, `type/documentation`, etc.
+- **Status**: `status/triage`, `status/ready`, `status/in-progress`, `status/review`
+- **Component**: `component/routing`, `component/ui`, `component/api`, etc.
+
+See [Labels Documentation](.github/LABELS_README.md) for complete details.
+
 ## 📄 **License**
 
 [Add your license information here]

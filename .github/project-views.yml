@@ -2,19 +2,26 @@ views:
   - name: "Sprint Board"
     layout: board
     columns:
-      - name: "Backlog"
+      - name: "Triage"
         filters:
           - "status:open"
-          - "-label:in-progress"
-          - "-label:review"
+          - "label:status/triage"
+      - name: "Ready"
+        filters:
+          - "status:open" 
+          - "label:status/ready"
       - name: "In Progress"
         filters:
           - "status:open"
-          - "label:in-progress"
+          - "label:status/in-progress"
       - name: "Review"
         filters:
           - "status:open"
-          - "label:review"
+          - "label:status/review"
+      - name: "Blocked"
+        filters:
+          - "status:open"
+          - "label:status/blocked"
       - name: "Done"
         filters:
           - "status:closed"
@@ -30,3 +37,27 @@ views:
     sort:
       - field: priority
         direction: desc
+  
+  - name: "Component View"
+    layout: board
+    columns:
+      - name: "Routing"
+        filters:
+          - "status:open"
+          - "label:component/routing"
+      - name: "UI/Frontend"
+        filters:
+          - "status:open"
+          - "label:component/ui"
+      - name: "API/Backend"
+        filters:
+          - "status:open"
+          - "label:component/api"
+      - name: "Mobile"
+        filters:
+          - "status:open"
+          - "label:component/mobile"
+      - name: "Infrastructure"
+        filters:
+          - "status:open"
+          - "label:component/deployment"

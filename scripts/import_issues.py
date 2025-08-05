@@ -49,10 +49,27 @@ def import_issues():
                 
                 # Determine priority and labels
                 priority = row.get('priority', 'medium').lower()
-                labels = ['imported', 'task', priority]
+                # Map old priority format to new standardized format
+                priority_mapping = {
+                    'critical': 'priority/critical',
+                    'high': 'priority/high', 
+                    'medium': 'priority/medium',
+                    'low': 'priority/low'
+                }
+                priority_label = priority_mapping.get(priority, 'priority/medium')
                 
-                if row.get('type'):
-                    labels.append(row.get('type'))
+                labels = ['imported', 'type/feature', 'status/triage', priority_label]
+                
+                # Add component labels based on task type
+                task_type = row.get('type', '').lower()
+                if 'route' in task_type or 'optimization' in task_type:
+                    labels.append('component/routing')
+                elif 'ui' in task_type or 'dashboard' in task_type:
+                    labels.append('component/ui')
+                elif 'api' in task_type or 'backend' in task_type:
+                    labels.append('component/api')
+                elif 'mobile' in task_type or 'app' in task_type:
+                    labels.append('component/mobile')
                 
                 # Create issue body
                 body = f"""

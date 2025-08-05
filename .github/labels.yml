@@ -1,0 +1,162 @@
+# GitHub Labels Configuration
+# Comprehensive label system for priority, type, status, and component management
+
+# Priority Labels (P0-P3)
+priority:
+  - name: "priority/critical"
+    color: "B60205"
+    description: "Critical priority - immediate attention required"
+    aliases: ["P0", "critical", "urgent"]
+  
+  - name: "priority/high"
+    color: "D93F0B"
+    description: "High priority - should be addressed soon"
+    aliases: ["P1", "high", "important"]
+  
+  - name: "priority/medium"
+    color: "FBCA04"
+    description: "Medium priority - normal timeline"
+    aliases: ["P2", "medium", "medium-priority"]
+  
+  - name: "priority/low"
+    color: "0E8A16"
+    description: "Low priority - when time permits"
+    aliases: ["P3", "low", "minor"]
+
+# Type Labels
+type:
+  - name: "type/bug"
+    color: "D73A4A"
+    description: "Something isn't working"
+    aliases: ["bug", "defect", "issue"]
+  
+  - name: "type/feature"
+    color: "A2EEEF"
+    description: "New feature or request"
+    aliases: ["enhancement", "feature-request", "new-feature"]
+  
+  - name: "type/documentation"
+    color: "0075CA"
+    description: "Improvements or additions to documentation"
+    aliases: ["docs", "documentation"]
+  
+  - name: "type/refactor"
+    color: "5319E7"
+    description: "Code refactoring and improvements"
+    aliases: ["refactor", "cleanup", "tech-debt"]
+  
+  - name: "type/performance"
+    color: "F9D0C4"
+    description: "Performance improvements"
+    aliases: ["performance", "optimization", "speed"]
+  
+  - name: "type/security"
+    color: "FF0000"
+    description: "Security related issues"
+    aliases: ["security", "vulnerability", "cve"]
+  
+  - name: "type/testing"
+    color: "BFD4F2"
+    description: "Testing related changes"
+    aliases: ["test", "testing", "qa"]
+
+# Status Labels
+status:
+  - name: "status/triage"
+    color: "FEF2C0"
+    description: "Needs initial review and categorization"
+    aliases: ["triage", "needs-triage"]
+  
+  - name: "status/ready"
+    color: "C2E0C6"
+    description: "Ready to work on"
+    aliases: ["ready", "backlog"]
+  
+  - name: "status/in-progress"
+    color: "1D76DB"
+    description: "Currently being worked on"
+    aliases: ["in-progress", "wip", "working"]
+  
+  - name: "status/review"
+    color: "0052CC"
+    description: "In review/waiting for review"
+    aliases: ["review", "needs-review", "pr-review"]
+  
+  - name: "status/blocked"
+    color: "B60205"
+    description: "Blocked by external dependency"
+    aliases: ["blocked", "waiting", "dependency"]
+  
+  - name: "status/on-hold"
+    color: "5A6A85"
+    description: "Work paused"
+    aliases: ["on-hold", "paused", "suspended"]
+
+# Component Labels
+component:
+  - name: "component/routing"
+    color: "8B949E"
+    description: "Route optimization and algorithms"
+    aliases: ["routing", "algorithm", "optimization"]
+  
+  - name: "component/ui"
+    color: "7057FF"
+    description: "User interface and frontend"
+    aliases: ["ui", "frontend", "dashboard"]
+  
+  - name: "component/api"
+    color: "006B75"
+    description: "API and backend services"
+    aliases: ["api", "backend", "service"]
+  
+  - name: "component/database"
+    color: "0E8A16"
+    description: "Database related changes"
+    aliases: ["database", "db", "data"]
+  
+  - name: "component/deployment"
+    color: "F9D0C4"
+    description: "Deployment and infrastructure"
+    aliases: ["deployment", "infra", "devops", "ci-cd"]
+  
+  - name: "component/mobile"
+    color: "E99695"
+    description: "Mobile application components"
+    aliases: ["mobile", "app", "ios", "android"]
+  
+  - name: "component/analytics"
+    color: "BFD4F2"
+    description: "Analytics and monitoring"
+    aliases: ["analytics", "monitoring", "metrics"]
+
+# Special Labels
+special:
+  - name: "good-first-issue"
+    color: "7057FF"
+    description: "Good for newcomers"
+    aliases: ["beginner", "newcomer"]
+  
+  - name: "help-wanted"
+    color: "008672"
+    description: "Extra attention is needed"
+    aliases: ["help-wanted", "community"]
+  
+  - name: "duplicate"
+    color: "CFD3D7"
+    description: "This issue or pull request already exists"
+    aliases: ["duplicate", "dup"]
+  
+  - name: "invalid"
+    color: "E4E669"
+    description: "This doesn't seem right"
+    aliases: ["invalid", "wontfix"]
+  
+  - name: "imported"
+    color: "C5DEF5"
+    description: "Auto-imported from external system"
+    aliases: ["imported", "auto-created"]
+  
+  - name: "breaking-change"
+    color: "B60205"
+    description: "This introduces breaking changes"
+    aliases: ["breaking", "breaking-change"]

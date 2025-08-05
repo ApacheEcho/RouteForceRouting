@@ -18,6 +18,31 @@ A route optimization engine for field execution teams. This application helps op
 - ✅ **Error Handling**: Improved error handling and user experience
 - ✅ **User Interface**: Better CLI with progress indicators and cache statistics
 
+## 🔒 **Development Workflow**
+
+This repository uses branch protection rules to ensure code quality and security:
+
+- **Protected Branch**: `main` branch is protected with required status checks
+- **Pull Request Required**: All changes to main must go through pull requests
+- **Status Checks**: Automated linting, testing, and security checks required
+- **Code Review**: Pull request approval required before merging
+
+### Required Status Checks
+- `lint`: Code formatting and style checks
+- `test`: Multi-version Python testing (3.11, 3.12)
+- `quality-gate`: Critical syntax and import validation
+- `security`: Vulnerability scanning
+
+### Development Process
+1. Create feature branch from `main`
+2. Make changes and commit with conventional commit messages
+3. Create pull request to `main` branch
+4. Ensure all status checks pass
+5. Get code review approval
+6. Merge when all requirements are met
+
+See [BRANCH_PROTECTION_GUIDE.md](BRANCH_PROTECTION_GUIDE.md) for detailed configuration instructions.
+
 ## 📋 **Current Status**
 
 This is a **pre-alpha** version with the following capabilities:

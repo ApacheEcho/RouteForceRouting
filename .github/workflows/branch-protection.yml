@@ -1,0 +1,91 @@
+name: Branch Protection Checks
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  # Required status check for branch protection
+  quality-gate:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 black isort pytest
+          # Install minimal dependencies for syntax checking
+          pip install flask || true
+      
+      - name: Check critical syntax errors
+        run: |
+          # This must pass for branch protection
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          if [ $? -ne 0 ]; then
+            echo "❌ Critical syntax errors found - blocking merge"
+            exit 1
+          fi
+          echo "✅ No critical syntax errors found"
+      
+      - name: Verify basic imports
+        run: |
+          # Test that core modules can be imported
+          python -c "import routing; print('✅ Core modules importable')" || {
+            echo "❌ Core module import failed - blocking merge"
+            exit 1
+          }
+      
+      - name: Check for secrets in code
+        run: |
+          # Basic check for potential secrets
+          if grep -r "api_key\|password\|secret" --include="*.py" . | grep -v test | grep -v example; then
+            echo "⚠️  Potential secrets found in code - please review"
+          fi
+          echo "✅ Basic security check completed"
+
+  # Require that PR has appropriate title
+  pr-title-check:
+    name: PR Title Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Check PR title format
+        run: |
+          title="${{ github.event.pull_request.title }}"
+          if [[ ! "$title" =~ ^(feat|fix|docs|style|refactor|test|chore|security)(\(.+\))?: .+ ]]; then
+            echo "❌ PR title must follow conventional commits format: type(scope): description"
+            echo "Examples: feat: add new feature, fix(auth): resolve login issue"
+            exit 1
+          fi
+          echo "✅ PR title follows conventional commits format"
+
+  # Ensure branch is up to date
+  branch-freshness:
+    name: Branch Freshness
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Check if branch is fresh
+        run: |
+          git fetch origin main
+          behind_count=$(git rev-list --count HEAD..origin/main)
+          if [ $behind_count -gt 5 ]; then
+            echo "⚠️  Branch is $behind_count commits behind main - consider updating"
+          else
+            echo "✅ Branch is reasonably up to date"
+          fi

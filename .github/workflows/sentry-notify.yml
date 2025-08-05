@@ -1,0 +1,17 @@
+name: Notify Sentry
+
+on:
+  issues:
+    types: [closed]
+
+jobs:
+  notify-sentry:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Sentry
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: |
+          curl -X POST https://sentry.io/api/0/projects/<org_slug>/<project_slug>/issues/ \
+          -H "Authorization: Bearer $SENTRY_AUTH_TOKEN" \
+          -d '{"status": "resolved"}'

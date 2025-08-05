@@ -1,56 +1,70 @@
-(build_tasks/auto_todo.md)
-- [ ] Build route scoring integration into main route pipeline
-- [ ] Add user-facing score breakdown UI
-- [ ] Implement QA metrics and auto-correction logic
-- [ ] Integrate summary logs into dashboard
-- [ ] Finalize Playbook GUI injection logic
-- [ ] Wire preflight QA checklist into route generation
-- [ ] Improve routing traffic logic (Google Maps/OSRM)
-- [ ] Add error notifications for broken routes
+"""Route logging functionality for tracking and debugging route generation."""
 
-(scripts/autobuild.py)
-import subprocess
 import os
+import json
+from datetime import datetime
+from typing import Dict, Any, Optional
 
-TODO_PATH = "build_tasks/auto_todo.md"
 
-def get_next_task():
-    with open(TODO_PATH, "r") as f:
-        for line in f:
-            if line.startswith("- [ ]"):
-                return line.strip().replace("- [ ] ", "")
-    return None
+def log_route_score(route_data: Dict[str, Any], log_file: Optional[str] = None) -> None:
+    """
+    Log route scoring data for analysis and debugging.
+    
+    Args:
+        route_data: Dictionary containing route information and scores
+        log_file: Optional path to log file, defaults to timestamped log
+    """
+    if log_file is None:
+        log_dir = "logs"
+        os.makedirs(log_dir, exist_ok=True)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        log_file = os.path.join(log_dir, f"route_scores_{timestamp}.json")
+    
+    # Ensure the directory exists
+    os.makedirs(os.path.dirname(log_file), exist_ok=True)
+    
+    # Prepare log entry
+    log_entry = {
+        "timestamp": datetime.now().isoformat(),
+        "route_data": route_data
+    }
+    
+    # Write to log file
+    try:
+        # Read existing data if file exists
+        existing_data = []
+        if os.path.exists(log_file):
+            with open(log_file, 'r') as f:
+                try:
+                    existing_data = json.load(f)
+                    if not isinstance(existing_data, list):
+                        existing_data = [existing_data]
+                except json.JSONDecodeError:
+                    existing_data = []
+        
+        # Append new entry
+        existing_data.append(log_entry)
+        
+        # Write back to file
+        with open(log_file, 'w') as f:
+            json.dump(existing_data, f, indent=2)
+            
+    except Exception as e:
+        print(f"Warning: Failed to write to log file {log_file}: {e}")
 
-def mark_task_done(task):
-    with open(TODO_PATH, "r") as f:
-        lines = f.readlines()
-    with open(TODO_PATH, "w") as f:
-        for line in lines:
-            if task in line and "- [ ]" in line:
-                f.write(line.replace("- [ ]", "- [x]"))
-            else:
-                f.write(line)
 
-def run_copilot_autobuild():
-    task = get_next_task()
-    if not task:
-        print("✅ All tasks completed.")
-        return
-
-    print(f"🔧 Running Copilot on task: {task}")
-
-    # Prompt Copilot indirectly by opening the file with an embedded comment prompt
-    prompt = f'# TASK: {task}\n# Please generate complete code for this task.\n'
-    with open("copilot_prompt.py", "w") as f:
-        f.write(prompt)
-
-    subprocess.run(["code", "copilot_prompt.py"])
-    print("✅ Auto-confirm enabled. Proceeding with commit and push...")
-
-    os.system(f'git add . && git commit -m "Auto: {task}" && git push')
-
-    mark_task_done(task)
-    run_copilot_autobuild()
-
-if __name__ == "__main__":
-    run_copilot_autobuild()
+def get_route_logs(log_file: str) -> list:
+    """
+    Read route logs from a log file.
+    
+    Args:
+        log_file: Path to the log file
+        
+    Returns:
+        List of log entries
+    """
+    try:
+        with open(log_file, 'r') as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []

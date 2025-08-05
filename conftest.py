@@ -34,7 +34,8 @@ def pytest_runtest_makereport(item, call):
 @pytest.fixture(autouse=True)
 def timeout_management(request):
     yield
-    if request.node.retry_count > 0:
+    # Check if retry_count attribute exists before accessing it
+    if hasattr(request.node, 'retry_count') and request.node.retry_count > 0:
         logging.info(
             f"Test {request.node.nodeid} completed after {request.node.retry_count + 1} attempts."
         )

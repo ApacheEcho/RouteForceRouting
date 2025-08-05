@@ -1,0 +1,11 @@
+name: Morning Automation
+on:
+  schedule:
+    - cron: '55 9 * * *'  # 4:55 AM EST
+  workflow_dispatch:
+jobs:
+  prep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: echo "Morning workspace ready!"

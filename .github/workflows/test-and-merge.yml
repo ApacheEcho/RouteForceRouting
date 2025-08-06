@@ -1,0 +1,26 @@
+# .github/workflows/test-and-merge.yml – PR #86
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+jobs:
+  test-and-merge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+      - name: Install dependencies
+        working-directory: ./RouteForceRouting
+        run: npm install
+      - name: Run tests
+        working-directory: ./RouteForceRouting
+        run: npm test
+      - name: Auto-merge Dependabot PR
+        uses: pascalgn/automerge-action@v0.14.3
+        with:
+          mergeMethod: squash

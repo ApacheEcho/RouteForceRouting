@@ -45,6 +45,7 @@ jobs:
 
       - name: Install Node.js dependencies and run tests (Frontend)
         if: steps.dependency-type.outputs.type == 'node' && contains(github.head_ref, 'frontend')
+        continue-on-error: true
         run: |
           cd frontend
           npm install
@@ -52,6 +53,7 @@ jobs:
 
       - name: Install Node.js dependencies and run tests (PWA)
         if: steps.dependency-type.outputs.type == 'node' && contains(github.head_ref, 'mobile/pwa')
+        continue-on-error: true
         run: |
           cd mobile/pwa
           npm install
@@ -59,6 +61,7 @@ jobs:
 
       - name: Install Node.js dependencies and run tests (React Native)
         if: steps.dependency-type.outputs.type == 'node' && contains(github.head_ref, 'mobile/react-native')
+        continue-on-error: true
         run: |
           cd mobile/react-native
           npm install

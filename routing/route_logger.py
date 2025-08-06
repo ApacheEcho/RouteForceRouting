@@ -1,14 +1,7 @@
-(build_tasks/auto_todo.md)
-- [ ] Build route scoring integration into main route pipeline
-- [ ] Add user-facing score breakdown UI
-- [ ] Implement QA metrics and auto-correction logic
-- [ ] Integrate summary logs into dashboard
-- [ ] Finalize Playbook GUI injection logic
-- [ ] Wire preflight QA checklist into route generation
-- [ ] Improve routing traffic logic (Google Maps/OSRM)
-- [ ] Add error notifications for broken routes
-
-(scripts/autobuild.py)
+#!/usr/bin/env python3
+"""
+Route logging and scoring functionality
+"""
 import subprocess
 import os
 

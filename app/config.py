@@ -67,6 +67,11 @@ class Config:
         os.environ.get("GOOGLE_MAPS_CACHE_TTL", "3600")
     )  # 1 hour
 
+    # Auto-commit service configuration
+    AUTO_COMMIT_ENABLED = os.environ.get("AUTO_COMMIT_ENABLED", "true").lower() == "true"
+    AUTO_COMMIT_INTERVAL_MINUTES = int(os.environ.get("AUTO_COMMIT_INTERVAL_MINUTES", "10"))
+    AUTO_COMMIT_WIP_BRANCH = os.environ.get("AUTO_COMMIT_WIP_BRANCH", "auto-wip")
+
     @staticmethod
     def init_app(app) -> None:
         """Initialize app with configuration"""

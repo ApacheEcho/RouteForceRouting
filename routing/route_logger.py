@@ -29,7 +29,8 @@ def log_route_score(score_result: Any, log_file: Optional[str] = None) -> None:
     log_entry += "\n"
     
     # Ensure log directory exists
-    os.makedirs(os.path.dirname(log_file) if os.path.dirname(log_file) else '.', exist_ok=True)
+    log_dir = os.path.dirname(log_file)
+    os.makedirs(log_dir if log_dir else '.', exist_ok=True)
     
     # Write to log file
     with open(log_file, 'a', encoding='utf-8') as f:

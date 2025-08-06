@@ -42,34 +42,124 @@ def get_current_user_id():
 def create_route():
     """
     Create a new route via API with database persistence
-
-    Expected JSON payload:
-    {
-        "stores": [...],
-        "constraints": {...},
-        "options": {
-            "algorithm": "default|genetic|simulated_annealing|multi_objective",
-            "ga_population_size": 100,
-            "ga_generations": 500,
-            "ga_mutation_rate": 0.02,
-            "ga_crossover_rate": 0.8,
-            "ga_elite_size": 20,
-            "ga_tournament_size": 3,
-            "sa_initial_temperature": 1000.0,
-            "sa_final_temperature": 0.1,
-            "sa_cooling_rate": 0.99,
-            "sa_max_iterations": 10000,
-            "sa_iterations_per_temp": 100,
-            "sa_reheat_threshold": 1000,
-            "sa_min_improvement_threshold": 0.001,
-            "mo_objectives": "distance,time",
-            "mo_population_size": 100,
-            "mo_generations": 200,
-            "mo_mutation_rate": 0.1,
-            "mo_crossover_rate": 0.9,
-            "mo_tournament_size": 2
-        }
-    }
+    ---
+    tags:
+      - Routes
+    summary: Create optimized route
+    description: Create a new route with comprehensive optimization options and database persistence
+    parameters:
+      - name: route_request
+        in: body
+        required: true
+        schema:
+          type: object
+          required:
+            - stores
+          properties:
+            stores:
+              type: array
+              description: List of stores/locations to visit
+              items:
+                type: object
+                required:
+                  - name
+                  - address
+                properties:
+                  name:
+                    type: string
+                    example: "Store A"
+                  address:
+                    type: string
+                    example: "123 Main St, New York, NY 10001"
+                  priority:
+                    type: integer
+                    example: 1
+                  time_window:
+                    type: object
+                    properties:
+                      start:
+                        type: string
+                        format: time
+                        example: "09:00"
+                      end:
+                        type: string
+                        format: time
+                        example: "17:00"
+            constraints:
+              type: object
+              description: Route constraints and preferences
+              properties:
+                max_distance:
+                  type: number
+                  example: 100.0
+                max_time:
+                  type: number
+                  example: 480
+                vehicle_capacity:
+                  type: number
+                  example: 1000
+            options:
+              type: object
+              description: Optimization options
+              properties:
+                algorithm:
+                  type: string
+                  enum: ["nearest_neighbor", "genetic", "simulated_annealing", "multi_objective"]
+                  example: "genetic"
+                traffic_aware:
+                  type: boolean
+                  example: true
+                optimize_for:
+                  type: string
+                  enum: ["time", "distance", "fuel"]
+                  example: "time"
+    responses:
+      200:
+        description: Route created successfully
+        schema:
+          type: object
+          properties:
+            success:
+              type: boolean
+              example: true
+            data:
+              type: object
+              properties:
+                route_id:
+                  type: string
+                  example: "route_123abc"
+                optimized_route:
+                  type: array
+                  items:
+                    type: object
+                metrics:
+                  type: object
+                  properties:
+                    total_distance:
+                      type: number
+                      example: 45.6
+                    total_time:
+                      type: number
+                      example: 120.5
+                    algorithm_used:
+                      type: string
+                      example: "genetic"
+            timestamp:
+              type: string
+              format: date-time
+      400:
+        description: Bad request - validation failed
+        schema:
+          type: object
+          properties:
+            success:
+              type: boolean
+              example: false
+            error:
+              type: string
+              example: "Invalid stores data"
+      500:
+        description: Internal server error
     """
     # AUTO-PILOT: Enhanced validation and error handling
     data = validate_json_request(required_fields=["stores"])

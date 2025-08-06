@@ -14,6 +14,7 @@ from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_socketio import SocketIO
+from flasgger import Swagger
 
 # Initialize extensions
 cache = Cache()
@@ -21,6 +22,7 @@ limiter = Limiter(
     key_func=get_remote_address, default_limits=["200 per day", "50 per hour"]
 )
 socketio = SocketIO(cors_allowed_origins="*", logger=True, engineio_logger=True)
+swagger = Swagger()
 
 
 def create_app(config_name: str = "development") -> Flask:
@@ -56,6 +58,65 @@ def create_app(config_name: str = "development") -> Flask:
         ],
     )
     cache.init_app(app)
+
+    # Initialize API documentation with Swagger
+    swagger_template = {
+        "swagger": "2.0",
+        "info": {
+            "title": "RouteForce Routing API",
+            "description": "API documentation for RouteForce Routing application - A comprehensive route optimization platform for field execution teams",
+            "version": "1.0.0",
+            "contact": {
+                "name": "RouteForce Support",
+                "url": "https://github.com/ApacheEcho/RouteForceRouting"
+            }
+        },
+        "host": "localhost:8000",
+        "basePath": "/",
+        "schemes": ["http", "https"],
+        "tags": [
+            {
+                "name": "Analytics",
+                "description": "Analytics and monitoring endpoints"
+            },
+            {
+                "name": "Mobile",
+                "description": "Mobile app specific endpoints"
+            },
+            {
+                "name": "Routes",
+                "description": "Route optimization and management"
+            },
+            {
+                "name": "Traffic",
+                "description": "Traffic data and routing"
+            }
+        ],
+        "securityDefinitions": {
+            "ApiKeyAuth": {
+                "type": "apiKey",
+                "in": "header",
+                "name": "X-API-Key"
+            }
+        }
+    }
+    
+    swagger_config = {
+        "headers": [],
+        "specs": [
+            {
+                "endpoint": "apispec_1",
+                "route": "/api/swagger.json",
+                "rule_filter": lambda rule: True,
+                "model_filter": lambda tag: True,
+            }
+        ],
+        "static_url_path": "/flasgger_static",
+        "swagger_ui": True,
+        "specs_route": "/api/docs"
+    }
+    
+    swagger = Swagger(app, config=swagger_config, template=swagger_template)
 
     # Initialize JWT authentication
     from app.auth_system import init_jwt
@@ -259,6 +320,7 @@ def register_blueprints(app: Flask) -> None:
     from app.monitoring_api import monitoring_bp
     from app.routes.api import api_bp
     from app.routes.dashboard import dashboard_bp
+    from app.routes.docs import docs_bp
     from app.routes.enhanced_dashboard import enhanced_dashboard_bp
     from app.routes.enterprise_dashboard import enterprise_bp
     from app.routes.main_enhanced import main_bp  # Use enhanced main blueprint
@@ -272,6 +334,7 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(metrics_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
+    app.register_blueprint(docs_bp)
     app.register_blueprint(enhanced_dashboard_bp)
     app.register_blueprint(enterprise_bp)
     app.register_blueprint(voice_dashboard_bp)  # Voice dashboard

@@ -18,13 +18,13 @@ class TestProjectAutomation:
     @pytest.fixture
     def github_workflows_dir(self):
         """Get the GitHub workflows directory."""
-        repo_root = Path(__file__).parent.parent
+        repo_root = Path(__file__).parent
         return repo_root / ".github" / "workflows"
     
     @pytest.fixture
     def project_views_file(self):
         """Get the project views configuration file."""
-        repo_root = Path(__file__).parent.parent
+        repo_root = Path(__file__).parent
         return repo_root / ".github" / "project-views.yml"
     
     def test_project_automation_workflow_exists(self, github_workflows_dir):

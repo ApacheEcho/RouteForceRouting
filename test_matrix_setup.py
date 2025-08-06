@@ -37,7 +37,7 @@ def test_routing_module():
     """Test that our routing module works."""
     try:
         # Add the project root to Python path
-        sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
         from routing.route_logger import log_route_score
         assert callable(log_route_score), "log_route_score should be callable"
     except ImportError as e:

@@ -68,39 +68,23 @@ def create_app(config_name: str = "development") -> Flask:
             "version": "1.0.0",
             "contact": {
                 "name": "RouteForce Support",
-                "url": "https://github.com/ApacheEcho/RouteForceRouting"
-            }
+                "url": "https://github.com/ApacheEcho/RouteForceRouting",
+            },
         },
         "host": "localhost:8000",
         "basePath": "/",
         "schemes": ["http", "https"],
         "tags": [
-            {
-                "name": "Analytics",
-                "description": "Analytics and monitoring endpoints"
-            },
-            {
-                "name": "Mobile",
-                "description": "Mobile app specific endpoints"
-            },
-            {
-                "name": "Routes",
-                "description": "Route optimization and management"
-            },
-            {
-                "name": "Traffic",
-                "description": "Traffic data and routing"
-            }
+            {"name": "Analytics", "description": "Analytics and monitoring endpoints"},
+            {"name": "Mobile", "description": "Mobile app specific endpoints"},
+            {"name": "Routes", "description": "Route optimization and management"},
+            {"name": "Traffic", "description": "Traffic data and routing"},
         ],
         "securityDefinitions": {
-            "ApiKeyAuth": {
-                "type": "apiKey",
-                "in": "header",
-                "name": "X-API-Key"
-            }
-        }
+            "ApiKeyAuth": {"type": "apiKey", "in": "header", "name": "X-API-Key"}
+        },
     }
-    
+
     swagger_config = {
         "headers": [],
         "specs": [
@@ -113,9 +97,9 @@ def create_app(config_name: str = "development") -> Flask:
         ],
         "static_url_path": "/flasgger_static",
         "swagger_ui": True,
-        "specs_route": "/api/docs"
+        "specs_route": "/api/docs",
     }
-    
+
     swagger = Swagger(app, config=swagger_config, template=swagger_template)
 
     # Initialize JWT authentication
@@ -283,7 +267,7 @@ def create_app(config_name: str = "development") -> Flask:
 
     # Initialize auto-commit service for background code backup
     from app.services.auto_commit_service import start_auto_commit_service
-    
+
     if app.config.get("AUTO_COMMIT_ENABLED", True):
         start_auto_commit_service()
         logging.info("Auto-commit background service started")

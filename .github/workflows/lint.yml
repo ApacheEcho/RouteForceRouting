@@ -24,13 +24,17 @@ jobs:
         pip install black flake8 mypy "isort[colors]"
     
     - name: Run black
+      continue-on-error: true
       run: black --check . || echo "⚠️ Black found formatting issues but continuing..."
     
     - name: Run flake8
+      continue-on-error: true
       run: flake8 . || echo "⚠️ Flake8 found issues but continuing..."
     
     - name: Run mypy
+      continue-on-error: true
       run: mypy . --ignore-missing-imports --no-strict-optional || echo "⚠️ MyPy found issues but continuing..."
     
     - name: Run isort
+      continue-on-error: true
       run: isort --check-only --diff --color . || echo "⚠️ isort found import order issues but continuing..."

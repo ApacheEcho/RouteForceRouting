@@ -86,43 +86,60 @@ jobs:
           echo "Current directory: $(pwd)"
           echo "Frontend directory exists: $(test -d frontend && echo 'yes' || echo 'no')"
 
-      - name: Cache Node dependencies
+      - name: Cache Node dependencies (multiple dirs)
         uses: actions/cache@v3
         with:
-          path: frontend/node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('frontend/package-lock.json') }}
+          path: |
+            frontend/node_modules
+            client/node_modules
+            mobile/pwa/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}
 
-      - name: Install and build frontend
+      - name: Install and build all frontend applications
         continue-on-error: true
         run: |
-          if [ -d "frontend" ] && [ -f "frontend/package.json" ]; then
-            echo "📁 Frontend directory found, installing dependencies..."
-            cd frontend
+          # Function to install and build a frontend directory
+          install_and_build() {
+            local dir=$1
+            local name=$2
             
-            # Clear npm cache to prevent enoent errors
-            npm cache clean --force || echo "Cache clean failed, continuing..."
-            
-            # Remove node_modules and package-lock.json to prevent conflicts
-            rm -rf node_modules package-lock.json || echo "No existing modules to remove"
-            
-            # Install fresh dependencies
-            npm install --prefer-offline --no-audit --legacy-peer-deps || {
-              echo "⚠️ npm install failed, trying with different flags..."
-              npm install --no-audit --legacy-peer-deps --force || {
-                echo "⚠️ All npm install attempts failed, skipping frontend build"
-                exit 0
+            if [ -d "$dir" ] && [ -f "$dir/package.json" ]; then
+              echo "📁 $name directory found, installing dependencies..."
+              cd "$dir"
+              
+              # Clear npm cache to prevent enoent errors
+              npm cache clean --force || echo "Cache clean failed, continuing..."
+              
+              # Remove node_modules and package-lock.json to prevent conflicts
+              rm -rf node_modules package-lock.json || echo "No existing modules to remove"
+              
+              # Install fresh dependencies
+              npm install --prefer-offline --no-audit --legacy-peer-deps || {
+                echo "⚠️ $name npm install failed, trying with different flags..."
+                npm install --no-audit --legacy-peer-deps --force || {
+                  echo "⚠️ All $name npm install attempts failed, skipping $name build"
+                  cd ..
+                  return 0
+                }
               }
-            }
-            
-            # Build the frontend
-            npm run build || {
-              echo "⚠️ Frontend build failed, but continuing deployment..."
-              exit 0
-            }
-            echo "✅ Frontend built successfully"
-          else
-            echo "Frontend directory not found or missing package.json, skipping frontend build"
-          fi
+              
+              # Build the application
+              npm run build || {
+                echo "⚠️ $name build failed, but continuing deployment..."
+                cd ..
+                return 0
+              }
+              echo "✅ $name built successfully"
+              cd ..
+            else
+              echo "$name directory not found or missing package.json, skipping $name build"
+            fi
+          }
+          
+          # Install and build all frontend applications
+          install_and_build "frontend" "Frontend"
+          install_and_build "client" "Client"
+          install_and_build "mobile/pwa" "Mobile PWA"
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -130,6 +147,8 @@ jobs:
           name: production-build
           path: |
             frontend/dist/
+            client/dist/
+            mobile/pwa/dist/
             app/
             *.py
             requirements.txt

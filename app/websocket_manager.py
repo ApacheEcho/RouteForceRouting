@@ -11,12 +11,13 @@ import json
 import logging
 from dataclasses import dataclass, asdict
 from threading import Lock
+from typing import Dict, Any
 import uuid
 
 # Thread-safe storage for active connections and data
-active_connections = {}
-route_updates = {}
-driver_locations = {}
+active_connections: Dict[str, Any] = {}
+route_updates: Dict[str, Any] = {}
+driver_locations: Dict[str, Any] = {}
 connection_lock = Lock()
 
 

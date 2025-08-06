@@ -113,7 +113,7 @@ class LegacyRoutingMetrics:
     clusters_used: int = 0
     distance_saved: float = 0.0
     algorithm_used: str = "default"
-    algorithm_metrics: Dict[str, Any] = None
+    algorithm_metrics: Optional[Dict[str, Any]] = None
 
 
 # Create aliases for backward compatibility

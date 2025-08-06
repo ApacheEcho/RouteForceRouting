@@ -19,7 +19,8 @@ def log_route_score(score_result: Any, log_file: Optional[str] = None) -> None:
     timestamp = datetime.now().isoformat()
     
     # Create log entry
-    log_entry = f"[{timestamp}] Score: {score_result.score}"
+    score = getattr(score_result, 'score', None)
+    log_entry = f"[{timestamp}] Score: {score if score is not None else 'N/A'}"
     
     # Add additional details if available
     if hasattr(score_result, 'details'):

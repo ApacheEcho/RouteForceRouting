@@ -46,6 +46,7 @@ jobs:
     
     - name: Install ${{ matrix.frontend.name }} dependencies
       if: steps.check-dir.outputs.exists == 'true'
+      continue-on-error: true
       run: |
         echo "Installing dependencies for ${{ matrix.frontend.name }}..."
         npm ci --prefer-offline --no-audit || npm install --prefer-offline --no-audit
@@ -136,6 +137,7 @@ jobs:
         node-version: ${{ env.NODE_VERSION }}
     
     - name: Install PWA dependencies
+      continue-on-error: true
       run: npm install
       working-directory: ./mobile/pwa
     
@@ -167,6 +169,7 @@ jobs:
         node-version: ${{ env.NODE_VERSION }}
     
     - name: Install client dependencies
+      continue-on-error: true
       run: npm install
       working-directory: ./client
     

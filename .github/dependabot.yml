@@ -1,0 +1,127 @@
+version: 2
+updates:
+  # Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "09:00"
+      timezone: "UTC"
+    target-branch: "main"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "ApacheEcho"
+    assignees:
+      - "ApacheEcho"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "python"
+      - "high-priority"
+    # Security updates
+    versioning-strategy: "increase"
+    allow:
+      - dependency-type: "all"
+    # Group security updates
+    groups:
+      security-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "security"
+
+  # Frontend React App dependencies
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "daily"
+      time: "09:00"
+      timezone: "UTC"
+    target-branch: "main"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "ApacheEcho"
+    assignees:
+      - "ApacheEcho"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "frontend"
+      - "javascript"
+    versioning-strategy: "increase"
+    allow:
+      - dependency-type: "all"
+    groups:
+      security-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "security"
+
+  # PWA dependencies
+  - package-ecosystem: "npm"
+    directory: "/mobile/pwa"
+    schedule:
+      interval: "daily"
+      time: "09:30"
+      timezone: "UTC"
+    target-branch: "main"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "ApacheEcho"
+    assignees:
+      - "ApacheEcho"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "pwa"
+      - "javascript"
+    versioning-strategy: "increase"
+    allow:
+      - dependency-type: "all"
+    groups:
+      security-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "security"
+
+  # React Native Mobile App dependencies
+  - package-ecosystem: "npm"
+    directory: "/mobile/react-native"
+    schedule:
+      interval: "daily"
+      time: "10:00"
+      timezone: "UTC"
+    target-branch: "main"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "ApacheEcho"
+    assignees:
+      - "ApacheEcho"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "mobile"
+      - "react-native"
+    versioning-strategy: "increase"
+    allow:
+      - dependency-type: "all"
+    groups:
+      security-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "security"

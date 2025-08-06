@@ -38,10 +38,29 @@ jobs:
             echo '{"version":"2.1.0","runs":[{"tool":{"driver":{"name":"trivy","version":"unknown"}},"results":[]}]}' > trivy-results.sarif
           }
 
+      - name: Check permissions before upload
+        run: |
+          echo "🔍 Checking upload conditions:"
+          echo "Event: ${{ github.event_name }}"
+          echo "Ref: ${{ github.ref }}"
+          echo "Repository: ${{ github.repository }}"
+          echo "Actor: ${{ github.actor }}"
+          echo "Repository owner: ${{ github.repository_owner }}"
+          
+          if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "✅ Conditions met for SARIF upload"
+          else
+            echo "ℹ️ SARIF upload will be skipped (not a push to main branch)"
+          fi
+
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
         # Only upload on push to main branch to avoid permission issues on forks
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository_owner != 'dependabot[bot]'
+        continue-on-error: true
+        env:
+          CODEQL_ACTION_EXTRA_OPTIONS: '{"database": {"finalize": ["--no-run-unnecessary-builds"]}}'
+          CODEQL_DISABLE_TELEMETRY: true
         with:
           sarif_file: trivy-results.sarif
           category: trivy-fs

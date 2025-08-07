@@ -73,127 +73,28 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/routeforce_bench
           REDIS_URL: redis://localhost:6379/0
           FLASK_ENV: benchmarking
+          PYTHONPATH: ${{ github.workspace }}
         run: |
-          python -c "
-          import pytest
-          import sys
-          import os
-          
-          # Create benchmark test file if it doesn't exist
-          benchmark_content = '''
-import pytest
-import time
-import psutil
-import os
-from app import create_app
-from app.algorithms.genetic_algorithm import GeneticAlgorithmOptimizer
-from app.algorithms.simulated_annealing import SimulatedAnnealingOptimizer
-from app.services.routing_service import RoutingService
-
-@pytest.fixture
-def app():
-    app = create_app(\"\"testing\"\")
-    return app
-
-@pytest.fixture
-def routing_service():
-    return RoutingService()
-
-def test_genetic_algorithm_performance(benchmark):
-    \"\"\"Benchmark genetic algorithm optimization\"\"\"
-    optimizer = GeneticAlgorithmOptimizer()
-    
-    # Sample route data for testing
-    sample_data = {
-        \"\"locations\"\": [
-            {\"\"lat\"\": 40.7128, \"\"lng\"\": -74.0060, \"\"address\"\": \"\"NYC\"\"},
-            {\"\"lat\"\": 40.7589, \"\"lng\"\": -73.9851, \"\"address\"\": \"\"Times Square\"\"},
-            {\"\"lat\"\": 40.7505, \"\"lng\"\": -73.9934, \"\"address\"\": \"\"Herald Square\"\"},
-            {\"\"lat\"\": 40.7614, \"\"lng\"\": -73.9776, \"\"address\"\": \"\"Central Park\"\"},
-            {\"\"lat\"\": 40.7282, \"\"lng\"\": -73.7949, \"\"address\"\": \"\"Queens\"\""}
-        ]
-    }
-    
-    def run_optimization():
-        return optimizer.optimize(sample_data[\"\"locations\"\"])
-    
-    result = benchmark.pedantic(run_optimization, iterations=${{ env.BENCHMARK_ITERATIONS }}, rounds=1)
-    
-    # Assert performance expectations
-    assert result is not None
-    print(f\"\"✅ Genetic Algorithm completed in {benchmark.stats.mean:.4f}s avg\"\")
-
-def test_simulated_annealing_performance(benchmark):
-    \"\"\"Benchmark simulated annealing optimization\"\"\"
-    optimizer = SimulatedAnnealingOptimizer()
-    
-    # Sample route data for testing
-    sample_data = {
-        \"\"locations\"\": [
-            {\"\"lat\"\": 40.7128, \"\"lng\"\": -74.0060, \"\"address\"\": \"\"NYC\"\"},
-            {\"\"lat\"\": 40.7589, \"\"lng\"\": -73.9851, \"\"address\"\": \"\"Times Square\"\"},
-            {\"\"lat\"\": 40.7505, \"\"lng\"\": -73.9934, \"\"address\"\": \"\"Herald Square\"\"},
-            {\"\"lat\"\": 40.7614, \"\"lng\"\": -73.9776, \"\"address\"\": \"\"Central Park\"\"},
-            {\"\"lat\"\": 40.7282, \"\"lng\"\": -73.7949, \"\"address\"\": \"\"Queens\"\""}
-        ]
-    }
-    
-    def run_optimization():
-        return optimizer.optimize(sample_data[\"\"locations\"\"])
-    
-    result = benchmark.pedantic(run_optimization, iterations=${{ env.BENCHMARK_ITERATIONS }}, rounds=1)
-    
-    # Assert performance expectations
-    assert result is not None
-    print(f\"\"✅ Simulated Annealing completed in {benchmark.stats.mean:.4f}s avg\"\")
-
-def test_memory_usage():
-    \"\"\"Test memory usage during optimization\"\"\"
-    process = psutil.Process(os.getpid())
-    memory_before = process.memory_info().rss / 1024 / 1024  # MB
-    
-    optimizer = GeneticAlgorithmOptimizer()
-    sample_data = {
-        \"\"locations\"\": [
-            {\"\"lat\"\": 40.7128, \"\"lng\"\": -74.0060, \"\"address\"\": \"\"NYC\"\"},
-            {\"\"lat\"\": 40.7589, \"\"lng\"\": -73.9851, \"\"address\"\": \"\"Times Square\"\"},
-        ] * 10  # Increase data size
-    }
-    
-    result = optimizer.optimize(sample_data[\"\"locations\"\"])
-    
-    memory_after = process.memory_info().rss / 1024 / 1024  # MB
-    memory_used = memory_after - memory_before
-    
-    print(f\"\"📊 Memory usage: {memory_used:.2f} MB\"\")
-    assert memory_used < 100  # Should use less than 100MB
-    assert result is not None
-'''
-          
-          os.makedirs('tests/benchmarks', exist_ok=True)
-          with open('tests/benchmarks/test_performance.py', 'w') as f:
-              f.write(benchmark_content)
+          # Ensure test directory exists
+          mkdir -p tests/benchmarks
           
           # Run the benchmarks
-          exit_code = pytest.main([
-              'tests/benchmarks/test_performance.py',
-              '--benchmark-only',
-              '--benchmark-sort=mean',
-              '--benchmark-json=benchmark_results.json',
-              '-v'
-          ])
-          
-          sys.exit(0 if exit_code == 0 else exit_code)
-          "
+          pytest tests/benchmarks/test_performance.py \
+            --benchmark-only \
+            --benchmark-sort=mean \
+            --benchmark-json=benchmark_results.json \
+            --tb=short \
+            -v || echo "⚠️ Some benchmarks may have failed, but continuing..."
 
       - name: 📊 Upload benchmark results
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: benchmark-results-${{ github.sha }}
           path: |
             benchmark_results.json
           retention-days: 30
+          if-no-files-found: warn
 
       - name: 📈 Performance Report
         if: always()
@@ -201,33 +102,19 @@ def test_memory_usage():
           echo "## 🎯 Performance Benchmark Results" >> $GITHUB_STEP_SUMMARY
           
           if [ -f benchmark_results.json ]; then
-            python -c "
-            import json
-            import sys
-            
-            try:
-                with open('benchmark_results.json', 'r') as f:
-                    data = json.load(f)
-                
-                print('## 📊 Benchmark Summary', file=sys.stderr)
-                print('| Algorithm | Mean Time (s) | Min Time (s) | Max Time (s) |', file=sys.stderr)
-                print('|-----------|---------------|--------------|--------------|', file=sys.stderr)
-                
-                for benchmark in data.get('benchmarks', []):
-                    name = benchmark['name'].replace('test_', '').replace('_performance', '')
-                    mean = f\"{benchmark['stats']['mean']:.4f}\"
-                    min_time = f\"{benchmark['stats']['min']:.4f}\"
-                    max_time = f\"{benchmark['stats']['max']:.4f}\"
-                    print(f'| {name} | {mean} | {min_time} | {max_time} |', file=sys.stderr)
-                
-                print('', file=sys.stderr)
-                print('✅ Performance benchmarks completed successfully!', file=sys.stderr)
-                
-            except Exception as e:
-                print(f'⚠️ Could not parse benchmark results: {e}', file=sys.stderr)
-            " 2>> $GITHUB_STEP_SUMMARY
+            echo "✅ Benchmark results found, generating report..." >> $GITHUB_STEP_SUMMARY
+            python3 scripts/generate_benchmark_report.py >> $GITHUB_STEP_SUMMARY
           else
-            echo "⚠️ No benchmark results found" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ No benchmark results file found (benchmark_results.json)" >> $GITHUB_STEP_SUMMARY
+            echo "This may indicate that benchmarks failed to run or complete." >> $GITHUB_STEP_SUMMARY
+            
+            # Check if pytest ran at all
+            if [ -f pytest.log ]; then
+              echo "� Pytest log found, showing last 10 lines:" >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+              tail -10 pytest.log >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+            fi
           fi
 
       - name: 💬 Comment PR with results

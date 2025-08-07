@@ -1,6 +1,28 @@
 # RouteForceRouting
 
+[![Open in GitHub Codespaces](https://img.shields.io/badge/Open%20in-Codespaces-blue?logo=github)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=ApacheEcho/RouteForceRouting)
+[![Deploy to Render](https://img.shields.io/badge/Deploy%20to-Render-46e3b7.svg)](https://render.com/deploy?repo=https://github.com/ApacheEcho/RouteForceRouting)
+[![CI/CD Pipeline](https://github.com/ApacheEcho/RouteForceRouting/workflows/RouteForce%20CI%2FCD%20Pipeline/badge.svg)](https://github.com/ApacheEcho/RouteForceRouting/actions)
+[![codecov](https://codecov.io/gh/ApacheEcho/RouteForceRouting/branch/main/graph/badge.svg)](https://codecov.io/gh/ApacheEcho/RouteForceRouting)
+
 A route optimization engine for field execution teams. This application helps optimize routes for visiting multiple locations efficiently.
+
+## 🚀 Quick Start
+
+### GitHub Codespaces (Recommended)
+Get started instantly with a fully configured development environment:
+
+[![Open in GitHub Codespaces](https://img.shields.io/badge/Open%20in-Codespaces-blue?logo=github&style=for-the-badge)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=ApacheEcho/RouteForceRouting)
+
+**What you get:**
+- ✅ Python 3.12 with all dependencies pre-installed
+- ✅ PostgreSQL + Redis databases ready to use
+- ✅ VS Code with optimal extensions
+- ✅ Pre-commit hooks configured
+- ✅ Development aliases and shortcuts
+- ✅ PgAdmin for database management
+
+**Ready in 3-5 minutes!** No local setup required.
 
 ## 🚨 **IMPORTANT SECURITY NOTICE**
 

@@ -1,0 +1,178 @@
+{
+	"name": "RouteForceRouting - Enterprise Development Environment",
+	"dockerComposeFile": "docker-compose.yml",
+	"service": "app",
+	"workspaceFolder": "/workspace",
+	"shutdownAction": "stopCompose",
+
+	// Configure tool-specific properties.
+	"customizations": {
+		// Configure properties specific to VS Code.
+		"vscode": {
+			// Set *default* container specific settings.json values on container create.
+			"settings": {
+				"python.defaultInterpreterPath": "/usr/local/bin/python",
+				"python.linting.enabled": true,
+				"python.linting.pylintEnabled": false,
+				"python.linting.flake8Enabled": true,
+				"python.formatting.provider": "black",
+				"python.formatting.blackPath": "/usr/local/bin/black",
+				"python.linting.flake8Path": "/usr/local/bin/flake8",
+				"python.testing.pytestEnabled": true,
+				"python.testing.unittestEnabled": false,
+				"python.testing.pytestArgs": [
+					"tests"
+				],
+				"editor.formatOnSave": true,
+				"editor.codeActionsOnSave": {
+					"source.organizeImports": "explicit"
+				},
+				"files.exclude": {
+					"**/__pycache__": true,
+					"**/*.pyc": true,
+					"**/.pytest_cache": true,
+					"**/node_modules": true,
+					"**/.coverage": true,
+					"**/htmlcov": true,
+					"**/.mypy_cache": true
+				},
+				"terminal.integrated.defaultProfile.linux": "bash",
+				"git.autofetch": true,
+				"git.enableSmartCommit": true,
+				"docker.showStartPage": false
+			},
+			
+			// Add the IDs of extensions you want installed when the container is created.
+			"extensions": [
+				"ms-python.python",
+				"ms-python.flake8",
+				"ms-python.black-formatter",
+				"ms-python.isort",
+				"ms-python.pylint",
+				"ms-python.mypy-type-checker",
+				"ms-toolsai.jupyter",
+				"ms-vscode.vscode-json",
+				"redhat.vscode-yaml",
+				"ms-azuretools.vscode-docker",
+				"GitHub.copilot",
+				"GitHub.copilot-chat",
+				"ms-vscode.test-adapter-converter",
+				"littlefoxteam.vscode-python-test-adapter",
+				"formulahendry.code-runner",
+				"ms-vscode.vscode-github-actions",
+				"github.vscode-github-actions",
+				"github.vscode-pull-request-github",
+				"eamodio.gitlens",
+				"streetsidesoftware.code-spell-checker",
+				"ms-vscode.hexeditor",
+				"bradlc.vscode-tailwindcss",
+				"esbenp.prettier-vscode",
+				"ms-vscode.vscode-typescript-next",
+				"ms-playwright.playwright",
+				"humao.rest-client",
+				"ms-vscode.vscode-serial-monitor",
+				"visualstudioexptteam.vscodeintellicode",
+				"ms-vscode.powershell",
+				"ms-vscode-remote.remote-containers",
+				"ms-vscode-remote.remote-ssh",
+				"ms-vscode-remote.remote-ssh-edit"
+			]
+		}
+	},
+
+	// Features to add to the dev container. More info: https://containers.dev/features.
+	"features": {
+		"ghcr.io/devcontainers/features/common-utils:2": {
+			"installZsh": true,
+			"configureZshAsDefaultShell": true,
+			"installOhMyZsh": true,
+			"upgradePackages": true,
+			"username": "vscode",
+			"userUid": "1000",
+			"userGid": "1000"
+		},
+		"ghcr.io/devcontainers/features/git:1": {
+			"ppa": true,
+			"version": "latest"
+		},
+		"ghcr.io/devcontainers/features/github-cli:1": {
+			"installDirectlyFromGitHubRelease": true,
+			"version": "latest"
+		},
+		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+			"moby": true,
+			"installDockerBuildx": true,
+			"version": "latest"
+		},
+		"ghcr.io/devcontainers/features/node:1": {
+			"nodeGypDependencies": true,
+			"version": "lts",
+			"nvmVersion": "latest"
+		},
+		"ghcr.io/devcontainers/features/python:1": {
+			"version": "3.12",
+			"installTools": true,
+			"optimize": true,
+			"installJupyterlab": true,
+			"configureGitSafeDirectory": true
+		},
+		"ghcr.io/devcontainers/features/redis:1": {
+			"version": "latest"
+		}
+	},
+
+	// Configure tool-specific properties.
+	"forwardPorts": [5000, 5432, 6379, 8080, 3000, 8000],
+	"portsAttributes": {
+		"5000": {
+			"label": "Flask App",
+			"onAutoForward": "notify"
+		},
+		"5432": {
+			"label": "PostgreSQL",
+			"onAutoForward": "silent"
+		},
+		"6379": {
+			"label": "Redis",
+			"onAutoForward": "silent"
+		},
+		"8080": {
+			"label": "Dev Server",
+			"onAutoForward": "openBrowser"
+		},
+		"3000": {
+			"label": "Frontend",
+			"onAutoForward": "openBrowser"
+		},
+		"8000": {
+			"label": "API Docs",
+			"onAutoForward": "openPreview"
+		}
+	},
+
+	// Use 'postCreateCommand' to run commands after the container is created.
+	"postCreateCommand": "bash .devcontainer/postCreateCommand.sh",
+
+	// Use 'postStartCommand' to run commands after the container starts.
+	"postStartCommand": "bash .devcontainer/postStartCommand.sh",
+
+	// Configure container environment variables
+	"containerEnv": {
+		"FLASK_APP": "app.py",
+		"FLASK_ENV": "development",
+		"FLASK_DEBUG": "1",
+		"PYTHONPATH": "/workspace",
+		"DATABASE_URL": "postgresql://routeforce:password@postgres:5432/routeforce_dev",
+		"REDIS_URL": "redis://redis:6379/0",
+		"ENVIRONMENT": "development"
+	},
+
+	// Mount the parent directory for access to the workspace
+	"mounts": [
+		"source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+		"source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+	],
+
+	// Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
+	"remoteUser": "vscode"
+}

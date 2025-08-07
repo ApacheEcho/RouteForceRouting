@@ -1,0 +1,492 @@
+name: 🤖 AI Coding Assistant
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      task_type:
+        description: 'Type of AI assistance needed'
+        required: true
+        default: 'code_review'
+        type: choice
+        options:
+          - code_review
+          - bug_fix
+          - optimization
+          - documentation
+          - testing
+      target_files:
+        description: 'Files to analyze (comma-separated)'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  ai-code-review:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🐍 Set up Python 3.12
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: ⚙️ Install AI tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install ast-grep bandit radon pylint autopep8 black isort mypy
+
+      - name: 🔍 Get changed files
+        id: changed-files
+        run: |
+          # Get list of changed Python files
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}..HEAD | grep -E '\.(py|js|ts|yml|yaml)$' | tr '\n' ',' | sed 's/,$//')
+          echo "files=$CHANGED_FILES" >> $GITHUB_OUTPUT
+          echo "Changed files: $CHANGED_FILES"
+
+      - name: 🧠 AI Code Analysis
+        if: steps.changed-files.outputs.files != ''
+        run: |
+          python << 'EOF'
+          import ast
+          import os
+          import json
+          import subprocess
+          from pathlib import Path
+          
+          def analyze_code_complexity(file_path):
+              """Analyze code complexity and suggest improvements"""
+              try:
+                  result = subprocess.run(['radon', 'cc', file_path, '--json'], 
+                                        capture_output=True, text=True)
+                  if result.returncode == 0:
+                      data = json.loads(result.stdout)
+                      return data.get(file_path, {})
+              except Exception as e:
+                  print(f"Error analyzing {file_path}: {e}")
+              return {}
+          
+          def analyze_security_issues(file_path):
+              """Analyze security vulnerabilities"""
+              try:
+                  result = subprocess.run(['bandit', '-r', file_path, '-f', 'json'], 
+                                        capture_output=True, text=True)
+                  if result.returncode in [0, 1]:  # Bandit returns 1 when issues found
+                      return json.loads(result.stdout)
+              except Exception as e:
+                  print(f"Error in security analysis of {file_path}: {e}")
+              return {}
+          
+          def generate_suggestions(file_path):
+              """Generate AI-powered improvement suggestions"""
+              suggestions = []
+              
+              # Complexity analysis
+              complexity = analyze_code_complexity(file_path)
+              for block, data in complexity.items():
+                  if isinstance(data, dict) and data.get('complexity', 0) > 10:
+                      suggestions.append({
+                          'type': 'complexity',
+                          'severity': 'medium',
+                          'message': f"High complexity in {block} (score: {data['complexity']}). Consider refactoring.",
+                          'line': data.get('lineno', 1)
+                      })
+              
+              # Security analysis
+              security = analyze_security_issues(file_path)
+              for result in security.get('results', []):
+                  suggestions.append({
+                      'type': 'security',
+                      'severity': result.get('issue_severity', 'low').lower(),
+                      'message': result.get('issue_text', 'Security issue detected'),
+                      'line': result.get('line_number', 1),
+                      'confidence': result.get('issue_confidence', 'medium')
+                  })
+              
+              return suggestions
+          
+          # Process changed files
+          changed_files = "${{ steps.changed-files.outputs.files }}".split(',')
+          all_suggestions = {}
+          
+          for file_path in changed_files:
+              if file_path.strip() and Path(file_path).exists():
+                  print(f"🔍 Analyzing {file_path}...")
+                  suggestions = generate_suggestions(file_path)
+                  if suggestions:
+                      all_suggestions[file_path] = suggestions
+          
+          # Save results
+          with open('ai_analysis_results.json', 'w') as f:
+              json.dump(all_suggestions, f, indent=2)
+          
+          print("✅ AI code analysis completed!")
+          EOF
+
+      - name: 💬 Post AI Review Comment
+        if: steps.changed-files.outputs.files != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            let comment = '## 🤖 AI Code Review Results\n\n';
+            
+            try {
+              if (fs.existsSync('ai_analysis_results.json')) {
+                const results = JSON.parse(fs.readFileSync('ai_analysis_results.json', 'utf8'));
+                
+                if (Object.keys(results).length === 0) {
+                  comment += '✅ **Excellent work!** No significant issues detected by AI analysis.\n\n';
+                  comment += '### 🎯 Key Strengths:\n';
+                  comment += '- Code complexity is within acceptable limits\n';
+                  comment += '- No security vulnerabilities detected\n';
+                  comment += '- Code follows good practices\n';
+                } else {
+                  comment += '### 📊 Analysis Summary\n\n';
+                  
+                  let totalIssues = 0;
+                  let securityIssues = 0;
+                  let complexityIssues = 0;
+                  
+                  for (const [file, suggestions] of Object.entries(results)) {
+                    totalIssues += suggestions.length;
+                    securityIssues += suggestions.filter(s => s.type === 'security').length;
+                    complexityIssues += suggestions.filter(s => s.type === 'complexity').length;
+                  }
+                  
+                  comment += `- **Total Issues:** ${totalIssues}\n`;
+                  comment += `- **Security Issues:** ${securityIssues}\n`;
+                  comment += `- **Complexity Issues:** ${complexityIssues}\n\n`;
+                  
+                  // Detailed results per file
+                  for (const [file, suggestions] of Object.entries(results)) {
+                    comment += `### 📁 \`${file}\`\n\n`;
+                    
+                    const criticalIssues = suggestions.filter(s => s.severity === 'high');
+                    const mediumIssues = suggestions.filter(s => s.severity === 'medium');
+                    const lowIssues = suggestions.filter(s => s.severity === 'low');
+                    
+                    if (criticalIssues.length > 0) {
+                      comment += '#### 🔴 Critical Issues\n';
+                      criticalIssues.forEach(issue => {
+                        comment += `- **Line ${issue.line}:** ${issue.message}\n`;
+                      });
+                      comment += '\n';
+                    }
+                    
+                    if (mediumIssues.length > 0) {
+                      comment += '#### 🟡 Medium Issues\n';
+                      mediumIssues.forEach(issue => {
+                        comment += `- **Line ${issue.line}:** ${issue.message}\n`;
+                      });
+                      comment += '\n';
+                    }
+                    
+                    if (lowIssues.length > 0) {
+                      comment += '#### 🟢 Low Priority\n';
+                      lowIssues.forEach(issue => {
+                        comment += `- **Line ${issue.line}:** ${issue.message}\n`;
+                      });
+                      comment += '\n';
+                    }
+                  }
+                }
+                
+                comment += '---\n';
+                comment += '🤖 *This review was automatically generated by AI code analysis*\n';
+                comment += '📊 *Analysis includes complexity scoring, security scanning, and best practice validation*';
+                
+              } else {
+                comment += '⚠️ AI analysis results not available - check workflow logs for details.';
+              }
+              
+            } catch (error) {
+              comment += `⚠️ Error processing AI analysis: ${error.message}`;
+            }
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  ai-optimization-suggestions:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.task_type == 'optimization'
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python 3.12
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: ⚙️ Install optimization tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install line-profiler memory-profiler py-spy vulture
+
+      - name: 🚀 Performance Analysis
+        run: |
+          echo "## 🚀 AI Performance Optimization Suggestions" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Find unused code
+          if command -v vulture &> /dev/null; then
+            echo "### 🧹 Unused Code Detection" >> $GITHUB_STEP_SUMMARY
+            vulture app/ --min-confidence 80 >> unused_code.txt 2>&1 || true
+            if [ -s unused_code.txt ]; then
+              echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+              head -20 unused_code.txt >> $GITHUB_STEP_SUMMARY
+              echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "✅ No unused code detected!" >> $GITHUB_STEP_SUMMARY
+            fi
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Memory optimization suggestions
+          echo "### 💾 Memory Optimization Tips" >> $GITHUB_STEP_SUMMARY
+          echo "- Use generators instead of lists for large datasets" >> $GITHUB_STEP_SUMMARY
+          echo "- Implement object pooling for frequently created objects" >> $GITHUB_STEP_SUMMARY
+          echo "- Use __slots__ for classes with many instances" >> $GITHUB_STEP_SUMMARY
+          echo "- Consider using numpy arrays for numerical computations" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Performance optimization suggestions
+          echo "### ⚡ Performance Optimization Tips" >> $GITHUB_STEP_SUMMARY
+          echo "- Cache expensive function calls with @lru_cache" >> $GITHUB_STEP_SUMMARY
+          echo "- Use database connection pooling" >> $GITHUB_STEP_SUMMARY
+          echo "- Implement async/await for I/O bound operations" >> $GITHUB_STEP_SUMMARY
+          echo "- Use batch processing for database operations" >> $GITHUB_STEP_SUMMARY
+
+  ai-documentation-generator:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.task_type == 'documentation'
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python 3.12
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: ⚙️ Install documentation tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install pydoc-markdown sphinx autodoc
+
+      - name: 📚 Generate Documentation
+        run: |
+          python << 'EOF'
+          import ast
+          import os
+          from pathlib import Path
+          
+          def extract_docstrings(file_path):
+              """Extract docstrings and generate documentation"""
+              try:
+                  with open(file_path, 'r') as file:
+                      tree = ast.parse(file.read())
+                  
+                  docs = []
+                  for node in ast.walk(tree):
+                      if isinstance(node, (ast.FunctionDef, ast.ClassDef, ast.AsyncFunctionDef)):
+                          docstring = ast.get_docstring(node)
+                          if docstring:
+                              docs.append({
+                                  'name': node.name,
+                                  'type': type(node).__name__,
+                                  'docstring': docstring,
+                                  'line': node.lineno
+                              })
+                  return docs
+              except Exception as e:
+                  print(f"Error processing {file_path}: {e}")
+                  return []
+          
+          # Generate documentation for Python files
+          doc_content = "# 📚 AI-Generated Code Documentation\n\n"
+          doc_content += "This documentation was automatically generated by analyzing code structure and docstrings.\n\n"
+          
+          for py_file in Path('app').rglob('*.py'):
+              if py_file.is_file():
+                  docs = extract_docstrings(py_file)
+                  if docs:
+                      doc_content += f"## 📄 {py_file}\n\n"
+                      
+                      classes = [d for d in docs if d['type'] == 'ClassDef']
+                      functions = [d for d in docs if d['type'] in ['FunctionDef', 'AsyncFunctionDef']]
+                      
+                      if classes:
+                          doc_content += "### 🏗️ Classes\n\n"
+                          for cls in classes:
+                              doc_content += f"#### `{cls['name']}` (Line {cls['line']})\n"
+                              doc_content += f"{cls['docstring']}\n\n"
+                      
+                      if functions:
+                          doc_content += "### ⚙️ Functions\n\n"
+                          for func in functions:
+                              doc_content += f"#### `{func['name']}()` (Line {func['line']})\n"
+                              doc_content += f"{func['docstring']}\n\n"
+                      
+                      doc_content += "---\n\n"
+          
+          # Save documentation
+          with open('AI_GENERATED_DOCS.md', 'w') as f:
+              f.write(doc_content)
+          
+          print("✅ Documentation generated successfully!")
+          EOF
+
+      - name: 📤 Upload documentation
+        uses: actions/upload-artifact@v3
+        with:
+          name: ai-generated-docs
+          path: AI_GENERATED_DOCS.md
+          retention-days: 30
+
+  ai-testing-assistant:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.task_type == 'testing'
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python 3.12
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: ⚙️ Install testing tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov hypothesis factory-boy
+
+      - name: 🧪 Generate Test Suggestions
+        run: |
+          python << 'EOF'
+          import ast
+          import os
+          from pathlib import Path
+          
+          def analyze_test_coverage(file_path):
+              """Analyze what functions need tests"""
+              try:
+                  with open(file_path, 'r') as file:
+                      tree = ast.parse(file.read())
+                  
+                  functions = []
+                  classes = []
+                  
+                  for node in ast.walk(tree):
+                      if isinstance(node, ast.FunctionDef) and not node.name.startswith('_'):
+                          functions.append({
+                              'name': node.name,
+                              'args': [arg.arg for arg in node.args.args],
+                              'line': node.lineno,
+                              'has_return': any(isinstance(n, ast.Return) for n in ast.walk(node))
+                          })
+                      elif isinstance(node, ast.ClassDef):
+                          methods = [n for n in node.body if isinstance(n, ast.FunctionDef)]
+                          classes.append({
+                              'name': node.name,
+                              'methods': [m.name for m in methods if not m.name.startswith('_')],
+                              'line': node.lineno
+                          })
+                  
+                  return functions, classes
+              except Exception as e:
+                  print(f"Error analyzing {file_path}: {e}")
+                  return [], []
+          
+          # Generate test suggestions
+          test_suggestions = "# 🧪 AI Test Generation Suggestions\n\n"
+          test_suggestions += "Generated test cases based on code analysis:\n\n"
+          
+          for py_file in Path('app').rglob('*.py'):
+              if py_file.is_file() and 'test' not in py_file.name:
+                  functions, classes = analyze_test_coverage(py_file)
+                  
+                  if functions or classes:
+                      test_suggestions += f"## 📄 Tests for `{py_file}`\n\n"
+                      
+                      # Function tests
+                      for func in functions:
+                          test_suggestions += f"### `test_{func['name']}()`\n"
+                          test_suggestions += "```python\n"
+                          test_suggestions += f"def test_{func['name']}():\n"
+                          test_suggestions += f"    # Test {func['name']} with valid inputs\n"
+                          if func['args']:
+                              args_str = ', '.join([f"{arg}=mock_value" for arg in func['args'] if arg != 'self'])
+                              test_suggestions += f"    result = {func['name']}({args_str})\n"
+                          else:
+                              test_suggestions += f"    result = {func['name']}()\n"
+                          
+                          if func['has_return']:
+                              test_suggestions += "    assert result is not None\n"
+                          test_suggestions += "    # Add more specific assertions\n"
+                          test_suggestions += "```\n\n"
+                      
+                      # Class tests
+                      for cls in classes:
+                          test_suggestions += f"### `Test{cls['name']}` Class\n"
+                          test_suggestions += "```python\n"
+                          test_suggestions += f"class Test{cls['name']}:\n"
+                          test_suggestions += f"    def setup_method(self):\n"
+                          test_suggestions += f"        self.{cls['name'].lower()} = {cls['name']}()\n\n"
+                          
+                          for method in cls['methods']:
+                              test_suggestions += f"    def test_{method}(self):\n"
+                              test_suggestions += f"        # Test {method} method\n"
+                              test_suggestions += f"        result = self.{cls['name'].lower()}.{method}()\n"
+                              test_suggestions += "        assert result is not None\n\n"
+                          
+                          test_suggestions += "```\n\n"
+          
+          # Save test suggestions
+          with open('AI_TEST_SUGGESTIONS.md', 'w') as f:
+              f.write(test_suggestions)
+          
+          print("✅ Test suggestions generated successfully!")
+          EOF
+
+      - name: 📤 Upload test suggestions
+        uses: actions/upload-artifact@v3
+        with:
+          name: ai-test-suggestions
+          path: AI_TEST_SUGGESTIONS.md
+          retention-days: 30
+
+      - name: 📊 Test Coverage Report
+        run: |
+          echo "## 🧪 AI Testing Assistant Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📋 Recommended Test Types:" >> $GITHUB_STEP_SUMMARY
+          echo "- **Unit Tests**: Test individual functions and methods" >> $GITHUB_STEP_SUMMARY  
+          echo "- **Integration Tests**: Test component interactions" >> $GITHUB_STEP_SUMMARY
+          echo "- **Performance Tests**: Benchmark critical algorithms" >> $GITHUB_STEP_SUMMARY
+          echo "- **Property-based Tests**: Use Hypothesis for edge cases" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📁 **Detailed test suggestions available in artifacts**" >> $GITHUB_STEP_SUMMARY

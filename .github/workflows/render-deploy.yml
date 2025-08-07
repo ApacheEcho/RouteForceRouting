@@ -1,0 +1,321 @@
+name: 🚀 Deploy to Render
+
+on:
+  push:
+    branches: [main, production]
+  pull_request:
+    branches: [main, production]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+
+env:
+  RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+  DOCKER_REGISTRY: docker.io
+  IMAGE_NAME: routeforce-app
+
+jobs:
+  # Security and Quality Checks
+  security-scan:
+    name: 🔒 Security & Quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install bandit safety
+
+      - name: Run security checks
+        run: |
+          bandit -r . -f json -o bandit-report.json || true
+          safety check --json > safety-report.json || true
+
+  # Build and Test
+  build-and-test:
+    name: 🏗️ Build & Test
+    runs-on: ubuntu-latest
+    needs: security-scan
+    strategy:
+      matrix:
+        python-version: [3.12]
+    
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: routeforce
+          POSTGRES_PASSWORD: routeforce_test
+          POSTGRES_DB: routeforce_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+
+      - name: Set up test environment
+        run: |
+          export DATABASE_URL="postgresql://routeforce:routeforce_test@localhost:5432/routeforce_test"
+          export REDIS_URL="redis://localhost:6379"
+          export FLASK_ENV="testing"
+
+      - name: Run comprehensive tests
+        run: |
+          pytest -xvs --cov=./ --cov-report=xml --cov-report=html
+        env:
+          DATABASE_URL: postgresql://routeforce:routeforce_test@localhost:5432/routeforce_test
+          REDIS_URL: redis://localhost:6379
+          FLASK_ENV: testing
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  # Docker Build and Push
+  docker-build:
+    name: 🐳 Docker Build & Push
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    outputs:
+      image-digest: ${{ steps.build.outputs.digest }}
+      image-tag: ${{ steps.meta.outputs.tags }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.production
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ steps.meta.outputs.tags }}
+          format: spdx-json
+          output-file: sbom.spdx.json
+
+  # Deploy to Render Staging
+  deploy-staging:
+    name: 🚀 Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build-and-test, docker-build]
+    if: github.ref == 'refs/heads/main' || github.event.inputs.environment == 'staging'
+    environment:
+      name: staging
+      url: https://routeforce-staging.onrender.com
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Render Staging
+        run: |
+          curl -X POST \
+            "https://api.render.com/v1/services/${{ secrets.RENDER_STAGING_SERVICE_ID }}/deploys" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{"clearCache": "clear"}'
+
+      - name: Wait for deployment
+        run: |
+          echo "Waiting for deployment to complete..."
+          sleep 60
+
+      - name: Health check
+        run: |
+          for i in {1..10}; do
+            if curl -f -s https://routeforce-staging.onrender.com/health; then
+              echo "✅ Staging deployment healthy!"
+              break
+            else
+              echo "⏳ Waiting for staging deployment... (attempt $i/10)"
+              sleep 30
+            fi
+          done
+
+      - name: Run smoke tests
+        run: |
+          curl -f https://routeforce-staging.onrender.com/api/health
+          curl -f https://routeforce-staging.onrender.com/api/routes/test
+
+  # Deploy to Production
+  deploy-production:
+    name: 🚀 Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, docker-build]
+    if: github.ref == 'refs/heads/production' || github.event.inputs.environment == 'production'
+    environment:
+      name: production
+      url: https://routeforce-routing.onrender.com
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Render Production
+        run: |
+          curl -X POST \
+            "https://api.render.com/v1/services/${{ secrets.RENDER_PRODUCTION_SERVICE_ID }}/deploys" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{"clearCache": "clear"}'
+
+      - name: Wait for deployment
+        run: |
+          echo "Waiting for production deployment to complete..."
+          sleep 90
+
+      - name: Production health check
+        run: |
+          for i in {1..15}; do
+            if curl -f -s https://routeforce-routing.onrender.com/health; then
+              echo "✅ Production deployment healthy!"
+              break
+            else
+              echo "⏳ Waiting for production deployment... (attempt $i/15)"
+              sleep 30
+            fi
+          done
+
+      - name: Run production smoke tests
+        run: |
+          curl -f https://routeforce-routing.onrender.com/api/health
+          curl -f https://routeforce-routing.onrender.com/api/routes/health
+          curl -f https://routeforce-routing.onrender.com/api/dashboard/status
+
+      - name: Performance baseline test
+        run: |
+          echo "🚀 Running performance baseline..."
+          time curl -s https://routeforce-routing.onrender.com/api/routes/optimize \
+            -H "Content-Type: application/json" \
+            -d '{"locations": [{"lat": 37.7749, "lng": -122.4194}, {"lat": 40.7589, "lng": -73.9851}]}'
+
+  # Monitoring and Notifications
+  post-deployment:
+    name: 📊 Post-Deployment
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: always()
+    
+    steps:
+      - name: Update deployment status
+        run: |
+          echo "📈 Deployment completed successfully!"
+          echo "🔗 Production URL: https://routeforce-routing.onrender.com"
+          echo "📊 Monitoring Dashboard: https://sentry.io/organizations/routeforce"
+
+      - name: Notify Slack (Success)
+        if: success()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          text: "🚀 RouteForce successfully deployed to production!"
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Notify Slack (Failure)
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          text: "❌ RouteForce deployment failed. Check the logs."
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}

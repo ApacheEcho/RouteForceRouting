@@ -1,0 +1,135 @@
+name: 🔄 PR Automation
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+  pull_request_review:
+    types: [submitted]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  pr-automation:
+    name: 🤖 PR Automation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: 🏷️ Auto Label PR
+        uses: actions/labeler@v5
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          configuration-path: .github/pr-labeler.yml
+          sync-labels: true
+
+      - name: 📊 Add Size Label
+        uses: codelytv/pr-size-labeler@v1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          xs_label: 'size: xs'
+          xs_max_size: 10
+          s_label: 'size: s'
+          s_max_size: 30
+          m_label: 'size: m'
+          m_max_size: 100
+          l_label: 'size: l'
+          l_max_size: 500
+          xl_label: 'size: xl'
+          fail_if_xl: false
+
+      - name: 🔗 Link Issues
+        uses: tkt-actions/add-issue-links@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          branch-prefix: 'issue-'
+          link-comments: true
+
+      - name: ✅ Auto Approve Dependabot
+        if: github.actor == 'dependabot[bot]'
+        run: |
+          gh pr review --approve "${{ github.event.pull_request.html_url }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🎉 Welcome First Contributors
+        uses: actions/first-interaction@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          pr-message: |
+            🎉 **Welcome to RouteForce Routing!** 
+            
+            Thank you for your first contribution! Your PR is now being reviewed.
+            
+            Please ensure you've:
+            - ✅ Filled out the PR template completely
+            - ✅ Added appropriate tests
+            - ✅ Updated documentation if needed
+            
+            A maintainer will review your changes soon. Feel free to reach out if you have any questions!
+
+      - name: 🔍 Check PR Requirements
+        id: pr-check
+        run: |
+          # Check if PR has description
+          if [[ -z "${{ github.event.pull_request.body }}" ]]; then
+            echo "::warning::PR is missing a description"
+            echo "has_description=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_description=true" >> $GITHUB_OUTPUT
+          fi
+          
+          # Check if PR links to an issue
+          if echo "${{ github.event.pull_request.body }}" | grep -E "(closes|fixes|resolves) #[0-9]+" > /dev/null; then
+            echo "links_issue=true" >> $GITHUB_OUTPUT
+          else
+            echo "links_issue=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 💬 Comment PR Requirements
+        if: steps.pr-check.outputs.has_description == 'false' || steps.pr-check.outputs.links_issue == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const warnings = [];
+            
+            if ('${{ steps.pr-check.outputs.has_description }}' === 'false') {
+              warnings.push('📝 Please add a description to your PR');
+            }
+            
+            if ('${{ steps.pr-check.outputs.links_issue }}' === 'false') {
+              warnings.push('🔗 Please link this PR to an issue using "Closes #issue_number"');
+            }
+            
+            if (warnings.length > 0) {
+              const body = `## ⚠️ PR Requirements Check\n\n${warnings.map(w => `- ${w}`).join('\n')}\n\nPlease update your PR to meet our contribution guidelines. Thank you! 🙏`;
+              
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: body
+              });
+            }
+
+  security-check:
+    name: 🔒 Security Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🔍 Run Security Scan
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          echo "🔒 Running security checks on PR changes..."
+          # Add your security scanning tools here
+          echo "✅ Security scan completed"

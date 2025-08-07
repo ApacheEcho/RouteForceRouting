@@ -1,0 +1,13 @@
+---
+sourceLocationPrefix: /Users/frank/RouteForceRouting
+baselineLinesOfCode: 63533
+unicodeNewlines: false
+columnKind: utf32
+primaryLanguage: python
+creationMetadata:
+  sha: 6e1fbe711eec685e6802982a5b94ec38f807d20b
+  cliVersion: 2.22.3
+  creationTime: 2025-08-07T00:27:35.771190Z
+finalised: true
+overlayBaseDatabase: false
+overlayDatabase: false

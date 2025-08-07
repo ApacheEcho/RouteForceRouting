@@ -1,0 +1,93 @@
+# 🏷️ PR Auto-Labeling Configuration
+
+# 🚀 Features
+'type: feature':
+  - 'app/routes/**'
+  - 'routing/**'
+  - 'algorithms/**'
+  - any: ['**/feature_*', '**/add_*']
+
+# 🐛 Bug Fixes  
+'type: bug':
+  - any: ['**/fix_*', '**/bug_*', '**/hotfix_*']
+  - 'tests/**/test_*.py'
+
+# 📚 Documentation
+'type: documentation':
+  - '**/*.md'
+  - 'docs/**'
+  - README.*
+  - 'CONTRIBUTING.md'
+  - 'CHANGELOG.md'
+
+# 🔧 Infrastructure & CI/CD
+'type: infrastructure':
+  - '.github/**'
+  - 'docker/**'
+  - 'Dockerfile*'
+  - 'docker-compose*'
+  - '**/*.yml'
+  - '**/*.yaml'
+  - 'deploy/**'
+
+# 🧪 Testing
+'type: testing':
+  - 'tests/**'
+  - 'test_*.py'
+  - '*_test.py'
+  - 'conftest.py'
+  - pytest.ini
+
+# 🔒 Security
+'type: security':
+  - 'codeql-custom-queries-python/**'
+  - 'security_scanner.py'
+  - any: ['**/security_*', '**/auth_*']
+
+# 📊 Database & Models
+'area: database':
+  - 'models/**'
+  - 'migrations/**'
+  - 'database/**'
+  - 'schema/**'
+
+# 🗺️ Maps & Routing
+'area: routing':
+  - 'routing/**'
+  - 'algorithms/**'
+  - 'optimization/**'
+
+# 🌐 API & Backend
+'area: api':
+  - 'app/routes/**'
+  - 'api/**'
+  - 'backend/**'
+
+# 📱 Frontend & UI  
+'area: frontend':
+  - 'frontend/**'
+  - 'ui/**'
+  - 'static/**'
+  - 'templates/**'
+
+# ⚡ Performance
+'improvement: performance':
+  - any: ['**/optimize_*', '**/perf_*', '**/speed_*']
+
+# 🧹 Code Quality
+'improvement: code-quality':
+  - any: ['**/refactor_*', '**/cleanup_*']
+
+# 🎨 UI/UX
+'improvement: ui-ux':
+  - 'static/**'
+  - 'templates/**'
+  - any: ['**/ui_*', '**/ux_*', '**/style_*']
+
+# 🔄 Dependencies
+'dependencies':
+  - 'requirements*.txt'
+  - 'package*.json'
+  - 'Pipfile*'
+  - yarn.lock
+  - poetry.lock

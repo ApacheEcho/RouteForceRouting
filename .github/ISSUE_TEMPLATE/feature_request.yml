@@ -1,39 +1,189 @@
-name: Feature Request
-description: Suggest a new feature for RouteForce
-title: "[FEATURE]: "
-labels: ["enhancement", "triage"]
+name: ✨ Feature Request
+description: Suggest a new feature or enhancement for RouteForce Routing
+title: "[FEATURE] "
+labels: ["type: feature", "needs-triage"]
+assignees:
+  - ApacheEcho
+
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to suggest a new feature!
-  
+        ## ✨ Feature Request
+        
+        Thanks for taking the time to suggest a new feature! Great ideas help make RouteForce Routing better for everyone.
+
   - type: input
     id: feature-name
     attributes:
-      label: Feature Name
-      description: Brief name for the feature
-      placeholder: ex. Multi-stop route optimization
+      label: 🎯 Feature Name
+      description: Brief, descriptive name for the feature
+      placeholder: e.g., "Multi-stop route optimization", "Real-time traffic integration", "Voice navigation"
     validations:
       required: true
-  
+
   - type: dropdown
-    id: priority
+    id: category
     attributes:
-      label: Priority
-      description: How important is this feature?
+      label: 📂 Feature Category
+      description: Which area of RouteForce Routing would this feature enhance?
       options:
-        - Critical
-        - High
-        - Medium
-        - Low
+        - Route Optimization Algorithm
+        - Map/Navigation Interface
+        - User Experience/UI
+        - API/Integration
+        - Mobile App
+        - Performance/Speed
+        - Analytics/Reporting
+        - Security/Privacy
+        - Administration/Management
+        - Developer Tools
+        - Documentation
+        - Other
     validations:
       required: true
-  
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 🎯 Problem Statement
+      description: What problem does this feature solve? What need does it address?
+      placeholder: |
+        Describe the current limitations or pain points that this feature would address:
+        - What can't users do today that they need to do?
+        - What workflows are inefficient or frustrating?
+        - What opportunities are we missing?
+    validations:
+      required: true
+
   - type: textarea
     id: description
     attributes:
-      label: Feature Description
-      description: Detailed description of the feature
+      label: 📝 Detailed Feature Description
+      description: Comprehensive description of the proposed feature
+      placeholder: |
+        Describe your feature in detail:
+        - What exactly should this feature do?
+        - How should it work from a user perspective?
+        - What are the key capabilities or components?
+        - How does it integrate with existing features?
     validations:
       required: true
+
+  - type: textarea
+    id: user-story
+    attributes:
+      label: 👤 User Story
+      description: Describe this feature from the user's perspective
+      placeholder: |
+        As a [type of user],
+        I want [functionality],
+        So that [benefit/value].
+        
+        Example:
+        As a delivery driver,
+        I want to optimize routes with real-time traffic data,
+        So that I can complete deliveries faster and save fuel costs.
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: ✅ Acceptance Criteria
+      description: What conditions must be met for this feature to be considered complete?
+      placeholder: |
+        List specific, measurable criteria:
+        - [ ] Users can [specific action]
+        - [ ] System performs [specific behavior]
+        - [ ] Feature handles [specific edge case]
+        - [ ] Performance meets [specific requirement]
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 🚨 Priority Level
+      description: How important is this feature for your use case?
+      options:
+        - Critical (Blocking current work, essential for business)
+        - High (Important improvement, significant user value)
+        - Medium (Nice to have, would improve experience)
+        - Low (Minor enhancement, not urgent)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: user-type
+    attributes:
+      label: 👥 Primary Users
+      description: Who would primarily benefit from this feature?
+      options:
+        - End Users (Route planners, drivers, travelers)
+        - Business Users (Fleet managers, logistics coordinators)
+        - Developers (API users, integrators)
+        - Administrators (System managers, IT staff)
+        - All Users
+        - Other/Specific Group
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 🔄 Alternative Solutions
+      description: Are there alternative ways to solve this problem?
+      placeholder: |
+        - What workarounds exist today?
+        - Are there other tools or methods that address this need?
+        - How do competitors handle this use case?
+        - What other solutions did you consider?
+
+  - type: textarea
+    id: mockups
+    attributes:
+      label: 🎨 Mockups/Wireframes
+      description: Visual representations of the feature (if applicable)
+      placeholder: |
+        If you have mockups, wireframes, or visual examples:
+        - Attach images or link to design files
+        - Describe the visual/UI aspects
+        - Reference similar features in other apps
+
+  - type: textarea
+    id: technical-considerations
+    attributes:
+      label: 🔧 Technical Considerations
+      description: Any technical aspects to consider for implementation?
+      placeholder: |
+        If you have technical insights:
+        - APIs or services that might be needed
+        - Performance or scalability concerns
+        - Security considerations
+        - Integration challenges
+        - Technical dependencies
+
+  - type: textarea
+    id: business-case
+    attributes:
+      label: 💼 Business Value
+      description: What's the business case or impact of this feature?
+      placeholder: |
+        - How many users would benefit?
+        - What's the expected impact on user satisfaction?
+        - Could this feature attract new users?
+        - What's the competitive advantage?
+        - Any revenue or cost implications?
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: ✅ Pre-submission Checklist
+      options:
+        - label: I have searched existing issues to ensure this feature hasn't been requested
+          required: true
+        - label: I have provided a clear problem statement and solution description
+          required: true
+        - label: I have considered how this feature fits with existing functionality
+          required: true
+        - label: I understand this may not be implemented immediately and prioritization depends on various factors
+          required: true

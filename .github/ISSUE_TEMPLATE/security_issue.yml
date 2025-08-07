@@ -1,0 +1,148 @@
+name: 🔒 Security Issue
+description: Report security vulnerabilities or security-related concerns (PRIVATE)
+title: "[SECURITY] "
+labels: ["type: security", "high-priority", "needs-triage"]
+assignees:
+  - ApacheEcho
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🔒 Security Issue Report
+        
+        ⚠️ **IMPORTANT**: If this is a critical security vulnerability, please consider reporting it privately first through our security policy or by emailing security@routeforce.com
+        
+        Thank you for helping keep RouteForce Routing secure!
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: 🚨 Security Severity
+      description: How severe is this security issue?
+      options:
+        - Critical (Remote code execution, data breach, system compromise)
+        - High (Authentication bypass, privilege escalation, sensitive data exposure)
+        - Medium (Information disclosure, CSRF, limited access)
+        - Low (Security hardening, minor information leakage)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: 🎯 Security Category
+      description: What type of security issue is this?
+      options:
+        - Authentication/Authorization
+        - Input Validation/Injection
+        - Cross-Site Scripting (XSS)
+        - Cross-Site Request Forgery (CSRF)
+        - Sensitive Data Exposure
+        - Security Misconfiguration
+        - Broken Access Control
+        - Cryptographic Issues
+        - API Security
+        - Infrastructure Security
+        - Third-party Dependencies
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 📝 Security Issue Description
+      description: Detailed description of the security issue
+      placeholder: Describe the security vulnerability or concern in detail...
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: 💥 Potential Impact
+      description: What could an attacker achieve by exploiting this issue?
+      placeholder: |
+        - What data or systems could be compromised?
+        - What privileges could be gained?
+        - How many users could be affected?
+        - What is the business impact?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: 🔄 Proof of Concept/Steps to Reproduce
+      description: How to reproduce this security issue (be careful with sensitive details)
+      placeholder: |
+        Provide steps to reproduce, but be mindful of not including:
+        - Actual passwords or tokens
+        - Real user data
+        - Live system URLs
+        
+        1. Navigate to [URL/feature]
+        2. Perform [action]
+        3. Observe [security issue]
+    validations:
+      required: true
+
+  - type: textarea
+    id: affected-components
+    attributes:
+      label: 🎯 Affected Components
+      description: Which parts of the system are affected?
+      placeholder: |
+        - API endpoints
+        - Frontend components
+        - Database tables
+        - Authentication system
+        - File upload functionality
+        - etc.
+
+  - type: textarea
+    id: mitigation
+    attributes:
+      label: 🛡️ Suggested Mitigation
+      description: Do you have suggestions for how to fix this issue?
+      placeholder: What security measures or code changes would address this vulnerability?
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: 🖥️ Environment Information
+      description: Environment where the security issue was discovered
+      value: |
+        - Environment: [e.g., Production, Staging, Development]
+        - Version: [e.g., v1.2.3]
+        - Browser/Client: [if relevant]
+        - OS: [if relevant]
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: 📋 Additional Information
+      description: Any other relevant information
+      placeholder: |
+        - References to security standards (OWASP, CWE, CVE)
+        - Related security issues or reports
+        - Timeline considerations
+        - Any other context
+
+  - type: checkboxes
+    id: responsible-disclosure
+    attributes:
+      label: 🤝 Responsible Disclosure
+      description: Please confirm your commitment to responsible disclosure
+      options:
+        - label: I understand this is a security issue and will not publicly disclose details until resolved
+          required: true
+        - label: I have not exploited this vulnerability beyond what is necessary to demonstrate the issue
+          required: true
+        - label: I am willing to work with the maintainers to resolve this issue responsibly
+          required: true
+        - label: I have considered reporting this privately if it's a critical security issue
+          required: true

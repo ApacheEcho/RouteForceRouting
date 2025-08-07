@@ -107,6 +107,11 @@ def create_app(config_name: str = "development") -> Flask:
 
     init_jwt(app)
 
+    # Initialize Sentry monitoring
+    from app.monitoring import setup_monitoring
+    
+    setup_monitoring(app)
+
     # Register health check endpoint (for production monitoring)
     @app.route("/health")
     def health_check():

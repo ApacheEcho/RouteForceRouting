@@ -1,0 +1,461 @@
+name: 🔍 System Monitoring & Health Checks
+
+on:
+  schedule:
+    # Run health checks every hour
+    - cron: '0 * * * *'
+    # Run comprehensive monitoring every 6 hours
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      check_type:
+        description: 'Type of health check to run'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+          - quick
+          - full
+          - critical-only
+      notify_team:
+        description: 'Notify team of results'
+        required: false
+        default: true
+        type: boolean
+
+env:
+  MONITORING_TIMEOUT: 30
+  HEALTH_CHECK_RETRIES: 3
+
+jobs:
+  infrastructure-health:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: 📦 Install monitoring tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests psutil python-dotenv
+
+      - name: 🏥 Health Check Script
+        id: health_check
+        run: |
+          python -c "
+          import requests
+          import json
+          import sys
+          import time
+          from datetime import datetime, timedelta
+
+          def health_check():
+              results = {
+                  'timestamp': datetime.now().isoformat(),
+                  'checks': {},
+                  'status': 'healthy',
+                  'issues': []
+              }
+              
+              # GitHub API Health
+              try:
+                  response = requests.get('https://api.github.com/status', timeout=10)
+                  if response.status_code == 200:
+                      results['checks']['github_api'] = 'healthy'
+                  else:
+                      results['checks']['github_api'] = 'unhealthy'
+                      results['issues'].append(f'GitHub API returned {response.status_code}')
+              except Exception as e:
+                  results['checks']['github_api'] = 'error'
+                  results['issues'].append(f'GitHub API error: {str(e)}')
+              
+              # Docker Hub Health (for our base images)
+              try:
+                  response = requests.get('https://registry-1.docker.io/v2/', timeout=10)
+                  if response.status_code in [200, 401]:  # 401 is expected for unauthenticated
+                      results['checks']['docker_hub'] = 'healthy'
+                  else:
+                      results['checks']['docker_hub'] = 'unhealthy'
+                      results['issues'].append(f'Docker Hub returned {response.status_code}')
+              except Exception as e:
+                  results['checks']['docker_hub'] = 'error'
+                  results['issues'].append(f'Docker Hub error: {str(e)}')
+              
+              # PyPI Health (for Python packages)
+              try:
+                  response = requests.get('https://pypi.org/simple/', timeout=10)
+                  if response.status_code == 200:
+                      results['checks']['pypi'] = 'healthy'
+                  else:
+                      results['checks']['pypi'] = 'unhealthy'
+                      results['issues'].append(f'PyPI returned {response.status_code}')
+              except Exception as e:
+                  results['checks']['pypi'] = 'error'
+                  results['issues'].append(f'PyPI error: {str(e)}')
+              
+              # npm Registry Health (for JavaScript packages)
+              try:
+                  response = requests.get('https://registry.npmjs.org/', timeout=10)
+                  if response.status_code == 200:
+                      results['checks']['npm_registry'] = 'healthy'
+                  else:
+                      results['checks']['npm_registry'] = 'unhealthy'
+                      results['issues'].append(f'npm Registry returned {response.status_code}')
+              except Exception as e:
+                  results['checks']['npm_registry'] = 'error'
+                  results['issues'].append(f'npm Registry error: {str(e)}')
+              
+              # Overall status determination
+              if any(status in ['unhealthy', 'error'] for status in results['checks'].values()):
+                  results['status'] = 'degraded' if any(status == 'unhealthy' for status in results['checks'].values()) else 'critical'
+              
+              print(json.dumps(results, indent=2))
+              
+              # Save results for other steps
+              with open('health_results.json', 'w') as f:
+                  json.dump(results, f, indent=2)
+              
+              return results['status'] != 'critical'
+
+          success = health_check()
+          sys.exit(0 if success else 1)
+          "
+
+      - name: 🔍 Repository Health Check
+        id: repo_health
+        run: |
+          echo "Checking repository health..."
+          
+          # Check for critical files
+          critical_files=(
+            "README.md"
+            "requirements.txt"
+            ".github/workflows/ci-cd.yml"
+            "app.py"
+            "Dockerfile"
+          )
+          
+          missing_files=()
+          for file in "${critical_files[@]}"; do
+            if [ ! -f "$file" ]; then
+              missing_files+=("$file")
+            fi
+          done
+          
+          if [ ${#missing_files[@]} -eq 0 ]; then
+            echo "✅ All critical files present"
+            echo "status=healthy" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Missing critical files: ${missing_files[*]}"
+            echo "status=unhealthy" >> $GITHUB_OUTPUT
+            echo "missing_files=${missing_files[*]}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 🧪 Dependency Health Check
+        id: dependency_health
+        run: |
+          echo "Checking dependency health..."
+          
+          # Check Python requirements
+          if [ -f "requirements.txt" ]; then
+            pip install -r requirements.txt --dry-run --quiet 2>/dev/null
+            if [ $? -eq 0 ]; then
+              echo "✅ Python dependencies are resolvable"
+              python_deps="healthy"
+            else
+              echo "❌ Python dependencies have conflicts"
+              python_deps="unhealthy"
+            fi
+          else
+            python_deps="missing"
+          fi
+          
+          # Check if package.json files are valid
+          js_deps="healthy"
+          for package_json in $(find . -name "package.json" -not -path "./node_modules/*"); do
+            if ! python -c "import json; json.load(open('$package_json'))" 2>/dev/null; then
+              echo "❌ Invalid JSON in $package_json"
+              js_deps="unhealthy"
+            fi
+          done
+          
+          echo "python_deps_status=$python_deps" >> $GITHUB_OUTPUT
+          echo "js_deps_status=$js_deps" >> $GITHUB_OUTPUT
+
+      - name: 📊 Generate Health Report
+        if: always()
+        run: |
+          echo "## 🏥 System Health Report" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Infrastructure Health
+          echo "### 🌐 Infrastructure Health" >> $GITHUB_STEP_SUMMARY
+          if [ -f "health_results.json" ]; then
+            python -c "
+            import json
+            import sys
+            
+            with open('health_results.json', 'r') as f:
+                data = json.load(f)
+            
+            print('| Service | Status |', file=sys.stderr)
+            print('|---------|--------|', file=sys.stderr)
+            
+            for service, status in data['checks'].items():
+                emoji = '✅' if status == 'healthy' else ('⚠️' if status == 'unhealthy' else '❌')
+                service_name = service.replace('_', ' ').title()
+                print(f'| {service_name} | {emoji} {status.title()} |', file=sys.stderr)
+            
+            if data['issues']:
+                print('', file=sys.stderr)
+                print('**Issues Found:**', file=sys.stderr)
+                for issue in data['issues']:
+                    print(f'- {issue}', file=sys.stderr)
+            " 2>> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Infrastructure health check failed to generate results" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Repository Health
+          echo "### 📁 Repository Health" >> $GITHUB_STEP_SUMMARY
+          echo "| Component | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|--------|" >> $GITHUB_STEP_SUMMARY
+          
+          repo_status="${{ steps.repo_health.outputs.status }}"
+          repo_emoji=$([ "$repo_status" = "healthy" ] && echo "✅" || echo "❌")
+          echo "| Critical Files | $repo_emoji $repo_status |" >> $GITHUB_STEP_SUMMARY
+          
+          python_status="${{ steps.dependency_health.outputs.python_deps_status }}"
+          python_emoji=$([ "$python_status" = "healthy" ] && echo "✅" || echo "❌")
+          echo "| Python Dependencies | $python_emoji $python_status |" >> $GITHUB_STEP_SUMMARY
+          
+          js_status="${{ steps.dependency_health.outputs.js_deps_status }}"
+          js_emoji=$([ "$js_status" = "healthy" ] && echo "✅" || echo "❌")
+          echo "| JavaScript Dependencies | $js_emoji $js_status |" >> $GITHUB_STEP_SUMMARY
+
+      - name: 📤 Upload Health Report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: health-report-${{ github.run_id }}
+          path: |
+            health_results.json
+          retention-days: 7
+
+  workflow-health:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.check_type == 'full' || github.event_name == 'schedule'
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔍 Analyze Workflow Health
+        id: workflow_analysis
+        run: |
+          echo "Analyzing GitHub Actions workflows..."
+          
+          workflow_dir=".github/workflows"
+          total_workflows=0
+          valid_workflows=0
+          
+          if [ -d "$workflow_dir" ]; then
+            for workflow in "$workflow_dir"/*.yml "$workflow_dir"/*.yaml; do
+              if [ -f "$workflow" ]; then
+                total_workflows=$((total_workflows + 1))
+                
+                # Basic YAML validation using Python
+                if python -c "import yaml; yaml.safe_load(open('$workflow'))" 2>/dev/null; then
+                  valid_workflows=$((valid_workflows + 1))
+                  echo "✅ Valid: $(basename "$workflow")"
+                else
+                  echo "❌ Invalid: $(basename "$workflow")"
+                fi
+              fi
+            done
+          fi
+          
+          echo "total_workflows=$total_workflows" >> $GITHUB_OUTPUT
+          echo "valid_workflows=$valid_workflows" >> $GITHUB_OUTPUT
+          
+          if [ "$total_workflows" -eq "$valid_workflows" ] && [ "$total_workflows" -gt 0 ]; then
+            echo "status=healthy" >> $GITHUB_OUTPUT
+          else
+            echo "status=unhealthy" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 📊 Workflow Health Summary
+        run: |
+          echo "### ⚙️ Workflow Health" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Total Workflows | ${{ steps.workflow_analysis.outputs.total_workflows }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Valid Workflows | ${{ steps.workflow_analysis.outputs.valid_workflows }} |" >> $GITHUB_STEP_SUMMARY
+          
+          status="${{ steps.workflow_analysis.outputs.status }}"
+          status_emoji=$([ "$status" = "healthy" ] && echo "✅" || echo "❌")
+          echo "| Overall Status | $status_emoji $status |" >> $GITHUB_STEP_SUMMARY
+
+  security-monitoring:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.check_type == 'full' || github.event_name == 'schedule'
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔒 Security Health Check
+        id: security_check
+        run: |
+          echo "Running security health checks..."
+          
+          security_score=100
+          issues=()
+          
+          # Check for secrets in code (basic check)
+          if grep -r -i -E "(password|secret|token|key)" --include="*.py" --include="*.js" --include="*.yml" . | grep -v -E "(SECRET|PASSWORD|TOKEN)" | grep -v "example\|test\|demo" | head -5; then
+            security_score=$((security_score - 20))
+            issues+=("Potential secrets found in code")
+          fi
+          
+          # Check for .env files in git
+          if find . -name ".env" -not -path "./.git/*" | head -1 | grep -q "."; then
+            security_score=$((security_score - 10))
+            issues+=(".env files found in repository")
+          fi
+          
+          # Check for proper .gitignore
+          if [ ! -f ".gitignore" ]; then
+            security_score=$((security_score - 15))
+            issues+=("No .gitignore file found")
+          fi
+          
+          # Check for security policy
+          if [ ! -f "SECURITY.md" ] && [ ! -f ".github/SECURITY.md" ]; then
+            security_score=$((security_score - 5))
+            issues+=("No security policy found")
+          fi
+          
+          echo "security_score=$security_score" >> $GITHUB_OUTPUT
+          echo "SECURITY_ISSUES<<EOF" >> $GITHUB_OUTPUT
+          printf "%s\n" "${issues[@]}" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: 🛡️ Security Summary
+        run: |
+          echo "### 🔒 Security Health" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Security Score | ${{ steps.security_check.outputs.security_score }}/100 |" >> $GITHUB_STEP_SUMMARY
+          
+          score="${{ steps.security_check.outputs.security_score }}"
+          if [ "$score" -ge 90 ]; then
+            echo "| Status | ✅ Excellent |" >> $GITHUB_STEP_SUMMARY
+          elif [ "$score" -ge 75 ]; then
+            echo "| Status | ⚠️ Good |" >> $GITHUB_STEP_SUMMARY
+          elif [ "$score" -ge 60 ]; then
+            echo "| Status | ⚠️ Needs Improvement |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Status | ❌ Critical |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Show security issues if any
+          if [ -n "${{ steps.security_check.outputs.SECURITY_ISSUES }}" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Security Issues:**" >> $GITHUB_STEP_SUMMARY
+            echo "${{ steps.security_check.outputs.SECURITY_ISSUES }}" | while read -r issue; do
+              if [ -n "$issue" ]; then
+                echo "- $issue" >> $GITHUB_STEP_SUMMARY
+              fi
+            done
+          fi
+
+  notification:
+    runs-on: ubuntu-latest
+    needs: [infrastructure-health, workflow-health, security-monitoring]
+    if: always() && (github.event.inputs.notify_team == 'true' || github.event_name == 'schedule')
+    
+    steps:
+      - name: 📊 Collect Results
+        id: results
+        run: |
+          # Determine overall health
+          infra_status="${{ needs.infrastructure-health.result }}"
+          workflow_status="${{ needs.workflow-health.result }}"
+          security_status="${{ needs.security-monitoring.result }}"
+          
+          if [ "$infra_status" = "success" ] && [ "$workflow_status" = "success" ] && [ "$security_status" = "success" ]; then
+            overall_status="healthy"
+            status_emoji="✅"
+          elif [ "$infra_status" = "failure" ] || [ "$workflow_status" = "failure" ] || [ "$security_status" = "failure" ]; then
+            overall_status="critical"
+            status_emoji="❌"
+          else
+            overall_status="degraded"
+            status_emoji="⚠️"
+          fi
+          
+          echo "overall_status=$overall_status" >> $GITHUB_OUTPUT
+          echo "status_emoji=$status_emoji" >> $GITHUB_OUTPUT
+
+      - name: 📢 System Health Notification
+        run: |
+          echo "## 🏥 System Health Monitoring Alert" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Overall Status:** ${{ steps.results.outputs.status_emoji }} ${{ steps.results.outputs.overall_status }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Component | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Infrastructure | ${{ needs.infrastructure-health.result == 'success' && '✅ Healthy' || '❌ Issues' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Workflows | ${{ needs.workflow-health.result == 'success' && '✅ Healthy' || '❌ Issues' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security | ${{ needs.security-monitoring.result == 'success' && '✅ Healthy' || '❌ Issues' }} |" >> $GITHUB_STEP_SUMMARY
+          
+          # Here you could add external notifications
+          # Example: Send to Slack, Discord, email, etc.
+          # curl -X POST -H 'Content-type: application/json' \
+          #   --data '{"text":"🏥 RouteForce Health: ${{ steps.results.outputs.overall_status }}"}' \
+          #   ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: 🚨 Create Issue on Critical Failure
+        if: steps.results.outputs.overall_status == 'critical'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = '🚨 Critical System Health Issue Detected';
+            const body = `## 🚨 Critical System Health Alert
+
+            **Status:** ❌ Critical
+            **Detected:** ${new Date().toISOString()}
+            **Workflow:** [${context.runId}](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
+
+            ### 📋 Component Status
+            - Infrastructure: ${{ needs.infrastructure-health.result }}
+            - Workflows: ${{ needs.workflow-health.result }}  
+            - Security: ${{ needs.security-monitoring.result }}
+
+            ### 🔧 Next Steps
+            1. Review the workflow logs above
+            2. Check infrastructure dependencies
+            3. Validate workflow configurations
+            4. Address security issues if any
+
+            **This issue was automatically created by the system monitoring workflow.**
+            `;
+
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['critical', 'monitoring', 'automated']
+            });

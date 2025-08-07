@@ -1,10 +1,109 @@
-routing/core.py
-from routing.route_scoring import rank_routes
+services:
+  # Main Web Service
+  - type: web
+    name: routeforce-app
+    plan: starter
+    env: docker
+    dockerfilePath: ./Dockerfile.production
+    region: oregon
+    buildCommand: "docker build -t routeforce-app -f Dockerfile.production ."
+    startCommand: "python app.py"
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: PYTHONPATH
+        value: /app
+      - key: DATABASE_URL
+        fromDatabase:
+          name: routeforce-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: routeforce-redis
+          property: connectionString
+      - key: SENTRY_DSN
+        value: https://YOUR_SENTRY_DSN@sentry.io/PROJECT_ID
+    healthCheckPath: /health
+    buildFilter:
+      paths:
+        - "**"
+      ignoredPaths:
+        - ".git/**"
+        - "node_modules/**"
+        - "*.md"
+        - ".github/**"
+    domains:
+      - routeforce-routing.onrender.com
 
-def generate_routes(...):  # existing signature
-    ...
-    # Assume route_candidates is the list of generated routes
-    ranked = rank_routes(route_candidates)
-    if ranked:
-        return ranked[0]["route"]
-    return None
+  # PostgreSQL Database
+  - type: pserv
+    name: routeforce-postgres
+    plan: starter
+    env: docker
+    dockerfilePath: ./docker/postgres/Dockerfile
+    region: oregon
+    disk:
+      name: postgres-data
+      mountPath: /var/lib/postgresql/data
+      sizeGB: 10
+    envVars:
+      - key: POSTGRES_DB
+        value: routeforce
+      - key: POSTGRES_USER
+        value: routeforce
+      - key: POSTGRES_PASSWORD
+        generateValue: true
+    healthCheckCommand: "pg_isready -U routeforce -d routeforce"
+    
+  # Redis Cache Service
+  - type: redis
+    name: routeforce-redis
+    plan: starter
+    region: oregon
+    maxmemoryPolicy: allkeys-lru
+    
+  # Background Worker (Optional)
+  - type: worker
+    name: routeforce-worker
+    plan: starter
+    env: docker
+    dockerfilePath: ./Dockerfile.production
+    region: oregon
+    buildCommand: "docker build -t routeforce-worker -f Dockerfile.production ."
+    startCommand: "python -m celery worker -A app.celery --loglevel=info"
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: routeforce-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: routeforce-redis
+          property: connectionString
+    buildFilter:
+      paths:
+        - "**"
+      ignoredPaths:
+        - ".git/**"
+        - "*.md"
+        - ".github/**"
+
+# Static Site (Documentation/Landing Page)
+  - type: static
+    name: routeforce-docs
+    buildCommand: "npm run build"
+    publishPath: "./docs/build"
+    pullRequestPreviewsEnabled: true
+    headers:
+      - path: "/*"
+        name: "X-Frame-Options"
+        value: "DENY"
+      - path: "/*"
+        name: "X-Content-Type-Options"
+        value: "nosniff"

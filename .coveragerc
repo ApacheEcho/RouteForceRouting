@@ -1,0 +1,149 @@
+# Coverage.py configuration for RouteForce Routing
+# Provides detailed test coverage analysis and reporting
+
+[run]
+# Source code paths to analyze
+source = app
+
+# Files to include in coverage analysis
+include = 
+    app/*
+    app/**/*
+
+# Files and directories to omit from coverage
+omit =
+    # Test files
+    */tests/*
+    */test_*
+    */*_test.py
+    */conftest.py
+    
+    # Virtual environments
+    */venv/*
+    */.venv/*
+    */env/*
+    
+    # Build and distribution
+    */build/*
+    */dist/*
+    */*.egg-info/*
+    
+    # Documentation
+    */docs/*
+    
+    # Configuration files
+    */settings/*
+    */config/*
+    
+    # Migration files
+    */migrations/*
+    
+    # Temporary files
+    */temp/*
+    */tmp/*
+    */logs/*
+    
+    # Cache directories
+    */__pycache__/*
+    */.pytest_cache/*
+    
+    # Development utilities
+    */scripts/*
+    */tools/*
+    
+    # Backup files
+    */backup_deployment/*
+
+# Enable branch coverage
+branch = true
+
+# Parallel coverage collection
+parallel = false
+
+# Coverage data file
+data_file = .coverage
+
+# Include unexecuted files in coverage report
+include_unexecuted = true
+
+# Context handling
+dynamic_context = test_function
+
+[report]
+# Output options
+show_missing = true
+skip_covered = false
+sort = cover
+precision = 2
+
+# Coverage requirements
+fail_under = 70
+
+# Exclude lines from coverage
+exclude_lines =
+    # Standard library exclusions
+    pragma: no cover
+    pragma: nocover
+    
+    # Debug code
+    def __repr__
+    if self\.debug
+    
+    # Testing code
+    if __name__ == .__main__.:
+    
+    # Typing imports
+    if TYPE_CHECKING:
+    from typing
+    
+    # Abstract methods
+    raise NotImplementedError
+    raise AssertionError
+    
+    # Defensive code
+    pass
+    
+    # Platform specific
+    if sys.platform
+    
+    # Version specific
+    if sys.version_info
+    
+    # Development utilities
+    print\(
+    pprint\(
+    pp\(
+    
+    # Logging
+    logger\.debug
+    log\.debug
+
+# Exclude empty files
+skip_empty = true
+
+[html]
+# HTML report directory
+directory = htmlcov
+
+# Additional HTML options
+show_contexts = true
+skip_covered = false
+skip_empty = true
+title = RouteForce Routing Coverage Report
+
+[xml]
+# XML report file
+output = coverage.xml
+
+[json]
+# JSON report file
+output = coverage.json
+show_contexts = true
+pretty_print = true
+
+[paths]
+# Path mapping for consistent reporting
+source =
+    app/
+    */app/
+    /app/

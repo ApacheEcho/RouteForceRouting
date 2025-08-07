@@ -1,0 +1,66 @@
+services:
+  # Staging Web Service
+  - type: web
+    name: routeforce-staging
+    plan: starter
+    env: docker
+    dockerfilePath: ./Dockerfile
+    region: oregon
+    buildCommand: "docker build -t routeforce-staging ."
+    startCommand: "python app.py"
+    envVars:
+      - key: FLASK_ENV
+        value: staging
+      - key: PORT
+        value: 5000
+      - key: PYTHONPATH
+        value: /app
+      - key: DATABASE_URL
+        fromDatabase:
+          name: routeforce-staging-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: routeforce-staging-redis
+          property: connectionString
+      - key: SENTRY_DSN
+        value: https://YOUR_SENTRY_DSN@sentry.io/PROJECT_ID
+      - key: DEBUG
+        value: true
+    healthCheckPath: /health
+    buildFilter:
+      paths:
+        - "**"
+      ignoredPaths:
+        - ".git/**"
+        - "node_modules/**"
+        - "*.md"
+        - ".github/**"
+    domains:
+      - routeforce-staging.onrender.com
+
+  # Staging PostgreSQL Database
+  - type: pserv
+    name: routeforce-staging-postgres
+    plan: starter
+    env: docker
+    region: oregon
+    disk:
+      name: postgres-staging-data
+      mountPath: /var/lib/postgresql/data
+      sizeGB: 5
+    envVars:
+      - key: POSTGRES_DB
+        value: routeforce_staging
+      - key: POSTGRES_USER
+        value: routeforce
+      - key: POSTGRES_PASSWORD
+        generateValue: true
+    
+  # Staging Redis Cache Service
+  - type: redis
+    name: routeforce-staging-redis
+    plan: starter
+    region: oregon
+    maxmemoryPolicy: allkeys-lru

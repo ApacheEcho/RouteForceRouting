@@ -1,0 +1,104 @@
+# GitHub Copilot Configuration
+# Configure Copilot for optimal AI assistance in RouteForce Routing
+
+# Enable Copilot suggestions in the IDE
+enabled: true
+
+# Copilot Labs settings
+labs:
+  enabled: true
+  features:
+    - explain
+    - language_translation
+    - readable_code
+    - test_generation
+
+# File-specific settings
+patterns:
+  # Python files - enable advanced assistance
+  "*.py":
+    suggestions: true
+    completions: true
+    documentation: true
+    test_generation: true
+    
+  # JavaScript/TypeScript files  
+  "*.js":
+    suggestions: true
+    completions: true
+    documentation: true
+    
+  "*.ts":
+    suggestions: true
+    completions: true
+    documentation: true
+    
+  # Configuration files
+  "*.yml":
+    suggestions: true
+    completions: true
+    
+  "*.yaml":
+    suggestions: true
+    completions: true
+    
+  "*.json":
+    suggestions: true
+    completions: true
+    
+  # Documentation
+  "*.md":
+    suggestions: true
+    completions: true
+    documentation: true
+    
+  # SQL files
+  "*.sql":
+    suggestions: true
+    completions: true
+    
+  # Shell scripts
+  "*.sh":
+    suggestions: true
+    completions: true
+
+# Project-specific context
+context:
+  project_type: "web_application"
+  primary_language: "python"
+  framework: "flask"
+  database: "postgresql"
+  domain: "route_optimization"
+  
+  # Key components for better context
+  components:
+    - "genetic_algorithm"
+    - "simulated_annealing"  
+    - "routing_optimization"
+    - "performance_benchmarking"
+    - "api_endpoints"
+    - "database_models"
+    
+  # Dependencies for context
+  dependencies:
+    - "flask"
+    - "sqlalchemy"
+    - "redis"
+    - "celery"
+    - "pytest"
+    - "numpy"
+    - "pandas"
+
+# Code style preferences
+style:
+  line_length: 88
+  indentation: 4
+  quote_style: "double"
+  trailing_commas: true
+  
+# Documentation preferences  
+documentation:
+  style: "google"
+  include_type_hints: true
+  include_examples: true
+  include_return_types: true

@@ -1,0 +1,126 @@
+##
+## CodeCov Configuration for RouteForce Routing
+## This file provides comprehensive test coverage analysis and reporting
+##
+
+# Coverage collection settings
+coverage:
+  precision: 2
+  round: down
+  range: "70...100"
+  
+  status:
+    # Project-level coverage requirements
+    project:
+      default:
+        target: 80%
+        threshold: 1%
+        base: auto
+        if_ci_failed: error
+        informational: false
+        only_pulls: false
+    
+    # Patch-level coverage for new changes
+    patch:
+      default:
+        target: 80%
+        threshold: 1%
+        base: auto
+        if_ci_failed: error
+        informational: false
+        only_pulls: false
+        
+    # Changes-specific coverage tracking
+    changes:
+      default:
+        target: 80%
+        threshold: 1%
+        base: auto
+        if_ci_failed: error
+        informational: false
+        only_pulls: false
+
+# Pull Request comments configuration
+comment:
+  layout: "reach,diff,flags,tree"
+  behavior: default
+  require_changes: false
+  require_base: false
+  require_head: true
+  branches: 
+    - "main"
+    - "develop"
+
+# Coverage ignore patterns
+ignore:
+  - "tests/*"
+  - "test_*.py"
+  - "*_test.py"
+  - "conftest.py"
+  - "setup.py"
+  - "docs/*"
+  - "scripts/*"
+  - "*.md"
+  - "migrations/*"
+  - "venv/*"
+  - ".venv/*"
+  - "__pycache__/*"
+  - "*.pyc"
+  - ".git/*"
+  - ".github/*"
+  - "logs/*"
+  - "temp/*"
+  - "build/*"
+  - "dist/*"
+
+# Flags for different test categories
+flags:
+  unit:
+    paths:
+      - app/
+    carryforward: false
+  
+  integration:
+    paths:
+      - app/routes/
+      - app/services/
+    carryforward: false
+    
+  algorithms:
+    paths:
+      - app/algorithms/
+      - app/optimization/
+    carryforward: false
+    
+  monitoring:
+    paths:
+      - app/monitoring/
+    carryforward: false
+
+  api:
+    paths:
+      - app/routes/
+    carryforward: false
+
+# GitHub integration
+github_checks:
+  annotations: true
+
+# Parsing configuration  
+parsers:
+  gcov:
+    branch_detection:
+      conditional: true
+      loop: true
+      macro: false
+      method: false
+  javascript:
+    enable_partials: false
+
+# Profiling and performance  
+profiling:
+  critical_files_paths:
+    - "app/algorithms/"
+    - "app/optimization/" 
+    - "app/services/routing_service.py"
+    - "app/routes/"

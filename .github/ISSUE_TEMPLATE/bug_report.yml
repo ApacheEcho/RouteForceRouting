@@ -1,0 +1,120 @@
+name: 🐛 Bug Report
+description: Report a bug or unexpected behavior in RouteForce Routing
+title: "[BUG] "
+labels: ["type: bug", "needs-triage"]
+assignees:
+  - ApacheEcho
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🐛 Bug Report
+        
+        Thanks for taking the time to report a bug! Please provide as much detail as possible to help us resolve the issue quickly.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 📝 Bug Description
+      description: A clear and concise description of what the bug is.
+      placeholder: Describe what happened and what you expected to happen...
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: 🔄 Steps to Reproduce
+      description: Detailed steps to reproduce the behavior
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. Scroll down to '...'
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: ✅ Expected Behavior
+      description: What you expected to happen
+      placeholder: Describe what should have happened instead...
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: 📸 Screenshots/Media
+      description: If applicable, add screenshots or videos to help explain the problem
+      placeholder: Drag and drop images here or paste them...
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: 🚨 Severity Level
+      description: How severe is this bug?
+      options:
+        - Critical (System unusable, data loss, security issue)
+        - High (Major feature broken, significant impact)
+        - Medium (Feature partially broken, workaround exists)
+        - Low (Minor issue, cosmetic problems)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: 🎯 Component Affected
+      description: Which part of RouteForce Routing is affected?
+      options:
+        - Route Optimization Algorithm
+        - Map Integration (Google Maps, etc.)
+        - User Interface/Frontend
+        - API/Backend
+        - Database
+        - Authentication/Security
+        - Performance/Speed
+        - Mobile App
+        - Documentation
+        - Other/Unknown
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: 🖥️ Environment Information
+      description: Tell us about your environment
+      value: |
+        - OS: [e.g., Windows 11, macOS 14, Ubuntu 22.04]
+        - Browser: [e.g., Chrome 115, Safari 16, Firefox 117]
+        - RouteForce Version: [e.g., v1.2.3]
+        - Device: [e.g., Desktop, Mobile, Tablet]
+        - Network: [e.g., WiFi, Mobile Data, Ethernet]
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: 📋 Additional Context
+      description: Any additional information that might help us resolve this issue
+      placeholder: Error messages, logs, related issues, attempted solutions, etc.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: ✅ Pre-submission Checklist
+      description: Please confirm the following before submitting
+      options:
+        - label: I have searched existing issues to ensure this isn't a duplicate
+          required: true
+        - label: I have provided clear steps to reproduce the issue
+          required: true
+        - label: I have included relevant environment information
+          required: true
+        - label: I have removed or obscured any sensitive information
+          required: true

@@ -1,0 +1,124 @@
+name: ❓ Question/Support
+description: Ask a question or get help with using RouteForce Routing
+title: "[QUESTION] "
+labels: ["type: question", "needs-triage"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## ❓ Question/Support Request
+        
+        Before asking a question, please:
+        - 📚 Check our [documentation](https://github.com/ApacheEcho/RouteForceRouting/wiki)
+        - 🔍 Search existing issues and discussions
+        - 💬 Consider using GitHub Discussions for general questions
+        
+        For technical support questions, please provide as much context as possible!
+
+  - type: dropdown
+    id: question-type
+    attributes:
+      label: 🎯 Question Type
+      description: What type of question or support do you need?
+      options:
+        - How-to/Usage Question
+        - API/Integration Help
+        - Configuration Help
+        - Troubleshooting
+        - Best Practices
+        - Feature Clarification
+        - Documentation Request
+        - Development Help
+        - Deployment Help
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: ❓ Your Question
+      description: What would you like to know or what help do you need?
+      placeholder: Please be as specific as possible about what you're trying to achieve and what challenges you're facing...
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: 🔍 Context & Background
+      description: Provide context about your use case and what you're trying to accomplish
+      placeholder: |
+        - What are you trying to build or accomplish?
+        - What's your experience level with RouteForce Routing?
+        - What have you tried so far?
+        - What specific part is confusing or not working?
+
+  - type: textarea
+    id: current-approach
+    attributes:
+      label: 🛠️ What Have You Tried?
+      description: What approaches or solutions have you already attempted?
+      placeholder: |
+        - Code you've written
+        - Documentation you've consulted
+        - Tutorials or examples you've followed
+        - Error messages you've encountered
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: 🖥️ Environment (if relevant)
+      description: Your development or deployment environment
+      value: |
+        - RouteForce Version: [e.g., v1.2.3]
+        - OS: [e.g., Windows 11, macOS 14, Ubuntu 22.04]
+        - Programming Language: [e.g., Python 3.9, JavaScript/Node.js]
+        - Framework: [e.g., Flask, React, etc.]
+        - Database: [e.g., PostgreSQL, MySQL]
+
+  - type: textarea
+    id: expected-outcome
+    attributes:
+      label: ✅ Expected Outcome
+      description: What would you like to achieve or what result are you expecting?
+      placeholder: Describe what success looks like for your question or use case...
+
+  - type: dropdown
+    id: urgency
+    attributes:
+      label: ⏰ Urgency Level
+      description: How urgent is this question for you?
+      options:
+        - Low (General curiosity, learning)
+        - Medium (Working on a project, not time-critical)
+        - High (Blocked on current work, need answer soon)
+        - Critical (Production issue, urgent business need)
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: 📋 Additional Information
+      description: Any other information that might be helpful
+      placeholder: |
+        - Links to relevant documentation
+        - Code snippets (please format with ```code blocks```)
+        - Screenshots or error messages
+        - Related issues or discussions
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: ✅ Pre-submission Checklist
+      options:
+        - label: I have searched existing issues and discussions for similar questions
+          required: true
+        - label: I have provided enough context for others to understand my situation
+          required: true
+        - label: I have checked the documentation and available resources
+          required: true
+        - label: I understand this is for questions about RouteForce Routing specifically
+          required: true

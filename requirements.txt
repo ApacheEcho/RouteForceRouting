@@ -18,6 +18,7 @@ openpyxl==3.1.5
 pandas==2.3.0
 pathspec==0.12.1
 platformdirs==4.3.8
+sentry-sdk[flask]==2.21.0
 psutil==6.1.0
 pytest==8.4.1
 redis==5.2.0
@@ -70,3 +71,12 @@ zipp>=3.19.1 # not directly required, pinned by Snyk to avoid a vulnerability
 
 # API Documentation
 flasgger==0.9.7.1
+
+# Test Coverage and Reporting
+coverage==7.6.9
+pytest-cov==6.0.0
+pytest-html==4.1.1
+pytest-json-report==2.2.0
+pytest-benchmark==5.1.0
+pytest-xdist==3.6.0
+pytest-randomly==4.0.0

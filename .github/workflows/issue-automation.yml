@@ -1,0 +1,175 @@
+name: 🎫 Issue Automation
+
+on:
+  issues:
+    types: [opened, edited, labeled, assigned]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  issue-automation:
+    name: 🤖 Issue Automation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🏷️ Auto-label New Issues
+        if: github.event.action == 'opened'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const title = issue.title.toLowerCase();
+            const body = issue.body ? issue.body.toLowerCase() : '';
+            const labels = [];
+
+            // Auto-label based on title keywords
+            if (title.includes('[bug]') || title.includes('bug') || title.includes('error') || title.includes('broken')) {
+              labels.push('type: bug');
+            }
+            
+            if (title.includes('[feature]') || title.includes('feature') || title.includes('enhancement')) {
+              labels.push('type: feature');
+            }
+            
+            if (title.includes('[security]') || title.includes('security') || title.includes('vulnerability')) {
+              labels.push('type: security', 'high-priority');
+            }
+            
+            if (title.includes('[performance]') || title.includes('performance') || title.includes('slow')) {
+              labels.push('type: performance');
+            }
+            
+            if (title.includes('[question]') || title.includes('question') || title.includes('help')) {
+              labels.push('type: question');
+            }
+
+            // Component-based labels
+            if (body.includes('route optimization') || body.includes('algorithm')) {
+              labels.push('area: routing');
+            }
+            
+            if (body.includes('map') || body.includes('google maps') || body.includes('navigation')) {
+              labels.push('area: maps');
+            }
+            
+            if (body.includes('api') || body.includes('backend') || body.includes('server')) {
+              labels.push('area: api');
+            }
+            
+            if (body.includes('ui') || body.includes('frontend') || body.includes('interface')) {
+              labels.push('area: frontend');
+            }
+            
+            if (body.includes('database') || body.includes('sql') || body.includes('data')) {
+              labels.push('area: database');
+            }
+
+            // Priority labels based on severity
+            if (body.includes('critical') || title.includes('critical')) {
+              labels.push('high-priority');
+            }
+
+            if (labels.length > 0) {
+              await github.rest.issues.addLabels({
+                issue_number: issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                labels: labels
+              });
+            }
+
+      - name: 🎯 Assign Issues Based on Labels
+        if: github.event.action == 'opened' || github.event.action == 'labeled'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const labels = issue.labels.map(label => label.name);
+            
+            // Auto-assign based on label categories
+            const assignees = [];
+            
+            if (labels.includes('type: security')) {
+              assignees.push('ApacheEcho'); // Security issues go to maintainer
+            }
+            
+            if (labels.includes('high-priority') || labels.includes('critical')) {
+              assignees.push('ApacheEcho'); // High priority to maintainer
+            }
+            
+            // Only assign if not already assigned and we have assignees
+            if (assignees.length > 0 && issue.assignees.length === 0) {
+              await github.rest.issues.addAssignees({
+                issue_number: issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                assignees: assignees
+              });
+            }
+
+      - name: 💬 Welcome New Contributors
+        if: github.event.action == 'opened'
+        uses: actions/first-interaction@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          issue-message: |
+            🎉 **Welcome to RouteForce Routing!**
+            
+            Thank you for opening your first issue! We appreciate you taking the time to contribute to our project.
+            
+            **What happens next?**
+            - 🏷️ Your issue has been automatically labeled based on its content
+            - 👀 A maintainer will review and respond within 48 hours
+            - 🔄 You may be asked for additional information or clarification
+            
+            **In the meantime:**
+            - 📚 Check out our [documentation](https://github.com/ApacheEcho/RouteForceRouting/wiki)
+            - 💬 Join our [discussions](https://github.com/ApacheEcho/RouteForceRouting/discussions) for community support
+            - ⭐ Star the repository if you find it useful!
+            
+            Thanks for helping make RouteForce Routing better! 🚀
+
+      - name: 🔒 Security Issue Special Handling
+        if: contains(github.event.issue.labels.*.name, 'type: security')
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Add special handling for security issues
+            const securityComment = `🔒 **Security Issue Detected**
+            
+            This issue has been flagged as security-related and will be handled with priority.
+            
+            **For the reporter:**
+            - ✅ Thank you for reporting this responsibly
+            - 🤫 Please avoid sharing sensitive details publicly
+            - 📧 Consider emailing security details to: apacheecho@icloud.com.com
+            - ⏰ We aim to respond to security issues within 24 hours
+            
+            **For the community:**
+            - 🙏 Please be patient as we investigate and resolve this issue
+            - 🔐 Security fixes will be prioritized and released promptly
+            
+            Thank you for helping keep RouteForce Routing secure! 🛡️`;
+            
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: securityComment
+            });
+
+      - name: 📊 Issue Statistics
+        if: github.event.action == 'opened'
+        run: |
+          echo "📊 New issue opened: #${{ github.event.issue.number }}"
+          echo "📝 Title: ${{ github.event.issue.title }}"
+          echo "👤 Author: ${{ github.event.issue.user.login }}"
+          echo "🏷️ Labels: ${{ join(github.event.issue.labels.*.name, ', ') }}"

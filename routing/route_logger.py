@@ -1,49 +1,62 @@
-#!/usr/bin/env python3
 """
-Route logging and scoring functionality
+Route Logging Module
+Provides logging functionality for route scoring and analysis
 """
-import subprocess
-import os
 
-TODO_PATH = "build_tasks/auto_todo.md"
+import logging
+import json
+from datetime import datetime
+from typing import Dict, Any, Optional
 
-def get_next_task():
-    with open(TODO_PATH, "r") as f:
-        for line in f:
-            if line.startswith("- [ ]"):
-                return line.strip().replace("- [ ] ", "")
-    return None
 
-def mark_task_done(task):
-    with open(TODO_PATH, "r") as f:
-        lines = f.readlines()
-    with open(TODO_PATH, "w") as f:
-        for line in lines:
-            if task in line and "- [ ]" in line:
-                f.write(line.replace("- [ ]", "- [x]"))
-            else:
-                f.write(line)
+def setup_route_logger() -> logging.Logger:
+    """Setup and configure route logger"""
+    logger = logging.getLogger('route_logger')
+    logger.setLevel(logging.INFO)
 
-def run_copilot_autobuild():
-    task = get_next_task()
-    if not task:
-        print("✅ All tasks completed.")
-        return
+    if not logger.handlers:
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        )
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
 
-    print(f"🔧 Running Copilot on task: {task}")
+    return logger
 
-    # Prompt Copilot indirectly by opening the file with an embedded comment prompt
-    prompt = f'# TASK: {task}\n# Please generate complete code for this task.\n'
-    with open("copilot_prompt.py", "w") as f:
-        f.write(prompt)
 
-    subprocess.run(["code", "copilot_prompt.py"])
-    print("✅ Auto-confirm enabled. Proceeding with commit and push...")
+def log_route_score(
+    route_data: Dict[str, Any],
+    score: float,
+    details: Optional[Dict[str, Any]] = None
+) -> None:
+    """Log route scoring information"""
+    logger = setup_route_logger()
 
-    os.system(f'git add . && git commit -m "Auto: {task}" && git push')
+    log_entry = {
+        'timestamp': datetime.now().isoformat(),
+        'route_id': route_data.get('id', 'unknown'),
+        'score': score,
+        'route_length': len(route_data.get('stops', [])),
+        'details': details or {}
+    }
 
-    mark_task_done(task)
-    run_copilot_autobuild()
+    logger.info(f"Route scored: {json.dumps(log_entry)}")
 
-if __name__ == "__main__":
-    run_copilot_autobuild()
+
+def log_route_analysis(
+    route_id: str,
+    analysis_type: str,
+    results: Dict[str, Any]
+) -> None:
+    """Log route analysis results"""
+    logger = setup_route_logger()
+
+    log_entry = {
+        'timestamp': datetime.now().isoformat(),
+        'route_id': route_id,
+        'analysis_type': analysis_type,
+        'results': results
+    }
+
+    logger.info(f"Route analysis completed: {json.dumps(log_entry)}")

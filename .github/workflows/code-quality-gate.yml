@@ -1,0 +1,275 @@
+name: 🔍 Code Quality Gate
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+    types: [opened, synchronize, ready_for_review]
+  push:
+    branches: [ main, develop ]
+
+env:
+  PYTHON_VERSION: '3.12'
+  NODE_VERSION: '18'
+
+jobs:
+  code-quality:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: 📦 Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-quality-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-quality-
+            ${{ runner.os }}-pip-
+
+      - name: ⚙️ Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install black flake8 mypy bandit safety pylint radon xenon
+
+      - name: 🎨 Code Formatting Check (Black)
+        id: black
+        run: |
+          echo "::group::Black Formatting Check"
+          black --check --diff . > black_output.txt 2>&1 || echo "FORMAT_ISSUES=true" >> $GITHUB_OUTPUT
+          cat black_output.txt
+          echo "::endgroup::"
+          echo "BLACK_OUTPUT<<EOF" >> $GITHUB_ENV
+          cat black_output.txt >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: 🔍 Linting (Flake8)
+        id: flake8
+        run: |
+          echo "::group::Flake8 Linting"
+          flake8 app/ --format='%(path)s:%(row)d:%(col)d: %(code)s %(text)s' --statistics > flake8_output.txt 2>&1 || echo "LINT_ISSUES=true" >> $GITHUB_OUTPUT
+          cat flake8_output.txt
+          echo "::endgroup::"
+          echo "FLAKE8_OUTPUT<<EOF" >> $GITHUB_ENV
+          cat flake8_output.txt >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: 🔬 Type Checking (MyPy)
+        id: mypy
+        run: |
+          echo "::group::MyPy Type Checking"
+          mypy app/ --ignore-missing-imports --show-error-codes > mypy_output.txt 2>&1 || echo "TYPE_ISSUES=true" >> $GITHUB_OUTPUT
+          cat mypy_output.txt
+          echo "::endgroup::"
+          echo "MYPY_OUTPUT<<EOF" >> $GITHUB_ENV
+          cat mypy_output.txt >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: 🛡️ Security Check (Bandit)
+        id: bandit
+        run: |
+          echo "::group::Bandit Security Check"
+          bandit -r app/ -f json > bandit_output.json 2>&1 || echo "SECURITY_ISSUES=true" >> $GITHUB_OUTPUT
+          bandit -r app/ -f txt > bandit_output.txt 2>&1 || true
+          cat bandit_output.txt
+          echo "::endgroup::"
+          echo "BANDIT_OUTPUT<<EOF" >> $GITHUB_ENV
+          cat bandit_output.txt >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: 🔒 Dependency Security Check (Safety)
+        id: safety
+        continue-on-error: true
+        run: |
+          echo "::group::Safety Dependency Check"
+          safety check --json > safety_output.json 2>&1 || echo "DEPENDENCY_ISSUES=true" >> $GITHUB_OUTPUT
+          safety check > safety_output.txt 2>&1 || true
+          cat safety_output.txt
+          echo "::endgroup::"
+          echo "SAFETY_OUTPUT<<EOF" >> $GITHUB_ENV
+          cat safety_output.txt >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: 📊 Code Complexity Analysis
+        id: complexity
+        run: |
+          echo "::group::Code Complexity Analysis"
+          radon cc app/ -a -nc > complexity_output.txt 2>&1
+          radon mi app/ > maintainability_output.txt 2>&1
+          xenon --max-absolute A --max-modules A --max-average A app/ > xenon_output.txt 2>&1 || echo "COMPLEXITY_ISSUES=true" >> $GITHUB_OUTPUT
+          
+          echo "=== Cyclomatic Complexity ==="
+          cat complexity_output.txt
+          echo "=== Maintainability Index ==="
+          cat maintainability_output.txt
+          echo "=== Xenon Analysis ==="
+          cat xenon_output.txt
+          echo "::endgroup::"
+          
+          echo "COMPLEXITY_OUTPUT<<EOF" >> $GITHUB_ENV
+          echo "=== Cyclomatic Complexity ===" >> $GITHUB_ENV
+          cat complexity_output.txt >> $GITHUB_ENV
+          echo "=== Maintainability Index ===" >> $GITHUB_ENV
+          cat maintainability_output.txt >> $GITHUB_ENV
+          echo "=== Xenon Analysis ===" >> $GITHUB_ENV
+          cat xenon_output.txt >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: 📈 Generate Code Quality Report
+        if: always()
+        run: |
+          echo "## 🔍 Code Quality Gate Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Format issues
+          if [ "${{ steps.black.outputs.FORMAT_ISSUES }}" = "true" ]; then
+            echo "❌ **Code Formatting**: Issues found" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ **Code Formatting**: Passed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Lint issues
+          if [ "${{ steps.flake8.outputs.LINT_ISSUES }}" = "true" ]; then
+            echo "❌ **Linting**: Issues found" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ **Linting**: Passed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Type issues
+          if [ "${{ steps.mypy.outputs.TYPE_ISSUES }}" = "true" ]; then
+            echo "⚠️ **Type Checking**: Issues found" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ **Type Checking**: Passed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Security issues
+          if [ "${{ steps.bandit.outputs.SECURITY_ISSUES }}" = "true" ]; then
+            echo "🔴 **Security**: Issues found" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ **Security**: Passed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Dependency issues
+          if [ "${{ steps.safety.outputs.DEPENDENCY_ISSUES }}" = "true" ]; then
+            echo "⚠️ **Dependency Security**: Issues found" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ **Dependency Security**: Passed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Complexity issues
+          if [ "${{ steps.complexity.outputs.COMPLEXITY_ISSUES }}" = "true" ]; then
+            echo "⚠️ **Code Complexity**: Issues found" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ **Code Complexity**: Acceptable" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📋 **Detailed reports available in the workflow logs above.**" >> $GITHUB_STEP_SUMMARY
+
+      - name: 💬 Comment on PR
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const formatIssues = '${{ steps.black.outputs.FORMAT_ISSUES }}' === 'true';
+            const lintIssues = '${{ steps.flake8.outputs.LINT_ISSUES }}' === 'true';
+            const typeIssues = '${{ steps.mypy.outputs.TYPE_ISSUES }}' === 'true';
+            const securityIssues = '${{ steps.bandit.outputs.SECURITY_ISSUES }}' === 'true';
+            const dependencyIssues = '${{ steps.safety.outputs.DEPENDENCY_ISSUES }}' === 'true';
+            const complexityIssues = '${{ steps.complexity.outputs.COMPLEXITY_ISSUES }}' === 'true';
+            
+            let comment = '## 🔍 Code Quality Gate Report\n\n';
+            
+            comment += '| Check | Status | Details |\n';
+            comment += '|-------|--------|----------|\n';
+            comment += `| Code Formatting | ${formatIssues ? '❌ Failed' : '✅ Passed'} | Black formatting check |\n`;
+            comment += `| Linting | ${lintIssues ? '❌ Failed' : '✅ Passed'} | Flake8 linting |\n`;
+            comment += `| Type Checking | ${typeIssues ? '⚠️ Issues' : '✅ Passed'} | MyPy type checking |\n`;
+            comment += `| Security | ${securityIssues ? '🔴 Issues' : '✅ Passed'} | Bandit security scan |\n`;
+            comment += `| Dependencies | ${dependencyIssues ? '⚠️ Issues' : '✅ Passed'} | Safety dependency check |\n`;
+            comment += `| Code Complexity | ${complexityIssues ? '⚠️ Issues' : '✅ Passed'} | Radon/Xenon analysis |\n`;
+            
+            const hasBlockingIssues = formatIssues || lintIssues || securityIssues;
+            const hasWarnings = typeIssues || dependencyIssues || complexityIssues;
+            
+            if (hasBlockingIssues) {
+              comment += '\n🚫 **This PR has blocking issues that must be fixed before merging.**\n';
+            } else if (hasWarnings) {
+              comment += '\n⚠️ **This PR has warnings that should be reviewed.**\n';
+            } else {
+              comment += '\n✅ **All code quality checks passed! Great job!**\n';
+            }
+            
+            comment += '\n📋 **View detailed reports in the [workflow run](https://github.com/' + context.repo.owner + '/' + context.repo.repo + '/actions/runs/' + context.runId + ').**';
+            
+            // Find existing comment and update or create new one
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const existingComment = comments.find(comment => 
+              comment.user.login === 'github-actions[bot]' && 
+              comment.body.includes('🔍 Code Quality Gate Report')
+            );
+            
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: comment
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment
+              });
+            }
+
+      - name: 📄 Upload Quality Reports
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: code-quality-reports
+          path: |
+            black_output.txt
+            flake8_output.txt
+            mypy_output.txt
+            bandit_output.json
+            bandit_output.txt
+            safety_output.json
+            safety_output.txt
+            complexity_output.txt
+            maintainability_output.txt
+            xenon_output.txt
+          retention-days: 30
+
+      - name: 🚨 Fail on Critical Issues
+        if: steps.black.outputs.FORMAT_ISSUES == 'true' || steps.flake8.outputs.LINT_ISSUES == 'true' || steps.bandit.outputs.SECURITY_ISSUES == 'true'
+        run: |
+          echo "❌ Critical code quality issues found!"
+          echo "Please fix the following before merging:"
+          if [ "${{ steps.black.outputs.FORMAT_ISSUES }}" = "true" ]; then
+            echo "  - Code formatting issues (run: black .)"
+          fi
+          if [ "${{ steps.flake8.outputs.LINT_ISSUES }}" = "true" ]; then
+            echo "  - Linting issues (run: flake8 app/)"
+          fi
+          if [ "${{ steps.bandit.outputs.SECURITY_ISSUES }}" = "true" ]; then
+            echo "  - Security issues (run: bandit -r app/)"
+          fi
+          exit 1

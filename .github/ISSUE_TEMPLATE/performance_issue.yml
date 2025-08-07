@@ -1,0 +1,128 @@
+name: ⚡ Performance Issue
+description: Report performance problems, slowness, or optimization needs
+title: "[PERFORMANCE] "
+labels: ["type: performance", "needs-triage", "improvement: performance"]
+assignees:
+  - ApacheEcho
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## ⚡ Performance Issue Report
+        
+        Help us optimize RouteForce Routing by reporting performance problems or suggesting improvements.
+
+  - type: textarea
+    id: performance-issue
+    attributes:
+      label: 📊 Performance Problem
+      description: Describe the performance issue you're experiencing
+      placeholder: What specific performance problem are you encountering?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: performance-area
+    attributes:
+      label: 🎯 Performance Area
+      description: Which area is experiencing performance issues?
+      options:
+        - Route Calculation Speed
+        - Map Loading/Rendering
+        - API Response Times
+        - Database Queries
+        - UI/Frontend Responsiveness
+        - Memory Usage
+        - Network/Data Transfer
+        - Mobile App Performance
+        - Algorithm Efficiency
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: metrics
+    attributes:
+      label: 📈 Performance Metrics
+      description: Provide specific performance measurements if available
+      placeholder: |
+        - Current response time: [e.g., 5 seconds]
+        - Expected response time: [e.g., <1 second]
+        - Memory usage: [e.g., 500MB]
+        - CPU usage: [e.g., 80%]
+        - Network requests: [e.g., 50 requests taking 10s]
+        - Dataset size: [e.g., 1000 locations, 50 routes]
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: 🔄 Steps to Reproduce Performance Issue
+      description: How to reproduce the performance problem
+      placeholder: |
+        1. Navigate to [specific page/feature]
+        2. Perform [specific action]
+        3. Notice [performance problem]
+        4. Measure [specific metric]
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: 🖥️ Environment & Device Info
+      description: Hardware and software environment details
+      value: |
+        - Device: [e.g., MacBook Pro M2, iPhone 14, Samsung Galaxy S23]
+        - OS: [e.g., macOS 14.0, iOS 16.0, Android 13]
+        - Browser: [e.g., Chrome 115, Safari 16, Firefox 117]
+        - RAM: [e.g., 16GB, 8GB, 4GB]
+        - Network: [e.g., WiFi 1Gbps, 4G LTE, 5G]
+        - Location: [e.g., Urban area, Rural area, International]
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: 💥 User Impact
+      description: How does this performance issue affect users?
+      placeholder: |
+        - How many users are affected?
+        - What is the business impact?
+        - Are there workarounds available?
+        - How often does this occur?
+
+  - type: textarea
+    id: suggestions
+    attributes:
+      label: 💡 Optimization Suggestions
+      description: Do you have any suggestions for improvement?
+      placeholder: Any ideas for how to improve performance in this area?
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 🚨 Priority Level
+      description: How urgent is this performance issue?
+      options:
+        - Critical (System unusable, major user impact)
+        - High (Significant user impact, needs prompt attention)
+        - Medium (Noticeable impact, should be addressed)
+        - Low (Minor impact, optimization opportunity)
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: ✅ Pre-submission Checklist
+      options:
+        - label: I have provided specific performance metrics or measurements
+          required: true
+        - label: I have tested this on multiple devices/environments if possible
+          required: true
+        - label: I have searched for similar performance issues
+          required: true
+        - label: I have considered the impact on different user scenarios
+          required: true

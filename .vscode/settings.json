@@ -6,6 +6,24 @@
         "plaintext": true,
         "markdown": true
     },
+    
+    // ChatGPT Extension Configuration
+    "chatgpt.apiKey": "",
+    "chatgpt.model": "gpt-4",
+    "chatgpt.temperature": 0.3,
+    "chatgpt.maxTokens": 2048,
+    "chatgpt.systemMessage": "You are an expert Python developer specializing in Flask applications, route optimization, and geospatial data. Help with RouteForceRouting project development.",
+    "chatgpt.codeActions": true,
+    "chatgpt.inlineCompletion": false,
+    "chatgpt.showTokenUsage": true,
+    "chatgpt.autoSave": true,
+    "chatgpt.language": "en",
+    "chatgpt.contextLength": 4000,
+    
+    // AI Integration Settings
+    "ai.codeCompletion.enabled": true,
+    "ai.chatMode": "enhanced",
+    "ai.contextAwareness": true,
     "remote.autoForwardPorts": true,
     "remote.autoForwardPortsSource": "hybrid", 
     "remote.forwardOnOpen": true,

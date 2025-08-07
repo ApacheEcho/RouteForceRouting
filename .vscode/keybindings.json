@@ -1,0 +1,46 @@
+[
+    // ChatGPT Extension Keybindings
+    {
+        "key": "ctrl+shift+g",
+        "command": "chatgpt.ask",
+        "when": "editorTextFocus"
+    },
+    {
+        "key": "ctrl+shift+e",
+        "command": "chatgpt.explain",
+        "when": "editorHasSelection"
+    },
+    {
+        "key": "ctrl+shift+r",
+        "command": "chatgpt.refactor",
+        "when": "editorHasSelection"
+    },
+    {
+        "key": "ctrl+shift+d",
+        "command": "chatgpt.addDocumentation",
+        "when": "editorHasSelection"
+    },
+    {
+        "key": "ctrl+shift+t",
+        "command": "chatgpt.writeTests",
+        "when": "editorHasSelection"
+    },
+    {
+        "key": "ctrl+shift+o",
+        "command": "chatgpt.optimize",
+        "when": "editorHasSelection"
+    },
+    {
+        "key": "ctrl+shift+f",
+        "command": "chatgpt.findProblems",
+        "when": "editorTextFocus"
+    },
+    {
+        "key": "ctrl+alt+c",
+        "command": "chatgpt.clearConversation"
+    },
+    {
+        "key": "ctrl+alt+h",
+        "command": "chatgpt.showHistory"
+    }
+]

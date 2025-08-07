@@ -35,6 +35,8 @@ logs/
 !.vscode/tasks.json
 !.vscode/ports.json
 !.vscode/README.md
+!.vscode/keybindings.json
+!.vscode/chatgpt.json
 .idea/
 *.swp
 *.swo

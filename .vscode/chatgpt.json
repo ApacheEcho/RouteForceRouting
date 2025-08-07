@@ -1,0 +1,85 @@
+{
+    "chatgpt": {
+        "projectContext": {
+            "name": "RouteForceRouting",
+            "description": "A Flask-based route optimization engine for field execution teams",
+            "technologies": [
+                "Python 3.12",
+                "Flask",
+                "PostgreSQL",
+                "Redis",
+                "Docker",
+                "Google Maps API",
+                "Geospatial algorithms"
+            ],
+            "codeStyle": {
+                "formatter": "black",
+                "linter": "flake8",
+                "typeChecker": "mypy",
+                "testFramework": "pytest"
+            }
+        },
+        "customPrompts": [
+            {
+                "name": "Route Optimization Expert",
+                "prompt": "You are an expert in route optimization algorithms, geospatial data processing, and Python Flask development. Focus on: 1) Efficient routing algorithms, 2) Google Maps API integration, 3) Database optimization for geospatial queries, 4) Performance improvements for field operations."
+            },
+            {
+                "name": "Flask API Developer", 
+                "prompt": "You are a Flask API development expert. Focus on: 1) RESTful API design, 2) Database models and relationships, 3) Error handling and validation, 4) Authentication and security, 5) Performance optimization."
+            },
+            {
+                "name": "Geospatial Developer",
+                "prompt": "You are a geospatial data expert specializing in: 1) PostGIS and spatial queries, 2) Coordinate systems and transformations, 3) Distance calculations and routing, 4) Map visualization and geocoding."
+            },
+            {
+                "name": "Python Code Reviewer",
+                "prompt": "You are conducting a Python code review for a Flask application. Focus on: 1) Code quality and PEP8 compliance, 2) Security vulnerabilities, 3) Performance issues, 4) Testing coverage, 5) Documentation quality."
+            },
+            {
+                "name": "Database Optimizer",
+                "prompt": "You are a PostgreSQL and Redis expert. Focus on: 1) Query optimization, 2) Index strategy, 3) Caching patterns, 4) Database schema design, 5) Performance monitoring."
+            }
+        ],
+        "codeActions": [
+            {
+                "name": "Explain Route Algorithm",
+                "description": "Explain the selected route optimization algorithm",
+                "prompt": "Explain this route optimization algorithm in detail, including time complexity, use cases, and potential improvements for field operations:"
+            },
+            {
+                "name": "Add Flask Docstring",
+                "description": "Add comprehensive docstring to Flask route",
+                "prompt": "Add a comprehensive docstring to this Flask route following Google style, including parameters, return values, exceptions, and example usage:"
+            },
+            {
+                "name": "Generate Unit Tests",
+                "description": "Generate pytest unit tests for the selected code",
+                "prompt": "Generate comprehensive pytest unit tests for this code, including edge cases, error conditions, and mock external dependencies:"
+            },
+            {
+                "name": "Optimize Database Query",
+                "description": "Optimize the selected database query",
+                "prompt": "Analyze and optimize this database query for performance, considering indexing, query structure, and PostgreSQL best practices:"
+            },
+            {
+                "name": "Security Review",
+                "description": "Review code for security vulnerabilities",
+                "prompt": "Review this code for security vulnerabilities, focusing on input validation, SQL injection, authentication, and other Flask security concerns:"
+            },
+            {
+                "name": "Performance Analysis",
+                "description": "Analyze code performance and suggest improvements",
+                "prompt": "Analyze this code for performance bottlenecks and suggest optimizations, considering algorithmic complexity, database queries, and Python best practices:"
+            }
+        ],
+        "shortcuts": {
+            "explain": "Ctrl+Shift+E",
+            "refactor": "Ctrl+Shift+R", 
+            "document": "Ctrl+Shift+D",
+            "test": "Ctrl+Shift+T",
+            "optimize": "Ctrl+Shift+O",
+            "problems": "Ctrl+Shift+F"
+        }
+    }
+}

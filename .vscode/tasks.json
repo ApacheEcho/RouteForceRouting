@@ -90,6 +90,58 @@
                 "focus": true,
                 "panel": "shared"
             }
+        },
+        {
+            "label": "🤖 ChatGPT: Analyze Code Quality",
+            "type": "shell",
+            "command": "echo",
+            "args": ["'Use Ctrl+Shift+F to analyze code quality with ChatGPT'"],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "🤖 ChatGPT: Generate Tests",
+            "type": "shell", 
+            "command": "echo",
+            "args": ["'Select code and use Ctrl+Shift+T to generate tests with ChatGPT'"],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "🤖 ChatGPT: Add Documentation",
+            "type": "shell",
+            "command": "echo", 
+            "args": ["'Select code and use Ctrl+Shift+D to add documentation with ChatGPT'"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "🤖 ChatGPT: Refactor Code",
+            "type": "shell",
+            "command": "echo",
+            "args": ["'Select code and use Ctrl+Shift+R to refactor with ChatGPT'"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
+            }
         }
     ]
 }

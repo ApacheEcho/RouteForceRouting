@@ -13,11 +13,20 @@ env:
   SENTRY_ORG: routeforce-routing
   SENTRY_PROJECT: routeforce-api
 
+concurrency:
+  group: sentry-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Use explicit minimal permissions; jobs override if needed
+permissions: {}
+
 jobs:
   sentry-release:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' || github.event_name == 'release'
-    
+    timeout-minutes: 15
+    permissions:
+      contents: read
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
@@ -25,9 +34,10 @@ jobs:
           fetch-depth: 0
 
       - name: 🐍 Set up Python 3.12
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          cache: pip
 
       - name: ⚙️ Install Sentry CLI
         run: |
@@ -46,33 +56,29 @@ jobs:
           echo "Release version: $VERSION"
 
       - name: 🚀 Create Sentry release
-        if: false # Disabled - configure SENTRY_AUTH_TOKEN to enable
+        if: ${{ secrets.SENTRY_AUTH_TOKEN && (github.event_name == 'push' || github.event_name == 'release') }}
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: |
           # Create new release
           sentry-cli releases new ${{ steps.version.outputs.version }}
-          
           # Set commits for this release
-          sentry-cli releases set-commits ${{ steps.version.outputs.version }} --auto
-          
-          # Upload source maps (if any JavaScript/TypeScript files exist)
+          sentry-cli releases set-commits ${{ steps.version.outputs.version }} --auto || echo "⚠️ Unable to auto associate commits"
+          # Upload source maps (if any JS/TS files exist)
           if find . -name "*.js" -o -name "*.ts" | head -1 | grep -q .; then
             sentry-cli releases files ${{ steps.version.outputs.version }} upload-sourcemaps \
               --url-prefix "~/" \
               --validate \
               ./static/ || echo "No source maps to upload"
           fi
-          
-          # Finalize the release
+          # Finalize
           sentry-cli releases finalize ${{ steps.version.outputs.version }}
 
       - name: 🎯 Deploy to Sentry
-        if: false # Disabled - configure SENTRY_AUTH_TOKEN to enable
+        if: ${{ secrets.SENTRY_AUTH_TOKEN && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')) }}
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: |
-          # Create deployment
           sentry-cli releases deploys ${{ steps.version.outputs.version }} new \
             --env ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }} \
             --name "GitHub Actions Deploy"
@@ -90,15 +96,18 @@ jobs:
 
   sentry-testing:
     runs-on: ubuntu-latest
-    
+    timeout-minutes: 10
+    permissions:
+      contents: read
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
 
       - name: 🐍 Set up Python 3.12
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          cache: pip
 
       - name: ⚙️ Install dependencies
         run: |
@@ -106,7 +115,7 @@ jobs:
           pip install sentry-sdk[flask] pytest pytest-mock
 
       - name: 🧪 Test Sentry integration
-        if: false # Disabled - configure SENTRY_DSN to enable
+        if: ${{ secrets.SENTRY_DSN }}
         env:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: |
@@ -194,7 +203,9 @@ jobs:
 
   sentry-documentation:
     runs-on: ubuntu-latest
-    
+    timeout-minutes: 5
+    permissions:
+      contents: read
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
@@ -321,7 +332,7 @@ jobs:
           EOF
 
       - name: 📤 Upload documentation
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: sentry-integration-report
           path: sentry_integration_report.md

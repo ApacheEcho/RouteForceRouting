@@ -167,6 +167,7 @@ jobs:
           name: production-build
 
       - name: Deploy to production server
+        if: false # Disabled - configure SSH secrets to enable
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.PROD_HOST }}
@@ -207,8 +208,9 @@ jobs:
               echo "Frontend directory not found, skipping frontend build"
             fi
 
-            # Database migrations
-            export DATABASE_URL=${{ secrets.DATABASE_URL }}
+            # Database migrations (disabled - configure DATABASE_URL to enable)
+            # export DATABASE_URL=[DATABASE_URL_PLACEHOLDER]
+            echo "⚠️ Database migrations disabled - configure DATABASE_URL secret"
             python -c "
             from app import create_app
             from app.models.database import db

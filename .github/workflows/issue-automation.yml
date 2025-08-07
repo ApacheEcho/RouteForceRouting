@@ -138,7 +138,8 @@ jobs:
             Thanks for helping make RouteForce Routing better! 🚀
 
       - name: 🔒 Security Issue Special Handling
-        if: contains(github.event.issue.labels.*.name, 'type: security')
+        if: |
+          contains(join(github.event.issue.labels.*.name, ','), 'type: security')
         uses: actions/github-script@v7
         with:
           script: |

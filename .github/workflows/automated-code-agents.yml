@@ -23,16 +23,21 @@ on:
         default: 'app/'
         type: string
 
-permissions:
-  contents: write
-  pull-requests: write
-  issues: write
+concurrency:
+  group: auto-agents-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+# Top-level empty; set least-privilege per job
 
 jobs:
   maintenance-agent:
     runs-on: ubuntu-latest
-    if: github.event.inputs.agent_type == 'maintenance' || github.event_name == 'schedule'
-    
+    permissions:
+      contents: write
+      pull-requests: write
+    timeout-minutes: 20
+    if: github.event_name == 'schedule' || (github.event.inputs.agent_type || '') == 'maintenance'
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
@@ -41,9 +46,10 @@ jobs:
           fetch-depth: 0
 
       - name: 🐍 Set up Python 3.12
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          cache: pip
 
       - name: ⚙️ Install maintenance tools
         run: |
@@ -53,44 +59,15 @@ jobs:
       - name: 🧹 Automated Code Maintenance
         run: |
           echo "🤖 Starting automated code maintenance..."
-          
-          # Track changes
           changes_made=false
-          
-          # Auto-format with Black
-          if black --check --diff app/ 2>/dev/null; then
-            echo "✅ Code is already properly formatted"
-          else
-            echo "🔧 Auto-formatting code with Black..."
-            black app/
-            changes_made=true
-          fi
-          
-          # Sort imports
-          if isort --check-only app/ 2>/dev/null; then
-            echo "✅ Imports are already properly sorted"
-          else
-            echo "🔧 Sorting imports with isort..."
-            isort app/
-            changes_made=true
-          fi
-          
-          # Remove unused imports
-          echo "🔧 Removing unused imports..."
-          find app/ -name "*.py" -exec autoflake --in-place --remove-all-unused-imports {} \;
-          
-          # Upgrade Python syntax
-          echo "🔧 Upgrading Python syntax..."
-          find app/ -name "*.py" -exec pyupgrade --py312-plus {} \;
-          
-          # Check if any changes were made
-          if git diff --quiet; then
-            echo "maintenance_changes=false" >> $GITHUB_ENV
-          else
-            echo "maintenance_changes=true" >> $GITHUB_ENV
-            changes_made=true
-          fi
-          
+          if ! black --check --diff app/ 2>/dev/null; then
+            echo "🔧 Auto-formatting code with Black..."; black app/; changes_made=true; fi
+          if ! isort --check-only app/ 2>/dev/null; then
+            echo "🔧 Sorting imports with isort..."; isort app/; changes_made=true; fi
+          echo "🔧 Removing unused imports..."; find app/ -name "*.py" -exec autoflake --in-place --remove-all-unused-imports {} \;
+          echo "🔧 Upgrading Python syntax..."; find app/ -name "*.py" -exec pyupgrade --py312-plus {} \;
+          # Detect changes
+          if git status --porcelain | grep -q .; then changes_made=true; fi
           echo "CHANGES_MADE=$changes_made" >> $GITHUB_ENV
 
       - name: 📊 Generate Maintenance Report
@@ -177,6 +154,12 @@ jobs:
           script: |
             const branchName = process.env.MAINTENANCE_BRANCH;
             const fs = require('fs');
+            // Avoid duplicate PRs
+            const existing = await github.rest.pulls.list({ owner: context.repo.owner, repo: context.repo.repo, state: 'open' });
+            if (existing.data.some(pr => pr.title === '🤖 Automated Code Maintenance')) {
+              core.info('Existing maintenance PR found, skipping creation.');
+              return;
+            }
             
             let prBody = '## 🤖 Automated Code Maintenance\n\n';
             prBody += 'This PR was automatically created by the Code Maintenance Agent.\n\n';
@@ -225,6 +208,10 @@ jobs:
 
   security-audit-agent:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+    timeout-minutes: 30
     if: github.event.inputs.agent_type == 'security_audit'
     
     steps:
@@ -232,9 +219,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 🐍 Set up Python 3.12
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          cache: pip
 
       - name: ⚙️ Install security tools
         run: |
@@ -369,7 +357,7 @@ jobs:
             console.log(`✅ Created security audit issue #${issue.number}`);
 
       - name: 📤 Upload Security Reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: security-audit-reports
           path: |
@@ -381,6 +369,9 @@ jobs:
 
   performance-optimization-agent:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 25
     if: github.event.inputs.agent_type == 'performance_optimization'
     
     steps:
@@ -388,9 +379,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 🐍 Set up Python 3.12
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          cache: pip
 
       - name: ⚙️ Install performance tools
         run: |
@@ -531,7 +523,7 @@ jobs:
           EOF
 
       - name: 📤 Upload Performance Reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: performance-optimization-reports
           path: |
@@ -542,6 +534,10 @@ jobs:
 
   dependency-update-agent:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    timeout-minutes: 20
     if: github.event.inputs.agent_type == 'dependency_update'
     
     steps:
@@ -551,25 +547,18 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 🐍 Set up Python 3.12
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          cache: pip
 
       - name: 📦 Analyze Dependencies
         run: |
           echo "📦 Analyzing dependency updates..."
-          
-          # Install pip-tools for dependency management
           python -m pip install --upgrade pip pip-tools
-          
-          # Generate current requirements hash
-          if [ -f "requirements.txt" ]; then
-            pip-compile --upgrade --generate-hashes requirements.in 2>/dev/null || \
-            pip-compile --upgrade requirements.in 2>/dev/null || \
-            echo "Could not compile requirements"
+          if [ -f requirements.in ]; then
+            pip-compile --upgrade --generate-hashes requirements.in || pip-compile --upgrade requirements.in || echo "Could not compile requirements";
           fi
-          
-          # Check for outdated packages
           pip list --outdated --format=json > outdated_packages.json 2>/dev/null || echo "[]" > outdated_packages.json
 
       - name: 📊 Generate Dependency Report
@@ -637,7 +626,7 @@ jobs:
           EOF
 
       - name: 📤 Upload Dependency Reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dependency-update-reports
           path: |

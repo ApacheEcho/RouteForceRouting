@@ -1,0 +1,39 @@
+{
+    "appPort": [5000, 5432, 6379, 8080, 3000, 8000],
+    "forwardPorts": [5000, 5432, 6379, 8080, 3000, 8000],
+    "portsAttributes": {
+        "5000": {
+            "label": "Flask Application",
+            "onAutoForward": "openBrowser",
+            "visibility": "public"
+        },
+        "8080": {
+            "label": "PgAdmin Database UI",
+            "onAutoForward": "openPreview",
+            "visibility": "public"
+        },
+        "5432": {
+            "label": "PostgreSQL Database",
+            "onAutoForward": "silent",
+            "visibility": "private"
+        },
+        "6379": {
+            "label": "Redis Cache",
+            "onAutoForward": "silent", 
+            "visibility": "private"
+        },
+        "3000": {
+            "label": "Frontend Development",
+            "onAutoForward": "openBrowser",
+            "visibility": "public"
+        },
+        "8000": {
+            "label": "API Documentation",
+            "onAutoForward": "openPreview",
+            "visibility": "public"
+        }
+    },
+    "otherPortsAttributes": {
+        "onAutoForward": "silent"
+    }
+}

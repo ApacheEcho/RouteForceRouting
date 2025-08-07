@@ -1,0 +1,68 @@
+{
+    "recommendations": [
+        // GitHub Codespaces Core Extensions
+        "GitHub.codespaces",
+        "GitHub.vscode-pull-request-github", 
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "github.vscode-github-actions",
+        "ms-vscode-remote.remote-containers",
+        
+        // Python Development
+        "ms-python.python",
+        "ms-python.debugpy",
+        "ms-python.flake8",
+        "ms-python.black-formatter",
+        "ms-python.isort",
+        "ms-python.pylint",
+        "ms-python.mypy-type-checker",
+        "ms-toolsai.jupyter",
+        "littlefoxteam.vscode-python-test-adapter",
+        
+        // Web Development
+        "ms-vscode.vscode-json",
+        "redhat.vscode-yaml",
+        "bradlc.vscode-tailwindcss",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-typescript-next",
+        
+        // DevOps & Containers (Codespaces Optimized)
+        "ms-azuretools.vscode-docker",
+        "ms-vscode-remote.remote-ssh",
+        "ms-kubernetes-tools.vscode-kubernetes-tools",
+        "ms-vscode.remote-repositories",
+        
+        // Git & Version Control
+        "eamodio.gitlens",
+        "mhutchie.git-graph",
+        "donjayamanne.githistory",
+        
+        // Database
+        "mtxr.sqltools",
+        "mtxr.sqltools-driver-pg",
+        "cweijan.vscode-postgresql-client2",
+        
+        // API Development
+        "humao.rest-client",
+        "42crunch.vscode-openapi",
+        "ms-playwright.playwright",
+        
+        // Code Quality
+        "streetsidesoftware.code-spell-checker",
+        "visualstudioexptteam.vscodeintellicode",
+        "formulahendry.code-runner",
+        "ms-vscode.test-adapter-converter",
+        
+        // Productivity
+        "ms-vscode.hexeditor",
+        "ms-vscode.powershell",
+        "ms-vscode.vscode-serial-monitor",
+        "alefragnani.bookmarks",
+        "gruntfuggly.todo-tree",
+        
+        // Markdown & Documentation
+        "yzhang.markdown-all-in-one",
+        "davidanson.vscode-markdownlint",
+        "bierner.markdown-mermaid"
+    ]
+}

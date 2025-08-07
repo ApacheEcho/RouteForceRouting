@@ -27,8 +27,14 @@ geocoding_cache.json
 *.log
 logs/
 
-# IDE files
-.vscode/
+# IDE files - Allow VS Code Codespaces configuration
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/ports.json
+!.vscode/README.md
 .idea/
 *.swp
 *.swo

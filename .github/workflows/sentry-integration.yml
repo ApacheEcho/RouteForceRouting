@@ -46,6 +46,7 @@ jobs:
           echo "Release version: $VERSION"
 
       - name: 🚀 Create Sentry release
+        if: false # Disabled - configure SENTRY_AUTH_TOKEN to enable
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: |
@@ -67,6 +68,7 @@ jobs:
           sentry-cli releases finalize ${{ steps.version.outputs.version }}
 
       - name: 🎯 Deploy to Sentry
+        if: false # Disabled - configure SENTRY_AUTH_TOKEN to enable
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: |
@@ -104,6 +106,7 @@ jobs:
           pip install sentry-sdk[flask] pytest pytest-mock
 
       - name: 🧪 Test Sentry integration
+        if: false # Disabled - configure SENTRY_DSN to enable
         env:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: |

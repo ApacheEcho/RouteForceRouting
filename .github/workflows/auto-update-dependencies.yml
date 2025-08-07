@@ -30,10 +30,16 @@ permissions:
   contents: write
   pull-requests: write
 
+concurrency:
+  group: deps-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   update-python-dependencies:
     runs-on: ubuntu-latest
     if: github.event.inputs.dependency_type == 'python' || github.event.inputs.dependency_type == 'all' || github.event_name == 'schedule'
+    outputs:
+      has_updates: ${{ steps.update_python.outputs.has_updates }}
     
     steps:
       - name: 📥 Checkout code
@@ -42,7 +48,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 🐍 Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
@@ -53,6 +59,8 @@ jobs:
 
       - name: 🔄 Update Python dependencies
         id: update_python
+        env:
+          UPDATE_TYPE: ${{ github.event.inputs.update_type || 'minor' }}
         run: |
           echo "Updating Python dependencies..."
           
@@ -60,7 +68,7 @@ jobs:
           cp requirements.txt requirements.txt.backup
           
           # Update requirements based on update type
-          update_type="${{ github.event.inputs.update_type || 'minor' }}"
+          update_type="$UPDATE_TYPE"
           
           case "$update_type" in
             "patch")
@@ -111,7 +119,7 @@ jobs:
 
       - name: 📄 Upload Python updates
         if: steps.update_python.outputs.has_updates == 'true'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: python-updates
           path: |
@@ -121,6 +129,9 @@ jobs:
   update-javascript-dependencies:
     runs-on: ubuntu-latest
     if: github.event.inputs.dependency_type == 'javascript' || github.event.inputs.dependency_type == 'all' || github.event_name == 'schedule'
+    outputs:
+      has_updates: ${{ steps.update_js.outputs.has_updates }}
+      updated_projects: ${{ steps.update_js.outputs.updated_projects }}
     
     steps:
       - name: 📥 Checkout code
@@ -199,6 +210,8 @@ jobs:
   update-github-actions:
     runs-on: ubuntu-latest
     if: github.event.inputs.dependency_type == 'github-actions' || github.event.inputs.dependency_type == 'all' || github.event_name == 'schedule'
+    outputs:
+      has_updates: ${{ steps.update_actions.outputs.has_updates }}
     
     steps:
       - name: 📥 Checkout code
@@ -250,7 +263,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 📦 Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: updates/
         continue-on-error: true
@@ -274,6 +287,24 @@ jobs:
             sed -i.bak 's/actions\/upload-artifact@v[0-9]/actions\/upload-artifact@v4/g' "$file"
             rm -f "$file.bak"
           done
+
+          # Re-run JavaScript updates so changes exist in this job's workspace
+          if [ "${{ needs.update-javascript-dependencies.outputs.has_updates }}" = "true" ]; then
+            if [ -f "frontend/package.json" ]; then
+              echo "Applying frontend JS updates..."
+              cd frontend
+              npm update --save
+              npm audit fix --force || true
+              cd ..
+            fi
+            if [ -f "mobile/react-native/package.json" ]; then
+              echo "Applying React Native JS updates..."
+              cd mobile/react-native
+              npm update --save
+              npm audit fix --force || true
+              cd ../..
+            fi
+          fi
 
       - name: 📝 Generate PR description
         id: pr_description
@@ -318,7 +349,7 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: 🔧 Create Pull Request
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: |

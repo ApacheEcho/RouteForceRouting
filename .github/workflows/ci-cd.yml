@@ -99,10 +99,12 @@ jobs:
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
+        continue-on-error: true
         with:
           file: ./coverage.xml
           flags: unittests
           name: codecov-umbrella
+          token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Security scan with bandit
         run: |
@@ -211,18 +213,18 @@ jobs:
   deploy-staging:
     needs: [test, build]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop'
-    environment: staging
+    if: false # Disabled until Kubernetes cluster is configured
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Configure kubectl
+        if: false # Disabled until cluster configured
         uses: azure/k8s-set-context@v1
         with:
           method: kubeconfig
-          kubeconfig: ${{ secrets.KUBE_CONFIG_STAGING }}
+          kubeconfig: "dummy" # ${{ secrets.KUBE_CONFIG_STAGING }}
 
       - name: Deploy to staging
         env:
@@ -255,18 +257,18 @@ jobs:
   deploy-production:
     needs: [test, build, deploy-staging]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    environment: production
+    if: false # Disabled until Kubernetes cluster is configured
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Configure kubectl
+        if: false # Disabled until cluster configured
         uses: azure/k8s-set-context@v1
         with:
           method: kubeconfig
-          kubeconfig: ${{ secrets.KUBE_CONFIG_PRODUCTION }}
+          kubeconfig: "dummy" # ${{ secrets.KUBE_CONFIG_PRODUCTION }}
 
       - name: Deploy to production
         env:
@@ -294,12 +296,11 @@ jobs:
           curl -f https://${PROD_URL}/metrics || exit 1
 
       - name: Notify deployment success
+        if: false # Disabled - configure SLACK_WEBHOOK_URL to enable
         uses: 8398a7/action-slack@v3
         with:
           status: success
           text: "🚀 RouteForce deployed successfully to production!"
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
   # Performance testing
   performance:
@@ -320,8 +321,7 @@ jobs:
           sudo apt-get install k6
 
       - name: Run performance tests
-        env:
-          STAGING_URL: ${{ secrets.STAGING_URL }}
+        if: false # Disabled - configure STAGING_URL to enable
         run: |
           k6 run --vus 50 --duration 5m tests/performance/load-test.js
 

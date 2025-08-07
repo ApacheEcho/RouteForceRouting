@@ -424,7 +424,7 @@ jobs:
           # Example: Send to Slack, Discord, email, etc.
           # curl -X POST -H 'Content-type: application/json' \
           #   --data '{"text":"🏥 RouteForce Health: ${{ steps.results.outputs.overall_status }}"}' \
-          #   ${{ secrets.SLACK_WEBHOOK_URL }}
+          #   [SLACK_WEBHOOK_URL_PLACEHOLDER]
 
       - name: 🚨 Create Issue on Critical Failure
         if: steps.results.outputs.overall_status == 'critical'

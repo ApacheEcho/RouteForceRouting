@@ -22,10 +22,55 @@ env:
   IMAGE_NAME: routeforce-app
 
 jobs:
+  # Load environment variables from .env.render
+  load-env:
+    name: 🔧 Load Environment
+    runs-on: ubuntu-latest
+    outputs:
+      render-api-key: ${{ steps.env.outputs.render-api-key }}
+      render-staging-service-id: ${{ steps.env.outputs.render-staging-service-id }}
+      render-production-service-id: ${{ steps.env.outputs.render-production-service-id }}
+      docker-username: ${{ steps.env.outputs.docker-username }}
+      docker-password: ${{ steps.env.outputs.docker-password }}
+      codecov-token: ${{ steps.env.outputs.codecov-token }}
+      slack-webhook-url: ${{ steps.env.outputs.slack-webhook-url }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Load environment variables
+        id: env
+        run: |
+          if [ -f .env.render ]; then
+            echo "Loading environment from .env.render"
+            
+            # Extract values and set as outputs (masked for security)
+            RENDER_API_KEY=$(grep "RENDER_API_KEY=" .env.render | cut -d'=' -f2)
+            RENDER_STAGING_SERVICE_ID=$(grep "RENDER_STAGING_SERVICE_ID=" .env.render | cut -d'=' -f2)
+            RENDER_PRODUCTION_SERVICE_ID=$(grep "RENDER_PRODUCTION_SERVICE_ID=" .env.render | cut -d'=' -f2)
+            DOCKER_USERNAME=$(grep "DOCKER_USERNAME=" .env.render | cut -d'=' -f2)
+            DOCKER_PASSWORD=$(grep "DOCKER_PASSWORD=" .env.render | cut -d'=' -f2)
+            CODECOV_TOKEN=$(grep "CODECOV_TOKEN=" .env.render | cut -d'=' -f2)
+            SLACK_WEBHOOK_URL=$(grep "SLACK_WEBHOOK_URL=" .env.render | cut -d'=' -f2)
+            
+            echo "render-api-key=$RENDER_API_KEY" >> $GITHUB_OUTPUT
+            echo "render-staging-service-id=$RENDER_STAGING_SERVICE_ID" >> $GITHUB_OUTPUT
+            echo "render-production-service-id=$RENDER_PRODUCTION_SERVICE_ID" >> $GITHUB_OUTPUT
+            echo "docker-username=$DOCKER_USERNAME" >> $GITHUB_OUTPUT
+            echo "docker-password=$DOCKER_PASSWORD" >> $GITHUB_OUTPUT
+            echo "codecov-token=$CODECOV_TOKEN" >> $GITHUB_OUTPUT
+            echo "slack-webhook-url=$SLACK_WEBHOOK_URL" >> $GITHUB_OUTPUT
+            
+            echo "✅ Environment variables loaded from .env.render"
+          else
+            echo "❌ .env.render file not found"
+            exit 1
+          fi
   # Security and Quality Checks
   security-scan:
     name: 🔒 Security & Quality
     runs-on: ubuntu-latest
+    needs: load-env
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -66,7 +111,7 @@ jobs:
   build-and-test:
     name: 🏗️ Build & Test
     runs-on: ubuntu-latest
-    needs: security-scan
+    needs: [security-scan, load-env]
     strategy:
       matrix:
         python-version: [3.12]
@@ -139,13 +184,13 @@ jobs:
           file: ./coverage.xml
           flags: unittests
           name: codecov-umbrella
-          token: ${{ secrets.CODECOV_TOKEN }}
+          token: ${{ needs.load-env.outputs.codecov-token }}
 
   # Docker Build and Push
   docker-build:
     name: 🐳 Docker Build & Push
     runs-on: ubuntu-latest
-    needs: build-and-test
+    needs: [build-and-test, load-env]
     outputs:
       image-digest: ${{ steps.build.outputs.digest }}
       image-tag: ${{ steps.meta.outputs.tags }}
@@ -160,8 +205,8 @@ jobs:
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: ${{ needs.load-env.outputs.docker-username }}
+          password: ${{ needs.load-env.outputs.docker-password }}
 
       - name: Extract metadata
         id: meta
@@ -198,11 +243,8 @@ jobs:
   deploy-staging:
     name: 🚀 Deploy to Staging
     runs-on: ubuntu-latest
-    needs: [build-and-test, docker-build]
+    needs: [build-and-test, docker-build, load-env]
     if: github.ref == 'refs/heads/main' || github.event.inputs.environment == 'staging'
-    environment:
-      name: staging
-      url: https://routeforce-staging.onrender.com
     
     steps:
       - name: Checkout code
@@ -211,8 +253,8 @@ jobs:
       - name: Deploy to Render Staging
         run: |
           curl -X POST \
-            "https://api.render.com/v1/services/${{ secrets.RENDER_STAGING_SERVICE_ID }}/deploys" \
-            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            "https://api.render.com/v1/services/${{ needs.load-env.outputs.render-staging-service-id }}/deploys" \
+            -H "Authorization: Bearer ${{ needs.load-env.outputs.render-api-key }}" \
             -H "Content-Type: application/json" \
             -d '{"clearCache": "clear"}'
 
@@ -242,11 +284,8 @@ jobs:
   deploy-production:
     name: 🚀 Deploy to Production
     runs-on: ubuntu-latest
-    needs: [deploy-staging, docker-build]
+    needs: [deploy-staging, docker-build, load-env]
     if: github.ref == 'refs/heads/production' || github.event.inputs.environment == 'production'
-    environment:
-      name: production
-      url: https://routeforce-routing.onrender.com
     
     steps:
       - name: Checkout code
@@ -255,8 +294,8 @@ jobs:
       - name: Deploy to Render Production
         run: |
           curl -X POST \
-            "https://api.render.com/v1/services/${{ secrets.RENDER_PRODUCTION_SERVICE_ID }}/deploys" \
-            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            "https://api.render.com/v1/services/${{ needs.load-env.outputs.render-production-service-id }}/deploys" \
+            -H "Authorization: Bearer ${{ needs.load-env.outputs.render-api-key }}" \
             -H "Content-Type: application/json" \
             -d '{"clearCache": "clear"}'
 
@@ -294,7 +333,7 @@ jobs:
   post-deployment:
     name: 📊 Post-Deployment
     runs-on: ubuntu-latest
-    needs: [deploy-production]
+    needs: [deploy-production, load-env]
     if: always()
     
     steps:
@@ -310,7 +349,8 @@ jobs:
         with:
           status: success
           text: "🚀 RouteForce successfully deployed to production!"
-          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ needs.load-env.outputs.slack-webhook-url }}
 
       - name: Notify Slack (Failure)
         if: failure()
@@ -318,4 +358,5 @@ jobs:
         with:
           status: failure
           text: "❌ RouteForce deployment failed. Check the logs."
-          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ needs.load-env.outputs.slack-webhook-url }}

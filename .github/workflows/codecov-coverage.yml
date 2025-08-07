@@ -52,6 +52,22 @@ jobs:
       with:
         fetch-depth: 0  # Full history for accurate coverage analysis
 
+    - name: 🔐 Load Codecov token (optional .env.render)
+      id: load-codecov
+      run: |
+        if [ -f .env.render ]; then
+          token=$(grep -E '^CODECOV_TOKEN=' .env.render | head -1 | cut -d= -f2- | tr -d '\r' || true)
+          if [ -n "$token" ]; then
+            echo "::add-mask::$token"
+            echo "CODECOV_TOKEN=$token" >> $GITHUB_ENV
+            echo "loaded=true" >> $GITHUB_OUTPUT
+          else
+            echo "Codecov token not found in .env.render"; echo "loaded=false" >> $GITHUB_OUTPUT
+          fi
+        else
+          echo ".env.render not present"; echo "loaded=false" >> $GITHUB_OUTPUT
+        fi
+
     - name: 🐍 Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
@@ -186,7 +202,7 @@ jobs:
         "
 
     - name: 📤 Upload Coverage to CodeCov
-      if: success() || failure()
+      if: (success() || failure()) && steps.load-codecov.outputs.loaded == 'true'
       uses: codecov/codecov-action@v4
       with:
         files: ./coverage.xml,./coverage-algorithms.xml,./coverage-api.xml
@@ -196,7 +212,7 @@ jobs:
         name: codecov-umbrella-${{ matrix.python-version }}
         fail_ci_if_error: false
         verbose: true
-        token: ${{ secrets.CODECOV_TOKEN }}
+        token: ${{ env.CODECOV_TOKEN }}
 
     - name: 📁 Create Test Reports Directory
       if: success() || failure()

@@ -105,20 +105,17 @@ class RouteRequest:
         }
 
     def get_cache_key(self) -> str:
-        """Generate cache key for the request"""
-        # Create hash from file content and filters
+        """Generate cache key for the request using SHA-256"""
         file_content = self.file.read()
         self.file.seek(0)  # Reset file pointer
 
         cache_data = {
-            "file_content": file_content.decode("utf-8", errors="ignore")[
-                :1000
-            ],  # First 1000 chars
+            "file_content": file_content.decode("utf-8", errors="ignore")[:1000],  # First 1000 chars
             "filters": self.get_filters(),
         }
 
         cache_string = json.dumps(cache_data, sort_keys=True)
-        return hashlib.md5(cache_string.encode()).hexdigest()
+        return hashlib.sha256(cache_string.encode()).hexdigest()
 
     def _is_allowed_file(self, filename: str) -> bool:
         """Check if file extension is allowed"""

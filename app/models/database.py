@@ -8,6 +8,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import json
 from typing import Dict, Any, List, Optional
+from sqlalchemy import Index
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -17,6 +18,11 @@ class User(db.Model):
     """User model for authentication and preferences"""
 
     __tablename__ = "users"
+    __table_args__ = (
+        Index("idx_users_username", "username"),
+        Index("idx_users_email", "email"),
+        Index("idx_users_created_at", "created_at"),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -63,6 +69,13 @@ class Store(db.Model):
     """Store model for store locations and metadata"""
 
     __tablename__ = "stores"
+    __table_args__ = (
+        Index("idx_stores_name", "name"),
+        Index("idx_stores_chain", "chain"),
+        Index("idx_stores_user_id", "user_id"),
+        Index("idx_stores_is_active", "is_active"),
+        Index("idx_stores_created_at", "created_at"),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
@@ -118,6 +131,11 @@ class Route(db.Model):
     """Route model for route history and metadata"""
 
     __tablename__ = "routes"
+    __table_args__ = (
+        Index("idx_routes_user_id", "user_id"),
+        Index("idx_routes_created_at", "created_at"),
+        Index("idx_routes_status", "status"),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=True)
@@ -175,6 +193,12 @@ class RouteOptimization(db.Model):
     """Route optimization metrics and performance data"""
 
     __tablename__ = "route_optimizations"
+    __table_args__ = (
+        Index("idx_routeopt_route_id", "route_id"),
+        Index("idx_routeopt_user_id", "user_id"),
+        Index("idx_routeopt_created_at", "created_at"),
+        Index("idx_routeopt_algorithm", "algorithm"),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     execution_time = db.Column(db.Float, nullable=False)  # Seconds
@@ -222,6 +246,11 @@ class Analytics(db.Model):
     """Analytics and usage statistics"""
 
     __tablename__ = "analytics"
+    __table_args__ = (
+        Index("idx_analytics_event_type", "event_type"),
+        Index("idx_analytics_user_id", "user_id"),
+        Index("idx_analytics_created_at", "created_at"),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     event_type = db.Column(

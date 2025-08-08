@@ -129,7 +129,7 @@ jobs:
           file: ./coverage.xml
           flags: unittests
           name: codecov-umbrella
-          token: ${{ secrets.CODECOV_TOKEN }}
+          token: ${{ secrets.CODECOV_TOKEN }} # pragma: allowlist secret
 
   # Docker Build and Push
   docker-build:
@@ -149,8 +149,8 @@ jobs:
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: ${{ secrets.DOCKER_USERNAME }} # pragma: allowlist secret
+          password: ${{ secrets.DOCKER_PASSWORD }} # pragma: allowlist secret
 
       - name: Extract metadata
         id: meta
@@ -185,8 +185,8 @@ jobs:
       - name: Trigger Render deploy (staging)
         run: |
           curl -X POST \
-            "https://api.render.com/v1/services/${{ secrets.RENDER_STAGING_SERVICE_ID }}/deploys" \
-            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            "https://api.render.com/v1/services/${{ secrets.RENDER_STAGING_SERVICE_ID }}/deploys" \ # pragma: allowlist secret
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \ # pragma: allowlist secret
             -H "Content-Type: application/json" \
             -d '{"clearCache": "clear"}'
 
@@ -209,8 +209,8 @@ jobs:
       - name: Trigger Render deploy (production)
         run: |
           curl -X POST \
-            "https://api.render.com/v1/services/${{ secrets.RENDER_PRODUCTION_SERVICE_ID }}/deploys" \
-            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            "https://api.render.com/v1/services/${{ secrets.RENDER_PRODUCTION_SERVICE_ID }}/deploys" \ # pragma: allowlist secret
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \ # pragma: allowlist secret
             -H "Content-Type: application/json" \
             -d '{"clearCache": "clear"}'
 

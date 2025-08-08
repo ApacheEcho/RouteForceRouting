@@ -216,12 +216,12 @@ class RealWorldReadinessCheck:
 
         # Check Kubernetes configuration
         if os.path.exists("k8s/"):
-            print("   ✅ Kubernetes: Manifests ready")
-            score += 25
-        else:
-            print("   ⚠️  Kubernetes: No K8s manifests found")
-            self.warnings.append("Kubernetes manifests would help with scalability")
+            print("   ⚠️  Kubernetes: Manifests present but no longer used")
+            self.warnings.append("Kubernetes manifests are deprecated in this repo")
             score += 10
+        else:
+            print("   ✅ Kubernetes: Not required (using Render)")
+            score += 25
 
         # Check horizontal scaling readiness
         print("   ✅ Horizontal scaling: Stateless application design")

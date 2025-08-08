@@ -11,8 +11,6 @@ After fixing the GitHub Actions workflow errors, many features are disabled with
 ### **Optional (Advanced Features)**  
 3. `SENTRY_AUTH_TOKEN` - Error monitoring integration
 4. `SENTRY_DSN` - Application error tracking
-5. `SLACK_WEBHOOK_URL` - Notifications to Slack
-6. `SSH_PRIVATE_KEY` - Direct server deployment (if not using containers)
 
 ---
 
@@ -59,18 +57,6 @@ Value: [Your Sentry auth token]
 3. Create token with `project:releases` scope
 4. Copy the token
 
-#### 🔔 **SLACK_WEBHOOK_URL** (Notifications)
-```
-Name: SLACK_WEBHOOK_URL
-Value: https://hooks.slack.com/services/YOUR/WEBHOOK/URL
-```
-**How to get:**
-1. Go to your Slack workspace
-2. Create new app or use existing
-3. Enable Incoming Webhooks
-4. Create webhook for your channel
-5. Copy the webhook URL
-
 ---
 
 ## 🔄 Enabling Disabled Features
@@ -97,10 +83,7 @@ After adding secrets, remove the `if: false` conditions from these workflow file
 
 ### **monitoring-health-checks.yml**  
 ```yaml
-# Uncomment Slack notification:
-# curl -X POST -H 'Content-type: application/json' \
-#   --data '{"text":"🏥 RouteForce Health: ${{ steps.results.outputs.overall_status }}"}' \
-#   ${{ secrets.SLACK_WEBHOOK_URL }}
+# Add your external notifications if desired (email, etc.)
 ```
 
 ---
@@ -128,9 +111,6 @@ curl https://your-app.onrender.com/test-error
 ```
 - Check Sentry dashboard for error
 
-### 4. **Test Notifications**
-- Check your Slack channel for build notifications
-
 ---
 
 ## 🔧 Current Workflow Status
@@ -141,8 +121,6 @@ curl https://your-app.onrender.com/test-error
 | Security Scanning | ✅ Active | None | Ready to use |
 | Render Deploy | 🔶 Disabled | RENDER_API_KEY | Add API key + enable |
 | Sentry Integration | 🔶 Disabled | SENTRY_AUTH_TOKEN, SENTRY_DSN | Add tokens + enable |
-| Slack Notifications | 🔶 Disabled | SLACK_WEBHOOK_URL | Add webhook + enable |
-| SSH Deployment | 🔶 Disabled | SSH_PRIVATE_KEY, PROD_HOST | Add credentials + enable |
 
 ---
 
@@ -156,7 +134,6 @@ DOCKER_USERNAME → Not needed (using GITHUB_TOKEN for GHCR)
 DOCKER_PASSWORD → Not needed (using GITHUB_TOKEN for GHCR)  
 RENDER_API_KEY → Add as GitHub secret
 CODECOV_TOKEN → Add as GitHub secret
-SLACK_WEBHOOK_URL → Add as GitHub secret
 ```
 
 ### **Security Best Practices**
@@ -168,21 +145,17 @@ SLACK_WEBHOOK_URL → Add as GitHub secret
 ### **Gradual Rollout**
 1. **Week 1:** Set up essential secrets (Codecov, Render)
 2. **Week 2:** Add monitoring (Sentry) 
-3. **Week 3:** Add notifications (Slack)
-4. **Week 4:** Test all integrations
 
 ---
 
 ## 🎉 After Setup Complete
 
-Once all secrets are configured and workflows enabled, you'll have:
+Once secrets are configured and workflows enabled, you'll have:
 
 - ✅ **Automated Testing** with coverage reports
 - ✅ **Automated Deployment** to Render.com
 - ✅ **Security Scanning** with vulnerability reports  
 - ✅ **Error Monitoring** with Sentry integration
-- ✅ **Slack Notifications** for build status
-- ✅ **Performance Testing** (when staging is configured)
 
 Your RouteForce application will have enterprise-grade CI/CD! 🚀
 

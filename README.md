@@ -44,6 +44,11 @@ Pre-alpha capabilities:
 - Basic route optimization
 - Google Maps link generation
 
+## Deployment
+
+- Standard: Render (recommended). See `scripts/deploy-render.sh` and Render dashboard.
+- Kubernetes: Removed from this repository to reduce complexity. If needed later, reintroduce via a dedicated branch.
+
 ## Setup
 
 ### Prerequisites

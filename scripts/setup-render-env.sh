@@ -52,7 +52,6 @@ JWT_SECRET_KEY=your-jwt-secret-key-here
 
 # Third-party Services
 SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id
-SLACK_WEBHOOK_URL=https://hooks.slack.com/services/your/slack/webhook
 
 # Feature Flags
 DEBUG=false
@@ -86,7 +85,6 @@ SECRETS=(
     "DOCKER_PASSWORD:Docker Hub password or access token"
     "CODECOV_TOKEN:CodeCov API token"
     "SENTRY_DSN:Sentry DSN for error tracking"
-    "SLACK_WEBHOOK_URL:Slack webhook for notifications"
 )
 
 echo ""

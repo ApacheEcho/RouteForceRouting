@@ -27,7 +27,7 @@ Get started instantly with a fully configured development environment:
 ## 🚨 Security Notice
 
 - Do not commit API keys or passwords.
-- Use environment variables for secrets. See `.env.example` and `.env.production` for placeholders.
+- Use environment variables for secrets. See `.env.example` and `.env.production.template` for placeholders.
 - Rotate any previously exposed keys.
 
 ## ✅ Improvements
@@ -56,7 +56,7 @@ pip install -r requirements.txt
 ### Environment
 
 1. Copy `.env.example` to `.env` for local development and set values.
-2. For production, use `.env.production` placeholders and configure real values in your hosting provider (Render, etc.).
+2. For production, use `.env.production.template` as a reference and configure real values via your hosting provider's environment settings (e.g., Render). Do not commit real secrets.
 
 ### Run
 

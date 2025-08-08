@@ -38,7 +38,6 @@ xgboost==3.0.2
 scikit-optimize==0.10.2
 hyperopt==0.2.7
 gunicorn==23.0.0
-eventlet==0.37.0
 
 prometheus-client==0.21.1
 # Database support
@@ -80,3 +79,6 @@ pytest-json-report==1.5.0
 pytest-benchmark==5.1.0
 pytest-xdist==3.6.0
 pytest-randomly==4.0.0
+
+[dev]
+pre-commit==3.2.0

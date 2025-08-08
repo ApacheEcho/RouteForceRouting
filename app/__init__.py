@@ -23,7 +23,7 @@ limiter = Limiter(
     key_func=get_remote_address,
     default_limits=os.getenv("RATE_LIMITS", "200/day;50/hour").split(";"),
 )
-socketio = SocketIO(cors_allowed_origins="*", logger=True, engineio_logger=True)
+socketio = SocketIO(cors_allowed_origins="*", logger=True, engineio_logger=True, async_mode="threading")
 swagger = Swagger()
 
 
@@ -248,6 +248,7 @@ def create_app(config_name: str = "development") -> Flask:
         cors_allowed_origins=cors_origins,
         logger=True,
         engineio_logger=True,
+        async_mode="threading",
     )
 
     # Initialize WebSocket handlers

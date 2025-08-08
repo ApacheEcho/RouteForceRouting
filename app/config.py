@@ -47,6 +47,7 @@ class Config:
 
     # Rate limiting configuration
     RATELIMIT_STORAGE_URI = os.environ.get("RATELIMIT_STORAGE_URI", "memory://")
+    RATE_LIMITS = os.environ.get("RATE_LIMITS", "200/day;50/hour")
 
     # Routing configuration
     MAX_ROUTE_OPTIMIZATION_TIME = int(
@@ -57,6 +58,7 @@ class Config:
     # Logging configuration
     LOG_TO_STDOUT = os.environ.get("LOG_TO_STDOUT", "False").lower() == "true"
     LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
+    JSONIFY_PRETTYPRINT_REGULAR = False
 
     # Google Maps API configuration
     GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY")
@@ -90,6 +92,7 @@ class DevelopmentConfig(Config):
         os.environ.get("DATABASE_URL") or "sqlite:///routeforce_dev.db"
     )
     SQLALCHEMY_ECHO = True
+    SESSION_COOKIE_SAMESITE = "Lax"
 
 
 class ProductionConfig(Config):
@@ -111,6 +114,10 @@ class ProductionConfig(Config):
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
+    REMEMBER_COOKIE_SECURE = True
+    REMEMBER_COOKIE_HTTPONLY = True
+    PREFERRED_URL_SCHEME = os.environ.get("PREFERRED_URL_SCHEME", "https")
+    PROPAGATE_EXCEPTIONS = False
 
     @staticmethod
     def init_app(app) -> None:

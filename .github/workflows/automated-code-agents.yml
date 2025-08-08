@@ -56,7 +56,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install black isort autoflake pyupgrade pre-commit
 
-      - name: 🧹 Automated Code Maintenance
+      - id: maintenance
+        name: 🧹 Automated Code Maintenance
         run: |
           echo "🤖 Starting automated code maintenance..."
           changes_made=false
@@ -67,8 +68,9 @@ jobs:
           echo "🔧 Removing unused imports..."; find app/ -name "*.py" -exec autoflake --in-place --remove-all-unused-imports {} \;
           echo "🔧 Upgrading Python syntax..."; find app/ -name "*.py" -exec pyupgrade --py312-plus {} \;
           # Detect changes
-          if git status --porcelain | grep -q .; then changes_made=true; fi
+            if git status --porcelain | grep -q .; then changes_made=true; fi
           echo "CHANGES_MADE=$changes_made" >> $GITHUB_ENV
+          echo "changes_made=$changes_made" >> $GITHUB_OUTPUT
 
       - name: 📊 Generate Maintenance Report
         run: |
@@ -117,10 +119,10 @@ jobs:
               f.write(report)
           
           print("✅ Maintenance report generated")
-          EOF
-
       - name: 🚀 Create Maintenance PR
-        if: ${{ env.CHANGES_MADE == 'true' }}
+        if: ${{ steps.maintenance.outputs.changes_made == 'true' }}
+        run: |
+          # Configure git
         run: |
           # Configure git
           git config --local user.email "action@github.com"
@@ -145,11 +147,11 @@ jobs:
           git push origin "$branch_name"
           
           # Store branch name for PR creation
-          echo "MAINTENANCE_BRANCH=$branch_name" >> $GITHUB_ENV
-
       - name: 📝 Create Maintenance Pull Request
-        if: ${{ env.CHANGES_MADE == 'true' }}
+        if: ${{ steps.maintenance.outputs.changes_made == 'true' }}
         uses: actions/github-script@v7
+        with:
+          script: |
         with:
           script: |
             const branchName = process.env.MAINTENANCE_BRANCH;

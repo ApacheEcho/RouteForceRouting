@@ -1,5 +1,11 @@
 name: 🧪 CodeCov Coverage Analysis
 
+permissions:
+  contents: read
+concurrency:
+  group: codecov-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches: [ main, develop ]
@@ -55,6 +61,16 @@ jobs:
     - name: 🔐 Load Codecov token (optional .env.render)
       id: load-codecov
       run: |
+        # Default
+        echo "loaded=false" >> $GITHUB_OUTPUT
+        # Prefer GitHub secret if present
+        if [ -n "${{ secrets.CODECOV_TOKEN }}" ]; then
+          echo "::add-mask::${{ secrets.CODECOV_TOKEN }}"
+          echo "CODECOV_TOKEN=${{ secrets.CODECOV_TOKEN }}" >> $GITHUB_ENV
+          echo "loaded=true" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+        # Fallback to .env.render if present
         if [ -f .env.render ]; then
           token=$(grep -E '^CODECOV_TOKEN=' .env.render | head -1 | cut -d= -f2- | tr -d '\r' || true)
           if [ -n "$token" ]; then
@@ -62,10 +78,10 @@ jobs:
             echo "CODECOV_TOKEN=$token" >> $GITHUB_ENV
             echo "loaded=true" >> $GITHUB_OUTPUT
           else
-            echo "Codecov token not found in .env.render"; echo "loaded=false" >> $GITHUB_OUTPUT
+            echo "Codecov token not found in .env.render"
           fi
         else
-          echo ".env.render not present"; echo "loaded=false" >> $GITHUB_OUTPUT
+          echo ".env.render not present"
         fi
 
     - name: 🐍 Set up Python ${{ matrix.python-version }}
@@ -113,7 +129,7 @@ jobs:
           -v \
           -m "not slow and not external" \
           --durations=10 \
-          tests/ || exit 0  # Don't fail on missing tests initially
+          tests/
 
     - name: 🎯 Run Algorithm-Specific Coverage
       if: success() || failure()
@@ -168,7 +184,7 @@ jobs:
       run: |
         echo "🎨 Creating coverage visualization..."
         python -c "
-        import json, coverage
+        import json
         try:
             with open('coverage.json', 'r') as f:
                 data = json.load(f)
@@ -202,17 +218,21 @@ jobs:
         "
 
     - name: 📤 Upload Coverage to CodeCov
-      if: (success() || failure()) && steps.load-codecov.outputs.loaded == 'true'
+      if: (success() || failure()) && (steps.load-codecov.outputs.loaded == 'true' || github.event.repository.private == false)
       uses: codecov/codecov-action@v4
+      env:
+        OS: ${{ runner.os }}
+        PYTHON: ${{ matrix.python-version }}
       with:
-        files: ./coverage.xml,./coverage-algorithms.xml,./coverage-api.xml
+        files: coverage*.xml
         directory: ./
         flags: unittests,python${{ matrix.python-version }}
         env_vars: OS,PYTHON
         name: codecov-umbrella-${{ matrix.python-version }}
         fail_ci_if_error: false
         verbose: true
-        token: ${{ env.CODECOV_TOKEN }}
+        # token omitted; action will use CODECOV_TOKEN env when present
+        token: ${{ env.CODECOV_TOKEN || secrets.CODECOV_TOKEN }}
 
     - name: 📁 Create Test Reports Directory
       if: success() || failure()
@@ -302,6 +322,49 @@ jobs:
             print(f'Quality gate check failed: {e}')
             sys.exit(0)
         "
+
+  smoke-tests:
+    name: 🚦 Smoke Tests (Other Pythons)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.12"]
+      fail-fast: false
+    steps:
+      - name: 🛒 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: 🐍 Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+
+      - name: 📦 Install minimal test deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+          # Install project deps if tests import app modules
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+
+      - name: 🚦 Run smoke tests (quick)
+        env:
+          PYTHONDONTWRITEBYTECODE: 1
+        run: |
+          # Quick pass: no coverage, short, fail fast
+          pytest -q --maxfail=1 -m "not slow" tests/ || { echo "Smoke tests failed"; exit 1; }
+
+      - name: 📁 Upload smoke test logs (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-failure-logs-${{ matrix.python-version }}
+          path: .
+          retention-days: 7
 
   coverage-summary:
     name: 📋 Coverage Summary

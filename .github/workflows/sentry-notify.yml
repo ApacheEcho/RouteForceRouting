@@ -4,15 +4,42 @@ on:
   issues:
     types: [closed]
 
+# Use .env.render (repository file) instead of GitHub secret (not recommended for real secrets)
+
 jobs:
   notify-sentry:
     runs-on: ubuntu-latest
     steps:
-      - name: Notify Sentry
-        if: false # Disabled - configure SENTRY_AUTH_TOKEN to enable
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🔐 Load Sentry credentials from .env.render
+        id: load-env
         run: |
-          curl -X POST https://sentry.io/api/0/projects/<org_slug>/<project_slug>/issues/ \
-          -H "Authorization: Bearer $SENTRY_AUTH_TOKEN" \
-          -d '{"status": "resolved"}'
+          if [ -f .env.render ]; then
+            echo "Found .env.render; extracting SENTRY_AUTH_TOKEN"
+            token=$(grep -E '^SENTRY_AUTH_TOKEN=' .env.render | head -1 | cut -d= -f2- | tr -d '\r' || true)
+            if [ -n "$token" ]; then
+              echo "::add-mask::$token"  # Mask in logs
+              echo "SENTRY_AUTH_TOKEN=$token" >> $GITHUB_ENV
+              echo "loaded=true" >> $GITHUB_OUTPUT
+            else
+              echo "No SENTRY_AUTH_TOKEN entry in .env.render"; echo "loaded=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo ".env.render not found"; echo "loaded=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 📣 Notify Sentry (issue closed)
+        if: steps.load-env.outputs.loaded == 'true'
+        env:
+          SENTRY_AUTH_TOKEN: ${{ env.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: routeforce-routing
+          SENTRY_PROJECT: routeforce-api
+        run: |
+          echo "Sending resolution notification to Sentry..."
+          curl -s -X POST "https://sentry.io/api/0/projects/${SENTRY_ORG}/${SENTRY_PROJECT}/issues/" \
+            -H "Authorization: Bearer $SENTRY_AUTH_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"status":"resolved"}' || echo "⚠️ Sentry notification failed"
+          echo "✅ Notification step completed (even if Sentry rejected it)"

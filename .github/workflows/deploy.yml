@@ -140,69 +140,30 @@ jobs:
         with:
           name: production-build
 
-      - name: Deploy to production server
-        if: false # Disabled - configure SSH secrets to enable
-        uses: appleboy/ssh-action@v0.1.7
-        with:
-          host: ${{ secrets.PROD_HOST }}
-          username: ${{ secrets.PROD_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.PROD_PORT || 22 }}
-          script: |
-            # Navigate to application directory
-            cd /home/deploy/routeforce
-
-            # Backup current deployment
-            if [ -d "current" ]; then
-              rm -rf backup
-              mv current backup
+      - name: Trigger Render deploy
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          set -euo pipefail
+          # Prefer deploy hook if provided (simpler); otherwise use API with bearer token.
+          if [ -n "${RENDER_DEPLOY_HOOK:-}" ]; then
+            echo "Triggering Render deploy via Deploy Hook..."
+            curl -fsS -X POST "$RENDER_DEPLOY_HOOK"
+          else
+            echo "Triggering Render deploy via API..."
+            if [ -z "${RENDER_API_KEY:-}" ] || [ -z "${RENDER_SERVICE_ID:-}" ]; then
+              echo "RENDER_API_KEY and RENDER_SERVICE_ID secrets are required when no deploy hook is provided."
+              exit 1
             fi
-
-            # Pull latest code
-            git pull origin main
-
-            # Activate virtual environment
-            source venv/bin/activate
-
-            # Install/update dependencies
-            pip install --upgrade pip
-            pip install -r requirements.txt
-
-            # Build frontend if it exists
-            if [ -d "frontend" ] && [ -f "frontend/package.json" ]; then
-              cd frontend
-              if [ -f "package-lock.json" ]; then
-                npm ci --production=false
-              else
-                npm install --production=false
-              fi
-              npm run build
-              cd ..
-            else
-              echo "Frontend directory not found, skipping frontend build"
-            fi
-
-            # Database migrations (disabled - configure DATABASE_URL to enable)
-            # export DATABASE_URL=[DATABASE_URL_PLACEHOLDER]
-            echo "⚠️ Database migrations disabled - configure DATABASE_URL secret"
-            python -c "
-            from app import create_app
-            from app.models.database import db
-            app = create_app('production')
-            with app.app_context():
-                db.create_all()
-            print('✅ Database updated')
-            "
-
-            # Restart application
-            sudo systemctl restart routeforce
-            sudo systemctl reload nginx
-
-            # Health check
-            sleep 10
-            curl -f http://localhost:8000/health || exit 1
-
-            echo "✅ Deployment successful!"
+            curl -fsS -X POST \
+              -H "Authorization: Bearer ${RENDER_API_KEY}" \
+              -H "Content-Type: application/json" \
+              -d '{"serviceId":"'"${RENDER_SERVICE_ID}"'","clearCache":true}' \
+              "https://api.render.com/v1/services/${RENDER_SERVICE_ID}/deploys"
+          fi
+          echo "✅ Render deploy triggered"
 
   notify:
     name: Notify Deployment Status
@@ -217,8 +178,8 @@ jobs:
       - name: Notify success
         if: ${{ needs.deploy.result == 'success' }}
         run: |
-          echo "✅ Deployment to production successful!" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Render deployment triggered successfully. Monitor progress in Render dashboard." >> $GITHUB_STEP_SUMMARY
       - name: Notify failure
         if: ${{ needs.test.result == 'failure' || needs.deploy.result == 'failure' }}
         run: |
-          echo "❌ Deployment failed. Check the logs." >> $GITHUB_STEP_SUMMARY
+          echo "❌ Render deployment trigger failed. Check GitHub Actions logs and Render settings." >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,50 @@
+name: Load token/variable from env file
+
+description: >-
+  Optionally load a variable (e.g. SENTRY_AUTH_TOKEN, SENTRY_DSN, CODECOV_TOKEN) from an env file
+  such as .env.render. Masks value, exports to environment, and reports whether it was loaded.
+
+inputs:
+  var:
+    description: Name of the variable to load (must match VAR= pattern in file)
+    required: true
+  file:
+    description: Env file path
+    required: false
+    default: .env.render
+
+outputs:
+  loaded:
+    description: 'true if variable was found & exported'
+    value: ${{ steps.detect.outputs.loaded }}
+
+runs:
+  using: composite
+  steps:
+    - id: detect
+      shell: bash
+      run: |
+        set -euo pipefail
+        VAR="${{ inputs.var }}"
+        FILE="${{ inputs.file }}"
+        if [ ! -f "$FILE" ]; then
+          echo "Env file $FILE not present; skipping $VAR";
+          echo "loaded=false" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+        line=$(grep -E "^${VAR}=" "$FILE" | head -1 || true)
+        if [ -z "$line" ]; then
+          echo "$VAR not found in $FILE";
+          echo "loaded=false" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+        value="${line#${VAR}=}"
+        if [ -z "$value" ]; then
+          echo "$VAR empty in $FILE";
+          echo "loaded=false" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+        echo "::add-mask::$value"
+        echo "$VAR=$value" >> $GITHUB_ENV
+        echo "loaded=true" >> $GITHUB_OUTPUT
+        echo "Loaded $VAR from $FILE"

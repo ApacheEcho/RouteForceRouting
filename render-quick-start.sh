@@ -27,14 +27,17 @@ if [[ -n "${RENDER_API_KEY:-}" ]]; then
     log "RENDER_API_KEY is set"
 else
     warn "RENDER_API_KEY not set in environment"
-    info "Your API key: rnd_B8CME7w4qoHjZJwDctoxNqMZzNHd"
-    export RENDER_API_KEY=rnd_B8CME7w4qoHjZJwDctoxNqMZzNHd
+    info "Set it securely: export RENDER_API_KEY=\"<your_api_key>\""
 fi
 
 # Check GitHub secrets
 echo ""
 info "GitHub Repository Secrets Status:"
-gh secret list | grep RENDER || echo "No RENDER secrets found"
+if command -v gh >/dev/null 2>&1; then
+  gh secret list | grep RENDER || echo "No RENDER secrets found"
+else
+  warn "GitHub CLI (gh) not installed; cannot list secrets"
+fi
 
 echo ""
 action "Next Steps for Complete Setup:"
@@ -56,7 +59,7 @@ echo "   ./scripts/deploy-render.sh deploy --environment staging --dry-run"
 echo ""
 
 # Check if services exist
-python3 get-render-services.py
+python3 get-render-services.py || true
 
 echo ""
 echo "📚 Available Resources:"
@@ -64,5 +67,4 @@ echo "   • Complete Guide: RENDER_SETUP_GUIDE.md"
 echo "   • Deployment Checklist: RENDER_DEPLOYMENT_CHECKLIST.md"
 echo "   • Environment Config: .env.render"
 echo ""
-echo "🎉 Your API key is configured and ready!"
-echo "   Follow the guide above to complete your Render setup."
+echo "🎉 Configure your API key in the environment to continue."

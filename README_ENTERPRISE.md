@@ -106,7 +106,7 @@ MAX_CONTENT_LENGTH=16777216
 UPLOAD_FOLDER=uploads
 
 # Rate Limiting
-RATELIMIT_STORAGE_URL=redis://localhost:6379
+RATELIMIT_STORAGE_URI=redis://localhost:6379
 ```
 
 ### Production Settings

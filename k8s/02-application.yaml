@@ -62,7 +62,7 @@ spec:
           value: "redis://:$(REDIS_PASSWORD)@routeforce-redis:6379/0"
         - name: CACHE_REDIS_URL
           value: "redis://:$(REDIS_PASSWORD)@routeforce-redis:6379/1"
-        - name: RATELIMIT_STORAGE_URL
+        - name: RATELIMIT_STORAGE_URI
           value: "redis://:$(REDIS_PASSWORD)@routeforce-redis:6379/2"
         - name: CELERY_BROKER_URL
           valueFrom:

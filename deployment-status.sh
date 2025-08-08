@@ -25,21 +25,28 @@ echo "=========================================="
 # Check API Keys and Secrets
 echo ""
 echo "🔑 GitHub Repository Secrets:"
-gh secret list | while read -r line; do
-    if [[ "$line" =~ ^NAME ]]; then
-        continue  # Skip header
-    fi
-    name=$(echo "$line" | awk '{print $1}')
-    if [[ -n "$name" ]]; then
-        success "$name"
-    fi
-done
+if command -v gh >/dev/null 2>&1; then
+  gh secret list | while read -r line; do
+      if [[ "$line" =~ ^NAME ]]; then
+          continue  # Skip header
+      fi
+      name=$(echo "$line" | awk '{print $1}')
+      if [[ -n "$name" ]]; then
+          success "$name"
+      fi
+  done
+else
+  warn "GitHub CLI (gh) not installed; skipping secrets list"
+fi
 
 # Check Render Service
 echo ""
 echo "🌐 Render Service Status:"
-export RENDER_API_KEY=rnd_B8CME7w4qoHjZJwDctoxNqMZzNHd
-python3 check-render-service.py | grep -E "(Name:|URL:|Status:)" | head -3
+if [[ -z "${RENDER_API_KEY:-}" ]]; then
+  warn "RENDER_API_KEY not set; skipping Render API checks"
+else
+  python3 check-render-service.py | grep -E "(Name:|URL:|Status:)" | head -3 || true
+fi
 
 # Check Configuration Files
 echo ""

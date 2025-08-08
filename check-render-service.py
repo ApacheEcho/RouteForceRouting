@@ -7,7 +7,10 @@ from typing import Dict, Any
 
 def check_specific_service(service_id: str):
     """Check details of a specific Render service by ID."""
-    api_key = os.getenv('RENDER_API_KEY', 'rnd_B8CME7w4qoHjZJwDctoxNqMZzNHd')
+    api_key = os.getenv('RENDER_API_KEY')
+    if not api_key:
+        print("❌ RENDER_API_KEY not set. Export it or add to your environment (do not commit).")
+        return None
     
     headers = {
         'Authorization': f'Bearer {api_key}',
@@ -54,25 +57,11 @@ def check_specific_service(service_id: str):
                         print(f"   {i+1}. {status} - {created}")
                 else:
                     print("\n🚀 No deployments found")
-        except:
+        except Exception:
             print("\n⚠️  Could not fetch deployment history")
         
         print("\n" + "=" * 60)
         print("✅ Service is configured and accessible via API")
-        
-        # Show GitHub secrets status
-        print("\n🔑 GitHub Secrets Status:")
-        print("   ✅ RENDER_API_KEY: Configured")
-        print(f"   ✅ RENDER_STAGING_SERVICE_ID: {service_id}")
-        print(f"   ✅ RENDER_PRODUCTION_SERVICE_ID: {service_id}")
-        
-        # Next steps
-        if service_details.get('status') == 'available':
-            print("\n🎉 Service is live and ready for deployments!")
-            print("   Try: ./scripts/deploy-render.sh deploy --environment staging --dry-run")
-        else:
-            print(f"\n⚠️  Service status: {service_details.get('status', 'Unknown')}")
-            print("   You may need to configure the service in Render dashboard")
         
         return service
     
@@ -87,5 +76,8 @@ def check_specific_service(service_id: str):
         return None
 
 if __name__ == '__main__':
-    service_id = "srv-d21l9rngi27c73e2js7g"
-    check_specific_service(service_id)
+    service_id = os.getenv("RENDER_SERVICE_ID", "")
+    if not service_id:
+        print("⚠️  Set RENDER_SERVICE_ID to check a specific service.")
+    else:
+        check_specific_service(service_id)

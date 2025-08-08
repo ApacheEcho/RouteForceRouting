@@ -1,7 +1,7 @@
 # 🚀 Render Setup Guide - RouteForce Routing
 
 ## ✅ Current Status
-- **API Key**: Configured and working (`rnd_B8CME7w4qoHjZJwDctoxNqMZzNHd`)
+- **API Key**: Configure `RENDER_API_KEY` in your environment or GitHub Secrets (do not commit real keys)
 - **GitHub Secret**: Set (`RENDER_API_KEY`)
 - **Existing Services**: 1 service detected in your account
 

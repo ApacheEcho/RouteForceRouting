@@ -12,8 +12,12 @@ yarn-error.log*
 dist/
 build/
 
-# Environment and configuration files
-.env*
+# Environment and configuration files (never commit real secrets)
+.env
+.env.*
+!.env.example
+!.env.production.template
+!.env.sentry.example
 *.env
 secrets/
 config/local.py

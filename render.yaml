@@ -6,8 +6,7 @@ services:
     env: docker
     dockerfilePath: ./Dockerfile.production
     region: oregon
-    buildCommand: "docker build -t routeforce-app -f Dockerfile.production ."
-    startCommand: "python app.py"
+    startCommand: "gunicorn --bind 0.0.0.0:5000 --workers 4 --worker-class gthread --timeout 120 --keep-alive 5 --access-logfile '-' --error-logfile '-' --log-level info app:create_app"
     envVars:
       - key: FLASK_ENV
         value: production
@@ -72,8 +71,7 @@ services:
     env: docker
     dockerfilePath: ./Dockerfile.production
     region: oregon
-    buildCommand: "docker build -t routeforce-worker -f Dockerfile.production ."
-    startCommand: "python -m celery worker -A app.celery --loglevel=info"
+    startCommand: "celery -A app.celery worker --loglevel=info"
     envVars:
       - key: FLASK_ENV
         value: production

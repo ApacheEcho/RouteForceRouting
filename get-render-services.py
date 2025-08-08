@@ -7,7 +7,10 @@ from typing import Dict, Any
 
 def get_render_services():
     """Get all Render services and display their details."""
-    api_key = os.getenv('RENDER_API_KEY', 'rnd_B8CME7w4qoHjZJwDctoxNqMZzNHd')
+    api_key = os.getenv('RENDER_API_KEY')
+    if not api_key:
+        print("❌ RENDER_API_KEY not set. Export it or add to your environment (never commit real keys).")
+        return None
     
     headers = {
         'Authorization': f'Bearer {api_key}',

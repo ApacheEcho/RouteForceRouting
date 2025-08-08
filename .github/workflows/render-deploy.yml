@@ -126,7 +126,7 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
-          file: ./coverage.xml
+          files: ./coverage.xml
           flags: unittests
           name: codecov-umbrella
           token: ${{ secrets.CODECOV_TOKEN }} # pragma: allowlist secret
@@ -184,11 +184,7 @@ jobs:
     steps:
       - name: Trigger Render deploy (staging)
         run: |
-          curl -X POST \
-            "https://api.render.com/v1/services/${{ secrets.RENDER_STAGING_SERVICE_ID }}/deploys" \ # pragma: allowlist secret
-            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \ # pragma: allowlist secret
-            -H "Content-Type: application/json" \
-            -d '{"clearCache": "clear"}'
+          curl -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_STAGING_SERVICE_ID }}/deploys" -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" -H "Content-Type: application/json" -d '{"clearCache": "clear"}' # pragma: allowlist secret
 
       - name: Wait and health check
         run: |
@@ -208,11 +204,7 @@ jobs:
     steps:
       - name: Trigger Render deploy (production)
         run: |
-          curl -X POST \
-            "https://api.render.com/v1/services/${{ secrets.RENDER_PRODUCTION_SERVICE_ID }}/deploys" \ # pragma: allowlist secret
-            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \ # pragma: allowlist secret
-            -H "Content-Type: application/json" \
-            -d '{"clearCache": "clear"}'
+          curl -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_PRODUCTION_SERVICE_ID }}/deploys" -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" -H "Content-Type: application/json" -d '{"clearCache": "clear"}' # pragma: allowlist secret
 
       - name: Wait and health check
         run: |

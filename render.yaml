@@ -23,8 +23,12 @@ services:
           type: redis
           name: routeforce-redis
           property: connectionString
+      # Keep Sentry DSN managed via Render Dashboard (not synced from repo)
       - key: SENTRY_DSN
-        value: https://YOUR_SENTRY_DSN@sentry.io/PROJECT_ID
+        sync: false
+      # Keep Flask SECRET_KEY managed via Render Dashboard (not synced from repo)
+      - key: SECRET_KEY
+        sync: false
     healthCheckPath: /health
     buildFilter:
       paths:
@@ -84,6 +88,12 @@ services:
           type: redis
           name: routeforce-redis
           property: connectionString
+      # Keep Sentry DSN managed via Render Dashboard (not synced from repo)
+      - key: SENTRY_DSN
+        sync: false
+      # Keep Flask SECRET_KEY managed via Render Dashboard (not synced from repo)
+      - key: SECRET_KEY
+        sync: false
     buildFilter:
       paths:
         - "**"

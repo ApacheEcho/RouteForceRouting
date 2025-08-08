@@ -252,7 +252,6 @@ class ProductionReadyTest:
         production_files = [
             "Dockerfile.production",
             "docker-compose.production.yml",
-            "k8s/01-infrastructure.yaml",
             ".github/workflows/ci-cd.yml",
         ]
 

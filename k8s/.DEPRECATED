@@ -1,0 +1,1 @@
+Kubernetes manifests have been removed from active use. This directory will be deleted in a subsequent cleanup commit. Do not rely on these files.

@@ -90,8 +90,7 @@ git push origin main
 
 ### 📈 **Optional Enhancements**
 - **Sentry DSN**: Error tracking and monitoring
-- **Slack Webhook**: Real-time deployment notifications
-- **Additional environments**: Separate production service
+- **Prometheus Metrics**: Monitoring via `/metrics`
 
 ## 🌟 **Achievement Summary**
 

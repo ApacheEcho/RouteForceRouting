@@ -299,7 +299,6 @@ class ReadinessTest100:
         production_files = [
             ("Docker Production", "Dockerfile.production"),
             ("Docker Compose Prod", "docker-compose.production.yml"),
-            ("Kubernetes Config", "k8s/01-infrastructure.yaml"),
             ("CI/CD Pipeline", ".github/workflows/ci-cd.yml"),
         ]
 

@@ -207,6 +207,10 @@ jobs:
           name: sbom
           path: sbom.spdx.json
 
+  # NOTE: Kubernetes-based deployments are disabled and retained only as optional reference.
+  # If you do not plan to use Kubernetes, you can ignore the jobs below or remove them.
+  # Slack notifications have been removed from workflows for security minimization.
+
   # Deploy to staging
   deploy-staging:
     needs: [test, build]
@@ -292,39 +296,3 @@ jobs:
           # Run comprehensive health checks
           curl -f https://${PROD_URL}/health || exit 1
           curl -f https://${PROD_URL}/metrics || exit 1
-
-      - name: Notify deployment success
-        if: false # Disabled - configure SLACK_WEBHOOK_URL to enable
-        uses: 8398a7/action-slack@v3
-        with:
-          status: success
-          text: "🚀 RouteForce deployed successfully to production!"
-
-  # Performance testing
-  performance:
-    needs: deploy-staging
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop'
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install k6
-        run: |
-          sudo gpg -k
-          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
-          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
-          sudo apt-get update
-          sudo apt-get install k6
-
-      - name: Run performance tests
-        if: false # Disabled - configure STAGING_URL to enable
-        run: |
-          k6 run --vus 50 --duration 5m tests/performance/load-test.js
-
-      - name: Upload performance results
-        uses: actions/upload-artifact@v4
-        with:
-          name: performance-results
-          path: results.json

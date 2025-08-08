@@ -58,6 +58,8 @@ class Config:
     # Logging configuration
     LOG_TO_STDOUT = os.environ.get("LOG_TO_STDOUT", "False").lower() == "true"
     LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
+    LOG_JSON = os.environ.get("LOG_JSON", "false").lower() == "true"
+    REQUEST_ID_HEADER = os.environ.get("REQUEST_ID_HEADER", "X-Request-ID")
     JSONIFY_PRETTYPRINT_REGULAR = False
 
     # Google Maps API configuration

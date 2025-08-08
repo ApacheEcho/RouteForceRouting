@@ -6,8 +6,11 @@ Initialize and configure Sentry monitoring in the main Flask app
 from app.monitoring.sentry_config import init_sentry, SentryHelper, monitor_performance, SentryContext
 import logging
 
+# Also re-export metrics_collector for compatibility with existing imports
+from app.services.metrics_service import metrics_collector
+
 # Make Sentry utilities available at package level
-__all__ = ['init_sentry', 'SentryHelper', 'monitor_performance', 'SentryContext']
+__all__ = ['init_sentry', 'SentryHelper', 'monitor_performance', 'SentryContext', 'metrics_collector']
 
 # Configure module logger
 logger = logging.getLogger(__name__)

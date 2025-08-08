@@ -7,15 +7,17 @@ import time
 import warnings
 from datetime import datetime
 import os
+import uuid
 
 import psutil
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request, abort, g
 from flask_caching import Cache
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_socketio import SocketIO
 from flasgger import Swagger
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 # Initialize extensions
 cache = Cache()
@@ -39,6 +41,9 @@ def create_app(config_name: str = "development") -> Flask:
     """
     app = Flask(__name__)
 
+    # Respect X-Forwarded-* headers from upstream proxy (Nginx/Render)
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
+
     # Load configuration
     from app.config import config
 
@@ -49,6 +54,30 @@ def create_app(config_name: str = "development") -> Flask:
 
     db.init_app(app)
     migrate.init_app(app, db)
+
+    # Request ID correlation
+    @app.before_request
+    def _assign_request_id():
+        g.request_id = request.headers.get(app.config.get("REQUEST_ID_HEADER", "X-Request-ID")) or str(uuid.uuid4())
+
+    @app.after_request
+    def _add_request_id(resp):
+        header_name = app.config.get("REQUEST_ID_HEADER", "X-Request-ID")
+        resp.headers.setdefault(header_name, getattr(g, "request_id", ""))
+        return resp
+
+    # Minimal API request validation for JSON endpoints
+    @app.before_request
+    def _validate_request():
+        # Only apply to API routes
+        if request.path.startswith("/api") and request.method in {"POST", "PUT", "PATCH"}:
+            if not request.is_json:
+                abort(415, description="Content-Type must be application/json")
+            # Attempt to parse JSON early to return a clear error
+            try:
+                _ = request.get_json(silent=False)
+            except Exception:
+                abort(400, description="Invalid JSON payload")
 
     # Initialize extensions
     # Compute CORS origins from env (comma-separated) or use safe defaults
@@ -314,7 +343,7 @@ def create_app(config_name: str = "development") -> Flask:
 
 
 def configure_logging(app: Flask) -> None:
-    """Configure application logging"""
+    """Configure application logging with optional JSON output and request correlation"""
     # Suppress specific warnings for production readiness
     if not app.debug:
         warnings.filterwarnings("ignore", message="Flask-Caching.*deprecated")
@@ -322,12 +351,56 @@ def configure_logging(app: Flask) -> None:
             "ignore", message="Using the in-memory storage.*not recommended"
         )
 
-        logging.basicConfig(
-            level=logging.INFO,
-            format="%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]",
-        )
+    log_level = getattr(logging, str(app.config.get("LOG_LEVEL", "INFO")).upper(), logging.INFO)
+    root_logger = logging.getLogger()
+    root_logger.handlers.clear()
+    root_logger.setLevel(log_level)
+
+    handler = logging.StreamHandler()
+
+    if app.config.get("LOG_JSON", False):
+        try:
+            from pythonjsonlogger import jsonlogger
+
+            fmt = jsonlogger.JsonFormatter(
+                fmt="%(asctime)s %(levelname)s %(name)s %(message)s",
+                rename_fields={"levelname": "level"},
+            )
+            handler.setFormatter(fmt)
+        except Exception:
+            # Fallback to plain format if json logger not available
+            handler.setFormatter(
+                logging.Formatter(
+                    "%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]"
+                )
+            )
     else:
-        logging.basicConfig(level=logging.DEBUG)
+        handler.setFormatter(
+            logging.Formatter(
+                "%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]"
+            )
+        )
+
+    root_logger.addHandler(handler)
+
+    # Access log for requests
+    @app.after_request
+    def _access_log(resp):
+        try:
+            logging.getLogger("access").info(
+                {
+                    "method": request.method,
+                    "path": request.path,
+                    "status": resp.status_code,
+                    "remote_addr": request.headers.get("X-Forwarded-For", request.remote_addr),
+                    "request_id": getattr(g, "request_id", None),
+                }
+                if app.config.get("LOG_JSON", False)
+                else f"{request.method} {request.path} -> {resp.status_code} rid={getattr(g,'request_id',None)}"
+            )
+        except Exception:
+            pass
+        return resp
 
 
 def register_blueprints(app: Flask) -> None:

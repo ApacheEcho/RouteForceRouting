@@ -73,7 +73,6 @@ ENVIRONMENT VARIABLES:
     RENDER_API_KEY          Render API key (required)
     RENDER_STAGING_SERVICE_ID    Staging service ID
     RENDER_PRODUCTION_SERVICE_ID Production service ID
-    SLACK_WEBHOOK_URL       Slack notification webhook
 
 EXAMPLES:
     $0 deploy --environment staging
@@ -174,9 +173,6 @@ deploy_service() {
     
     # Post-deployment checks
     run_post_deployment_checks
-    
-    # Send notifications
-    send_notifications "success" "🚀 RouteForce deployed successfully to $ENVIRONMENT!"
 }
 
 wait_for_deployment() {
@@ -332,44 +328,6 @@ fetch_deployment_logs() {
     echo "$logs_response" | jq -r '.logs[]?.message // "No logs available"' | tail -50
 }
 
-send_notifications() {
-    local status="$1"
-    local message="$2"
-    
-    if [[ -n "${SLACK_WEBHOOK_URL:-}" ]]; then
-        log "📢 Sending Slack notification..."
-        
-        local color="good"
-        local emoji="✅"
-        
-        if [[ "$status" != "success" ]]; then
-            color="danger"
-            emoji="❌"
-        fi
-        
-        local payload=$(jq -n \
-            --arg text "$emoji $message" \
-            --arg color "$color" \
-            --arg environment "$ENVIRONMENT" \
-            '{
-                text: $text,
-                attachments: [{
-                    color: $color,
-                    fields: [{
-                        title: "Environment",
-                        value: $environment,
-                        short: true
-                    }]
-                }]
-            }')
-        
-        curl -X POST \
-            -H "Content-Type: application/json" \
-            -d "$payload" \
-            "$SLACK_WEBHOOK_URL" || warn "Failed to send Slack notification"
-    fi
-}
-
 setup_services() {
     log "🛠️ Setting up Render services..."
     
@@ -416,7 +374,6 @@ rollback_deployment() {
     wait_for_deployment "$service_id" "$previous_deploy_id"
     
     log "✅ Rollback completed successfully"
-    send_notifications "success" "🔄 RouteForce rolled back successfully in $ENVIRONMENT"
 }
 
 validate_config() {

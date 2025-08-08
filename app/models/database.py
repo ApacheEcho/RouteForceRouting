@@ -2,12 +2,13 @@
 Database models for RouteForce Routing
 """
 
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
 import json
-from typing import Dict, Any, List, Optional
+from datetime import datetime
+from typing import Any, Dict, List
+
+from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import check_password_hash, generate_password_hash
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -44,7 +45,7 @@ class User(db.Model):
         """Check password against hash"""
         return check_password_hash(self.password_hash, password)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert user to dictionary"""
         return {
             "id": self.id,
@@ -84,11 +85,11 @@ class Store(db.Model):
     # Foreign keys
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
 
-    def set_metadata(self, metadata: Dict[str, Any]):
+    def set_metadata(self, metadata: dict[str, Any]):
         """Set metadata as JSON string"""
         self.store_metadata = json.dumps(metadata)
 
-    def get_metadata(self) -> Dict[str, Any]:
+    def get_metadata(self) -> dict[str, Any]:
         """Get metadata as dictionary"""
         if self.store_metadata:
             try:
@@ -97,7 +98,7 @@ class Store(db.Model):
                 return {}
         return {}
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert store to dictionary"""
         return {
             "id": self.id,
@@ -141,11 +142,11 @@ class Route(db.Model):
     # Relationships
     optimizations = db.relationship("RouteOptimization", backref="route", lazy=True)
 
-    def set_route_data(self, route_data: List[Dict[str, Any]]):
+    def set_route_data(self, route_data: list[dict[str, Any]]):
         """Set route data as JSON string"""
         self.route_data = json.dumps(route_data)
 
-    def get_route_data(self) -> List[Dict[str, Any]]:
+    def get_route_data(self) -> list[dict[str, Any]]:
         """Get route data as list of dictionaries"""
         if self.route_data:
             try:
@@ -154,7 +155,7 @@ class Route(db.Model):
                 return []
         return []
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert route to dictionary"""
         return {
             "id": self.id,
@@ -190,11 +191,11 @@ class RouteOptimization(db.Model):
     route_id = db.Column(db.Integer, db.ForeignKey("routes.id"), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
 
-    def set_parameters(self, parameters: Dict[str, Any]):
+    def set_parameters(self, parameters: dict[str, Any]):
         """Set parameters as JSON string"""
         self.parameters = json.dumps(parameters)
 
-    def get_parameters(self) -> Dict[str, Any]:
+    def get_parameters(self) -> dict[str, Any]:
         """Get parameters as dictionary"""
         if self.parameters:
             try:
@@ -203,7 +204,7 @@ class RouteOptimization(db.Model):
                 return {}
         return {}
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert optimization to dictionary"""
         return {
             "id": self.id,
@@ -234,11 +235,11 @@ class Analytics(db.Model):
     user_agent = db.Column(db.String(500), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    def set_event_data(self, event_data: Dict[str, Any]):
+    def set_event_data(self, event_data: dict[str, Any]):
         """Set event data as JSON string"""
         self.event_data = json.dumps(event_data)
 
-    def get_event_data(self) -> Dict[str, Any]:
+    def get_event_data(self) -> dict[str, Any]:
         """Get event data as dictionary"""
         if self.event_data:
             try:
@@ -247,7 +248,7 @@ class Analytics(db.Model):
                 return {}
         return {}
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert analytics to dictionary"""
         return {
             "id": self.id,

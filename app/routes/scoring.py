@@ -7,12 +7,9 @@ import logging
 
 from flask import Blueprint, jsonify, request
 
-from app.services.route_scoring_service import (
-    PRESET_WEIGHTS,
-    ScoringWeights,
-    create_route_scorer,
-    create_route_scorer_preset,
-)
+from app.services.route_scoring_service import (PRESET_WEIGHTS, ScoringWeights,
+                                                create_route_scorer,
+                                                create_route_scorer_preset)
 
 logger = logging.getLogger(__name__)
 scoring_bp = Blueprint("scoring", __name__, url_prefix="/api/route")

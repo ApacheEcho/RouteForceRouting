@@ -8,13 +8,13 @@ import warnings
 from datetime import datetime
 
 import psutil
+from flasgger import Swagger
 from flask import Flask, jsonify
 from flask_caching import Cache
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_socketio import SocketIO
-from flasgger import Swagger
 
 # Initialize extensions
 cache = Cache()
@@ -109,7 +109,7 @@ def create_app(config_name: str = "development") -> Flask:
 
     # Initialize Sentry monitoring
     from app.monitoring import setup_monitoring
-    
+
     setup_monitoring(app)
 
     # Register health check endpoint (for production monitoring)
@@ -251,7 +251,6 @@ def create_app(config_name: str = "development") -> Flask:
     from app.performance_monitor import get_performance_monitor
 
     # from app.performance.optimization_engine import PerformanceOptimizationEngine
-
     # Start legacy performance monitor
     monitor = get_performance_monitor()
     monitor.start_monitoring()
@@ -315,7 +314,8 @@ def register_blueprints(app: Flask) -> None:
     from app.routes.main_enhanced import main_bp  # Use enhanced main blueprint
     from app.routes.metrics import metrics_bp
     from app.routes.scoring import scoring_bp
-    from app.routes.voice_dashboard import voice_dashboard_bp  # Voice dashboard route
+    from app.routes.voice_dashboard import \
+        voice_dashboard_bp  # Voice dashboard route
 
     app.register_blueprint(main_bp)
     app.register_blueprint(api_bp, url_prefix="/api")

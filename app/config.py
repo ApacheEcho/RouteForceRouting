@@ -68,8 +68,12 @@ class Config:
     )  # 1 hour
 
     # Auto-commit service configuration
-    AUTO_COMMIT_ENABLED = os.environ.get("AUTO_COMMIT_ENABLED", "true").lower() == "true"
-    AUTO_COMMIT_INTERVAL_MINUTES = int(os.environ.get("AUTO_COMMIT_INTERVAL_MINUTES", "10"))
+    AUTO_COMMIT_ENABLED = (
+        os.environ.get("AUTO_COMMIT_ENABLED", "true").lower() == "true"
+    )
+    AUTO_COMMIT_INTERVAL_MINUTES = int(
+        os.environ.get("AUTO_COMMIT_INTERVAL_MINUTES", "10")
+    )
     AUTO_COMMIT_WIP_BRANCH = os.environ.get("AUTO_COMMIT_WIP_BRANCH", "auto-wip")
 
     @staticmethod
@@ -145,7 +149,7 @@ class TestingConfig(Config):
 
 
 # Configuration dictionary
-config: Dict[str, Any] = {
+config: dict[str, Any] = {
     "development": DevelopmentConfig,
     "production": ProductionConfig,
     "testing": TestingConfig,

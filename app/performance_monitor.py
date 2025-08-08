@@ -3,15 +3,15 @@ Advanced Performance Monitoring for RouteForce Enhanced System
 Provides real-time performance metrics, alerting, and optimization insights
 """
 
-import time
-import psutil
-import threading
-from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional
-from dataclasses import dataclass, asdict
-from collections import deque
-import json
 import logging
+import threading
+import time
+from collections import deque
+from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+
+import psutil
 
 logger = logging.getLogger(__name__)
 
@@ -24,8 +24,8 @@ class PerformanceMetric:
     metric_type: str
     value: float
     unit: str
-    threshold_warning: Optional[float] = None
-    threshold_critical: Optional[float] = None
+    threshold_warning: float | None = None
+    threshold_critical: float | None = None
     status: str = "normal"  # normal, warning, critical
 
 
@@ -50,8 +50,8 @@ class PerformanceMonitor:
 
     def __init__(self, metrics_retention_hours: int = 24):
         self.metrics_retention_hours = metrics_retention_hours
-        self.metrics_history: Dict[str, deque] = {}
-        self.active_alerts: List[SystemAlert] = []
+        self.metrics_history: dict[str, deque] = {}
+        self.active_alerts: list[SystemAlert] = []
         self.alert_id_counter = 0
         self.monitoring_active = False
         self.monitor_thread = None
@@ -270,7 +270,7 @@ class PerformanceMonitor:
             while metrics and metrics[0].timestamp < cutoff_iso:
                 metrics.popleft()
 
-    def get_current_metrics(self) -> Dict[str, Any]:
+    def get_current_metrics(self) -> dict[str, Any]:
         """Get current performance metrics"""
         current_metrics = {}
 
@@ -288,7 +288,7 @@ class PerformanceMonitor:
 
     def get_metrics_history(
         self, metric_type: str, hours: int = 1
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get historical metrics for a specific type"""
         if metric_type not in self.metrics_history:
             return []
@@ -303,7 +303,7 @@ class PerformanceMonitor:
 
         return recent_metrics
 
-    def get_active_alerts(self, severity: Optional[str] = None) -> List[Dict[str, Any]]:
+    def get_active_alerts(self, severity: str | None = None) -> list[dict[str, Any]]:
         """Get active alerts, optionally filtered by severity"""
         alerts = self.active_alerts
 
@@ -325,7 +325,7 @@ class PerformanceMonitor:
 
         return False
 
-    def get_system_health_score(self) -> Dict[str, Any]:
+    def get_system_health_score(self) -> dict[str, Any]:
         """Calculate overall system health score"""
         current_metrics = self.get_current_metrics()
 
@@ -370,7 +370,7 @@ class PerformanceMonitor:
             },
         }
 
-    def get_performance_summary(self) -> Dict[str, Any]:
+    def get_performance_summary(self) -> dict[str, Any]:
         """Get comprehensive performance summary"""
         return {
             "current_metrics": self.get_current_metrics(),

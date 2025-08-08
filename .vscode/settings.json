@@ -167,6 +167,16 @@
         "**/.pytest_cache/**",
         "**/.mypy_cache/**"
     ],
+    "python.analysis.diagnosticSeverityOverrides": {
+        "reportMissingImports": "none",
+        "reportMissingModuleSource": "none",
+        "reportMissingTypeStubs": "none",
+        "reportPrivateImportUsage": "none",
+        "reportUnusedImport": "none",
+        "reportUnknownVariableType": "none",
+        "reportUnknownMemberType": "none",
+        "reportUnknownArgumentType": "none"
+    },
     // JS/TS-specific
     "javascript.suggest.enabled": false,
     "typescript.suggest.enabled": false,

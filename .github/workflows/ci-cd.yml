@@ -152,6 +152,37 @@ jobs:
           name: trivy-security-scan
           path: "trivy-results.sarif"
 
+      # New: Python dependency vulnerability scans
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install audit tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install pip-audit safety
+
+      - name: Run pip-audit
+        continue-on-error: true
+        run: |
+          pip-audit -r requirements.txt -f json -o pip-audit.json || true
+
+      - name: Run Safety
+        continue-on-error: true
+        run: |
+          safety check -r requirements.txt --json > safety.json || true
+
+      - name: Upload Python audit artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: python-security-audits
+          path: |
+            pip-audit.json
+            safety.json
+
   # Build and push Docker images
   build:
     needs: test

@@ -4,6 +4,7 @@ Provides REST API for route scoring functionality
 """
 
 import logging
+from typing import Any, Dict, List
 
 from flask import Blueprint, jsonify, request
 
@@ -16,6 +17,44 @@ from app.services.route_scoring_service import (
 
 logger = logging.getLogger(__name__)
 scoring_bp = Blueprint("scoring", __name__, url_prefix="/api/route")
+
+
+def _validate_location(item: Dict[str, Any]) -> List[str]:
+    errors = []
+    if not isinstance(item, dict):
+        return ["Each route item must be an object"]
+    if "lat" not in item or "lon" not in item:
+        errors.append("Each item requires 'lat' and 'lon'")
+    else:
+        try:
+            float(item["lat"])
+            float(item["lon"])
+        except Exception:
+            errors.append("'lat' and 'lon' must be numbers")
+    if "priority" in item and not isinstance(item["priority"], (int, float)):
+        errors.append("'priority' must be a number if provided")
+    return errors
+
+
+def _validate_weights(weights: Dict[str, Any]) -> List[str]:
+    allowed = {
+        "distance_weight",
+        "time_weight",
+        "priority_weight",
+        "traffic_weight",
+        "playbook_weight",
+        "efficiency_weight",
+    }
+    errors = []
+    for k, v in weights.items():
+        if k not in allowed:
+            errors.append(f"Unknown weight: {k}")
+        else:
+            try:
+                float(v)
+            except Exception:
+                errors.append(f"Weight '{k}' must be a number")
+    return errors
 
 
 @scoring_bp.route("/score", methods=["POST"])
@@ -37,17 +76,31 @@ def score_route():
             return jsonify({"error": "No JSON data provided"}), 400
 
         route = data.get("route", [])
-        if not route:
-            return jsonify({"error": "Route is required"}), 400
+        if not isinstance(route, list) or not route:
+            return jsonify({"error": "'route' must be a non-empty list"}), 400
+
+        # Validate route items
+        all_errors: List[str] = []
+        for idx, item in enumerate(route):
+            errs = _validate_location(item)
+            if errs:
+                all_errors.extend([f"route[{idx}]: {e}" for e in errs])
+        if all_errors:
+            return jsonify({"error": "Invalid route data", "details": all_errors}), 422
 
         context = data.get("context", {})
 
         # Create scorer with custom weights or preset
-        if "weights" in data:
+        if "weights" in data and data["weights"] is not None:
+            if not isinstance(data["weights"], dict):
+                return jsonify({"error": "'weights' must be an object"}), 400
+            weight_errors = _validate_weights(data["weights"])
+            if weight_errors:
+                return jsonify({"error": "Invalid weights", "details": weight_errors}), 422
             weights_data = data["weights"]
             weights = ScoringWeights(**weights_data)
             scorer = create_route_scorer(weights)
-        elif "preset" in data:
+        elif "preset" in data and data["preset"]:
             preset = data["preset"]
             if preset not in PRESET_WEIGHTS:
                 return (
@@ -90,11 +143,21 @@ def compare_routes():
             return jsonify({"error": "No JSON data provided"}), 400
 
         routes = data.get("routes", [])
-        if not routes:
-            return jsonify({"error": "Routes list is required"}), 400
+        if not isinstance(routes, list) or not routes:
+            return jsonify({"error": "'routes' must be a non-empty list"}), 400
 
-        if len(routes) < 2:
-            return jsonify({"error": "At least 2 routes required for comparison"}), 400
+        # Validate each route
+        all_errors: List[str] = []
+        for r_idx, route in enumerate(routes):
+            if not isinstance(route, list) or not route:
+                all_errors.append(f"routes[{r_idx}] must be a non-empty list")
+                continue
+            for i_idx, item in enumerate(route):
+                errs = _validate_location(item)
+                if errs:
+                    all_errors.extend([f"routes[{r_idx}][{i_idx}]: {e}" for e in errs])
+        if all_errors:
+            return jsonify({"error": "Invalid routes data", "details": all_errors}), 422
 
         context = data.get("context", {})
         preset = data.get("preset", "balanced")
@@ -102,9 +165,7 @@ def compare_routes():
         if preset not in PRESET_WEIGHTS:
             return (
                 jsonify(
-                    {
-                        "error": f"Invalid preset. Available: {list(PRESET_WEIGHTS.keys())}"
-                    }
+                    {"error": f"Invalid preset. Available: {list(PRESET_WEIGHTS.keys())}"}
                 ),
                 400,
             )

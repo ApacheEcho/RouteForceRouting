@@ -6,6 +6,7 @@ import logging
 import time
 import warnings
 from datetime import datetime
+import os
 
 import psutil
 from flask import Flask, jsonify
@@ -19,7 +20,8 @@ from flasgger import Swagger
 # Initialize extensions
 cache = Cache()
 limiter = Limiter(
-    key_func=get_remote_address, default_limits=["200 per day", "50 per hour"]
+    key_func=get_remote_address,
+    default_limits=os.getenv("RATE_LIMITS", "200/day;50/hour").split(";"),
 )
 socketio = SocketIO(cors_allowed_origins="*", logger=True, engineio_logger=True)
 swagger = Swagger()
@@ -49,13 +51,24 @@ def create_app(config_name: str = "development") -> Flask:
     migrate.init_app(app, db)
 
     # Initialize extensions
+    # Compute CORS origins from env (comma-separated) or use safe defaults
+    cors_env = os.getenv("CORS_ORIGINS", "")
+    cors_origins = [
+        o.strip()
+        for o in (cors_env.split(",") if cors_env else [
+            "http://localhost:3000",
+            "https://app.routeforcepro.com",
+            "https://routeforcepro.netlify.app",
+        ])
+        if o.strip()
+    ]
     CORS(
         app,
-        origins=[
-            "http://localhost:3000",  # Local React development
-            "https://app.routeforcepro.com",  # Production frontend
-            "https://routeforcepro.netlify.app",  # Netlify deployment
-        ],
+        origins=cors_origins,
+        supports_credentials=True,
+        allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
+        methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        max_age=86400,
     )
     cache.init_app(app)
 
@@ -111,6 +124,20 @@ def create_app(config_name: str = "development") -> Flask:
     from app.monitoring import setup_monitoring
     
     setup_monitoring(app)
+
+    # Security headers
+    @app.after_request
+    def set_security_headers(resp):
+        resp.headers.setdefault("X-Content-Type-Options", "nosniff")
+        resp.headers.setdefault("X-Frame-Options", "DENY")
+        resp.headers.setdefault("Referrer-Policy", "no-referrer")
+        resp.headers.setdefault("X-XSS-Protection", "0")
+        # Enable HSTS only when serving over HTTPS
+        if app.config.get("PREFERRED_URL_SCHEME", "http") == "https":
+            resp.headers.setdefault(
+                "Strict-Transport-Security", "max-age=31536000; includeSubDomains"
+            )
+        return resp
 
     # Register health check endpoint (for production monitoring)
     @app.route("/health")
@@ -216,7 +243,12 @@ def create_app(config_name: str = "development") -> Flask:
             )
 
     # Initialize WebSocket support
-    socketio.init_app(app, cors_allowed_origins="*", logger=True, engineio_logger=True)
+    socketio.init_app(
+        app,
+        cors_allowed_origins=cors_origins,
+        logger=True,
+        engineio_logger=True,
+    )
 
     # Initialize WebSocket handlers
     from app.websocket_handlers import init_websocket

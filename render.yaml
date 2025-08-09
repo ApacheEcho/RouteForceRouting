@@ -6,7 +6,7 @@ services:
     env: docker
     dockerfilePath: ./Dockerfile.production
     region: oregon
-    startCommand: "gunicorn --bind 0.0.0.0:5000 --workers 4 --worker-class gthread --timeout 120 --keep-alive 5 --access-logfile '-' --error-logfile '-' --log-level info app:create_app"
+    startCommand: "gunicorn --config gunicorn_config.py app:app"
     envVars:
       - key: FLASK_ENV
         value: production

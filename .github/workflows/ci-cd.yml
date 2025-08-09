@@ -97,12 +97,13 @@ jobs:
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
           files: ./coverage.xml
           flags: unittests
           name: codecov-umbrella
-          token: ${{ secrets.CODECOV_TOKEN }} # pragma: allowlist secret
-          fail_ci_if_error: false
+          token: ${{ env.CODECOV_TOKEN }}
 
       - name: Security scan with bandit
         run: |

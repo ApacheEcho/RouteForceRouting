@@ -125,11 +125,13 @@ jobs:
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
           files: ./coverage.xml
           flags: unittests
           name: codecov-umbrella
-          token: ${{ secrets.CODECOV_TOKEN }} # pragma: allowlist secret
+          token: ${{ env.CODECOV_TOKEN }}
 
   # Docker Build and Push
   docker-build:
@@ -148,9 +150,12 @@ jobs:
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         with:
-          username: ${{ secrets.DOCKER_USERNAME }} # pragma: allowlist secret
-          password: ${{ secrets.DOCKER_PASSWORD }} # pragma: allowlist secret
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ env.DOCKER_PASSWORD }}
 
       - name: Extract metadata
         id: meta
@@ -183,8 +188,14 @@ jobs:
     if: github.ref == 'refs/heads/main' || github.event.inputs.environment == 'staging'
     steps:
       - name: Trigger Render deploy (staging)
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_STAGING_SERVICE_ID: ${{ secrets.RENDER_STAGING_SERVICE_ID }}
         run: |
-          curl -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_STAGING_SERVICE_ID }}/deploys" -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" -H "Content-Type: application/json" -d '{"clearCache": "clear"}' # pragma: allowlist secret
+          curl -X POST "https://api.render.com/v1/services/${RENDER_STAGING_SERVICE_ID}/deploys" \
+            -H "Authorization: Bearer ${RENDER_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d '{"clearCache": "clear"}'
 
       - name: Wait and health check
         run: |
@@ -203,8 +214,14 @@ jobs:
     if: github.ref == 'refs/heads/production' || github.event.inputs.environment == 'production'
     steps:
       - name: Trigger Render deploy (production)
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_PRODUCTION_SERVICE_ID: ${{ secrets.RENDER_PRODUCTION_SERVICE_ID }}
         run: |
-          curl -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_PRODUCTION_SERVICE_ID }}/deploys" -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" -H "Content-Type: application/json" -d '{"clearCache": "clear"}' # pragma: allowlist secret
+          curl -X POST "https://api.render.com/v1/services/${RENDER_PRODUCTION_SERVICE_ID}/deploys" \
+            -H "Authorization: Bearer ${RENDER_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d '{"clearCache": "clear"}'
 
       - name: Wait and health check
         run: |

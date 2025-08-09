@@ -12,7 +12,7 @@ from contextlib import contextmanager
 from queue import Queue, Empty
 import weakref
 from sqlalchemy import create_engine, event
-from sqlalchemy.pool import QueuePool
+from sqlalchemy.pool import QueuePool, StaticPool
 from flask_sqlalchemy import SQLAlchemy
 
 logger = logging.getLogger(__name__)
@@ -61,36 +61,53 @@ class DatabaseConnectionPool:
     def _setup_engine(self) -> None:
         """Setup database engine with optimized configuration"""
 
-        # Optimized engine configuration
+        # Base engine configuration
         engine_config = {
-            "poolclass": QueuePool,
-            "pool_size": self.pool_size,
-            "max_overflow": self.max_overflow,
-            "pool_pre_ping": True,  # Verify connections
-            "pool_recycle": 3600,  # Recycle connections every hour
-            "pool_timeout": 30,  # Connection timeout
             "echo": False,  # Disable SQL logging for performance
             "future": True,  # Use future-compatible engine
-            "connect_args": {
-                "connect_timeout": 10,
-                "application_name": "RouteForce_Optimized",
-            },
         }
 
-        # PostgreSQL-specific optimizations
-        if "postgresql" in self.database_url:
-            engine_config["connect_args"].update(
-                {"options": "-c statement_timeout=30000"}  # 30 second statement timeout
-            )
+        # Database-specific configuration
+        if self.database_url.startswith(("postgresql://", "mysql://")):
+            # PostgreSQL/MySQL - use connection pooling
+            engine_config.update({
+                "poolclass": QueuePool,
+                "pool_size": self.pool_size,
+                "max_overflow": self.max_overflow,
+                "pool_pre_ping": True,  # Verify connections
+                "pool_recycle": 3600,  # Recycle connections every hour
+                "pool_timeout": 30,  # Connection timeout
+                "connect_args": {
+                    "connect_timeout": 10,
+                    "application_name": "RouteForce_Optimized",
+                },
+            })
+            
+            # PostgreSQL-specific optimizations
+            if "postgresql" in self.database_url:
+                engine_config["connect_args"].update(
+                    {"options": "-c statement_timeout=30000"}  # 30 second statement timeout
+                )
+        else:
+            # SQLite or other databases - use simple configuration
+            engine_config.update({
+                "poolclass": StaticPool,
+                "pool_pre_ping": True,
+                "connect_args": {"check_same_thread": False} if "sqlite" in self.database_url else {}
+            })
 
         self.engine = create_engine(self.database_url, **engine_config)
 
         # Setup event listeners for monitoring
         self._setup_event_listeners()
 
-        logger.info(
-            f"🚀 Database connection pool initialized: {self.pool_size} connections, {self.max_overflow} overflow"
-        )
+        # Log appropriate message based on database type
+        if self.database_url.startswith(("postgresql://", "mysql://")):
+            logger.info(
+                f"🚀 Database connection pool initialized: {self.pool_size} connections, {self.max_overflow} overflow"
+            )
+        else:
+            logger.info("🚀 Database connection initialized (SQLite/simple mode)")
 
     def _setup_event_listeners(self) -> None:
         """Setup SQLAlchemy event listeners for monitoring"""

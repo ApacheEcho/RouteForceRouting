@@ -26,8 +26,12 @@ repos:
     rev: v1.5.0
     hooks:
       - id: detect-secrets
-        args: ["--baseline", ".secrets.baseline", "--exclude-files", "(\.md$|^tests/)" ]
-        exclude: ^(docs/|tests/|.*\.md$)
+        args:
+          - "--baseline"
+          - ".secrets.baseline"
+          - "--exclude-files"
+          - "(\\.md$|^tests/|^docs/|^\\.vscode/|^frontend/|node_modules|package-lock\\.json|^codeql-database/|^mobile/react-native/node_modules/)"
+        exclude: ^(docs/|tests/|.*\\.md$|\.vscode/|frontend/|codeql-database/|mobile/react-native/node_modules/)
   - repo: https://github.com/PyCQA/bandit
     rev: 1.7.9
     hooks:

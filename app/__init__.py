@@ -26,7 +26,7 @@ limiter = Limiter(
     default_limits=os.getenv("RATE_LIMITS", "200/day;50/hour").split(";"),
 )
 socketio = SocketIO(cors_allowed_origins="*", logger=True, engineio_logger=True, async_mode="threading")
-swagger = Swagger()
+PROCESS_START_TIME = psutil.Process().create_time()
 
 
 def create_app(config_name: str = "development") -> Flask:
@@ -48,6 +48,10 @@ def create_app(config_name: str = "development") -> Flask:
     from app.config import config
 
     app.config.from_object(config[config_name])
+
+    # Ensure SECRET_KEY is picked up from environment for Flask sessions/signing
+    if os.getenv("SECRET_KEY"):
+        app.config["SECRET_KEY"] = os.environ["SECRET_KEY"]
 
     # Initialize database
     from app.models.database import db, migrate
@@ -113,7 +117,7 @@ def create_app(config_name: str = "development") -> Flask:
                 "url": "https://github.com/ApacheEcho/RouteForceRouting",
             },
         },
-        "host": "localhost:8000",
+        # "host": "localhost:8000",  # Removed to avoid leaking localhost in production
         "basePath": "/",
         "schemes": ["http", "https"],
         "tags": [
@@ -179,11 +183,13 @@ def create_app(config_name: str = "development") -> Flask:
             db_status = "healthy"
             try:
                 from sqlalchemy import text
-
                 db.session.execute(text("SELECT 1"))
-                db.session.commit()
             except Exception as e:
                 db_status = f"unhealthy: {str(e)}"
+                try:
+                    db.session.rollback()
+                except Exception:
+                    pass
 
             # Check cache connectivity
             cache_status = "healthy"
@@ -256,7 +262,7 @@ def create_app(config_name: str = "development") -> Flask:
 
             app_metrics.append("# HELP routeforce_uptime Application uptime in seconds")
             app_metrics.append("# TYPE routeforce_uptime counter")
-            app_metrics.append(f"routeforce_uptime {time.time() - psutil.boot_time()}")
+            app_metrics.append(f"routeforce_uptime {time.time() - PROCESS_START_TIME}")
 
             return (
                 "\n".join(app_metrics),
@@ -275,9 +281,9 @@ def create_app(config_name: str = "development") -> Flask:
     socketio.init_app(
         app,
         cors_allowed_origins=cors_origins,
-        logger=True,
-        engineio_logger=True,
-        async_mode="threading",
+        logger=app.config.get("SOCKETIO_LOGGER", False),
+        engineio_logger=app.config.get("SOCKETIO_ENGINEIO_LOGGER", False),
+        async_mode=os.getenv("SOCKETIO_ASYNC_MODE", "threading"),
     )
 
     # Initialize WebSocket handlers
@@ -296,8 +302,9 @@ def create_app(config_name: str = "development") -> Flask:
     app.analytics_service = analytics_service
 
     # Configure limiter with storage URI
-    if app.config.get("RATELIMIT_STORAGE_URI"):
-        limiter.storage_uri = app.config["RATELIMIT_STORAGE_URI"]
+    storage_uri = app.config.get("RATELIMIT_STORAGE_URI") or app.config.get("RATELIMIT_STORAGE_URL")
+    if storage_uri:
+        limiter.storage_uri = storage_uri
     limiter.init_app(app)
 
     # Configure logging
@@ -335,7 +342,7 @@ def create_app(config_name: str = "development") -> Flask:
     # Initialize auto-commit service for background code backup
     from app.services.auto_commit_service import start_auto_commit_service
 
-    if app.config.get("AUTO_COMMIT_ENABLED", True):
+    if app.config.get("AUTO_COMMIT_ENABLED", False):
         start_auto_commit_service()
         logging.info("Auto-commit background service started")
 

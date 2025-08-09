@@ -28,7 +28,7 @@
     "remote.autoForwardPortsSource": "hybrid", 
     "remote.forwardOnOpen": true,
     "remote.restoreForwardedPorts": true,
-    "workbench.colorTheme": "GitHub Dark Default",
+    "workbench.colorTheme": "Default Dark+",
     
     // Terminal and Git for Codespaces
     "terminal.integrated.defaultProfile.linux": "bash",
@@ -148,7 +148,35 @@
     "python.testing.pytestEnabled": false,
     "python.testing.nosetestsEnabled": false,
     "python.testing.autoTestDiscoverOnSaveEnabled": false,
-    "python.envFile": "",
+    "python.envFile": "${workspaceFolder}/.env",
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}",
+        "${workspaceFolder}/app"
+    ],
+    "python.analysis.exclude": [
+        "**/node_modules/**",
+        "**/.git/**",
+        "**/dist/**",
+        "**/.next/**",
+        "**/.cache/**",
+        "**/.venv/**",
+        "**/venv/**",
+        "**/build/**",
+        "**/logs/**",
+        "**/coverage/**",
+        "**/.pytest_cache/**",
+        "**/.mypy_cache/**"
+    ],
+    "python.analysis.diagnosticSeverityOverrides": {
+        "reportMissingImports": "none",
+        "reportMissingModuleSource": "none",
+        "reportMissingTypeStubs": "none",
+        "reportPrivateImportUsage": "none",
+        "reportUnusedImport": "none",
+        "reportUnknownVariableType": "none",
+        "reportUnknownMemberType": "none",
+        "reportUnknownArgumentType": "none"
+    },
     // JS/TS-specific
     "javascript.suggest.enabled": false,
     "typescript.suggest.enabled": false,
@@ -164,5 +192,13 @@
     // Security/Trust
     "security.workspace.trust.untrustedFiles": "open",
     "security.workspace.trust.startupPrompt": "never",
-    "codeQL.createQuery.qlPackLocation": "/Users/frank/RouteForceRouting"
+    "codeQL.createQuery.qlPackLocation": "/Users/frank/RouteForceRouting",
+    // Reduce editor diagnostics noise (CI still enforces linting)
+    "yaml.validate": false,
+    "json.validate.enable": false,
+    "markdownlint.enable": false,
+    "cSpell.enabled": false,
+    // If flake8/pylint extensions are installed, keep them inactive in-editor
+    "flake8.enabled": false,
+    "pylint.enabled": false
 }

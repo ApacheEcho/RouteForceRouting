@@ -92,8 +92,8 @@ jobs:
         continue-on-error: true
         run: |
           echo "::group::Safety Dependency Check"
-          safety check --json > safety_output.json 2>&1 || echo "DEPENDENCY_ISSUES=true" >> $GITHUB_OUTPUT
-          safety check > safety_output.txt 2>&1 || true
+          safety scan --json > safety_output.json 2>&1 || echo "DEPENDENCY_ISSUES=true" >> $GITHUB_OUTPUT
+          safety scan > safety_output.txt 2>&1 || true
           cat safety_output.txt
           echo "::endgroup::"
           echo "SAFETY_OUTPUT<<EOF" >> $GITHUB_ENV

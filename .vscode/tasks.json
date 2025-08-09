@@ -142,6 +142,89 @@
                 "focus": true,
                 "panel": "shared"
             }
-        }
+        },
+        {
+            "label": "🧪 Run Tests (Local Python3)",
+            "type": "shell",
+            "command": "sh",
+            "args": [
+                "-c",
+                "set -e\nif [ ! -x ./.venv/bin/python ]; then python3 -m venv .venv; fi\n./.venv/bin/python -m pytest -v --tb=short"
+            ],
+            "group": "test",
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}",
+                    "FLASK_ENV": "testing",
+                    "DATABASE_URL": "sqlite:///test.db"
+                }
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "🔧 Install Dependencies (Local)",
+            "type": "shell",
+            "command": "sh",
+            "args": [
+                "-c",
+                "set -euo pipefail\npython3 -m venv .venv >/dev/null 2>&1 || true\n./.venv/bin/python -m pip install --upgrade pip\n./.venv/bin/python -m pip install -r requirements.txt -r requirements-dev.txt"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "🚀 Start Flask App (Local Python3)",
+            "type": "shell",
+            "command": "sh",
+            "args": [
+                "-c",
+                "set -e\nif [ ! -x ./.venv/bin/python ]; then python3 -m venv .venv; fi\nexec ./.venv/bin/python app.py"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "new"
+            },
+            "options": {
+                "env": {
+                    "FLASK_APP": "app.py",
+                    "FLASK_ENV": "development",
+                    "FLASK_DEBUG": "1",
+                    "PYTHONPATH": "${workspaceFolder}",
+                    "DATABASE_URL": "sqlite:///dev.db",
+                    "REDIS_URL": "redis://localhost:6379/0"
+                }
+            },
+            "isBackground": true,
+            "problemMatcher": []
+        },
+        {
+            "label": "🧰 Start Redis (Local)",
+            "type": "shell",
+            "command": "sh",
+            "args": [
+                "-c",
+                "set -e\nif command -v redis-cli >/dev/null 2>&1; then\n  if redis-cli -h 127.0.0.1 -p 6379 ping >/dev/null 2>&1; then echo '✅ Redis already running on 6379'; exit 0; fi\nfi\nif command -v brew >/dev/null 2>&1 && brew list --versions redis >/dev/null 2>&1; then\n  echo '🚀 Starting Redis via Homebrew...';\n  brew services start redis;\n  sleep 2;\n  (command -v redis-cli >/dev/null 2>&1 && redis-cli ping) || true;\n  exit 0;\nfi\nif command -v docker >/dev/null 2>&1; then\n  echo '🐳 Starting Redis via Docker...';\n  docker rm -f routeforce-redis >/dev/null 2>&1 || true;\n  docker run -d --name routeforce-redis -p 6379:6379 redis:7;\n  sleep 2;\n  (command -v redis-cli >/dev/null 2>&1 && redis-cli ping) || true;\n  exit 0;\nfi\necho '❌ Could not start Redis. Install with: brew install redis OR install Docker.'; exit 1"
+      ],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    }
     ]
 }

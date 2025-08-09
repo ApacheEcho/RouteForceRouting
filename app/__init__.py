@@ -302,7 +302,7 @@ def create_app(config_name: str = "development") -> Flask:
     app.analytics_service = analytics_service
 
     # Configure limiter with storage URI
-    storage_uri = app.config.get("RATELIMIT_STORAGE_URI") or app.config.get("RATELIMIT_STORAGE_URL")
+    storage_uri = app.config.get("RATELIMIT_STORAGE_URI")
     if storage_uri:
         limiter.storage_uri = storage_uri
     limiter.init_app(app)

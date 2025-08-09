@@ -1,638 +1,152 @@
-name: 🎯 Automated Code Agents
+name: 🤖 Automated Code Agents
 
 on:
-  schedule:
-    # Run code maintenance agents daily at 3 AM
-    - cron: '0 3 * * *'
   workflow_dispatch:
     inputs:
-      agent_type:
-        description: 'Type of code agent to run'
+      operation:
+        description: "Select operation to run"
         required: true
-        default: 'maintenance'
         type: choice
+        default: security-scan
         options:
-          - maintenance
-          - security_audit
-          - performance_optimization
-          - dependency_update
-          - code_cleanup
-      target_directory:
-        description: 'Target directory to analyze'
+          - security-scan
+          - dependency-audit
+          - tests
+          - format
+      auto_fix:
+        description: "When operation=format, automatically format and open PR"
+        required: true
+        type: boolean
+        default: true
+      base_branch:
+        description: "Base branch for PRs (format op)"
         required: false
-        default: 'app/'
-        type: string
+        default: main
+
+permissions:
+  contents: write
+  pull-requests: write
 
 concurrency:
-  group: auto-agents-${{ github.workflow }}-${{ github.ref }}
+  group: automated-agents-${{ github.ref }}
   cancel-in-progress: true
 
-permissions: {}
-# Top-level empty; set least-privilege per job
-
 jobs:
-  maintenance-agent:
+  run:
+    name: Run ${{ inputs.operation }}
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-      issues: write
-    timeout-minutes: 20
-    if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.agent_type == 'maintenance')
+    timeout-minutes: 25
     steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
-      - name: 🐍 Set up Python 3.12
-        uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v5.6.0
         with:
           python-version: '3.12'
-          cache: pip
+          cache: 'pip'
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
 
-      - name: ⚙️ Install maintenance tools
-        run: |
-          echo "Installing maintenance tools..."
-          # Upgrade pip and install necessary tools       
-          python -m pip install --upgrade pip
-          pip install black isort autoflake pyupgrade pre-commit
-
-      - id: maintenance
-        name: 🧹 Automated Code Maintenance
-        run: |
-          echo "🤖 Starting automated code maintenance..."
-          changes_made=false
-          if ! black --check --diff app/ 2>/dev/null; then
-            echo "🔧 Auto-formatting code with Black..."; black app/; changes_made=true; fi
-          if ! isort --check-only app/ 2>/dev/null; then
-            echo "🔧 Sorting imports with isort..."; isort app/; changes_made=true; fi
-          echo "🔧 Removing unused imports..."; find app/ -name "*.py" -exec autoflake --in-place --remove-all-unused-imports {} \;
-          echo "🔧 Upgrading Python syntax..."; find app/ -name "*.py" -exec pyupgrade --py312-plus {} \;
-          # Detect changes
-          if git status --porcelain | grep -q .; then changes_made=true; fi
-          echo "CHANGES_MADE=$changes_made" >> $GITHUB_ENV
-          echo "changes_made=$changes_made" >> $GITHUB_OUTPUT
-
-      - name: 📊 Generate Maintenance Report
-        run: |
-          python << 'EOF'
-          import os
-          import subprocess
-          from datetime import datetime
-          
-          # Get git statistics
-          def get_git_stats():
-              try:
-                  result = subprocess.run(['git', 'diff', '--stat'], capture_output=True, text=True)
-                  return result.stdout.strip() if result.returncode == 0 else "No changes"
-              except:
-                  return "Error getting stats"
-          
-          # Generate report
-          report = f"""# 🤖 Automated Maintenance Report
-          
-          **Date:** {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}
-          **Agent:** Code Maintenance Bot
-          
-          ## 📊 Changes Summary
-          
-          {get_git_stats()}
-          
-          ## 🔧 Maintenance Tasks Completed
-          
-          - ✅ Code formatting (Black)
-          - ✅ Import sorting (isort)  
-          - ✅ Unused import removal (autoflake)
-          - ✅ Python syntax upgrades (pyupgrade)
-          
-          ## 📈 Code Quality Metrics
-          
-          - **Formatting**: Consistent with Black standards
-          - **Import Style**: PEP8 compliant with isort
-          - **Python Version**: Upgraded to 3.12+ syntax
-          - **Unused Code**: Cleaned automatically
-          
-          ---
-          *This report was generated by the automated maintenance agent*
-          """
-          
-          with open('maintenance_report.md', 'w') as f:
-              f.write(report)
-          
-          print("✅ Maintenance report generated")
-          EOF
-
-      - name: 🚀 Create Maintenance Branch
-        if: ${{ steps.maintenance.outputs.changes_made == 'true' }}
-        run: |
-          # Configure git
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action - Code Maintenance Bot"
-          
-          # Create branch
-          branch_name="automated-maintenance-$(date +%Y%m%d-%H%M%S)"
-          echo "MAINTENANCE_BRANCH=$branch_name" >> $GITHUB_ENV
-          git checkout -b "$branch_name"
-          
-          # Commit changes
-          git add .
-          git commit -m "🤖 Automated code maintenance
-
-          - Auto-formatted code with Black
-          - Sorted imports with isort
-          - Removed unused imports
-          - Upgraded Python syntax to 3.12+
-
-          Generated by: Automated Code Maintenance Agent"
-          
-          # Push branch
-          git push origin "$branch_name"
-
-      - name: 📝 Create Maintenance Pull Request
-        if: ${{ steps.maintenance.outputs.changes_made == 'true' }}
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const branchName = process.env.MAINTENANCE_BRANCH;
-            const fs = require('fs');
-            // Avoid duplicate PRs
-            const existing = await github.rest.pulls.list({ owner: context.repo.owner, repo: context.repo.repo, state: 'open' });
-            if (existing.data.some(pr => pr.title === '🤖 Automated Code Maintenance')) {
-              core.info('Existing maintenance PR found, skipping creation.');
-              return;
-            }
-            
-            let prBody = '## 🤖 Automated Code Maintenance\n\n';
-            prBody += 'This PR was automatically created by the Code Maintenance Agent.\n\n';
-            prBody += '### 🔧 Changes Made:\n';
-            prBody += '- ✅ **Code Formatting**: Applied Black formatting standards\n';
-            prBody += '- ✅ **Import Sorting**: Organized imports with isort\n';
-            prBody += '- ✅ **Cleanup**: Removed unused imports and variables\n';
-            prBody += '- ✅ **Syntax**: Upgraded to Python 3.12+ syntax\n\n';
-            prBody += '### 📊 Impact:\n';
-            prBody += '- Improved code consistency\n';
-            prBody += '- Enhanced readability\n';
-            prBody += '- Reduced technical debt\n';
-            prBody += '- Better performance with modern syntax\n\n';
-            prBody += '### ✅ Safe to Merge:\n';
-            prBody += '- Only formatting and syntax changes\n';
-            prBody += '- No functional logic modifications\n';
-            prBody += '- All existing tests should continue to pass\n\n';
-            
-            if (fs.existsSync('maintenance_report.md')) {
-              const report = fs.readFileSync('maintenance_report.md', 'utf8');
-              prBody += '### 📋 Detailed Report:\n';
-              prBody += '```markdown\n' + report + '\n```\n';
-            }
-            
-            prBody += '\n---\n';
-            prBody += '🤖 *Automatically generated by Code Maintenance Agent*';
-            
-            const { data: pr } = await github.rest.pulls.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: '🤖 Automated Code Maintenance',
-              head: branchName,
-              base: 'main',
-              body: prBody
-            });
-            
-            // Add labels
-            await github.rest.issues.addLabels({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: pr.number,
-              labels: ['automated', 'maintenance', 'code-quality']
-            });
-            
-            console.log(`✅ Created maintenance PR #${pr.number}`)
-
-  security-audit-agent:
-    runs-on: ubuntu-latest
-    permissions:
-      issues: write
-      contents: read
-    timeout-minutes: 30
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.agent_type == 'security_audit'
-    
-    steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-
-      - name: 🐍 Set up Python 3.12
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-          cache: pip
-
-      - name: ⚙️ Install security tools
+      - name: Install tools (security)
+        if: inputs.operation == 'security-scan'
         run: |
           python -m pip install --upgrade pip
-          pip install bandit safety semgrep
+          pip install bandit safety pip-audit
 
-      - name: 🔒 Comprehensive Security Audit
+      - name: Security scan
+        if: inputs.operation == 'security-scan'
         run: |
-          echo "🛡️ Starting comprehensive security audit..."
-          
-          # Bandit security scan
-          echo "🔍 Running Bandit security scan..."
-          bandit -r app/ -f json -o bandit_report.json || true
-          
-          # Safety dependency scan
-          echo "🔍 Running Safety dependency scan..."
-          safety check --json --output safety_report.json || true
-          
-          # Semgrep security patterns
-          echo "🔍 Running Semgrep security analysis..."
-          if command -v semgrep &> /dev/null; then
-            semgrep --config=auto app/ --json --output semgrep_report.json || true
-          fi
-          
-          echo "✅ Security audit completed"
+          set -e
+          bandit -r app/ -f json -o bandit-report.json || true
+          safety scan --json > safety-report.json || true
+          pip-audit -r requirements.txt -f json -o pip-audit.json || true
 
-      - name: 📊 Generate Security Report
-        run: |
-          python << 'EOF'
-          import json
-          import os
-          from datetime import datetime
-          
-          def load_json_report(filename):
-              try:
-                  with open(filename, 'r') as f:
-                      return json.load(f)
-              except:
-                  return {}
-          
-          # Load security reports
-          bandit_report = load_json_report('bandit_report.json')
-          safety_report = load_json_report('safety_report.json')
-          semgrep_report = load_json_report('semgrep_report.json')
-          
-          # Generate comprehensive report
-          report = f"""# 🛡️ Security Audit Report
-          
-          **Date:** {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}
-          **Agent:** Security Audit Bot
-          
-          ## 📊 Security Summary
-          
-          """
-          
-          # Bandit results
-          bandit_issues = bandit_report.get('results', [])
-          high_severity = len([i for i in bandit_issues if i.get('issue_severity') == 'HIGH'])
-          medium_severity = len([i for i in bandit_issues if i.get('issue_severity') == 'MEDIUM'])
-          low_severity = len([i for i in bandit_issues if i.get('issue_severity') == 'LOW'])
-          
-          report += f"""### 🔍 Static Analysis (Bandit)
-          - 🔴 High Severity: {high_severity}
-          - 🟡 Medium Severity: {medium_severity}  
-          - 🟢 Low Severity: {low_severity}
-          
-          """
-          
-          # Safety results
-          vulnerabilities = safety_report.get('vulnerabilities', []) if isinstance(safety_report, dict) else []
-          report += f"""### 📦 Dependency Vulnerabilities (Safety)
-          - Total Vulnerabilities: {len(vulnerabilities)}
-          
-          """
-          
-          # Detailed findings
-          if bandit_issues:
-              report += "## 🔍 Detailed Findings\n\n"
-              for issue in bandit_issues[:10]:  # Top 10 issues
-                  report += f"### {issue.get('test_name', 'Unknown')}\n"
-                  report += f"**Severity:** {issue.get('issue_severity', 'Unknown')}\n"
-                  report += f"**File:** {issue.get('filename', 'Unknown')}\n"
-                  report += f"**Line:** {issue.get('line_number', 'Unknown')}\n"
-                  report += f"**Issue:** {issue.get('issue_text', 'No description')}\n\n"
-          
-          # Recommendations
-          report += """## 🎯 Recommendations
-          
-          1. **Address High Severity Issues**: Priority should be given to high severity findings
-          2. **Update Dependencies**: Keep all dependencies updated to latest secure versions
-          3. **Code Review**: Manual review of flagged security patterns
-          4. **Security Training**: Team education on secure coding practices
-          
-          ---
-          *This report was generated by the automated security audit agent*
-          """
-          
-          with open('security_audit_report.md', 'w') as f:
-              f.write(report)
-          
-          print("✅ Security audit report generated")
-          EOF
-
-      - name: 🚨 Create Security Issue
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            
-            let issueBody = '## 🛡️ Automated Security Audit Results\n\n';
-            issueBody += 'The automated security audit agent has completed its analysis.\n\n';
-            
-            if (fs.existsSync('security_audit_report.md')) {
-              const report = fs.readFileSync('security_audit_report.md', 'utf8');
-              issueBody += report;
-            }
-            
-            issueBody += '\n\n### 🎯 Action Items:\n';
-            issueBody += '- [ ] Review high severity security findings\n';
-            issueBody += '- [ ] Update vulnerable dependencies\n';
-            issueBody += '- [ ] Implement recommended security controls\n';
-            issueBody += '- [ ] Schedule follow-up security review\n';
-            
-            const { data: issue } = await github.rest.issues.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: `🛡️ Security Audit Report - ${new Date().toISOString().split('T')[0]}`,
-              body: issueBody,
-              labels: ['security', 'audit', 'automated']
-            });
-            
-            console.log(`✅ Created security audit issue #${issue.number}`)
-
-      - name: 📤 Upload Security Reports
+      - name: Upload security artifacts
+        if: inputs.operation == 'security-scan' && always()
         uses: actions/upload-artifact@v4
         with:
-          name: security-audit-reports
+          name: security-reports
           path: |
-            bandit_report.json
-            safety_report.json
-            semgrep_report.json
-            security_audit_report.md
-          retention-days: 90
+            bandit-report.json
+            safety-report.json
+            pip-audit.json
 
-  performance-optimization-agent:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    timeout-minutes: 25
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.agent_type == 'performance_optimization'
-    
-    steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-
-      - name: 🐍 Set up Python 3.12
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-          cache: pip
-
-      - name: ⚙️ Install performance tools
+      - name: Install app deps (audit/tests)
+        if: inputs.operation == 'dependency-audit' || inputs.operation == 'tests'
         run: |
           python -m pip install --upgrade pip
-          pip install line-profiler memory-profiler py-spy vulture pyinstrument
+          pip install -r requirements.txt -r requirements-dev.txt || true
 
-      - name: 🚀 Performance Analysis
+      - name: Dependency audit (pip-audit + pip list outdated)
+        if: inputs.operation == 'dependency-audit'
         run: |
-          echo "⚡ Starting performance optimization analysis..."
-          
-          # Find unused code
-          echo "🔍 Detecting unused code..."
-          vulture app/ --min-confidence 70 > unused_code_report.txt 2>&1 || true
-          
-          # Memory usage patterns
-          echo "💾 Analyzing memory usage patterns..."
-          python << 'EOF'
-          import ast
-          import os
-          from pathlib import Path
-          
-          def analyze_memory_patterns(file_path):
-              """Analyze potential memory issues"""
-              issues = []
-              try:
-                  with open(file_path, 'r') as f:
-                      content = f.read()
-                      tree = ast.parse(content)
-                  
-                  # Look for potential memory issues
-                  for node in ast.walk(tree):
-                      if isinstance(node, ast.ListComp):
-                          if len(ast.dump(node)) > 200:  # Large list comprehension
-                              issues.append(f"Line {node.lineno}: Large list comprehension - consider generator")
-                      
-                      elif isinstance(node, ast.For):
-                          # Look for list appends in loops
-                          for child in ast.walk(node):
-                              if isinstance(child, ast.Call) and hasattr(child.func, 'attr'):
-                                  if child.func.attr == 'append':
-                                      issues.append(f"Line {node.lineno}: List append in loop - consider list comprehension")
-                  
-                  return issues
-              except:
-                  return []
-          
-          # Analyze all Python files
-          all_issues = []
-          for py_file in Path('app').rglob('*.py'):
-              if py_file.is_file():
-                  issues = analyze_memory_patterns(py_file)
-                  if issues:
-                      all_issues.extend([(str(py_file), issue) for issue in issues])
-          
-          # Save results
-          with open('memory_analysis.txt', 'w') as f:
-              f.write("Memory Usage Analysis Results\n")
-              f.write("=" * 40 + "\n\n")
-              
-              if all_issues:
-                  for file_path, issue in all_issues:
-                      f.write(f"\n{file_path}: {issue}")
-              else:
-                  f.write("No significant memory issues detected.\n")
-          
-          print("✅ Memory analysis completed")
-          EOF
+          pip install pip-audit
+          pip-audit -r requirements.txt -f json -o pip-audit.json || true
+          pip list --outdated --format=json > pip-outdated.json || true
 
-      - name: 📊 Generate Performance Report
-        run: |
-          python << 'EOF'
-          import os
-          from datetime import datetime
-          
-          # Read analysis results
-          unused_code = ""
-          if os.path.exists('unused_code_report.txt'):
-              with open('unused_code_report.txt', 'r') as f:
-                  unused_code = f.read()
-          
-          memory_analysis = ""
-          if os.path.exists('memory_analysis.txt'):
-              with open('memory_analysis.txt', 'r') as f:
-                  memory_analysis = f.read()
-          
-          # Generate report
-          report = f"""# ⚡ Performance Optimization Report
-          
-          **Date:** {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}
-          **Agent:** Performance Optimization Bot
-          
-          ## 🎯 Performance Analysis Summary
-          
-          ### 🧹 Unused Code Detection
-          ```
-          {unused_code[:1000]}...
-          ```
-          
-          ### 💾 Memory Usage Analysis
-          ```
-          {memory_analysis}
-          ```
-          
-          ## 🚀 Optimization Recommendations
-          
-          ### 1. Code Optimization
-          - Remove unused imports and functions
-          - Use generators instead of lists where possible
-          - Implement caching for expensive operations
-          - Optimize database queries with proper indexing
-          
-          ### 2. Memory Optimization  
-          - Use `__slots__` for classes with many instances
-          - Implement object pooling for frequently created objects
-          - Use numpy arrays for numerical computations
-          - Profile memory usage in production
-          
-          ### 3. Algorithm Optimization
-          - Profile critical paths with line_profiler
-          - Consider algorithmic complexity improvements
-          - Implement parallel processing where applicable
-          - Use appropriate data structures
-          
-          ### 4. I/O Optimization
-          - Implement connection pooling
-          - Use async/await for I/O bound operations
-          - Batch database operations
-          - Cache frequently accessed data
-          
-          ---
-          *This report was generated by the automated performance optimization agent*
-          """
-          
-          with open('performance_optimization_report.md', 'w') as f:
-              f.write(report)
-          
-          print("✅ Performance optimization report generated")
-          EOF
-
-      - name: 📤 Upload Performance Reports
+      - name: Upload dependency artifacts
+        if: inputs.operation == 'dependency-audit' && always()
         uses: actions/upload-artifact@v4
         with:
-          name: performance-optimization-reports
+          name: dependency-reports
           path: |
-            unused_code_report.txt
-            memory_analysis.txt
-            performance_optimization_report.md
-          retention-days: 60
+            pip-audit.json
+            pip-outdated.json
 
-  dependency-update-agent:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      issues: write
-    timeout-minutes: 20
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.agent_type == 'dependency_update'
-    
-    steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: 🐍 Set up Python 3.12
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-          cache: pip
-
-      - name: 📦 Analyze Dependencies
+      - name: Run tests (smoke)
+        if: inputs.operation == 'tests'
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+          FLASK_ENV: testing
+          DATABASE_URL: sqlite:///test.db
         run: |
-          echo "📦 Analyzing dependency updates..."
-          python -m pip install --upgrade pip pip-tools
-          if [ -f requirements.in ]; then
-            pip-compile --upgrade --generate-hashes requirements.in || pip-compile --upgrade requirements.in || echo "Could not compile requirements";
-          fi
-          pip list --outdated --format=json > outdated_packages.json 2>/dev/null || echo "[]" > outdated_packages.json
+          pytest -v --tb=short || true
 
-      - name: 📊 Generate Dependency Report
+      - name: Install formatters
+        if: inputs.operation == 'format'
         run: |
-          python << 'EOF'
-          import json
-          import subprocess
-          from datetime import datetime
-          
-          # Load outdated packages
-          try:
-              with open('outdated_packages.json', 'r') as f:
-                  outdated = json.load(f)
-          except:
-              outdated = []
-          
-          # Generate report
-          report = f"""# 📦 Dependency Update Report
-          
-          **Date:** {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}
-          **Agent:** Dependency Update Bot
-          
-          ## 📊 Update Summary
-          
-          **Total Outdated Packages:** {len(outdated)}
-          
-          """
-          
-          if outdated:
-              report += "### 📋 Outdated Packages\n\n"
-              report += "| Package | Current | Latest | Type |\n"
-              report += "|---------|---------|--------|----- |\n"
-              
-              for pkg in outdated:
-                  name = pkg.get('name', 'Unknown')
-                  current = pkg.get('version', 'Unknown')
-                  latest = pkg.get('latest_version', 'Unknown')
-                  pkg_type = 'Security' if 'security' in name.lower() else 'Feature'
-                  report += f"| {name} | {current} | {latest} | {pkg_type} |\n"
-              
-              report += "\n"
-          
-          report += """## 🎯 Update Recommendations
-          
-          ### 🔒 Security Updates (High Priority)
-          - Security-related packages should be updated immediately
-          - Test thoroughly before deployment
-          
-          ### 🚀 Feature Updates (Medium Priority)  
-          - Review changelog for breaking changes
-          - Update gradually and monitor for issues
-          
-          ### 🧪 Development Dependencies (Low Priority)
-          - Can be updated more frequently
-          - Focus on tools that improve developer experience
-          
-          ---
-          *This report was generated by the automated dependency update agent*
-          """
-          
-          with open('dependency_update_report.md', 'w') as f:
-              f.write(report)
-          
-          print("✅ Dependency update report generated")
-          EOF
+          python -m pip install --upgrade pip
+          pip install black isort
 
-      - name: 📤 Upload Dependency Reports
-        uses: actions/upload-artifact@v4
+      - name: Check formatting
+        if: inputs.operation == 'format'
+        id: fmtcheck
+        shell: bash
+        run: |
+          set +e
+          black --check . || NEEDS_FORMATTING=1
+          isort --check-only . || NEEDS_FORMATTING=1
+          echo "needs_formatting=${NEEDS_FORMATTING:-0}" >> "$GITHUB_OUTPUT"
+
+      - name: Apply formatting
+        if: inputs.operation == 'format' && steps.fmtcheck.outputs.needs_formatting == '1' && inputs.auto_fix == true
+        run: |
+          black .
+          isort .
+
+      - name: Create Pull Request (format)
+        if: inputs.operation == 'format' && inputs.auto_fix == true
+        uses: peter-evans/create-pull-request@v6
         with:
-          name: dependency-update-reports
-          path: |
-            outdated_packages.json
-            dependency_update_report.md
-          retention-days: 30
+          commit-message: "style: auto-format with black/isort"
+          title: "chore: auto-format codebase"
+          body: |
+            Automated formatting applied by workflow.
+
+            - black + isort
+            - Triggered by: ${{ github.actor }}
+          branch: chore/auto-format-${{ github.run_id }}
+          base: ${{ inputs.base_branch }}
+          labels: maintenance, automation
+          signoff: true
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "### Automated Code Agents" >> $GITHUB_STEP_SUMMARY
+          echo "Operation: ${{ inputs.operation }}" >> $GITHUB_STEP_SUMMARY
+          echo "Auto-fix: ${{ inputs.auto_fix }}" >> $GITHUB_STEP_SUMMARY

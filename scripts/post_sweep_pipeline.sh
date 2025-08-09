@@ -24,7 +24,7 @@ info "Running pip-audit..."
 pip-audit -r requirements.txt | tee pip-audit.txt || true
 
 info "Running safety..."
-safety check -r requirements.txt | tee safety.txt || true
+safety scan -r requirements.txt | tee safety.txt || true
 
 info "Scanning for secrets..."
 detect-secrets scan > .secrets.baseline || true

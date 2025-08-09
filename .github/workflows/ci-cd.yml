@@ -104,7 +104,6 @@ jobs:
           files: ./coverage.xml
           flags: unittests
           name: codecov-umbrella
-          token: ${{ env.CODECOV_TOKEN }} # pragma: allowlist secret
           fail_ci_if_error: false
 
       - name: Upload coverage to Codecov (PR)
@@ -184,7 +183,7 @@ jobs:
       - name: Run Safety
         continue-on-error: true
         run: |
-          safety check -r requirements.txt --json > safety.json || true
+          safety scan -r requirements.txt --json > safety.json || true
 
       - name: Upload Python audit artifacts
         uses: actions/upload-artifact@v4

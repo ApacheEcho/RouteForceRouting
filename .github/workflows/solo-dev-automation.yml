@@ -13,6 +13,6 @@ jobs:
     if: contains(github.event.schedule, '55 9')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Morning Prep
         run: echo "🌅 Workspace ready for 5 AM EST!"

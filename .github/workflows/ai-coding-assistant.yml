@@ -360,7 +360,7 @@ jobs:
           EOF
 
       - name: 📤 Upload documentation
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ai-generated-docs
           path: AI_GENERATED_DOCS.md
@@ -473,7 +473,7 @@ jobs:
           EOF
 
       - name: 📤 Upload test suggestions
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ai-test-suggestions
           path: AI_TEST_SUGGESTIONS.md

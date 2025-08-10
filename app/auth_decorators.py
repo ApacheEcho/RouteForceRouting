@@ -3,19 +3,21 @@ Authentication Decorators and Middleware for RouteForce
 Provides role-based access control decorators for API endpoints
 """
 
-from functools import wraps
-from flask import request, jsonify, current_app, g
-from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity, get_jwt
 import logging
-from typing import List, Optional, Callable, Any
+from functools import wraps
+from typing import List, Optional
+from collections.abc import Callable
 
-from app.auth_system import users_db, ROLES
+from flask import current_app, g, jsonify, request
+from flask_jwt_extended import get_jwt_identity, verify_jwt_in_request
+
+from app.auth_system import ROLES, users_db
 
 logger = logging.getLogger(__name__)
 
 
 def auth_required(
-    roles: Optional[List[str]] = None, permissions: Optional[List[str]] = None
+    roles: list[str] | None = None, permissions: list[str] | None = None
 ):
     """
     Decorator for requiring authentication and authorization
@@ -326,12 +328,12 @@ def has_permission(user: dict, permission: str) -> bool:
     return "all" in user_permissions or permission in user_permissions
 
 
-def get_current_user() -> Optional[dict]:
+def get_current_user() -> dict | None:
     """Get current authenticated user from request context"""
     return getattr(g, "current_user", None)
 
 
-def get_user_role() -> Optional[str]:
+def get_user_role() -> str | None:
     """Get current user's role"""
     user = get_current_user()
     return user.get("role") if user else None

@@ -2,11 +2,13 @@
 Database service for RouteForce Routing
 """
 
-from typing import List, Dict, Any, Optional
-from flask import current_app
-from sqlalchemy import func, desc
-from app.models.database import db, User, Store, Route, RouteOptimization, Analytics
 import logging
+from typing import Any, Dict, List, Optional
+
+from sqlalchemy import desc, func
+
+from app.models.database import (Analytics, Route, RouteOptimization, Store,
+                                 User, db)
 
 logger = logging.getLogger(__name__)
 
@@ -39,17 +41,17 @@ class DatabaseService:
             raise
 
     @staticmethod
-    def get_user_by_username(username: str) -> Optional[User]:
+    def get_user_by_username(username: str) -> User | None:
         """Get user by username"""
         return User.query.filter_by(username=username).first()
 
     @staticmethod
-    def get_user_by_email(email: str) -> Optional[User]:
+    def get_user_by_email(email: str) -> User | None:
         """Get user by email"""
         return User.query.filter_by(email=email).first()
 
     @staticmethod
-    def get_user_by_id(user_id: int) -> Optional[User]:
+    def get_user_by_id(user_id: int) -> User | None:
         """Get user by ID"""
         return User.query.get(user_id)
 
@@ -83,22 +85,22 @@ class DatabaseService:
             raise
 
     @staticmethod
-    def get_stores_by_user(user_id: int) -> List[Store]:
+    def get_stores_by_user(user_id: int) -> list[Store]:
         """Get stores by user ID"""
         return Store.query.filter_by(user_id=user_id, is_active=True).all()
 
     @staticmethod
-    def get_all_stores() -> List[Store]:
+    def get_all_stores() -> list[Store]:
         """Get all active stores"""
         return Store.query.filter_by(is_active=True).all()
 
     @staticmethod
-    def get_store_by_id(store_id: int) -> Optional[Store]:
+    def get_store_by_id(store_id: int) -> Store | None:
         """Get store by ID"""
         return Store.query.get(store_id)
 
     @staticmethod
-    def create_route(route_data: List[Dict[str, Any]], **kwargs) -> Route:
+    def create_route(route_data: list[dict[str, Any]], **kwargs) -> Route:
         """Create a new route"""
         try:
             route = Route(
@@ -125,12 +127,12 @@ class DatabaseService:
             raise
 
     @staticmethod
-    def get_route_by_id(route_id: int) -> Optional[Route]:
+    def get_route_by_id(route_id: int) -> Route | None:
         """Get route by ID"""
         return Route.query.get(route_id)
 
     @staticmethod
-    def get_routes_by_user(user_id: int, limit: int = 10) -> List[Route]:
+    def get_routes_by_user(user_id: int, limit: int = 10) -> list[Route]:
         """Get routes by user ID with limit"""
         return (
             Route.query.filter_by(user_id=user_id)
@@ -194,7 +196,7 @@ class DatabaseService:
             raise
 
     @staticmethod
-    def get_analytics_summary(days: int = 30) -> Dict[str, Any]:
+    def get_analytics_summary(days: int = 30) -> dict[str, Any]:
         """Get analytics summary for the last N days"""
         try:
             from datetime import datetime, timedelta
@@ -247,7 +249,7 @@ class DatabaseService:
             return {}
 
     @staticmethod
-    def get_performance_metrics() -> Dict[str, Any]:
+    def get_performance_metrics() -> dict[str, Any]:
         """Get performance metrics"""
         try:
             # Average optimization time
@@ -293,8 +295,8 @@ class DatabaseService:
 
     @staticmethod
     def bulk_create_stores(
-        stores_data: List[Dict[str, Any]], user_id: Optional[int] = None
-    ) -> List[Store]:
+        stores_data: list[dict[str, Any]], user_id: int | None = None
+    ) -> list[Store]:
         """Bulk create stores from data"""
         try:
             stores = []

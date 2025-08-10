@@ -5,7 +5,7 @@
 [![CI/CD Pipeline](https://github.com/ApacheEcho/RouteForceRouting/workflows/RouteForce%20CI%2FCD%20Pipeline/badge.svg)](https://github.com/ApacheEcho/RouteForceRouting/actions)
 [![codecov](https://codecov.io/gh/ApacheEcho/RouteForceRouting/branch/main/graph/badge.svg)](https://codecov.io/gh/ApacheEcho/RouteForceRouting)
 
-A route optimization engine for field execution teams. This application helps optimize routes for visiting multiple locations efficiently.
+A comprehensive route optimization platform for field execution teams with AI-powered analytics, real-time optimization, and MCP server integration.
 
 ## 🚀 Quick Start
 
@@ -21,8 +21,30 @@ Get started instantly with a fully configured development environment:
 - ✅ Pre-commit hooks configured
 - ✅ Development aliases and shortcuts
 - ✅ PgAdmin for database management
+- ✅ **MCP Server** for AI integration
 
 **Ready in 3-5 minutes!** No local setup required.
+
+## 🤖 MCP Server Integration
+
+RouteForce includes a **Model Context Protocol (MCP) server** for seamless AI integration:
+
+### Features:
+- **Route Optimization**: Multiple algorithms (genetic, simulated annealing, multi-objective)
+- **Real-time Analytics**: Performance metrics and route analysis
+- **Demand Prediction**: ML-powered forecasting
+- **Delivery Reports**: Comprehensive reporting capabilities
+
+### Quick Setup:
+```bash
+cd mcp-server
+npm install
+npm run build
+npm start
+```
+
+### VS Code Integration:
+The MCP server is pre-configured for VS Code debugging. Use the `.vscode/mcp.json` configuration to connect AI tools directly to RouteForce capabilities.
 
 ## 🚨 Security Notice
 
@@ -30,24 +52,51 @@ Get started instantly with a fully configured development environment:
 - Use environment variables for secrets. See `.env.example` and `.env.production.template` for placeholders.
 - Rotate any previously exposed keys.
 
-## ✅ Improvements
+## ✅ Current Features
 
-- Geocoding cache to reduce API calls
-- `.gitignore` hardened for env files
-- Error handling and UI polish
+**Production-Ready Platform:**
+- **Multi-Algorithm Optimization**: Genetic algorithms, simulated annealing, multi-objective optimization
+- **Real-time WebSocket Updates**: Live route optimization progress
+- **Comprehensive API**: 19+ endpoints with full Swagger documentation
+- **ML Integration**: Predictive analytics and demand forecasting
+- **Performance Monitoring**: Sentry integration with custom metrics
+- **Production Deployment**: Live on Render with auto-scaling
 
-## 📋 Current Status
+**Technical Stack:**
+- **Backend**: Python Flask + SQLAlchemy + Redis
+- **Frontend**: React + TypeScript + Tailwind CSS
+- **Database**: PostgreSQL (production) / SQLite (development)
+- **Real-time**: Flask-SocketIO with WebSocket support
+- **AI/ML**: Scikit-learn integration with predictive models
+- **Monitoring**: Sentry error tracking and performance monitoring
 
-Pre-alpha capabilities:
-- Data loading and validation (CSV/Excel)
-- Geocoding with caching
-- Basic route optimization
-- Google Maps link generation
+## 🔧 Development
+
+### Local Setup:
+```bash
+# Install dependencies
+pip install -r requirements.txt -r requirements-dev.txt
+
+# Setup environment
+cp .env.example .env
+
+# Run development server
+python app.py
+
+# Setup MCP Server
+cd mcp-server && npm install && npm run build
+```
+
+### API Documentation:
+- **Swagger UI**: `/api/docs`
+- **OpenAPI Spec**: `/api/swagger.json`
+- **Health Check**: `/api/v1/health`
 
 ## Deployment
 
-- Standard: Render (recommended). See `scripts/deploy-render.sh` and Render dashboard.
-- Kubernetes: Removed from this repository to reduce complexity. If needed later, reintroduce via a dedicated branch.
+- **Production**: Deployed on Render platform with auto-scaling
+- **CI/CD**: GitHub Actions with comprehensive testing
+- **Monitoring**: Sentry integration for error tracking and performance monitoring
 
 ## Setup
 

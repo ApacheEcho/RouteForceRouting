@@ -6,7 +6,7 @@ services:
     env: docker
     dockerfilePath: ./Dockerfile.production
     region: oregon
-    startCommand: "gunicorn --config gunicorn_config.py wsgi:app"
+    startCommand: "./start_production.sh"
     envVars:
       - key: FLASK_ENV
         value: production

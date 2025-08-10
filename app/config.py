@@ -103,6 +103,9 @@ class ProductionConfig(Config):
     DEBUG = False
     TESTING = False
     LOG_LEVEL = "WARNING"
+    
+    # Force disable auto-commit in production
+    AUTO_COMMIT_ENABLED = False
 
     # Production-specific settings
     CACHE_TYPE = "flask_caching.backends.redis"

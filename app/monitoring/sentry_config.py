@@ -74,14 +74,12 @@ def init_sentry(app: Flask = None):
             # Additional configuration
             attach_stacktrace=True,
             send_default_pii=False,  # Privacy protection
-            max_breadcrumbs=50,
-            
-            # Custom tags
-            tags={
-                "component": "routeforce-routing",
-                "service": "api"
-            }
+            max_breadcrumbs=50
         )
+        
+        # Set custom tags after initialization
+        sentry_sdk.set_tag("component", "routeforce-routing")
+        sentry_sdk.set_tag("service", "api")
         
         # Set up Flask-specific configurations
         if app:

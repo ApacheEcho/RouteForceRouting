@@ -12,8 +12,11 @@ app = create_app(os.getenv("FLASK_ENV", "development"))
 # Production-ready configuration
 if os.getenv("FLASK_ENV") == "production":
     # Disable Werkzeug dev server warnings in production
-    import werkzeug
+    import werkzeug.serving
     werkzeug.serving.is_running_from_reloader = lambda: False
+    # Also disable the check that causes the error
+    import warnings
+    warnings.filterwarnings("ignore", message=".*Werkzeug.*not.*production.*")
 
 if __name__ == "__main__":
     # For production, use gunicorn instead of this development server
@@ -23,8 +26,11 @@ if __name__ == "__main__":
     if env == "production":
         print("⚠️  Production mode detected: Use 'gunicorn app:app' instead of running directly")
         print("   For Render deployment, this is handled automatically by gunicorn_config.py")
+        # Exit early in production - don't run socketio.run()
+        import sys
+        sys.exit(0)
     
-    # Development server with WebSocket support
+    # Development server with WebSocket support (only for development)
     socketio.run(
         app,
         host="0.0.0.0",

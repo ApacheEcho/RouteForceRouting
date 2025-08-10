@@ -32,33 +32,37 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-            python-version: ${{ env.PYTHON_VERSION }}
-            cache: pip
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
 
       - name: Install Python dependencies
         run: |
           set -e
-          python -m pip install --upgrade pip wheel
+          python -m pip install --upgrade pip wheel setuptools
           echo "📦 Installing application dependencies..."
           if ! pip install -r requirements.txt --timeout 600 --retries 3; then
-            echo "⚠️ Full install failed – installing core runtime subset";
-            pip install flask gunicorn pytest pytest-cov; fi
-          pip install -q pytest pytest-cov || true
+            echo "⚠️ Full install failed – installing core runtime subset"
+            pip install flask gunicorn pytest pytest-cov eventlet
+          fi
+          # Ensure pytest is available for testing
+          pip install -q pytest pytest-cov
 
       - name: Run Python tests
         run: |
           # Create test database
           export DATABASE_URL=sqlite:///test.db
           export FLASK_ENV=testing
+          export PYTHONPATH="${PYTHONPATH:-}:$(pwd)"
 
           # Run basic import tests
           python -c "from app import create_app; app = create_app('testing'); print('✅ App factory working')"
 
-          # Run any existing tests with coverage
-          if [ -f "test_app.py" ]; then
-            python -m pytest test_app.py -v --cov=app --cov-report=xml || echo "⚠️ Tests had issues but continuing..."
+          # Run tests with proper discovery, excluding problematic directories
+          if find . -name "test_*.py" -not -path "./backup_deployment/*" | head -1 | grep -q test; then
+            echo "🧪 Running discovered tests..."
+            python -m pytest -v --tb=short --cov=app --cov-report=xml --ignore=backup_deployment || echo "⚠️ Tests had issues but continuing..."
           else
-            echo "✅ No specific tests found, but app imports successfully"
+            echo "✅ No tests found, but app imports successfully"
           fi
 
       - name: Upload test results
@@ -91,7 +95,7 @@ jobs:
       - name: Install and build all frontend applications
         continue-on-error: true
         run: |
-          set -e
+          # Note: Removed 'set -e' to allow continuation on errors with continue-on-error: true
           install_and_build() {
             local dir=$1; local name=$2;
             if [ -d "$dir" ] && [ -f "$dir/package.json" ]; then
@@ -117,13 +121,16 @@ jobs:
         with:
           name: production-build
           path: |
-            frontend/dist/
-            client/dist/
-            mobile/pwa/dist/
             app/
             *.py
             requirements.txt
             Procfile
+            gunicorn_config.py
+            render.yaml
+            frontend/dist/
+            client/dist/
+            mobile/pwa/dist/
+          if-no-files-found: warn
 
   deploy:
     name: Deploy to Production
@@ -135,33 +142,54 @@ jobs:
       contents: read
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
           name: production-build
 
       - name: Trigger Render deploy
+        # Environment variables for Render deployment
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
           RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
           RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
         run: |
           set -euo pipefail
+          
+          # Check if we have any deployment method available
+          if [ -z "${RENDER_DEPLOY_HOOK:-}" ] && [ -z "${RENDER_API_KEY:-}" ]; then
+            echo "❌ No deployment method configured. Please set either RENDER_DEPLOY_HOOK or RENDER_API_KEY secret."
+            exit 1
+          fi
+          
           # Prefer deploy hook if provided (simpler); otherwise use API with bearer token.
           if [ -n "${RENDER_DEPLOY_HOOK:-}" ]; then
-            echo "Triggering Render deploy via Deploy Hook..."
-            curl -fsS -X POST "$RENDER_DEPLOY_HOOK"
-          else
-            echo "Triggering Render deploy via API..."
-            if [ -z "${RENDER_API_KEY:-}" ] || [ -z "${RENDER_SERVICE_ID:-}" ]; then
-              echo "RENDER_API_KEY and RENDER_SERVICE_ID secrets are required when no deploy hook is provided."
+            echo "🚀 Triggering Render deploy via Deploy Hook..."
+            if curl -fsS -X POST "$RENDER_DEPLOY_HOOK"; then
+              echo "✅ Deploy hook called successfully"
+            else
+              echo "❌ Deploy hook failed"
               exit 1
             fi
-            curl -fsS -X POST \
+          else
+            echo "🚀 Triggering Render deploy via API..."
+            if [ -z "${RENDER_API_KEY:-}" ] || [ -z "${RENDER_SERVICE_ID:-}" ]; then
+              echo "❌ RENDER_API_KEY and RENDER_SERVICE_ID secrets are required when no deploy hook is provided."
+              exit 1
+            fi
+            if curl -fsS -X POST \
               -H "Authorization: Bearer ${RENDER_API_KEY}" \
               -H "Content-Type: application/json" \
               -d '{"serviceId":"'"${RENDER_SERVICE_ID}"'","clearCache":true}' \
-              "https://api.render.com/v1/services/${RENDER_SERVICE_ID}/deploys"
+              "https://api.render.com/v1/services/${RENDER_SERVICE_ID}/deploys"; then
+              echo "✅ API deploy triggered successfully"
+            else
+              echo "❌ API deploy failed"
+              exit 1
+            fi
           fi
           echo "✅ Render deploy triggered"
 

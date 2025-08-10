@@ -151,6 +151,7 @@ jobs:
           name: production-build
 
       - name: Trigger Render deploy
+        # Environment variables for Render deployment
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
           RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}

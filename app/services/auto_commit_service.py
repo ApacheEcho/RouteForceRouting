@@ -95,8 +95,11 @@ class AutoCommitService:
                 check=True
             )
             return len(result.stdout.strip()) > 0
-        except subprocess.CalledProcessError:
-            logger.error("Failed to check git status")
+        except FileNotFoundError:
+            logger.warning("Git command not found - auto-commit disabled. Install git or disable auto-commit service.")
+            return False
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to check git status: {e}")
             return False
     
     def _ensure_wip_branch(self):
@@ -130,6 +133,9 @@ class AutoCommitService:
                     )
                     logger.info(f"Switched to WIP branch: {self.wip_branch}")
                     
+        except FileNotFoundError:
+            logger.warning("Git command not found - cannot manage WIP branch")
+            return
         except subprocess.CalledProcessError as e:
             logger.error(f"Failed to ensure WIP branch: {e}")
     
@@ -144,6 +150,9 @@ class AutoCommitService:
                 check=True
             )
             return result.stdout.strip()
+        except FileNotFoundError:
+            logger.warning("Git command not found")
+            return "unknown"
         except subprocess.CalledProcessError:
             return "unknown"
     
@@ -216,6 +225,9 @@ class AutoCommitService:
             
             return [f for f in files if f]
             
+        except FileNotFoundError:
+            logger.warning("Git command not found - cannot get changed files")
+            return []
         except subprocess.CalledProcessError:
             return []
     
@@ -306,9 +318,12 @@ class AutoCommitService:
             
             logger.info(f"Successfully committed and pushed: {message}")
             
+        except FileNotFoundError:
+            logger.warning("Git command not found - cannot commit and push changes")
+            return
         except subprocess.CalledProcessError as e:
             logger.error(f"Failed to commit and push: {e}")
-            raise
+            # Don't re-raise in production - just log the error
     
     def force_commit_now(self) -> bool:
         """Force an immediate commit regardless of timer"""

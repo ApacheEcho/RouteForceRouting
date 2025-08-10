@@ -6,7 +6,7 @@ services:
     env: docker
     dockerfilePath: ./Dockerfile.production
     region: oregon
-    startCommand: "gunicorn --bind 0.0.0.0:5000 --workers 4 --worker-class gthread --timeout 120 --keep-alive 5 --access-logfile '-' --error-logfile '-' --log-level info app:create_app"
+    startCommand: "gunicorn --config gunicorn_config.py wsgi:app"
     envVars:
       - key: FLASK_ENV
         value: production
@@ -14,6 +14,10 @@ services:
         value: 5000
       - key: PYTHONPATH
         value: /app
+      - key: AUTO_COMMIT_ENABLED
+        value: "false"
+      - key: GIT_AUTO_BACKUP
+        value: "false"
       - key: DATABASE_URL
         fromDatabase:
           name: routeforce-postgres

@@ -21,6 +21,9 @@ keepalive = 2
 max_requests = 1000
 max_requests_jitter = 100
 
+# Preload application for better performance
+preload_app = True
+
 # Logging
 accesslog = "-"  # Log to stdout
 errorlog = "-"   # Log to stderr

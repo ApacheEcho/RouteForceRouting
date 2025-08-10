@@ -153,12 +153,13 @@ jobs:
       - name: Trigger Render deploy
         # Environment variables for Render deployment
         env:
+          # Prefer deploy hook if available; otherwise use API key and service ID
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
-          RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
-          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+          RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID || '' }}
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK || '' }}
         run: |
-          set -euo pipefail
-          
+          set -euo pipefail # Strict error handling
+
           # Check if we have any deployment method available
           if [ -z "${RENDER_DEPLOY_HOOK:-}" ] && [ -z "${RENDER_API_KEY:-}" ]; then
             echo "❌ No deployment method configured. Please set either RENDER_DEPLOY_HOOK or RENDER_API_KEY secret."

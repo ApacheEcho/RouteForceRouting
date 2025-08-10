@@ -200,5 +200,31 @@
     "cSpell.enabled": false,
     // If flake8/pylint extensions are installed, keep them inactive in-editor
     "flake8.enabled": false,
-    "pylint.enabled": false
+    "pylint.enabled": false,
+    
+    // GitHub Actions Workflow Configuration
+    "[github-actions-workflow]": {
+        "editor.tabSize": 2,
+        "editor.insertSpaces": true,
+        "editor.autoIndent": "full",
+        "editor.quickSuggestions": {
+            "other": true,
+            "comments": false,
+            "strings": true
+        },
+        "editor.suggest.insertMode": "replace",
+        "editor.wordBasedSuggestions": "off",
+        "editor.semanticHighlighting.enabled": true
+    },
+    
+    // File associations for better GitHub Actions support
+    "files.associations": {
+        ".github/workflows/*.yml": "github-actions-workflow",
+        ".github/workflows/*.yaml": "github-actions-workflow"
+    },
+    
+    // YAML schema validation for GitHub workflows
+    "yaml.schemas": {
+        "https://json.schemastore.org/github-workflow.json": ".github/workflows/*.{yml,yaml}"
+    }
 }

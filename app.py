@@ -25,7 +25,7 @@ if __name__ == "__main__":
     
     if env == "production":
         print("⚠️  Production mode detected: Use 'gunicorn app:app' instead of running directly")
-        print("   For Render deployment, this is handled automatically by gunicorn_config.py")
+        print("   For Render deployment, this is handled automatically by Procfile")
         # Exit early in production - don't run socketio.run()
         import sys
         sys.exit(0)
@@ -36,5 +36,5 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=int(os.getenv("PORT", 8000)),
         debug=(env == "development"),
-        allow_unsafe_werkzeug=(env == "production")  # Allow production deployment
+        allow_unsafe_werkzeug=True  # For local testing only
     )

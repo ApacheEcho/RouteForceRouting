@@ -1,1 +1,1 @@
-web: gunicorn --config gunicorn_config.py wsgi:app
+web: gunicorn app:app --workers 4 --timeout 300

@@ -96,9 +96,9 @@ jobs:
           ## 📊 Changes Summary
           
           {get_git_stats()}
-          
+
           ## 🔧 Maintenance Tasks Completed
-          
+
           - ✅ Code formatting (Black)
           - ✅ Import sorting (isort)  
           - ✅ Unused import removal (autoflake)
@@ -122,16 +122,13 @@ jobs:
       - name: 🚀 Create Maintenance PR
         if: ${{ steps.maintenance.outputs.changes_made == 'true' }}
         run: |
-          # Configure git
-        run: |
-          # Configure git
-          git config --local user.email "action@github.com"
+          # Configure git     
           git config --local user.name "GitHub Action - Code Maintenance Bot"
+          git config --local user.email "action@github.com"
           
           # Create branch
-          branch_name="automated-maintenance-$(date +%Y%m%d-%H%M%S)"
-          git checkout -b "$branch_name"
-          
+          branch_name="automated-maintenance-$(date +%Y%m%d)"  # Updated date format
+
           # Commit changes
           git add .
           git commit -m "🤖 Automated code maintenance
@@ -150,8 +147,7 @@ jobs:
       - name: 📝 Create Maintenance Pull Request
         if: ${{ steps.maintenance.outputs.changes_made == 'true' }}
         uses: actions/github-script@v7
-        with:
-          script: |
+
         with:
           script: |
             const branchName = process.env.MAINTENANCE_BRANCH;

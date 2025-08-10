@@ -54,14 +54,14 @@ class EnhancedExternalAPIService:
     def _init_cache(self):
         """Initialize Redis cache for API responses"""
         try:
-            # Try to connect to Redis, fallback to in-memory dict
-            cache = redis.Redis(
-                host="localhost", port=6379, db=0, decode_responses=True
-            )
+            # Try to connect to Redis with environment configuration
+            redis_url = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+            cache = redis.from_url(redis_url, decode_responses=True)
             cache.ping()
+            logger.info("✅ Redis cache connected successfully")
             return cache
-        except:
-            logger.warning("Redis not available, using in-memory cache")
+        except Exception as e:
+            logger.info("ℹ️ Redis not available, using in-memory cache (normal for basic deployments)")
             return {}
 
     def get_enhanced_route_data(

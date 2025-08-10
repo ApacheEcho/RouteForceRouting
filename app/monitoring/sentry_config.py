@@ -56,8 +56,7 @@ def init_sentry(app: Flask = None):
             # Integrations for comprehensive monitoring
             integrations=[
                 FlaskIntegration(
-                    transaction_style='endpoint',
-                    record_sql_params=True
+                    transaction_style='endpoint'
                 ),
                 SqlalchemyIntegration(),
                 RedisIntegration(),

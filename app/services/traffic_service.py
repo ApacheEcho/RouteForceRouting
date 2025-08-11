@@ -4,13 +4,13 @@ Provides real-time traffic data for route optimization
 """
 
 import logging
+import os
 import time
-import requests
-from typing import List, Dict, Any, Optional, Tuple
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-import json
-import os
+from typing import Any, Dict, List, Optional
+
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -19,13 +19,13 @@ logger = logging.getLogger(__name__)
 class TrafficConfig:
     """Configuration for traffic-aware routing"""
 
-    api_key: Optional[str] = None
+    api_key: str | None = None
     cache_duration: int = 300  # 5 minutes cache
     max_waypoints: int = 25  # Google Maps limit
     avoid_tolls: bool = False
     avoid_highways: bool = False
     avoid_ferries: bool = True
-    departure_time: Optional[str] = "now"  # "now" or ISO format
+    departure_time: str | None = "now"  # "now" or ISO format
     traffic_model: str = "best_guess"  # best_guess, pessimistic, optimistic
 
 
@@ -69,10 +69,10 @@ class TrafficService:
 
     def get_traffic_optimized_route(
         self,
-        stores: List[Dict[str, Any]],
-        start_location: Optional[Dict[str, Any]] = None,
-        constraints: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        stores: list[dict[str, Any]],
+        start_location: dict[str, Any] | None = None,
+        constraints: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """
         Generate traffic-optimized route using Google Maps API
 
@@ -133,10 +133,10 @@ class TrafficService:
 
     def get_traffic_data_for_segment(
         self,
-        origin: Dict[str, Any],
-        destination: Dict[str, Any],
-        departure_time: Optional[str] = None,
-    ) -> Optional[TrafficData]:
+        origin: dict[str, Any],
+        destination: dict[str, Any],
+        departure_time: str | None = None,
+    ) -> TrafficData | None:
         """
         Get traffic data for a specific route segment
 
@@ -233,8 +233,8 @@ class TrafficService:
             return None
 
     def get_route_alternatives(
-        self, stores: List[Dict[str, Any]], max_alternatives: int = 3
-    ) -> List[Dict[str, Any]]:
+        self, stores: list[dict[str, Any]], max_alternatives: int = 3
+    ) -> list[dict[str, Any]]:
         """
         Get alternative routes with traffic data
 
@@ -291,8 +291,8 @@ class TrafficService:
             return []
 
     def predict_traffic_conditions(
-        self, stores: List[Dict[str, Any]], future_hours: List[int] = [1, 2, 4, 8]
-    ) -> Dict[str, Any]:
+        self, stores: list[dict[str, Any]], future_hours: list[int] = [1, 2, 4, 8]
+    ) -> dict[str, Any]:
         """
         Predict traffic conditions for future departure times
 
@@ -345,9 +345,9 @@ class TrafficService:
 
     def _prepare_waypoints(
         self,
-        stores: List[Dict[str, Any]],
-        start_location: Optional[Dict[str, Any]] = None,
-    ) -> List[str]:
+        stores: list[dict[str, Any]],
+        start_location: dict[str, Any] | None = None,
+    ) -> list[str]:
         """Prepare waypoints for Google Maps API"""
         waypoints = []
 
@@ -364,7 +364,7 @@ class TrafficService:
 
         return waypoints
 
-    def _cluster_waypoints(self, waypoints: List[str], max_points: int) -> List[str]:
+    def _cluster_waypoints(self, waypoints: list[str], max_points: int) -> list[str]:
         """Cluster waypoints to reduce to maximum allowed"""
         if len(waypoints) <= max_points:
             return waypoints
@@ -381,8 +381,8 @@ class TrafficService:
         return clustered[:max_points]
 
     def _get_google_maps_route(
-        self, waypoints: List[str], constraints: Optional[Dict[str, Any]] = None
-    ) -> Optional[Dict[str, Any]]:
+        self, waypoints: list[str], constraints: dict[str, Any] | None = None
+    ) -> dict[str, Any] | None:
         """Get route from Google Maps API"""
         try:
             if len(waypoints) < 2:
@@ -438,7 +438,7 @@ class TrafficService:
             logger.error(f"Error calling Google Maps API: {str(e)}")
             return None
 
-    def _process_traffic_data(self, route_data: Dict[str, Any]) -> Dict[str, Any]:
+    def _process_traffic_data(self, route_data: dict[str, Any]) -> dict[str, Any]:
         """Process traffic data from Google Maps response"""
         try:
             route = route_data["routes"][0]
@@ -520,10 +520,10 @@ class TrafficService:
 
     def _build_optimized_route(
         self,
-        original_stores: List[Dict[str, Any]],
-        route_data: Dict[str, Any],
-        traffic_info: Dict[str, Any],
-    ) -> List[Dict[str, Any]]:
+        original_stores: list[dict[str, Any]],
+        route_data: dict[str, Any],
+        traffic_info: dict[str, Any],
+    ) -> list[dict[str, Any]]:
         """Build optimized route from Google Maps data"""
         try:
             optimized_route = []
@@ -562,8 +562,8 @@ class TrafficService:
             return original_stores
 
     def _fallback_route(
-        self, stores: List[Dict[str, Any]], reason: str
-    ) -> Dict[str, Any]:
+        self, stores: list[dict[str, Any]], reason: str
+    ) -> dict[str, Any]:
         """Fallback to basic route when traffic API fails"""
         return {
             "success": False,
@@ -588,7 +588,7 @@ class TrafficService:
         self.cache_timestamps.clear()
         logger.info("Traffic data cache cleared")
 
-    def get_cache_stats(self) -> Dict[str, Any]:
+    def get_cache_stats(self) -> dict[str, Any]:
         """Get cache statistics"""
         total_entries = len(self.cache)
         valid_entries = sum(1 for key in self.cache if self._is_cache_valid(key))

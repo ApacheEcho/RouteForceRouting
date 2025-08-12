@@ -31,7 +31,7 @@ class GeocodingConfig:
 class GeocodingProvider(Protocol):
     """Protocol for geocoding providers"""
 
-    def geocode(self, address: str) -> Optional[Tuple[float, float]]:
+    def geocode(self, address: str) -> tuple[float, float] | None:
         """Geocode an address to lat/lon coordinates"""
         ...
 
@@ -40,12 +40,12 @@ class CacheStorage(ABC):
     """Abstract cache storage interface"""
 
     @abstractmethod
-    def get(self, key: str) -> Optional[Tuple[float, float]]:
+    def get(self, key: str) -> tuple[float, float] | None:
         """Get coordinates from cache"""
         ...
 
     @abstractmethod
-    def set(self, key: str, value: Tuple[float, float]) -> None:
+    def set(self, key: str, value: tuple[float, float]) -> None:
         """Set coordinates in cache"""
         ...
 
@@ -67,11 +67,11 @@ class JSONFileCache(CacheStorage):
         self.cache_file = Path(cache_file)
         self._cache = self._load_cache()
 
-    def _load_cache(self) -> Dict[str, Tuple[float, float]]:
+    def _load_cache(self) -> dict[str, tuple[float, float]]:
         """Load cache from file"""
         if self.cache_file.exists():
             try:
-                with open(self.cache_file, "r") as f:
+                with open(self.cache_file) as f:
                     data = json.load(f)
                     # Convert lists back to tuples
                     return {k: tuple(v) for k, v in data.items()}
@@ -86,14 +86,14 @@ class JSONFileCache(CacheStorage):
                 # Convert tuples to lists for JSON serialization
                 data = {k: list(v) for k, v in self._cache.items()}
                 json.dump(data, f, indent=2)
-        except IOError as e:
+        except OSError as e:
             logger.error(f"Error saving cache file {self.cache_file}: {e}")
 
-    def get(self, key: str) -> Optional[Tuple[float, float]]:
+    def get(self, key: str) -> tuple[float, float] | None:
         """Get coordinates from cache"""
         return self._cache.get(key.strip().lower())
 
-    def set(self, key: str, value: Tuple[float, float]) -> None:
+    def set(self, key: str, value: tuple[float, float]) -> None:
         """Set coordinates in cache"""
         self._cache[key.strip().lower()] = value
         self._save_cache()
@@ -117,7 +117,7 @@ class NominatimGeocoder:
         self.base_url = "https://nominatim.openstreetmap.org/search"
 
     @track_geocoding
-    def geocode(self, address: str) -> Optional[Tuple[float, float]]:
+    def geocode(self, address: str) -> tuple[float, float] | None:
         """Geocode address using Nominatim"""
         try:
             # Respectful delay for free service
@@ -157,14 +157,14 @@ class ModernGeocodingService:
         self,
         cache: CacheStorage,
         provider: GeocodingProvider,
-        config: Optional[GeocodingConfig] = None,
+        config: GeocodingConfig | None = None,
     ):
         self.cache = cache
         self.provider = provider
         self.config = config or GeocodingConfig()
 
     @track_geocoding
-    def get_coordinates(self, address: str) -> Optional[Tuple[float, float]]:
+    def get_coordinates(self, address: str) -> tuple[float, float] | None:
         """Get coordinates for an address, using cache when possible"""
         if not address or not address.strip():
             return None
@@ -194,7 +194,7 @@ class ModernGeocodingService:
 
 # Factory function for easy setup
 def create_geocoding_service(
-    config: Optional[GeocodingConfig] = None,
+    config: GeocodingConfig | None = None,
 ) -> ModernGeocodingService:
     """Create a properly configured geocoding service"""
     config = config or GeocodingConfig()

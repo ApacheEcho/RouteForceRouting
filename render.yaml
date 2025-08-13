@@ -1,9 +1,17 @@
+# Render Databases (Managed Services)
+databases:
+  - name: routeforce-postgres
+    databaseName: routeforce
+    user: routeforce
+    plan: starter
+    region: oregon
+
 services:
   # Main Web Service
   - type: web
     name: routeforce-app
+    runtime: docker
     plan: starter
-    env: docker
     dockerfilePath: ./Dockerfile.production
     region: oregon
     startCommand: "./start_production.sh"
@@ -24,13 +32,13 @@ services:
           property: connectionString
       - key: REDIS_URL
         fromService:
-          type: redis
+          type: keyvalue
           name: routeforce-redis
           property: connectionString
       # Keep Sentry DSN managed via Render Dashboard (not synced from repo)
       - key: SENTRY_DSN
         sync: false
-      # Keep Flask SECRET_KEY managed via Render Dashboard (not synced from repo)
+      # Keep Flask SECRET_KEY managed via Render Dashboard (not synced from repo)  
       - key: SECRET_KEY
         sync: false
     healthCheckPath: /health
@@ -44,52 +52,40 @@ services:
         - ".github/**"
     domains:
       - routeforce-routing.onrender.com
-
-  # PostgreSQL Database
-  - type: pserv
-    name: routeforce-postgres
-    plan: starter
-    env: docker
-    dockerfilePath: ./docker/postgres/Dockerfile
-    region: oregon
-    disk:
-      name: postgres-data
-      mountPath: /var/lib/postgresql/data
-      sizeGB: 10
-    envVars:
-      - key: POSTGRES_DB
-        value: routeforce
-      - key: POSTGRES_USER
-        value: routeforce
-      - key: POSTGRES_PASSWORD
-        generateValue: true
-    healthCheckCommand: "pg_isready -U routeforce -d routeforce"
     
-  # Redis Cache Service
-  - type: redis
+  # Redis Cache Service (Render Key Value)
+  - type: keyvalue
     name: routeforce-redis
     plan: starter
     region: oregon
-    maxmemoryPolicy: allkeys-lru
+    maxmemoryPolicy: noeviction
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: Allow all internal connections
     
-  # Background Worker (Optional)
+  # Background Worker (Celery)
   - type: worker
     name: routeforce-worker
+    runtime: docker
     plan: starter
-    env: docker
     dockerfilePath: ./Dockerfile.production
     region: oregon
-    startCommand: "celery -A app.celery worker --loglevel=info"
+    startCommand: "celery -A app.celery_app worker --loglevel=info"
     envVars:
       - key: FLASK_ENV
         value: production
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: keyvalue
+          name: routeforce-redis
+          property: connectionString
       - key: DATABASE_URL
         fromDatabase:
           name: routeforce-postgres
           property: connectionString
       - key: REDIS_URL
         fromService:
-          type: redis
+          type: keyvalue
           name: routeforce-redis
           property: connectionString
       # Keep Sentry DSN managed via Render Dashboard (not synced from repo)
@@ -105,17 +101,3 @@ services:
         - ".git/**"
         - "*.md"
         - ".github/**"
-
-# Static Site (Documentation/Landing Page)
-  - type: static
-    name: routeforce-docs
-    buildCommand: "npm run build"
-    publishPath: "./docs/build"
-    pullRequestPreviewsEnabled: true
-    headers:
-      - path: "/*"
-        name: "X-Frame-Options"
-        value: "DENY"
-      - path: "/*"
-        name: "X-Content-Type-Options"
-        value: "nosniff"

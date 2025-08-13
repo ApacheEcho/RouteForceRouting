@@ -6,7 +6,7 @@ from flask import Flask
 
 def test_health_includes_request_id(monkeypatch):
     # Import create_app from app package
-    from app.__init__ import create_app
+    from app import create_app
 
     app = create_app("testing")
     client = app.test_client()

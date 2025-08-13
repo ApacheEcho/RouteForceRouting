@@ -226,6 +226,51 @@ class FileService:
             logger.error(f"Error calculating file hash: {str(e)}")
             return ""
 
+    def process_stores_file(self, file: FileStorage) -> List[Dict[str, Any]]:
+        """
+        Process uploaded stores file and return list of stores
+
+        Args:
+            file: Uploaded file storage object
+
+        Returns:
+            List of store dictionaries
+
+        Raises:
+            ValueError: If file processing fails
+        """
+        if not file or not file.filename:
+            raise ValueError("No file provided")
+
+        if not self._is_allowed_file(file.filename):
+            raise ValueError(f"Invalid file type. Allowed: {self.allowed_extensions}")
+
+        try:
+            # Read file content
+            file_content = file.read().decode("utf-8")
+            file.seek(0)  # Reset file pointer for potential reuse
+
+            # Parse CSV content
+            csv_reader = csv.DictReader(io.StringIO(file_content))
+            stores = []
+
+            for row in csv_reader:
+                # Clean up row data
+                clean_row = {}
+                for key, value in row.items():
+                    if key and value:
+                        clean_row[key.strip()] = value.strip()
+
+                if clean_row:  # Only add non-empty rows
+                    stores.append(clean_row)
+
+            logger.info(f"Processed {len(stores)} stores from file {file.filename}")
+            return stores
+
+        except Exception as e:
+            logger.error(f"Error processing stores file: {str(e)}")
+            raise ValueError(f"Failed to process stores file: {str(e)}")
+
     def _is_allowed_file(self, filename: str) -> bool:
         """Check if file extension is allowed"""
         return (

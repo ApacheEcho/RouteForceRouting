@@ -29,10 +29,12 @@ def test_score_route(sample_routes):
     # Manually check expected values
     # route1: distance=10, stops=3, avg_priority=(3+2+1)/3=2.0
     # score = 0.5*10 + 0.3*3 - 0.2*2 = 5 + 0.9 - 0.4 = 5.5
-    assert score1 == 5.5
+    import pytest
+
+    assert score1 == pytest.approx(5.5)
     # route2: distance=7, stops=2, avg_priority=(2+2)/2=2.0
     # score = 0.5*7 + 0.3*2 - 0.2*2 = 3.5 + 0.6 - 0.4 = 3.7
-    assert score2 == 3.7
+    assert score2 == pytest.approx(3.7)
 
 
 def test_rank_routes(sample_routes):
@@ -42,6 +44,8 @@ def test_rank_routes(sample_routes):
     # route2 should be first (lower score)
     assert ranked[0]["distance_km"] == 7
     assert ranked[1]["distance_km"] == 10
+    import pytest
+
     # Scores should match those from test_score_route
-    assert ranked[0]["score"] == 3.7
-    assert ranked[1]["score"] == 5.5
+    assert ranked[0]["score"] == pytest.approx(3.7)
+    assert ranked[1]["score"] == pytest.approx(5.5)

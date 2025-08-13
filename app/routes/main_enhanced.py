@@ -27,6 +27,7 @@ from app import limiter
 from app.models.route_request import RouteRequest
 from app.services.file_service import FileService
 from app.services.routing_service import RoutingService
+from app.services.routing_service_unified import UnifiedRoutingService
 
 logger = logging.getLogger(__name__)
 
@@ -542,8 +543,61 @@ def legacy_upload():
 
 @main_bp.route("/export", methods=["POST"])
 def legacy_export():
-    """Legacy export endpoint - redirects to new API"""
-    return export_route()
+    """Legacy export endpoint - handles both form data and JSON"""
+    try:
+        # Check if this is multipart form data (legacy) or JSON (new API)
+        if request.content_type and 'multipart/form-data' in request.content_type:
+            # Handle legacy multipart form data
+            file_service = FileService()
+            
+            # Process uploaded stores file
+            stores_file = request.files.get('file')
+            if not stores_file:
+                return jsonify({"error": "No stores file provided"}), 400
+                
+            stores = file_service.process_stores_file(stores_file)
+            
+            # Process optional playbook file
+            playbook = {}
+            playbook_file = request.files.get('playbook') or request.files.get('playbook_file')
+            if playbook_file:
+                playbook_data = file_service.process_stores_file(playbook_file)
+                # Convert playbook format: [{"chain": "A", "priority": 1}] -> {"A": {"priority": 1}}
+                for row in playbook_data:
+                    if 'chain' in row:
+                        chain = row.pop('chain')
+                        playbook[chain] = row
+            
+            # Generate route using the routing service
+            routing_service = UnifiedRoutingService()
+            constraints = {}
+            route = routing_service.generate_route_from_stores(stores, constraints)
+            
+            # Export as CSV
+            output = io.StringIO()
+            if route:
+                fieldnames = route[0].keys() if route else ['name', 'address']
+                writer = csv.DictWriter(output, fieldnames=fieldnames)
+                writer.writeheader()
+                writer.writerows(route)
+            else:
+                output.write("No route data to export\n")
+                
+            output.seek(0)
+            filename = f"routeforce_route_{len(route) if route else 0}_stores.csv"
+            
+            return Response(
+                output.getvalue(),
+                mimetype="text/csv",
+                headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+            )
+        else:
+            # Handle JSON data (redirect to new API)
+            return export_route()
+            
+    except Exception as e:
+        logger.error(f"Error in legacy export: {str(e)}")
+        return jsonify({"error": "Export failed", "details": str(e)}), 500
 
 
 @main_bp.route("/app")

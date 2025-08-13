@@ -58,11 +58,11 @@ def test_generate_routes_issues_weight():
     if routes:
         high_issue_route = {"distance": 10, "stops": 5, "issues": 99}
         score_result = score_route(high_issue_route)
-        assert score_result.score < 50, (
-            f"Expected low score due to high issues, got {score_result.score}"
+        assert score_result < 50, (
+            f"Expected low score due to high issues, got {score_result}"
         )
         print(
-            f"Tested high-issue route (99 issues), received score: {score_result.score}"
+            f"Tested high-issue route (99 issues), received score: {score_result}"
         )
 
 
@@ -70,24 +70,24 @@ def test_generate_routes_issues_weight():
 def test_generate_routes_all_zero():
     zero_route = {"distance": 0, "stops": 0, "issues": 0}
     score_result = score_route(zero_route)
-    assert score_result.score >= 0, (
-        f"Score should not be negative: {score_result.score}"
+    assert score_result >= 0, (
+        f"Score should not be negative: {score_result}"
     )
-    print(f"Tested zeroed route, received score: {score_result.score}")
+    print(f"Tested zeroed route, received score: {score_result}")
 
 
 # Edge case: maxed parameters
 def test_generate_routes_all_max():
     max_route = {"distance": 1000, "stops": 1000, "issues": 1000}
     score_result = score_route(max_route)
-    assert score_result.score <= 100, (
-        f"Score should not exceed 100: {score_result.score}"
+    assert score_result <= 100, (
+        f"Score should not exceed 100: {score_result}"
     )
-    assert 0 <= score_result.score <= 100, (
-        f"Score out of bounds for max input: {score_result.score}"
+    assert 0 <= score_result <= 100, (
+        f"Score out of bounds for max input: {score_result}"
     )
     print(
-        f"[Edge Max] Validated maxed route score: {score_result.score} for 1000 distance, 1000 stops, 1000 issues"
+        f"[Edge Max] Validated maxed route score: {score_result} for 1000 distance, 1000 stops, 1000 issues"
     )
 
 
@@ -96,9 +96,9 @@ def test_generate_routes_missing_fields():
     incomplete_route = {"distance": 25.0, "stops": 10}  # 'issues' field is missing
     try:
         score_result = score_route(incomplete_route)
-        assert hasattr(score_result, "score"), (
-            "Score result should have a score attribute"
+        assert isinstance(score_result, (int, float)), (
+            "Score result should be a number"
         )
-        print(f"Tested incomplete route, received score: {score_result.score}")
+        print(f"Tested incomplete route, received score: {score_result}")
     except Exception as e:
         print(f"Handled missing field gracefully: {e}")

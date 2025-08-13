@@ -25,6 +25,7 @@ class RouteConstraints:
     time_windows: Optional[Dict[str, Dict[str, str]]] = None
     priority_weights: Optional[Dict[str, float]] = None
     visit_date: Optional[datetime] = None
+    _allowed_days: Optional[Dict[str, List[str]]] = None
 
 
 @dataclass
@@ -111,6 +112,32 @@ class MaxStoresFilter(RouteFilter):
         return stores
 
 
+class DaysAllowedFilter(RouteFilter):
+    """Filter stores based on allowed days of the week"""
+
+    def apply(
+        self, stores: List[Dict[str, Any]], constraints: RouteConstraints
+    ) -> List[Dict[str, Any]]:
+        """Apply days allowed filtering"""
+        if not constraints._allowed_days or not constraints.visit_date:
+            return stores
+
+        filtered_stores = []
+        current_day = constraints.visit_date.strftime("%A")
+
+        for store in stores:
+            chain = store.get("chain", "")
+            if chain in constraints._allowed_days:
+                allowed_days = constraints._allowed_days[chain]
+                if current_day in allowed_days:
+                    filtered_stores.append(store)
+                # If current day not in allowed days, store is filtered out
+            else:
+                filtered_stores.append(store)  # Include stores without day constraints
+
+        return filtered_stores
+
+
 class RouteOptimizer(Protocol):
     """Protocol for route optimization algorithms"""
 
@@ -193,7 +220,7 @@ class ModernRouteGenerator:
         optimizer: RouteOptimizer = None,
         distance_calculator: RouteDistanceCalculator = None,
     ):
-        self.filters = filters or [TimeWindowFilter(), MaxStoresFilter()]
+        self.filters = filters or [TimeWindowFilter(), DaysAllowedFilter(), MaxStoresFilter()]
         self.optimizer = optimizer or PriorityOptimizer()
         self.distance_calculator = distance_calculator or create_distance_calculator()
 
@@ -330,16 +357,35 @@ def generate_route(
     if visit_date:
         constraints.visit_date = visit_date
     if playbook:
+        # Handle special playbook keys first
+        if "max_route_stops" in playbook:
+            constraints.max_stores = playbook["max_route_stops"]
+            
         # Convert playbook format to modern constraints
         time_windows = {}
         priority_weights = {}
+        allowed_days = {}
+        
         for chain, config in playbook.items():
+            # Skip special keys that aren't chain configs
+            if chain == "max_route_stops" or not isinstance(config, dict):
+                continue
+                
             if "visit_hours" in config:
                 time_windows[chain] = config["visit_hours"]
+            if "time_window" in config:
+                time_windows[chain] = config["time_window"]
             if "priority" in config:
                 priority_weights[chain] = config["priority"]
+            if "days_allowed" in config:
+                allowed_days[chain] = config["days_allowed"]
+                
         constraints.time_windows = time_windows if time_windows else None
         constraints.priority_weights = priority_weights if priority_weights else None
+        
+        # Store days_allowed for custom filtering
+        if allowed_days:
+            constraints._allowed_days = allowed_days
 
     generator = create_route_generator("nearest_neighbor")
     route, _ = generator.generate_route(stores, constraints)

@@ -11,7 +11,7 @@ from typing import Dict, Any
 BASE_URL = "http://localhost:5001/api/ai"
 
 
-def test_api_endpoint(
+def _test_api_endpoint(
     endpoint: str, method: str = "GET", data: Dict[str, Any] = None
 ) -> Dict[str, Any]:
     """Test an API endpoint and return the response"""
@@ -56,7 +56,7 @@ def run_comprehensive_test():
 
     # Test 1: Populate demo data
     print("\n1️⃣  Testing Demo Data Population...")
-    result = test_api_endpoint("/demo/populate", "POST")
+    result = _test_api_endpoint("/demo/populate", "POST")
     tests.append(("Demo Data Population", result))
 
     if result["success"]:
@@ -67,7 +67,7 @@ def run_comprehensive_test():
 
     # Test 2: Route insights
     print("\n2️⃣  Testing Route Insights...")
-    result = test_api_endpoint(
+    result = _test_api_endpoint(
         "/insights/route/test_route_ai?distance=35.2&duration=95&stops=6&fuel_used=4.1"
     )
     tests.append(("Route Insights", result))
@@ -90,7 +90,7 @@ def run_comprehensive_test():
         "hour_of_day": 10,
         "day_of_week": 3,
     }
-    result = test_api_endpoint("/predict/route", "POST", prediction_data)
+    result = _test_api_endpoint("/predict/route", "POST", prediction_data)
     tests.append(("Route Prediction", result))
 
     if result["success"]:
@@ -106,7 +106,7 @@ def run_comprehensive_test():
 
     # Test 4: Performance trends
     print("\n4️⃣  Testing Performance Trends...")
-    result = test_api_endpoint("/trends?timeframe_days=30")
+    result = _test_api_endpoint("/trends?timeframe_days=30")
     tests.append(("Performance Trends", result))
 
     if result["success"]:
@@ -121,7 +121,7 @@ def run_comprehensive_test():
 
     # Test 5: Fleet insights
     print("\n5️⃣  Testing Fleet Insights...")
-    result = test_api_endpoint("/fleet/insights")
+    result = _test_api_endpoint("/fleet/insights")
     tests.append(("Fleet Insights", result))
 
     if result["success"]:
@@ -134,7 +134,7 @@ def run_comprehensive_test():
 
     # Test 6: Smart recommendations
     print("\n6️⃣  Testing Smart Recommendations...")
-    result = test_api_endpoint(
+    result = _test_api_endpoint(
         "/recommendations/smart?vehicle_count=3&time_window=afternoon&priority=speed"
     )
     tests.append(("Smart Recommendations", result))
@@ -178,7 +178,7 @@ def run_comprehensive_test():
             },
         ]
     }
-    result = test_api_endpoint("/insights/batch", "POST", batch_data)
+    result = _test_api_endpoint("/insights/batch", "POST", batch_data)
     tests.append(("Batch Analysis", result))
 
     if result["success"]:

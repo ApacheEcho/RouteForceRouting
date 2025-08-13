@@ -3,17 +3,18 @@ Machine Learning Route Predictor
 Uses historical route data to predict optimal routes and select best algorithms
 """
 
-import numpy as np
-import pickle
 import logging
-from typing import List, Dict, Any, Optional
+import os
+import pickle
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingClassifier
+from typing import Any, Dict, List, Optional
+
+import numpy as np
+from sklearn.ensemble import GradientBoostingClassifier, RandomForestRegressor
+from sklearn.metrics import accuracy_score, mean_squared_error
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler, LabelEncoder
-from sklearn.metrics import mean_squared_error, accuracy_score
-import os
+from sklearn.preprocessing import LabelEncoder, StandardScaler
 
 logger = logging.getLogger(__name__)
 
@@ -116,9 +117,9 @@ class MLRoutePredictor:
 
     def extract_features(
         self,
-        stores: List[Dict[str, Any]],
-        route_result: Optional[Dict[str, Any]] = None,
-        context: Optional[Dict[str, Any]] = None,
+        stores: list[dict[str, Any]],
+        route_result: dict[str, Any] | None = None,
+        context: dict[str, Any] | None = None,
     ) -> RouteFeatures:
         """
         Extract features from store data and route context
@@ -295,10 +296,10 @@ class MLRoutePredictor:
 
     def add_training_data(
         self,
-        stores: List[Dict[str, Any]],
+        stores: list[dict[str, Any]],
         algorithm_used: str,
-        performance_metrics: Dict[str, Any],
-        context: Optional[Dict[str, Any]] = None,
+        performance_metrics: dict[str, Any],
+        context: dict[str, Any] | None = None,
     ):
         """
         Add training data from route optimization results
@@ -329,7 +330,7 @@ class MLRoutePredictor:
             ):
                 self.train_models()
 
-    def train_models(self) -> Dict[str, float]:
+    def train_models(self) -> dict[str, float]:
         """
         Train ML models on collected data
 
@@ -423,8 +424,8 @@ class MLRoutePredictor:
         return metrics
 
     def predict_route_performance(
-        self, stores: List[Dict[str, Any]], context: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, float]:
+        self, stores: list[dict[str, Any]], context: dict[str, Any] | None = None
+    ) -> dict[str, float]:
         """
         Predict route optimization performance for given stores
 
@@ -480,8 +481,8 @@ class MLRoutePredictor:
             return {"predicted_improvement": 0.0, "confidence": 0.0}
 
     def recommend_algorithm(
-        self, stores: List[Dict[str, Any]], context: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+        self, stores: list[dict[str, Any]], context: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """
         Recommend best algorithm for given stores and context
 
@@ -620,7 +621,7 @@ class MLRoutePredictor:
         except Exception as e:
             logger.error(f"Error loading model: {str(e)}")
 
-    def get_model_info(self) -> Dict[str, Any]:
+    def get_model_info(self) -> dict[str, Any]:
         """Get information about the trained model"""
         return {
             "model_type": self.config.model_type,
@@ -632,7 +633,7 @@ class MLRoutePredictor:
             "model_path": self.model_path,
         }
 
-    def get_feature_importance(self) -> Dict[str, float]:
+    def get_feature_importance(self) -> dict[str, float]:
         """Get feature importance from trained models"""
         if self.route_predictor is None or not hasattr(
             self.route_predictor, "feature_importances_"

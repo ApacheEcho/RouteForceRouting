@@ -8,28 +8,31 @@ import pytest
 import requests
 
 
+@pytest.fixture(scope="module")
+def base_url():
+    """Base URL for testing"""
+    return "http://localhost:5000"
+
+
+@pytest.fixture(scope="module")
+def admin_token(base_url):
+    """Get admin authentication token"""
+    response = requests.post(
+        f"{base_url}/api/users/login",
+        json={"email": "admin@demo.routeforce.com", "password": "demo123"},
+    )
+    assert response.status_code == 200
+    return response.json()["access_token"]
+
+
+@pytest.fixture(scope="module")
+def auth_headers(admin_token):
+    """Authentication headers"""
+    return {"Authorization": f"Bearer {admin_token}"}
+
+
 class TestEnterpriseIntegration:
     """Test enterprise features integration"""
-
-    @pytest.fixture(scope="class")
-    def base_url(self):
-        """Base URL for testing"""
-        return "http://localhost:5000"
-
-    @pytest.fixture(scope="class")
-    def admin_token(self, base_url):
-        """Get admin authentication token"""
-        response = requests.post(
-            f"{base_url}/api/users/login",
-            json={"email": "admin@demo.routeforce.com", "password": "demo123"},
-        )
-        assert response.status_code == 200
-        return response.json()["access_token"]
-
-    @pytest.fixture(scope="class")
-    def auth_headers(self, admin_token):
-        """Authentication headers"""
-        return {"Authorization": f"Bearer {admin_token}"}
 
     def test_health_endpoint(self, base_url):
         """Test system health endpoint"""

@@ -21,7 +21,7 @@ main_bp = Blueprint("main", __name__)
 @main_bp.route("/")
 def index():
     """Main index page"""
-    return render_template("main.html")
+    return render_template("index.html")
 
 
 @main_bp.route("/health")
@@ -30,6 +30,12 @@ def health_check():
     return jsonify(
         {"status": "healthy", "service": "RouteForce Routing", "version": "1.0.0"}
     )
+
+
+@main_bp.route("/generate", methods=["GET"])
+def route_generator_form():
+    """Show route generator form"""
+    return render_template("route_generator.html")
 
 
 @main_bp.route("/generate", methods=["POST"])

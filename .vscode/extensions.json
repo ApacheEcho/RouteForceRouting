@@ -68,6 +68,7 @@
         // Markdown & Documentation
         "yzhang.markdown-all-in-one",
         "davidanson.vscode-markdownlint",
-        "bierner.markdown-mermaid"
+        "bierner.markdown-mermaid",
+        "openai.chatgpt"
     ]
 }

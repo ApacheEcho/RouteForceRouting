@@ -3,16 +3,14 @@ External API Integration for RouteForce
 Google Maps, Weather, and Traffic Data Integration
 """
 
-import requests
-import json
-import os
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Tuple
-import asyncio
-import aiohttp
 import logging
-from dataclasses import dataclass
+import os
 import time
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Tuple
+
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +58,7 @@ class GoogleMapsIntegration:
         self.base_url = "https://maps.googleapis.com/maps/api"
         self.session = requests.Session()
 
-    def geocode_address(self, address: str) -> Optional[LocationInfo]:
+    def geocode_address(self, address: str) -> LocationInfo | None:
         """Geocode an address to coordinates"""
         if not self.api_key:
             logger.warning("Google Maps API key not configured")
@@ -91,8 +89,8 @@ class GoogleMapsIntegration:
         return None
 
     def get_route_with_traffic(
-        self, origin: str, destination: str, waypoints: List[str] = None
-    ) -> Optional[TrafficInfo]:
+        self, origin: str, destination: str, waypoints: list[str] = None
+    ) -> TrafficInfo | None:
         """Get route information with traffic data"""
         if not self.api_key:
             logger.warning("Google Maps API key not configured")
@@ -151,8 +149,8 @@ class GoogleMapsIntegration:
         return None
 
     def optimize_waypoints(
-        self, origin: str, destination: str, waypoints: List[str]
-    ) -> List[str]:
+        self, origin: str, destination: str, waypoints: list[str]
+    ) -> list[str]:
         """Optimize waypoint order using Google Maps"""
         if not self.api_key or not waypoints:
             return waypoints
@@ -189,7 +187,7 @@ class WeatherIntegration:
         self.base_url = "https://api.openweathermap.org/data/2.5"
         self.session = requests.Session()
 
-    def get_weather(self, latitude: float, longitude: float) -> Optional[WeatherInfo]:
+    def get_weather(self, latitude: float, longitude: float) -> WeatherInfo | None:
         """Get current weather for coordinates"""
         if not self.api_key:
             # Return simulated weather data
@@ -236,7 +234,7 @@ class WeatherIntegration:
 
     def get_weather_forecast(
         self, latitude: float, longitude: float, hours: int = 24
-    ) -> List[WeatherInfo]:
+    ) -> list[WeatherInfo]:
         """Get weather forecast for next few hours"""
         if not self.api_key:
             return [self._get_simulated_weather() for _ in range(hours)]
@@ -348,8 +346,8 @@ class ExternalDataManager:
         self.cache_timeout = 300  # 5 minutes
 
     def enhance_route_with_external_data(
-        self, route_data: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, route_data: dict[str, Any]
+    ) -> dict[str, Any]:
         """Enhance route data with external APIs"""
         enhanced = route_data.copy()
 
@@ -395,8 +393,8 @@ class ExternalDataManager:
         return enhanced
 
     def optimize_route_with_traffic(
-        self, origin: str, destination: str, waypoints: List[str]
-    ) -> Dict[str, Any]:
+        self, origin: str, destination: str, waypoints: list[str]
+    ) -> dict[str, Any]:
         """Optimize route considering current traffic"""
         try:
             # Optimize waypoint order
@@ -435,7 +433,7 @@ class ExternalDataManager:
                 "error": str(e),
             }
 
-    def get_route_recommendations(self, route_data: Dict[str, Any]) -> List[str]:
+    def get_route_recommendations(self, route_data: dict[str, Any]) -> list[str]:
         """Get AI recommendations based on external data"""
         recommendations = []
 
@@ -481,7 +479,7 @@ class ExternalDataManager:
 
         return recommendations
 
-    def _geocode_stops(self, stops: List[str]) -> List[Tuple[float, float]]:
+    def _geocode_stops(self, stops: list[str]) -> list[tuple[float, float]]:
         """Geocode list of stops to coordinates"""
         coordinates = []
         for stop in stops:
@@ -504,8 +502,8 @@ class ExternalDataManager:
         return coordinates
 
     def _get_route_traffic(
-        self, coordinates: List[Tuple[float, float]]
-    ) -> Optional[TrafficInfo]:
+        self, coordinates: list[tuple[float, float]]
+    ) -> TrafficInfo | None:
         """Get traffic information for route coordinates"""
         if len(coordinates) < 2:
             return None
@@ -520,8 +518,8 @@ class ExternalDataManager:
         return self.maps.get_route_with_traffic(origin, destination, waypoints)
 
     def _get_route_weather(
-        self, coordinates: Tuple[float, float]
-    ) -> Optional[WeatherInfo]:
+        self, coordinates: tuple[float, float]
+    ) -> WeatherInfo | None:
         """Get weather information for route start point"""
         cache_key = f"weather_{coordinates[0]}_{coordinates[1]}"
         if cache_key in self.cache:
@@ -535,7 +533,7 @@ class ExternalDataManager:
 
         return weather
 
-    def _calculate_enhanced_efficiency(self, route_data: Dict[str, Any]) -> float:
+    def _calculate_enhanced_efficiency(self, route_data: dict[str, Any]) -> float:
         """Calculate enhanced efficiency score with external data"""
         base_score = 0.5
 

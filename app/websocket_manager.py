@@ -3,21 +3,20 @@ Real-time WebSocket Manager for RouteForce
 Handles real-time route updates, driver tracking, and notifications
 """
 
-from flask_socketio import SocketIO, emit, join_room, leave_room, disconnect
-from flask import request, current_app
-from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional
-import json
 import logging
-from dataclasses import dataclass, asdict
-from threading import Lock
-from typing import Dict, Any
 import uuid
+from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta
+from threading import Lock
+from typing import Any, Dict, List, Optional
+
+from flask import request
+from flask_socketio import SocketIO, emit, join_room, leave_room
 
 # Thread-safe storage for active connections and data
-active_connections: Dict[str, Any] = {}
-route_updates: Dict[str, Any] = {}
-driver_locations: Dict[str, Any] = {}
+active_connections: dict[str, Any] = {}
+route_updates: dict[str, Any] = {}
+driver_locations: dict[str, Any] = {}
 connection_lock = Lock()
 
 
@@ -30,7 +29,7 @@ class ConnectionInfo:
     user_type: str  # 'driver', 'dispatcher', 'admin'
     connected_at: datetime
     last_activity: datetime
-    rooms: List[str]
+    rooms: list[str]
 
 
 @dataclass
@@ -45,7 +44,7 @@ class RouteUpdate:
     distance_remaining: float
     driver_id: str
     timestamp: str
-    coordinates: Optional[Dict[str, float]] = None
+    coordinates: dict[str, float] | None = None
 
 
 @dataclass
@@ -58,7 +57,7 @@ class DriverLocation:
     heading: float
     speed: float
     timestamp: str
-    route_id: Optional[str] = None
+    route_id: str | None = None
 
 
 def init_websocket(socketio: SocketIO):
@@ -402,7 +401,7 @@ def init_websocket(socketio: SocketIO):
         )
 
 
-def get_system_status() -> Dict[str, Any]:
+def get_system_status() -> dict[str, Any]:
     """Get current system status"""
     with connection_lock:
         return {
@@ -414,7 +413,7 @@ def get_system_status() -> Dict[str, Any]:
         }
 
 
-def get_fleet_status() -> Dict[str, Any]:
+def get_fleet_status() -> dict[str, Any]:
     """Get current fleet status"""
     active_routes = []
     for route_update in route_updates.values():
@@ -433,7 +432,7 @@ def get_fleet_status() -> Dict[str, Any]:
     }
 
 
-def broadcast_emergency_alert(alert_data: Dict[str, Any]):
+def broadcast_emergency_alert(alert_data: dict[str, Any]):
     """Broadcast emergency alert to all connected clients"""
     from app import socketio
 

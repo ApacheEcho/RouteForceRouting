@@ -12,10 +12,19 @@
     "build": "echo \"✅ Root level - no build needed. See frontend/ or client/ directories\"",
     "start": "echo \"✅ Root level - Python Flask app. Use 'python app.py' to start\""
   },
-  "keywords": ["routing", "optimization", "flask", "python"],
+  "keywords": [
+    "routing",
+    "optimization",
+    "flask",
+    "python"
+  ],
   "author": "RouteForce Team",
   "license": "ISC",
   "devDependencies": {
     "npm-run-all": "^4.1.5"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server-filesystem": "^2025.7.29",
+    "@modelcontextprotocol/server-sequential-thinking": "^2025.7.1"
   }
 }

@@ -1,0 +1,35 @@
+# Model Context Protocol (MCP) Configuration for RouteForceRouting
+# For documentation, see: https://modelcontext.org/filesystem-mcp
+
+version: 1
+project:
+  name: RouteForceRouting
+  owner: ApacheEcho
+  description: >
+    Enterprise-grade routing and optimization platform with Flask, Celery, and advanced analytics.
+
+# MCP Providers
+providers:
+  - type: remote
+    url: https://gitmcp.io/ApacheEcho/RouteForceRouting
+  - type: shell
+    command: ./scripts/mcp_shell_context.sh
+    # You can customize the command/script as needed
+
+# Context Sharing
+context:
+  enabled: true
+  include:
+    - '**/*.py'
+    - '**/*.md'
+    - '**/*.json'
+    - '**/*.yml'
+    - '**/*.yaml'
+    - '**/*.sh'
+    - '**/*.csv'
+  exclude:
+    - '**/__pycache__/**'
+    - '**/.git/**'
+    - '**/node_modules/**'
+
+# Advanced settings can be added as needed

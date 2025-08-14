@@ -4,7 +4,7 @@ Provides comprehensive analytics and monitoring capabilities
 """
 
 import logging
-from datetime import datetime, timedelta, UTC
+from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional
 import json
 import uuid
@@ -73,7 +73,7 @@ class AnalyticsService:
                 "method": method,
                 "response_time": response_time,
                 "status_code": status_code,
-                "timestamp": datetime.now(UTC).isoformat(),
+                "timestamp": datetime.utcnow().isoformat(),
                 "user_agent": user_agent,
                 "is_mobile": self._is_mobile_request(user_agent),
             }
@@ -140,7 +140,7 @@ class AnalyticsService:
             event_record = {
                 "event_id": str(uuid.uuid4()),
                 "event_type": event_type,
-                "timestamp": datetime.now(UTC).isoformat(),
+                "timestamp": datetime.utcnow().isoformat(),
                 "data": event_data,
                 "severity": event_data.get("severity", "info"),
             }

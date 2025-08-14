@@ -298,11 +298,6 @@ def create_app(config_name: str = "development") -> Flask:
     # Configure limiter with storage URI
     if app.config.get("RATELIMIT_STORAGE_URI"):
         limiter.storage_uri = app.config["RATELIMIT_STORAGE_URI"]
-    
-    # Disable rate limiting for testing
-    if app.config.get("RATELIMIT_ENABLED", True) is False:
-        limiter.enabled = False
-    
     limiter.init_app(app)
 
     # Configure logging

@@ -333,11 +333,19 @@ def generate_route(
         # Convert playbook format to modern constraints
         time_windows = {}
         priority_weights = {}
+        
+        # Handle max_route_stops at top level
+        if "max_route_stops" in playbook:
+            constraints.max_stores = playbook["max_route_stops"]
+        
         for chain, config in playbook.items():
-            if "visit_hours" in config:
-                time_windows[chain] = config["visit_hours"]
-            if "priority" in config:
-                priority_weights[chain] = config["priority"]
+            # Skip top-level configuration keys
+            if isinstance(config, dict):
+                if "visit_hours" in config:
+                    time_windows[chain] = config["visit_hours"]
+                if "priority" in config:
+                    priority_weights[chain] = config["priority"]
+        
         constraints.time_windows = time_windows if time_windows else None
         constraints.priority_weights = priority_weights if priority_weights else None
 
@@ -361,10 +369,12 @@ def summarize_route(
         time_windows = {}
         priority_weights = {}
         for chain, config in playbook.items():
-            if "visit_hours" in config:
-                time_windows[chain] = config["visit_hours"]
-            if "priority" in config:
-                priority_weights[chain] = config["priority"]
+            # Skip top-level configuration keys and non-dict values
+            if isinstance(config, dict):
+                if "visit_hours" in config:
+                    time_windows[chain] = config["visit_hours"]
+                if "priority" in config:
+                    priority_weights[chain] = config["priority"]
         constraints.time_windows = time_windows if time_windows else None
         constraints.priority_weights = priority_weights if priority_weights else None
 

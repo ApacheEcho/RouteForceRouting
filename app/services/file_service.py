@@ -247,6 +247,38 @@ class FileService:
             logger.error(f"Error reading CSV file: {str(e)}")
             raise
 
+    def process_stores_file(self, file_path: str) -> List[Dict[str, Any]]:
+        """
+        Process uploaded stores file and return store data
+        
+        Args:
+            file_path: Path to the uploaded file
+            
+        Returns:
+            List of store dictionaries
+        """
+        try:
+            stores = self.load_stores_from_file(file_path)
+            
+            # Normalize field names
+            normalized_stores = []
+            for store in stores:
+                normalized_store = {}
+                for key, value in store.items():
+                    # Normalize key name
+                    normalized_key = key.lower().strip().replace(" ", "_")
+                    if normalized_key in ["store_name", "storename", "store name"]:
+                        normalized_key = "name"
+                    normalized_store[normalized_key] = value
+                normalized_stores.append(normalized_store)
+            
+            logger.info(f"Processed {len(normalized_stores)} stores from file")
+            return normalized_stores
+            
+        except Exception as e:
+            logger.error(f"Error processing stores file: {str(e)}")
+            raise
+
     def _load_excel_file(self, file_path: str) -> List[Dict[str, Any]]:
         """Load data from Excel file"""
         try:

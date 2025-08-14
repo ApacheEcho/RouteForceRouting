@@ -156,7 +156,10 @@ def generate_route():
 
         # Process the uploaded file
         try:
-            stores = file_service.process_stores_file(file)
+            # First save the uploaded file
+            file_path = file_service.save_uploaded_file(file)
+            # Then process it
+            stores = file_service.process_stores_file(file_path)
             if not stores:
                 return jsonify({"error": "No valid stores found in file"}), 400
         except Exception as e:
@@ -339,12 +342,50 @@ def generate_route_api():
 def export_route():
     """Export generated route to CSV format"""
     try:
-        # Get route data from request
-        data = request.get_json()
-        if not data or "route" not in data:
-            return jsonify({"error": "No route data provided"}), 400
+        # Handle both JSON and form data
+        if request.content_type and 'application/json' in request.content_type:
+            # JSON request
+            data = request.get_json()
+            if not data or "route" not in data:
+                return jsonify({"error": "No route data provided"}), 400
+            route = data["route"]
+        else:
+            # Form data request - generate route from uploaded files
+            file = request.files.get("file")
+            playbook_file = request.files.get("playbook")
+            
+            if not file or file.filename == "":
+                return jsonify({"error": "No file uploaded"}), 400
+            
+            # Validate file type
+            if not allowed_file(file.filename):
+                return jsonify({
+                    "error": "Invalid file type. Please upload CSV or Excel file.",
+                    "supported_formats": list(ALLOWED_EXTENSIONS),
+                }), 400
+            
+            # Initialize services
+            routing_service = RoutingService()
+            file_service = FileService()
+            
+            try:
+                # Process stores file
+                file_path = file_service.save_uploaded_file(file)
+                stores = file_service.process_stores_file(file_path)
+                
+                # Process playbook if provided
+                playbook = {}
+                if playbook_file and playbook_file.filename:
+                    playbook_path = file_service.save_uploaded_file(playbook_file)
+                    playbook = file_service.load_playbook_from_file(playbook_path)
+                
+                # Generate route
+                route = routing_service.generate_route(stores=stores, playbook=playbook)
+                
+            except Exception as e:
+                logger.error(f"Error processing files for export: {str(e)}")
+                return jsonify({"error": "Failed to process files", "details": str(e)}), 400
 
-        route = data["route"]
         if not route:
             return jsonify({"error": "Empty route provided"}), 400
 

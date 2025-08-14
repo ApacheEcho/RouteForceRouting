@@ -117,6 +117,7 @@
                         </div>
                         <h3 class="text-xl font-semibold mb-3">Advanced Analytics</h3>
                         <p class="text-gray-600 mb-4">Real-time performance monitoring, algorithm comparison, and predictive analytics for data-driven decisions.</p>
+                        <div id="analytics-stats" class="mb-4 text-gray-800 text-base font-medium"></div>
                         <a href="/dashboard" class="text-green-600 hover:text-green-700 font-medium">
                             View Dashboard <i class="fas fa-arrow-right ml-1"></i>
                         </a>
@@ -316,6 +317,14 @@
                 mobileMenu.classList.add('hidden');
             }
         });
+
+        // Fetch and display live analytics stats
+        fetch('/api/analytics/stats')
+          .then(res => res.json())
+          .then(data => {
+            document.getElementById('analytics-stats').innerHTML =
+              `Total Routes: <b>${data.total_routes}</b> &nbsp;|&nbsp; Active Users: <b>${data.active_users}</b> &nbsp;|&nbsp; Avg. Optimization Time: <b>${data.avg_optimization_time}s</b>`;
+          });
     </script>
 </body>
 </html>

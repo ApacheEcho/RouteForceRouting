@@ -582,9 +582,88 @@ def legacy_upload():
 
 
 @main_bp.route("/export", methods=["POST"])
+@limiter.limit("5 per minute")
 def legacy_export():
-    """Legacy export endpoint - redirects to new API"""
-    return export_route()
+    """Legacy export endpoint with full functionality"""
+    try:
+        # Form data request - generate route from uploaded files
+        file = request.files.get("file")
+        playbook_file = request.files.get("playbook")
+        
+        if not file or file.filename == "":
+            return jsonify({"error": "No file uploaded"}), 400
+        
+        # Validate file type
+        if not allowed_file(file.filename):
+            return jsonify({
+                "error": "Invalid file type. Please upload CSV or Excel file.",
+                "supported_formats": list(ALLOWED_EXTENSIONS),
+            }), 400
+        
+        # Initialize services
+        routing_service = RoutingService()
+        file_service = FileService()
+        
+        try:
+            # Process stores file
+            file_path = file_service.save_uploaded_file(file)
+            stores = file_service.process_stores_file(file_path)
+            
+            # Process playbook if provided
+            playbook = {}
+            if playbook_file and playbook_file.filename:
+                playbook_path = file_service.save_uploaded_file(playbook_file)
+                playbook = file_service.load_playbook_from_file(playbook_path)
+            
+            # Generate route
+            route = routing_service.generate_route_from_stores(stores=stores, playbook=playbook)
+            
+        except Exception as e:
+            logger.error(f"Error processing files for export: {str(e)}")
+            return jsonify({"error": "Failed to process files", "details": str(e)}), 400
+
+        if not route:
+            return jsonify({"error": "Empty route provided"}), 400
+
+        # Generate CSV
+        output = io.StringIO()
+        if route and len(route) > 0:
+            # Get all possible fieldnames from all stores
+            fieldnames = set()
+            for store in route:
+                fieldnames.update(store.keys())
+            fieldnames = sorted(list(fieldnames))
+
+            writer = csv.DictWriter(output, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(route)
+        else:
+            output.write("No route data to export\n")
+
+        # Prepare response
+        output.seek(0)
+        filename = f"routeforce_route_{len(route)}_stores.csv"
+
+        return Response(
+            output.getvalue(),
+            mimetype="text/csv",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
+
+    except Exception as e:
+        logger.error(f"Error exporting route: {str(e)}")
+        analytics_service = current_app.analytics_service
+        analytics_service.track_system_event(
+            'api_error',
+            {
+                'endpoint': 'main.legacy_export',
+                'status_code': 500,
+                'method': request.method,
+                'response_time': 0.0,
+                'severity': 'error'
+            }
+        )
+        return jsonify({"error": "Export failed", "details": str(e)}), 500
 
 
 @main_bp.route("/app")

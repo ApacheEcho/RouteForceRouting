@@ -309,28 +309,32 @@ def create_app(config_name: str = "development") -> Flask:
     # Register error handlers
     register_error_handlers(app)
 
-    # Initialize and start advanced performance monitoring
-    from app.performance_monitor import get_performance_monitor
-
-    # from app.performance.optimization_engine import PerformanceOptimizationEngine
-
-    # Start legacy performance monitor
-    monitor = get_performance_monitor()
-    monitor.start_monitoring()
-    logging.info("Performance monitoring started")
-
-    # Initialize and start advanced optimization engine
-    # optimization_engine = PerformanceOptimizationEngine()
-    # optimization_engine.start_monitoring()
-    # app.optimization_engine = optimization_engine
-    # logging.info("Advanced performance optimization engine started")
-
-    # Initialize optimized database connection pool
-    from app.database.optimized_connection_pool import DatabaseConnectionPool
-
-    db_pool = DatabaseConnectionPool(app.config.get("SQLALCHEMY_DATABASE_URI"))
-    app.db_pool = db_pool
-    logging.info("Optimized database connection pool initialized")
+    # Initialize Beast Mode Performance Optimizations
+    from app.performance.beast_mode_integration import init_beast_mode
+    
+    # Get Redis client for optimizations
+    redis_client = None
+    try:
+        import redis
+        redis_url = app.config.get('REDIS_URL', 'redis://localhost:6379/0')
+        redis_client = redis.from_url(redis_url, decode_responses=False)
+        redis_client.ping()  # Test connection
+    except Exception as e:
+        logging.warning(f"Redis not available for optimizations: {e}")
+    
+    # Initialize all Beast Mode optimizations
+    beast_mode_results = init_beast_mode(app, socketio, redis_client)
+    app.beast_mode_results = beast_mode_results
+    logging.info(f"🚀 Beast Mode Status: {beast_mode_results.get('beast_mode_status', 'UNKNOWN')}")
+    
+    # Initialize legacy performance monitor as backup
+    try:
+        from app.performance_monitor import get_performance_monitor
+        monitor = get_performance_monitor()
+        monitor.start_monitoring()
+        logging.info("Legacy performance monitoring started as backup")
+    except Exception as e:
+        logging.warning(f"Legacy performance monitor not available: {e}")
 
     # Initialize auto-commit service for background code backup
     from app.services.auto_commit_service import start_auto_commit_service

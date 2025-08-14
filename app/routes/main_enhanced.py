@@ -533,6 +533,18 @@ def save_route_configuration():
         return jsonify({"error": "Failed to save configuration"}), 500
 
 
+@main_bp.route("/api/analytics/stats")
+def analytics_stats():
+    """Return live analytics stats for dashboard card"""
+    # Example stats; replace with real queries as needed
+    stats = {
+        "total_routes": 1245,
+        "active_users": 37,
+        "avg_optimization_time": 2.3
+    }
+    return jsonify(stats)
+
+
 # Legacy route support for backward compatibility
 @main_bp.route("/upload", methods=["POST"])
 def legacy_upload():

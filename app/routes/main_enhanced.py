@@ -380,7 +380,7 @@ def export_route():
                     playbook = file_service.load_playbook_from_file(playbook_path)
                 
                 # Generate route
-                route = routing_service.generate_route(stores=stores, playbook=playbook)
+                route = routing_service.generate_route_from_stores(stores=stores, playbook=playbook)
                 
             except Exception as e:
                 logger.error(f"Error processing files for export: {str(e)}")

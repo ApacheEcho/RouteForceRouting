@@ -608,3 +608,9 @@ def api_health():
             "timestamp": "2025-07-22",
         }
     )
+
+
+@main_bp.route("/sales")
+def sales_page():
+    """Public-facing sales page with Mobile & API Access card"""
+    return render_template("sales.html")

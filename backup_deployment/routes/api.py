@@ -1127,8 +1127,8 @@ def get_analytics():
                     if r.get("optimization_score")
                 ]
                 if scores:
-                    analytics["avg_optimization_score"] = (
-                        sum(scores) / len(scores)
+                    analytics["avg_optimization_score"] = sum(scores) / len(
+                        scores
                     )
         except Exception as analytics_exc:
             logger.warning(

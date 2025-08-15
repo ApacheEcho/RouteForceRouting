@@ -69,8 +69,10 @@ def create_app(config_name: str = "development") -> Flask:
     # Minimal API request validation for JSON endpoints
     @app.before_request
     def _validate_request():
-        # Only apply to API routes
+        # Only apply to API routes, but skip /api/mobile/auth/logout for legacy/mobile compatibility
         if request.path.startswith("/api") and request.method in {"POST", "PUT", "PATCH"}:
+            if request.path == "/api/mobile/auth/logout":
+                return  # Allow any content-type or no body for logout
             if not request.is_json:
                 abort(415, description="Content-Type must be application/json")
             # Attempt to parse JSON early to return a clear error

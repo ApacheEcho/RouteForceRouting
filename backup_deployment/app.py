@@ -13,10 +13,6 @@ import datetime
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
 
-@app.route("/")
-def index():
-    return "Backup Deployment App Running"
-
 def require_auth(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -25,6 +21,10 @@ def require_auth(f):
             return make_response(jsonify({"error": "Unauthorized"}), 401)
         return f(*args, **kwargs)
     return decorated
+
+@app.route("/")
+def index():
+    return "Backup Deployment App Running"
 
 @app.route("/api/mobile/auth/login", methods=["POST"])
 def mobile_auth_login():

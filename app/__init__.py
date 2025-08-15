@@ -10,10 +10,7 @@ import os
 import uuid
 import psutil
 from flask import Flask, jsonify, request, abort, g
-from flask_caching import Cache
 from flask_cors import CORS
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
 from flask_socketio import SocketIO
 from flasgger import Swagger
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -47,14 +44,10 @@ from app.routes.scoring import scoring_bp
 from app.routes.voice_dashboard import voice_dashboard_bp
 from app.enterprise.organizations import organizations_bp
 from app.enterprise.users import users_bp
+from app.extensions import cache, limiter
 
 
 # Initialize extensions
-cache = Cache()
-limiter = Limiter(
-    key_func=get_remote_address,
-    default_limits=os.getenv("RATE_LIMITS", "200/day;50/hour").split(";"),
-)
 socketio = SocketIO(
     cors_allowed_origins="*",
     logger=True,
@@ -237,7 +230,9 @@ def create_app(config_name: str = "development") -> Flask:
             try:
                 db.session.execute(text("SELECT 1"))
                 db.session.commit()
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
+                # DB connection errors can be many types
+                # (SQLAlchemy, connection, etc.)
                 db_status = f"unhealthy: {str(e)}"
 
             # Check cache connectivity
@@ -245,7 +240,9 @@ def create_app(config_name: str = "development") -> Flask:
             try:
                 cache.set("health_check", "ok", timeout=5)
                 cache.get("health_check")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
+                # Cache errors can be many types (redis, memcached, etc.)
+                # Third-party cache libraries may raise many exception types
                 cache_status = f"unhealthy: {str(e)}"
 
             # System metrics
@@ -271,7 +268,8 @@ def create_app(config_name: str = "development") -> Flask:
                 }
             ), (200 if status == "healthy" else 503)
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
+            # This is a last-resort catch for health endpoint
             return (
                 jsonify(
                     {
@@ -329,7 +327,8 @@ def create_app(config_name: str = "development") -> Flask:
                 {"Content-Type": "text/plain; charset=utf-8"},
             )
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
+            # Metrics endpoint must not crash the app
             return (
                 f"# Error generating metrics: {str(e)}",
                 503,
@@ -378,8 +377,12 @@ def create_app(config_name: str = "development") -> Flask:
         redis_url = app.config.get("REDIS_URL", "redis://localhost:6379/0")
         redis_client = redis.from_url(redis_url, decode_responses=False)
         redis_client.ping()  # Test connection
-    except Exception as e:
-        logging.warning(f"Redis not available for optimizations: {e}")
+    except ImportError:
+        logging.warning("Redis package not installed")
+    except Exception as e:  # noqa: BLE001
+        # Redis client can raise many exception types
+        # (connection, config, etc.)
+        logging.warning("Redis not available for optimizations: %s", e)
 
     # Initialize all Beast Mode optimizations
     beast_mode_results = init_beast_mode(app, socketio, redis_client)
@@ -394,7 +397,9 @@ def create_app(config_name: str = "development") -> Flask:
         monitor = get_performance_monitor()
         monitor.start_monitoring()
         logging.info("Legacy performance monitoring started as backup")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
+        # Performance monitor can fail for many reasons
+        # (threading, config, etc.)
         logging.warning("Legacy performance monitor not available: %s", e)
 
     # Initialize auto-commit service for background code backup
@@ -437,8 +442,16 @@ def configure_logging(app: Flask) -> None:
                 rename_fields={"levelname": "level"},
             )
             handler.setFormatter(fmt)
+        except ImportError:
+            # JSON logger not installed
+            handler.setFormatter(
+                logging.Formatter(
+                    "%(asctime)s %(levelname)s: %(message)s "
+                    "[in %(pathname)s:%(lineno)d]"
+                )
+            )
         except Exception:
-            # Fallback to plain format if json logger not available
+            # Fallback to plain format if json logger fails for any reason
             handler.setFormatter(
                 logging.Formatter(
                     "%(asctime)s %(levelname)s: %(message)s "
@@ -471,11 +484,17 @@ def configure_logging(app: Flask) -> None:
                 }
                 if app.config.get("LOG_JSON", False)
                 else (
-                    f"{request.method} {request.path} -> {resp.status_code} "
-                    f"rid={getattr(g, 'request_id', None)}"
+                    "%s %s -> %s rid=%s"
+                    % (
+                        request.method,
+                        request.path,
+                        resp.status_code,
+                        getattr(g, "request_id", None),
+                    )
                 )
             )
-        except Exception:
+        except Exception:  # noqa: BLE001
+            # Access log should never break the response
             pass
         return resp
 

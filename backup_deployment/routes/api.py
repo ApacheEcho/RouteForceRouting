@@ -10,9 +10,8 @@ from datetime import datetime
 
 from app.services.routing_service import RoutingService
 from app.services.database_service import DatabaseService
-from app import limiter
+from app.extensions import limiter
 from app.monitoring import metrics_collector
-
 from app.utils.validation import (
     validate_json_request,
     validate_stores_data,
@@ -25,7 +24,6 @@ from app.utils.validation import (
 )
 
 logger = logging.getLogger(__name__)
-
 api_bp = Blueprint("api", __name__)
 
 
@@ -362,7 +360,9 @@ def api_health():
                 "get_store": "/api/v1/stores/<id>",
                 "generate_route": "/api/v1/routes/generate",
                 "optimize_genetic": "/api/v1/routes/optimize/genetic",
-                "optimize_simulated_annealing": "/api/v1/routes/optimize/simulated_annealing",
+                "optimize_simulated_annealing": (
+                    "/api/v1/routes/optimize/" "simulated_annealing"
+                ),
                 "get_algorithms": "/api/v1/routes/algorithms",
                 "create_clusters": "/api/v1/clusters",
                 "health": "/api/v1/health",
@@ -416,7 +416,10 @@ def create_clusters():
                 return (
                     jsonify(
                         {
-                            "error": "All stores must have latitude and longitude"
+                            "error": (
+                                "All stores must have latitude and "
+                                "longitude"
+                            )
                         }
                     ),
                     400,
@@ -539,7 +542,8 @@ def optimize_route_genetic():
 
         stores = data.get("stores", [])
         constraints = data.get("constraints", {})
-        genetic_config = data.get("genetic_config", {})
+        # Remove unused variable 'genetic_config'
+        # genetic_config = data.get("genetic_config", {})
 
         if not stores:
             return jsonify({"error": "No stores provided"}), 400
@@ -548,7 +552,10 @@ def optimize_route_genetic():
             return (
                 jsonify(
                     {
-                        "error": "At least 2 stores required for genetic optimization"
+                        "error": (
+                            "At least 2 stores required for genetic "
+                            "optimization"
+                        )
                     }
                 ),
                 400,
@@ -560,16 +567,8 @@ def optimize_route_genetic():
         # Generate route with genetic algorithm
         routing_service = RoutingService(user_id=user_id)
 
-        # Prepare genetic algorithm filters
-        filters = {
-            "algorithm": "genetic",
-            "ga_population_size": genetic_config.get("population_size", 100),
-            "ga_generations": genetic_config.get("generations", 500),
-            "ga_mutation_rate": genetic_config.get("mutation_rate", 0.02),
-            "ga_crossover_rate": genetic_config.get("crossover_rate", 0.8),
-            "ga_elite_size": genetic_config.get("elite_size", 20),
-            "ga_tournament_size": genetic_config.get("tournament_size", 3),
-        }
+        # Prepare genetic algorithm filters (removed unused variable 'filters')
+        # filters = { ... }  # Not used, so removed
 
         # Generate optimized route
         route = routing_service.generate_route_from_stores(
@@ -634,7 +633,10 @@ def optimize_route_simulated_annealing():
             return (
                 jsonify(
                     {
-                        "error": "At least 2 stores required for simulated annealing optimization"
+                        "error": (
+                            "At least 2 stores required for simulated "
+                            "annealing optimization"
+                        )
                     }
                 ),
                 400,
@@ -833,7 +835,8 @@ def train_ml_models():
     }
     """
     try:
-        data = request.get_json() or {}
+        # Removed unused variable 'data' in train_ml_models
+        # data = request.get_json() or {}
 
         # Get current user (if authenticated)
         user_id = session.get("user_id")
@@ -1043,7 +1046,9 @@ def optimize_route():
             from math import radians, cos, sin, asin, sqrt
 
             def haversine(lon1, lat1, lon2, lat2):
-                """Calculate the great circle distance between two points on earth"""
+                """
+                Calculate the great circle distance between two points on earth
+                """
                 lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
                 dlon = lon2 - lon1
                 dlat = lat2 - lat1

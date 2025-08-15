@@ -19,7 +19,7 @@ from flask import (
     url_for,
 )
 
-from app import limiter
+from app.extensions import limiter
 from app.models.route_request import RouteRequest
 from app.services.file_service import FileService
 from app.services.routing_service import RoutingService

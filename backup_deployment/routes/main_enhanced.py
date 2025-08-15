@@ -25,7 +25,7 @@ import time
 from app.services.routing_service import RoutingService
 from app.services.file_service import FileService
 from app.models.route_request import RouteRequest
-from app import limiter
+from app.extensions import limiter
 
 logger = logging.getLogger(__name__)
 

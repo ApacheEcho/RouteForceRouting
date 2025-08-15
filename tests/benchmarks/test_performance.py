@@ -2,10 +2,10 @@
 Performance benchmarks for RouteForce optimization algorithms.
 """
 
-import pytest
+import os
 import time
 import psutil
-import os
+import pytest
 from unittest.mock import Mock
 
 # Mock the app imports since they may not exist yet
@@ -18,7 +18,7 @@ except ImportError:
     # Create mock classes for testing
     class MockOptimizer:
         def optimize(self, locations):
-            # Simulate optimization work
+            """Simulate optimization work."""
             time.sleep(0.1)  # Simulate processing time
             return {
                 "route": locations,
@@ -36,6 +36,7 @@ except ImportError:
         pass
 
     def create_app(config):
+        """Return a mock app."""
         return Mock()
 
 
@@ -45,7 +46,7 @@ def app():
     try:
         app = create_app("testing")
         return app
-    except:
+    except Exception:
         return Mock()
 
 

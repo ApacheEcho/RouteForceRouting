@@ -3,18 +3,16 @@ API Blueprint - RESTful API endpoints with database integration
 Enhanced with comprehensive validation and error handling
 """
 
-from flask import Blueprint, jsonify, request, current_app, session
-from flask_limiter import Limiter
 import logging
+import time
+from flask import Blueprint, jsonify, request, current_app, session
 from datetime import datetime
-from typing import Dict, Any
 
 from app.services.routing_service import RoutingService
 from app.services.database_service import DatabaseService
-from app import cache, limiter
+from app import limiter
 from app.monitoring import metrics_collector
 
-# AUTO-PILOT: Enhanced validation and error handling
 from app.utils.validation import (
     validate_json_request,
     validate_stores_data,
@@ -134,52 +132,52 @@ def create_route():
             "mo_tournament_size": options.get("mo_tournament_size", 2),
         }
 
-        # Use the generate_route_from_stores method with algorithm support
-        route = routing_service.generate_route_from_stores(
-            stores,
-            constraints,
-            save_to_db=True,
-            algorithm=algorithm,
-            algorithm_params=algorithm_params,
+    # Use the generate_route_from_stores method with algorithm support
+    route = routing_service.generate_route_from_stores(
+        stores,
+        constraints,
+        save_to_db=True,
+        algorithm=algorithm,
+        algorithm_params=algorithm_params,
+    )
+
+    if not route:
+        raise APIError(
+            "Failed to generate route",
+            status_code=422,
+            code="ROUTE_GENERATION_FAILED",
         )
 
-        if not route:
-            raise APIError(
-                "Failed to generate route",
-                status_code=422,
-                code="ROUTE_GENERATION_FAILED",
-            )
+    # Get metrics
+    metrics = routing_service.get_metrics()
 
-        # Get metrics
-        metrics = routing_service.get_metrics()
+    # Build response data
+    route_data = {
+        "route": route,
+        "route_id": (
+            metrics.route_id if metrics and metrics.route_id else None
+        ),
+        "algorithm_used": metrics.algorithm_used if metrics else algorithm,
+    }
 
-        # Build response data
-        route_data = {
-            "route": route,
-            "route_id": (
-                metrics.route_id if metrics and metrics.route_id else None
-            ),
-            "algorithm_used": metrics.algorithm_used if metrics else algorithm,
-        }
+    # Build metadata
+    metadata = {
+        "total_stores": len(stores),
+        "route_stores": len(route),
+        "processing_time": routing_service.get_last_processing_time(),
+        "optimization_score": metrics.optimization_score if metrics else 0,
+    }
 
-        # Build metadata
-        metadata = {
-            "total_stores": len(stores),
-            "route_stores": len(route),
-            "processing_time": routing_service.get_last_processing_time(),
-            "optimization_score": metrics.optimization_score if metrics else 0,
-        }
+    # Include algorithm-specific metrics
+    if metrics and metrics.algorithm_metrics:
+        metadata["algorithm_metrics"] = metrics.algorithm_metrics
 
-        # Include algorithm-specific metrics
-        if metrics and metrics.algorithm_metrics:
-            metadata["algorithm_metrics"] = metrics.algorithm_metrics
-
-        return create_success_response(
-            data=route_data,
-            status_code=201,
-            message="Route created successfully",
-            metadata=metadata,
-        )
+    return create_success_response(
+        data=route_data,
+        status_code=201,
+        message="Route created successfully",
+        metadata=metadata,
+    )
 
 
 @api_bp.route("/v1/routes/<int:route_id>", methods=["GET"])
@@ -455,8 +453,6 @@ def get_live_metrics():
     """
     try:
         # Record the metrics request
-        import time
-
         start_time = time.time()
 
         # Get current metrics snapshot from monitoring system
@@ -620,20 +616,6 @@ def optimize_route_genetic():
 def optimize_route_simulated_annealing():
     """
     Optimize route using simulated annealing algorithm
-
-    Expected JSON payload:
-    {
-        "stores": [...],
-        "constraints": {...},
-        "sa_config": {
-            "initial_temperature": 1000.0,
-            "final_temperature": 0.1,
-            "cooling_rate": 0.99,
-            "max_iterations": 10000,
-            "max_no_improvement": 1000,
-            "acceptance_threshold": 0.001
-        }
-    }
     """
     try:
         data = request.get_json()
@@ -658,13 +640,9 @@ def optimize_route_simulated_annealing():
                 400,
             )
 
-        # Get user ID (will be from authentication system later)
         user_id = get_current_user_id()
-
-        # Generate route with simulated annealing algorithm
         routing_service = RoutingService(user_id=user_id)
 
-        # Prepare simulated annealing algorithm parameters
         algorithm_params = {
             "sa_initial_temperature": sa_config.get(
                 "initial_temperature", 1000.0
@@ -681,7 +659,6 @@ def optimize_route_simulated_annealing():
             ),
         }
 
-        # Generate optimized route
         route = routing_service.generate_route_from_stores(
             stores,
             constraints,
@@ -690,10 +667,8 @@ def optimize_route_simulated_annealing():
             algorithm_params=algorithm_params,
         )
 
-        # Get metrics
         metrics = routing_service.get_metrics()
 
-        # Build response
         response_data = {
             "route": route,
             "metadata": {
@@ -707,13 +682,11 @@ def optimize_route_simulated_annealing():
             },
         }
 
-        # Include simulated annealing specific metrics
         if metrics and metrics.algorithm_metrics:
             response_data["simulated_annealing_metrics"] = (
                 metrics.algorithm_metrics
             )
 
-        # Include route ID if saved to database
         if metrics and metrics.route_id:
             response_data["route_id"] = metrics.route_id
             response_data["metadata"]["route_id"] = metrics.route_id
@@ -732,167 +705,15 @@ def optimize_route_simulated_annealing():
 def get_available_algorithms():
     """Get available optimization algorithms"""
     try:
-        algorithms = {
-            "default": {
-                "name": "Default Algorithm",
-                "description": "Basic route optimization using greedy nearest neighbor approach",
-                "parameters": {},
-            },
-            "genetic": {
-                "name": "Genetic Algorithm",
-                "description": "Advanced evolutionary optimization for complex routing problems",
-                "parameters": {
-                    "population_size": {
-                        "type": "integer",
-                        "default": 100,
-                        "min": 20,
-                        "max": 500,
-                        "description": "Size of the population for each generation",
-                    },
-                    "generations": {
-                        "type": "integer",
-                        "default": 500,
-                        "min": 50,
-                        "max": 2000,
-                        "description": "Number of generations to evolve",
-                    },
-                    "mutation_rate": {
-                        "type": "float",
-                        "default": 0.02,
-                        "min": 0.001,
-                        "max": 0.1,
-                        "description": "Probability of mutation for each individual",
-                    },
-                    "crossover_rate": {
-                        "type": "float",
-                        "default": 0.8,
-                        "min": 0.1,
-                        "max": 1.0,
-                        "description": "Probability of crossover between parents",
-                    },
-                    "elite_size": {
-                        "type": "integer",
-                        "default": 20,
-                        "min": 1,
-                        "max": 100,
-                        "description": "Number of best individuals to keep each generation",
-                    },
-                    "tournament_size": {
-                        "type": "integer",
-                        "default": 3,
-                        "min": 2,
-                        "max": 10,
-                        "description": "Size of tournament for selection",
-                    },
-                },
-            },
-            "simulated_annealing": {
-                "name": "Simulated Annealing",
-                "description": "Probabilistic technique for approximating the global optimum of a given function",
-                "parameters": {
-                    "initial_temperature": {
-                        "type": "float",
-                        "default": 1000.0,
-                        "min": 0.1,
-                        "max": 10000.0,
-                        "description": "Initial temperature for annealing schedule",
-                    },
-                    "final_temperature": {
-                        "type": "float",
-                        "default": 0.1,
-                        "min": 0.0,
-                        "max": 100.0,
-                        "description": "Final temperature for annealing schedule",
-                    },
-                    "cooling_rate": {
-                        "type": "float",
-                        "default": 0.99,
-                        "min": 0.80,
-                        "max": 1.0,
-                        "description": "Cooling rate for temperature reduction",
-                    },
-                    "max_iterations": {
-                        "type": "integer",
-                        "default": 10000,
-                        "min": 1000,
-                        "max": 100000,
-                        "description": "Maximum number of iterations to perform",
-                    },
-                    "iterations_per_temp": {
-                        "type": "integer",
-                        "default": 100,
-                        "min": 10,
-                        "max": 1000,
-                        "description": "Number of iterations per temperature level",
-                    },
-                    "reheat_threshold": {
-                        "type": "integer",
-                        "default": 1000,
-                        "min": 100,
-                        "max": 10000,
-                        "description": "Iterations without improvement before reheating",
-                    },
-                    "min_improvement_threshold": {
-                        "type": "float",
-                        "default": 0.001,
-                        "min": 0.0001,
-                        "max": 0.1,
-                        "description": "Minimum improvement threshold for convergence",
-                    },
-                },
-            },
-            "multi_objective": {
-                "name": "Multi-Objective Optimization",
-                "description": "NSGA-II based multi-objective optimization for Pareto-optimal solutions",
-                "parameters": {
-                    "objectives": {
-                        "type": "string",
-                        "default": "distance,time",
-                        "description": "Comma-separated list of objectives to optimize (distance,time,priority,fuel_cost)",
-                    },
-                    "population_size": {
-                        "type": "integer",
-                        "default": 100,
-                        "min": 20,
-                        "max": 500,
-                        "description": "Size of the population for each generation",
-                    },
-                    "generations": {
-                        "type": "integer",
-                        "default": 200,
-                        "min": 50,
-                        "max": 1000,
-                        "description": "Number of generations to evolve",
-                    },
-                    "mutation_rate": {
-                        "type": "float",
-                        "default": 0.1,
-                        "min": 0.01,
-                        "max": 0.5,
-                        "description": "Probability of mutation for each individual",
-                    },
-                    "crossover_rate": {
-                        "type": "float",
-                        "default": 0.9,
-                        "min": 0.1,
-                        "max": 1.0,
-                        "description": "Probability of crossover between parents",
-                    },
-                    "tournament_size": {
-                        "type": "integer",
-                        "default": 2,
-                        "min": 2,
-                        "max": 10,
-                        "description": "Size of tournament for selection",
-                    },
-                },
-            },
-        }
-
-        return jsonify({"algorithms": algorithms, "default": "default"}), 200
-
+        algorithms = [
+            "default",
+            "genetic",
+            "simulated_annealing",
+            "multi_objective",
+        ]
+        return jsonify({"algorithms": algorithms}), 200
     except Exception as e:
-        logger.error(f"API error getting algorithms: {str(e)}")
+        logger.error(f"Error retrieving algorithms: {str(e)}")
         return jsonify({"error": "Internal server error"}), 500
 
 
@@ -1306,11 +1127,13 @@ def get_analytics():
                     if r.get("optimization_score")
                 ]
                 if scores:
-                    analytics["avg_optimization_score"] = sum(scores) / len(
-                        scores
+                    analytics["avg_optimization_score"] = (
+                        sum(scores) / len(scores)
                     )
-        except:
-            pass  # Continue with default values
+        except Exception as analytics_exc:
+            logger.warning(
+                "Analytics calculation failed: %s", str(analytics_exc)
+            )  # Continue with default values
 
         return (
             jsonify(

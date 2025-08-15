@@ -673,6 +673,12 @@ def mobile_auth_logout_stub():
     auth = require_auth_stub()
     if auth:
         return auth
+    # Accept empty or missing JSON body
+    if request.data and request.content_type == "application/json":
+        try:
+            _ = request.get_json(force=True)
+        except Exception:
+            pass
     return jsonify({"success": True}), 200
 
 
@@ -741,15 +747,10 @@ def mobile_tracking_status_stub():
     auth = require_auth_stub()
     if auth:
         return auth
-    return (
-        jsonify(
-            {
-                "tracking_active": True,
-                "last_update": datetime.datetime.now().isoformat(),
-            }
-        ),
-        200,
-    )
+    return jsonify({
+        "tracking_active": True,
+        "last_update": datetime.now().isoformat()
+    }), 200
 
 
 @mobile_bp.route("/optimize/feedback", methods=["POST"])
@@ -779,12 +780,10 @@ def mobile_offline_download_stub(route_id):
     auth = require_auth_stub()
     if auth:
         return auth
-    return (
-        jsonify(
-            {"route_data": {}, "cache_timestamp": datetime.datetime.now().isoformat()}
-        ),
-        200,
-    )
+    return jsonify({
+        "route_data": {},
+        "cache_timestamp": datetime.now().isoformat()
+    }), 200
 
 
 @mobile_bp.route("/offline/sync", methods=["POST"])

@@ -24,7 +24,9 @@ class MultiObjectiveConfig:
     mutation_rate: float = 0.1
     crossover_rate: float = 0.9
     tournament_size: int = 2
-    objectives: List[str] = None  # ['distance', 'time', 'priority', 'fuel_cost']
+    objectives: List[str] = (
+        None  # ['distance', 'time', 'priority', 'fuel_cost']
+    )
 
     def __post_init__(self):
         if self.objectives is None:
@@ -89,7 +91,9 @@ class MultiObjectiveOptimizer:
         )
 
     def optimize(
-        self, stores: List[Dict[str, Any]], constraints: Optional[Dict[str, Any]] = None
+        self,
+        stores: List[Dict[str, Any]],
+        constraints: Optional[Dict[str, Any]] = None,
     ) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
         """
         Optimize route using multi-objective approach
@@ -151,7 +155,10 @@ class MultiObjectiveOptimizer:
             # Calculate metrics
             processing_time = time.time() - start_time
             metrics_dict = self._calculate_metrics(
-                pareto_front, final_objectives, processing_time, best_compromise_idx
+                pareto_front,
+                final_objectives,
+                processing_time,
+                best_compromise_idx,
             )
 
             logger.info(
@@ -182,7 +189,9 @@ class MultiObjectiveOptimizer:
 
         return population
 
-    def _evaluate_population(self, population: List[List[int]]) -> List[List[float]]:
+    def _evaluate_population(
+        self, population: List[List[int]]
+    ) -> List[List[float]]:
         """Evaluate all objectives for each individual in population"""
         objective_values = []
 
@@ -212,9 +221,13 @@ class MultiObjectiveOptimizer:
         for i in range(n):
             for j in range(n):
                 if i != j:
-                    if self._dominates(objective_values[i], objective_values[j]):
+                    if self._dominates(
+                        objective_values[i], objective_values[j]
+                    ):
                         dominates[i].append(j)
-                    elif self._dominates(objective_values[j], objective_values[i]):
+                    elif self._dominates(
+                        objective_values[j], objective_values[i]
+                    ):
                         dominated_count[i] += 1
 
         # First front (non-dominated solutions)
@@ -263,7 +276,9 @@ class MultiObjectiveOptimizer:
             # For each objective
             for obj_idx in range(len(self.config.objectives)):
                 # Sort by objective value
-                front_sorted = sorted(front, key=lambda x: objective_values[x][obj_idx])
+                front_sorted = sorted(
+                    front, key=lambda x: objective_values[x][obj_idx]
+                )
 
                 # Set boundary points to infinity
                 distances[front_sorted[0]] = float("inf")
@@ -297,7 +312,9 @@ class MultiObjectiveOptimizer:
 
         # Elitism: keep the best solutions
         elite_size = self.config.population_size // 4
-        elite_indices = self._select_elite(fronts, crowding_distances, elite_size)
+        elite_indices = self._select_elite(
+            fronts, crowding_distances, elite_size
+        )
         for idx in elite_indices:
             new_population.append(population[idx][:])
 
@@ -317,7 +334,10 @@ class MultiObjectiveOptimizer:
                     population[parent1_idx], population[parent2_idx]
                 )
             else:
-                child1, child2 = population[parent1_idx][:], population[parent2_idx][:]
+                child1, child2 = (
+                    population[parent1_idx][:],
+                    population[parent2_idx][:],
+                )
 
             # Mutation
             if random.random() < self.config.mutation_rate:
@@ -330,7 +350,10 @@ class MultiObjectiveOptimizer:
         return new_population[: self.config.population_size]
 
     def _select_elite(
-        self, fronts: List[List[int]], crowding_distances: List[float], elite_size: int
+        self,
+        fronts: List[List[int]],
+        crowding_distances: List[float],
+        elite_size: int,
     ) -> List[int]:
         """Select elite solutions based on front rank and crowding distance"""
         elite = []
@@ -357,7 +380,8 @@ class MultiObjectiveOptimizer:
     ) -> int:
         """Tournament selection based on dominance and crowding distance"""
         candidates = random.sample(
-            range(len(population)), min(self.config.tournament_size, len(population))
+            range(len(population)),
+            min(self.config.tournament_size, len(population)),
         )
 
         best_candidate = candidates[0]
@@ -368,14 +392,17 @@ class MultiObjectiveOptimizer:
 
             if candidate_front < best_front or (
                 candidate_front == best_front
-                and crowding_distances[candidate] > crowding_distances[best_candidate]
+                and crowding_distances[candidate]
+                > crowding_distances[best_candidate]
             ):
                 best_candidate = candidate
                 best_front = candidate_front
 
         return best_candidate
 
-    def _get_front_rank(self, individual_idx: int, fronts: List[List[int]]) -> int:
+    def _get_front_rank(
+        self, individual_idx: int, fronts: List[List[int]]
+    ) -> int:
         """Get the front rank of an individual"""
         for rank, front in enumerate(fronts):
             if individual_idx in front:
@@ -436,7 +463,9 @@ class MultiObjectiveOptimizer:
         # Simple approach: select solution closest to ideal point
         ideal_point = []
         for obj_idx in range(len(self.config.objectives)):
-            min_val = min(objective_values[idx][obj_idx] for idx in pareto_front)
+            min_val = min(
+                objective_values[idx][obj_idx] for idx in pareto_front
+            )
             ideal_point.append(min_val)
 
         best_distance = float("inf")
@@ -496,7 +525,9 @@ class MultiObjectiveOptimizer:
         # Reference point (nadir point)
         ref_point = []
         for obj_idx in range(len(self.config.objectives)):
-            max_val = max(objective_values[idx][obj_idx] for idx in pareto_front)
+            max_val = max(
+                objective_values[idx][obj_idx] for idx in pareto_front
+            )
             ref_point.append(max_val * 1.1)  # 10% worse than worst
 
         # Simplified hypervolume calculation

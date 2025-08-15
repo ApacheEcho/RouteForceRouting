@@ -26,7 +26,10 @@ os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
 def allowed_file(filename: str) -> bool:
     """Check if file extension is allowed"""
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+    return (
+        "." in filename
+        and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+    )
 
 
 def validate_file_content(file_path: str) -> bool:
@@ -43,7 +46,8 @@ def validate_file_content(file_path: str) -> bool:
         # Check if there's at least a name field (flexible naming)
         name_fields = ["name", "store_name", "store name", "storename"]
         has_name = any(
-            key.lower().replace(" ", "_") in name_fields for key in first_store.keys()
+            key.lower().replace(" ", "_") in name_fields
+            for key in first_store.keys()
         )
 
         if not has_name:
@@ -72,8 +76,12 @@ def generate():
         time_end = request.form.get("time_end")
         priority_only = "priority_only" in request.form
         exclude_days = request.form.getlist("exclude_days")
-        max_stores_per_chain = request.form.get("max_stores_per_chain", type=int)
-        min_sales_threshold = request.form.get("min_sales_threshold", type=float)
+        max_stores_per_chain = request.form.get(
+            "max_stores_per_chain", type=int
+        )
+        min_sales_threshold = request.form.get(
+            "min_sales_threshold", type=float
+        )
 
         # Validate required file
         if not file or file.filename == "":
@@ -94,14 +102,23 @@ def generate():
         # Validate time window
         if time_start and time_end:
             if time_start >= time_end:
-                return jsonify({"error": "Time start must be before time end"}), 400
+                return (
+                    jsonify({"error": "Time start must be before time end"}),
+                    400,
+                )
 
         # Validate numeric inputs
         if max_stores_per_chain is not None and max_stores_per_chain < 1:
-            return jsonify({"error": "Max stores per chain must be at least 1"}), 400
+            return (
+                jsonify({"error": "Max stores per chain must be at least 1"}),
+                400,
+            )
 
         if min_sales_threshold is not None and min_sales_threshold < 0:
-            return jsonify({"error": "Min sales threshold must be non-negative"}), 400
+            return (
+                jsonify({"error": "Min sales threshold must be non-negative"}),
+                400,
+            )
 
         # Save and process file
         filename = secure_filename(file.filename)
@@ -171,7 +188,10 @@ def generate():
         # Clean up file if it exists
         if "file_path" in locals() and os.path.exists(file_path):
             os.remove(file_path)
-        return jsonify({"error": "Failed to process route", "details": str(e)}), 500
+        return (
+            jsonify({"error": "Failed to process route", "details": str(e)}),
+            500,
+        )
 
 
 def generate_route_with_filters(
@@ -247,13 +267,17 @@ def load_stores_from_file(file_path: str) -> List[Dict[str, Any]]:
 
                 df = pd.read_excel(
                     file_path,
-                    engine="openpyxl" if file_path.endswith(".xlsx") else "xlrd",
+                    engine=(
+                        "openpyxl" if file_path.endswith(".xlsx") else "xlrd"
+                    ),
                 )
                 stores = df.to_dict("records")
                 logger.info(f"Loaded {len(stores)} stores from Excel file")
                 return stores
             except ImportError:
-                logger.error("pandas or openpyxl not installed for Excel support")
+                logger.error(
+                    "pandas or openpyxl not installed for Excel support"
+                )
                 raise NotImplementedError(
                     "Excel file support requires pandas and openpyxl packages"
                 )
@@ -298,7 +322,10 @@ def build_playbook_constraints(
 
     # Add time window constraints
     if time_start and time_end:
-        general_constraints["time_window"] = {"start": time_start, "end": time_end}
+        general_constraints["time_window"] = {
+            "start": time_start,
+            "end": time_end,
+        }
 
     # Add day exclusion constraints
     if exclude_days:
@@ -332,7 +359,9 @@ def build_playbook_constraints(
     return constraints
 
 
-def apply_proximity_sorting(route: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def apply_proximity_sorting(
+    route: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
     """
     Apply proximity-based sorting to route using a simple nearest neighbor approach
 
@@ -347,7 +376,9 @@ def apply_proximity_sorting(route: List[Dict[str, Any]]) -> List[Dict[str, Any]]
 
     try:
         # Check if stores have coordinate information
-        if not all("latitude" in store and "longitude" in store for store in route):
+        if not all(
+            "latitude" in store and "longitude" in store for store in route
+        ):
             logger.warning(
                 "Stores missing coordinate information for proximity sorting"
             )
@@ -369,7 +400,10 @@ def apply_proximity_sorting(route: List[Dict[str, Any]]) -> List[Dict[str, Any]]
                     from geopy.distance import geodesic
 
                     distance = geodesic(
-                        (current_store["latitude"], current_store["longitude"]),
+                        (
+                            current_store["latitude"],
+                            current_store["longitude"],
+                        ),
                         (store["latitude"], store["longitude"]),
                     ).kilometers
                     distances.append((distance, store))
@@ -423,7 +457,9 @@ def export_route():
                 for row in csv.DictReader(playbook_stream):
                     chain = row.get("chain")
                     if chain:
-                        playbook[chain] = {k: v for k, v in row.items() if k != "chain"}
+                        playbook[chain] = {
+                            k: v for k, v in row.items() if k != "chain"
+                        }
             except Exception as e:
                 logger.error(f"Error reading playbook CSV: {str(e)}")
                 return jsonify({"error": "Invalid playbook CSV format"}), 400
@@ -451,7 +487,10 @@ def export_route():
 
     except Exception as e:
         logger.error(f"Error exporting route: {str(e)}")
-        return jsonify({"error": "Failed to export route", "details": str(e)}), 500
+        return (
+            jsonify({"error": "Failed to export route", "details": str(e)}),
+            500,
+        )
 
 
 # --- New API endpoint for playbook constraint validation ---
@@ -471,7 +510,9 @@ def validate_playbook_constraints():
         for idx, row in enumerate(reader, start=1):
             chain = row.get("chain")
             if not chain:
-                invalid_rows.append({"row": idx, "error": "Missing chain value"})
+                invalid_rows.append(
+                    {"row": idx, "error": "Missing chain value"}
+                )
                 continue
 
             for key, value in row.items():
@@ -494,7 +535,11 @@ def validate_playbook_constraints():
                             float(value)
                         except ValueError:
                             invalid_rows.append(
-                                {"row": idx, "field": key, "error": "Must be a float"}
+                                {
+                                    "row": idx,
+                                    "field": key,
+                                    "error": "Must be a float",
+                                }
                             )
 
         if invalid_rows:

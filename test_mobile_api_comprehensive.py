@@ -120,7 +120,9 @@ class TestMobileAPI:
     def test_mobile_routes_management(self, client, auth_headers):
         """Test mobile route management endpoints"""
         # Test getting assigned routes
-        response = client.get("/api/mobile/routes/assigned", headers=auth_headers)
+        response = client.get(
+            "/api/mobile/routes/assigned", headers=auth_headers
+        )
         assert response.status_code == 200
 
         data = json.loads(response.data)
@@ -179,7 +181,9 @@ class TestMobileAPI:
         print("✅ Mobile location update passed")
 
         # Test getting tracking status
-        response = client.get("/api/mobile/tracking/status", headers=auth_headers)
+        response = client.get(
+            "/api/mobile/tracking/status", headers=auth_headers
+        )
         assert response.status_code == 200
 
         status_data = json.loads(response.data)
@@ -268,7 +272,9 @@ class TestMobileAPI:
         }
 
         response = client.post(
-            "/api/mobile/offline/sync", data=json.dumps(sync_data), headers=auth_headers
+            "/api/mobile/offline/sync",
+            data=json.dumps(sync_data),
+            headers=auth_headers,
         )
 
         assert response.status_code == 200
@@ -300,7 +306,9 @@ class TestMobileAPI:
 
         # Test invalid route ID
         headers = {"Authorization": "Bearer test_token_123"}
-        response = client.get("/api/mobile/routes/invalid_route_id", headers=headers)
+        response = client.get(
+            "/api/mobile/routes/invalid_route_id", headers=headers
+        )
         assert response.status_code == 404
 
         # Test invalid JSON data

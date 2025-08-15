@@ -27,7 +27,9 @@ def prometheus_metrics():
         )
     except Exception as e:
         logger.error(f"Failed to export Prometheus metrics: {e}")
-        return Response("# Metrics export failed\n", mimetype="text/plain", status=500)
+        return Response(
+            "# Metrics export failed\n", mimetype="text/plain", status=500
+        )
 
 
 @metrics_bp.route("/metrics/summary", methods=["GET"])

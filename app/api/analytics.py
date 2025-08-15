@@ -176,7 +176,12 @@ def get_mobile_analytics():
         analytics_service = get_analytics_service()
         if not analytics_service:
             return (
-                jsonify({"success": False, "error": "Analytics service not available"}),
+                jsonify(
+                    {
+                        "success": False,
+                        "error": "Analytics service not available",
+                    }
+                ),
                 503,
             )
 
@@ -196,7 +201,12 @@ def get_mobile_analytics():
     except Exception as e:
         logger.error(f"Mobile analytics request failed: {e}")
         return (
-            jsonify({"success": False, "error": "Failed to retrieve mobile analytics"}),
+            jsonify(
+                {
+                    "success": False,
+                    "error": "Failed to retrieve mobile analytics",
+                }
+            ),
             500,
         )
 
@@ -263,7 +273,12 @@ def get_driver_analytics():
         analytics_service = get_analytics_service()
         if not analytics_service:
             return (
-                jsonify({"success": False, "error": "Analytics service not available"}),
+                jsonify(
+                    {
+                        "success": False,
+                        "error": "Analytics service not available",
+                    }
+                ),
                 503,
             )
 
@@ -283,7 +298,12 @@ def get_driver_analytics():
     except Exception as e:
         logger.error(f"Driver analytics request failed: {e}")
         return (
-            jsonify({"success": False, "error": "Failed to retrieve driver analytics"}),
+            jsonify(
+                {
+                    "success": False,
+                    "error": "Failed to retrieve driver analytics",
+                }
+            ),
             500,
         )
 
@@ -313,7 +333,12 @@ def get_route_analytics():
         analytics_service = get_analytics_service()
         if not analytics_service:
             return (
-                jsonify({"success": False, "error": "Analytics service not available"}),
+                jsonify(
+                    {
+                        "success": False,
+                        "error": "Analytics service not available",
+                    }
+                ),
                 503,
             )
 
@@ -333,7 +358,12 @@ def get_route_analytics():
     except Exception as e:
         logger.error(f"Route analytics request failed: {e}")
         return (
-            jsonify({"success": False, "error": "Failed to retrieve route analytics"}),
+            jsonify(
+                {
+                    "success": False,
+                    "error": "Failed to retrieve route analytics",
+                }
+            ),
             500,
         )
 
@@ -363,7 +393,12 @@ def get_api_analytics():
         analytics_service = get_analytics_service()
         if not analytics_service:
             return (
-                jsonify({"success": False, "error": "Analytics service not available"}),
+                jsonify(
+                    {
+                        "success": False,
+                        "error": "Analytics service not available",
+                    }
+                ),
                 503,
             )
 
@@ -383,7 +418,9 @@ def get_api_analytics():
     except Exception as e:
         logger.error(f"API analytics request failed: {e}")
         return (
-            jsonify({"success": False, "error": "Failed to retrieve API analytics"}),
+            jsonify(
+                {"success": False, "error": "Failed to retrieve API analytics"}
+            ),
             500,
         )
 
@@ -399,7 +436,12 @@ def get_system_health():
         analytics_service = get_analytics_service()
         if not analytics_service:
             return (
-                jsonify({"success": False, "error": "Analytics service not available"}),
+                jsonify(
+                    {
+                        "success": False,
+                        "error": "Analytics service not available",
+                    }
+                ),
                 503,
             )
 
@@ -419,7 +461,9 @@ def get_system_health():
     except Exception as e:
         logger.error(f"System health request failed: {e}")
         return (
-            jsonify({"success": False, "error": "Failed to retrieve system health"}),
+            jsonify(
+                {"success": False, "error": "Failed to retrieve system health"}
+            ),
             500,
         )
 
@@ -449,7 +493,12 @@ def get_analytics_report():
         analytics_service = get_analytics_service()
         if not analytics_service:
             return (
-                jsonify({"success": False, "error": "Analytics service not available"}),
+                jsonify(
+                    {
+                        "success": False,
+                        "error": "Analytics service not available",
+                    }
+                ),
                 503,
             )
 
@@ -469,7 +518,12 @@ def get_analytics_report():
     except Exception as e:
         logger.error(f"Analytics report request failed: {e}")
         return (
-            jsonify({"success": False, "error": "Failed to generate analytics report"}),
+            jsonify(
+                {
+                    "success": False,
+                    "error": "Failed to generate analytics report",
+                }
+            ),
             500,
         )
 
@@ -552,12 +606,20 @@ def track_mobile_session():
         data = request.get_json()
 
         if not data or "device_id" not in data:
-            return jsonify({"success": False, "error": "device_id is required"}), 400
+            return (
+                jsonify({"success": False, "error": "device_id is required"}),
+                400,
+            )
 
         analytics_service = get_analytics_service()
         if not analytics_service:
             return (
-                jsonify({"success": False, "error": "Analytics service not available"}),
+                jsonify(
+                    {
+                        "success": False,
+                        "error": "Analytics service not available",
+                    }
+                ),
                 503,
             )
 
@@ -572,13 +634,18 @@ def track_mobile_session():
         analytics_service.track_mobile_session(device_id, session_data)
 
         return (
-            jsonify({"success": True, "message": "Session tracked successfully"}),
+            jsonify(
+                {"success": True, "message": "Session tracked successfully"}
+            ),
             200,
         )
 
     except Exception as e:
         logger.error(f"Session tracking failed: {e}")
-        return jsonify({"success": False, "error": "Failed to track session"}), 500
+        return (
+            jsonify({"success": False, "error": "Failed to track session"}),
+            500,
+        )
 
 
 @analytics_bp.route("/track/driver", methods=["POST"])
@@ -592,12 +659,20 @@ def track_driver_performance():
         data = request.get_json()
 
         if not data or "driver_id" not in data:
-            return jsonify({"success": False, "error": "driver_id is required"}), 400
+            return (
+                jsonify({"success": False, "error": "driver_id is required"}),
+                400,
+            )
 
         analytics_service = get_analytics_service()
         if not analytics_service:
             return (
-                jsonify({"success": False, "error": "Analytics service not available"}),
+                jsonify(
+                    {
+                        "success": False,
+                        "error": "Analytics service not available",
+                    }
+                ),
                 503,
             )
 
@@ -616,7 +691,10 @@ def track_driver_performance():
 
         return (
             jsonify(
-                {"success": True, "message": "Driver performance tracked successfully"}
+                {
+                    "success": True,
+                    "message": "Driver performance tracked successfully",
+                }
             ),
             200,
         )
@@ -624,7 +702,12 @@ def track_driver_performance():
     except Exception as e:
         logger.error(f"Driver performance tracking failed: {e}")
         return (
-            jsonify({"success": False, "error": "Failed to track driver performance"}),
+            jsonify(
+                {
+                    "success": False,
+                    "error": "Failed to track driver performance",
+                }
+            ),
             500,
         )
 
@@ -640,12 +723,20 @@ def track_route_optimization():
         data = request.get_json()
 
         if not data:
-            return jsonify({"success": False, "error": "Route data is required"}), 400
+            return (
+                jsonify({"success": False, "error": "Route data is required"}),
+                400,
+            )
 
         analytics_service = get_analytics_service()
         if not analytics_service:
             return (
-                jsonify({"success": False, "error": "Analytics service not available"}),
+                jsonify(
+                    {
+                        "success": False,
+                        "error": "Analytics service not available",
+                    }
+                ),
                 503,
             )
 
@@ -665,7 +756,10 @@ def track_route_optimization():
 
         return (
             jsonify(
-                {"success": True, "message": "Route optimization tracked successfully"}
+                {
+                    "success": True,
+                    "message": "Route optimization tracked successfully",
+                }
             ),
             200,
         )
@@ -673,7 +767,12 @@ def track_route_optimization():
     except Exception as e:
         logger.error(f"Route optimization tracking failed: {e}")
         return (
-            jsonify({"success": False, "error": "Failed to track route optimization"}),
+            jsonify(
+                {
+                    "success": False,
+                    "error": "Failed to track route optimization",
+                }
+            ),
             500,
         )
 
@@ -689,12 +788,20 @@ def track_system_event():
         data = request.get_json()
 
         if not data or "event_type" not in data:
-            return jsonify({"success": False, "error": "event_type is required"}), 400
+            return (
+                jsonify({"success": False, "error": "event_type is required"}),
+                400,
+            )
 
         analytics_service = get_analytics_service()
         if not analytics_service:
             return (
-                jsonify({"success": False, "error": "Analytics service not available"}),
+                jsonify(
+                    {
+                        "success": False,
+                        "error": "Analytics service not available",
+                    }
+                ),
                 503,
             )
 
@@ -704,20 +811,32 @@ def track_system_event():
         analytics_service.track_system_event(event_type, event_data)
 
         return (
-            jsonify({"success": True, "message": "System event tracked successfully"}),
+            jsonify(
+                {
+                    "success": True,
+                    "message": "System event tracked successfully",
+                }
+            ),
             200,
         )
 
     except Exception as e:
         logger.error(f"System event tracking failed: {e}")
-        return jsonify({"success": False, "error": "Failed to track system event"}), 500
+        return (
+            jsonify(
+                {"success": False, "error": "Failed to track system event"}
+            ),
+            500,
+        )
 
 
 # Error handlers for analytics blueprint
 @analytics_bp.errorhandler(400)
 def analytics_bad_request(error):
     return (
-        jsonify({"success": False, "error": "Bad request", "service": "analytics"}),
+        jsonify(
+            {"success": False, "error": "Bad request", "service": "analytics"}
+        ),
         400,
     )
 
@@ -725,7 +844,9 @@ def analytics_bad_request(error):
 @analytics_bp.errorhandler(401)
 def analytics_unauthorized(error):
     return (
-        jsonify({"success": False, "error": "Unauthorized", "service": "analytics"}),
+        jsonify(
+            {"success": False, "error": "Unauthorized", "service": "analytics"}
+        ),
         401,
     )
 
@@ -748,6 +869,8 @@ def analytics_rate_limit(error):
 @analytics_bp.errorhandler(500)
 def analytics_server_error(error):
     return (
-        jsonify({"success": False, "error": "Server error", "service": "analytics"}),
+        jsonify(
+            {"success": False, "error": "Server error", "service": "analytics"}
+        ),
         500,
     )

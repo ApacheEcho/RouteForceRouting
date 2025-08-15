@@ -108,7 +108,10 @@ def mobile_auth():
 
     except Exception as e:
         logger.error(f"Mobile authentication failed: {e}")
-        return jsonify({"success": False, "error": "Authentication failed"}), 400
+        return (
+            jsonify({"success": False, "error": "Authentication failed"}),
+            400,
+        )
 
 
 @mobile_bp.route("/routes/optimize", methods=["POST"])
@@ -149,7 +152,9 @@ def mobile_optimize_route():
         mobile_prefs = {
             "compress_response": data.get("compress_response", True),
             "include_directions": data.get("include_directions", True),
-            "max_waypoints": data.get("max_waypoints", 23),  # Google Maps limit
+            "max_waypoints": data.get(
+                "max_waypoints", 23
+            ),  # Google Maps limit
             "optimize_for_mobile": True,
         }
 
@@ -162,7 +167,9 @@ def mobile_optimize_route():
         start_time = time.time()
 
         # Generate route with mobile optimizations
-        route_result = routing_service.generate_route(stores=stores, **preferences)
+        route_result = routing_service.generate_route(
+            stores=stores, **preferences
+        )
 
         optimization_time = time.time() - start_time
 
@@ -179,7 +186,9 @@ def mobile_optimize_route():
                     }
                 )
             return (
-                jsonify({"success": False, "error": "Route optimization failed"}),
+                jsonify(
+                    {"success": False, "error": "Route optimization failed"}
+                ),
                 400,
             )
 
@@ -220,7 +229,10 @@ def mobile_optimize_route():
 
     except Exception as e:
         logger.error(f"Mobile route optimization failed: {e}")
-        return jsonify({"success": False, "error": "Route optimization failed"}), 500
+        return (
+            jsonify({"success": False, "error": "Route optimization failed"}),
+            500,
+        )
 
 
 @mobile_bp.route("/routes/traffic", methods=["POST"])
@@ -253,19 +265,29 @@ def mobile_traffic_route():
 
         # Get traffic-aware route
         traffic_route = traffic_service.get_directions_with_traffic(
-            origin=origin, destination=destination, waypoints=waypoints, **nav_prefs
+            origin=origin,
+            destination=destination,
+            waypoints=waypoints,
+            **nav_prefs,
         )
 
         if not traffic_route:
             return (
-                jsonify({"success": False, "error": "Traffic route generation failed"}),
+                jsonify(
+                    {
+                        "success": False,
+                        "error": "Traffic route generation failed",
+                    }
+                ),
                 400,
             )
 
         # Format for mobile navigation
         mobile_directions = _format_directions_for_mobile(traffic_route)
 
-        logger.info(f"Mobile traffic route generated: {origin} to {destination}")
+        logger.info(
+            f"Mobile traffic route generated: {origin} to {destination}"
+        )
 
         return (
             jsonify(
@@ -282,7 +304,10 @@ def mobile_traffic_route():
 
     except Exception as e:
         logger.error(f"Mobile traffic routing failed: {e}")
-        return jsonify({"success": False, "error": "Traffic routing failed"}), 500
+        return (
+            jsonify({"success": False, "error": "Traffic routing failed"}),
+            500,
+        )
 
 
 @mobile_bp.route("/driver/location", methods=["POST"])
@@ -343,13 +368,20 @@ def update_driver_location():
             from app import socketio
 
             socketio.emit(
-                "driver_location_update", location_update, room=f"driver_{driver_id}"
+                "driver_location_update",
+                location_update,
+                room=f"driver_{driver_id}",
             )
         except:
             pass  # WebSocket not available
 
         return (
-            jsonify({"success": True, "received_at": location_update["received_at"]}),
+            jsonify(
+                {
+                    "success": True,
+                    "received_at": location_update["received_at"],
+                }
+            ),
             200,
         )
 
@@ -357,7 +389,10 @@ def update_driver_location():
         return jsonify({"success": False, "error": "Invalid coordinates"}), 400
     except Exception as e:
         logger.error(f"Driver location update failed: {e}")
-        return jsonify({"success": False, "error": "Location update failed"}), 500
+        return (
+            jsonify({"success": False, "error": "Location update failed"}),
+            500,
+        )
 
 
 @mobile_bp.route("/driver/status", methods=["POST"])
@@ -404,7 +439,9 @@ def update_driver_status():
         try:
             from app import socketio
 
-            socketio.emit("driver_status_update", status_update, room="dispatch")
+            socketio.emit(
+                "driver_status_update", status_update, room="dispatch"
+            )
         except:
             pass
 
@@ -423,7 +460,10 @@ def update_driver_status():
 
     except Exception as e:
         logger.error(f"Driver status update failed: {e}")
-        return jsonify({"success": False, "error": "Status update failed"}), 500
+        return (
+            jsonify({"success": False, "error": "Status update failed"}),
+            500,
+        )
 
 
 @mobile_bp.route("/sync/offline", methods=["POST"])
@@ -439,7 +479,12 @@ def sync_offline_data():
         device_id = data.get("device_id")
         offline_data = data.get("offline_data", [])
 
-        sync_results = {"processed": 0, "failed": 0, "duplicates": 0, "errors": []}
+        sync_results = {
+            "processed": 0,
+            "failed": 0,
+            "duplicates": 0,
+            "errors": [],
+        }
 
         # Process offline data
         for item in offline_data:
@@ -524,7 +569,9 @@ def _compress_route_for_mobile(
     return compressed
 
 
-def _format_directions_for_mobile(directions_data: Dict[str, Any]) -> Dict[str, Any]:
+def _format_directions_for_mobile(
+    directions_data: Dict[str, Any],
+) -> Dict[str, Any]:
     """
     Format directions data for mobile navigation
     """
@@ -568,7 +615,9 @@ def _format_directions_for_mobile(directions_data: Dict[str, Any]) -> Dict[str, 
 @mobile_bp.errorhandler(400)
 def mobile_bad_request(error):
     return (
-        jsonify({"success": False, "error": "Bad request", "mobile_friendly": True}),
+        jsonify(
+            {"success": False, "error": "Bad request", "mobile_friendly": True}
+        ),
         400,
     )
 
@@ -576,7 +625,13 @@ def mobile_bad_request(error):
 @mobile_bp.errorhandler(401)
 def mobile_unauthorized(error):
     return (
-        jsonify({"success": False, "error": "Unauthorized", "mobile_friendly": True}),
+        jsonify(
+            {
+                "success": False,
+                "error": "Unauthorized",
+                "mobile_friendly": True,
+            }
+        ),
         401,
     )
 
@@ -599,6 +654,12 @@ def mobile_rate_limit(error):
 @mobile_bp.errorhandler(500)
 def mobile_server_error(error):
     return (
-        jsonify({"success": False, "error": "Server error", "mobile_friendly": True}),
+        jsonify(
+            {
+                "success": False,
+                "error": "Server error",
+                "mobile_friendly": True,
+            }
+        ),
         500,
     )

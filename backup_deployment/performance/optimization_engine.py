@@ -103,7 +103,9 @@ class PerformanceMonitor:
             return
 
         self.monitoring_active = True
-        self.monitor_thread = threading.Thread(target=self._monitor_loop, daemon=True)
+        self.monitor_thread = threading.Thread(
+            target=self._monitor_loop, daemon=True
+        )
         self.monitor_thread.start()
         logger.info("🚀 Performance monitoring started")
 
@@ -143,7 +145,9 @@ class PerformanceMonitor:
         request_count = len(self.active_requests)
 
         # Cache metrics
-        total_cache_requests = self.cache_stats["hits"] + self.cache_stats["misses"]
+        total_cache_requests = (
+            self.cache_stats["hits"] + self.cache_stats["misses"]
+        )
         cache_hit_rate = (
             (self.cache_stats["hits"] / total_cache_requests * 100)
             if total_cache_requests > 0
@@ -157,7 +161,9 @@ class PerformanceMonitor:
             cache_hit_rate=cache_hit_rate,
         )
 
-    def _check_optimization_triggers(self, metrics: PerformanceMetrics) -> None:
+    def _check_optimization_triggers(
+        self, metrics: PerformanceMetrics
+    ) -> None:
         """Check if optimization is needed"""
         optimizations = []
 
@@ -192,7 +198,9 @@ class PerformanceMonitor:
 
     def _optimize_memory_usage(self) -> None:
         """Optimize memory usage"""
-        logger.warning("💾 High memory usage detected - triggering memory optimization")
+        logger.warning(
+            "💾 High memory usage detected - triggering memory optimization"
+        )
 
         # Aggressive garbage collection
         for _ in range(3):
@@ -241,7 +249,9 @@ class PerformanceMonitor:
         with self._lock:
             return self.metrics_history[-1] if self.metrics_history else None
 
-    def get_metrics_history(self, last_n: int = 100) -> List[PerformanceMetrics]:
+    def get_metrics_history(
+        self, last_n: int = 100
+    ) -> List[PerformanceMetrics]:
         """Get performance metrics history"""
         with self._lock:
             return list(self.metrics_history)[-last_n:]
@@ -271,7 +281,9 @@ class PerformanceOptimizer:
         def decorator(func: Callable) -> Callable:
             @wraps(func)
             def wrapper(*args, **kwargs):
-                request_id = f"{func.__name__}_{id(threading.current_thread())}"
+                request_id = (
+                    f"{func.__name__}_{id(threading.current_thread())}"
+                )
 
                 with self.monitor.track_request(request_id):
                     start_time = time.time()
@@ -354,8 +366,12 @@ class PerformanceOptimizer:
         # Calculate trends
         if len(metrics_history) >= 10:
             recent_cpu = sum(m.cpu_percent for m in metrics_history[-10:]) / 10
-            recent_memory = sum(m.memory_mb for m in metrics_history[-10:]) / 10
-            recent_cache_hit = sum(m.cache_hit_rate for m in metrics_history[-10:]) / 10
+            recent_memory = (
+                sum(m.memory_mb for m in metrics_history[-10:]) / 10
+            )
+            recent_cache_hit = (
+                sum(m.cache_hit_rate for m in metrics_history[-10:]) / 10
+            )
         else:
             recent_cpu = current_metrics.cpu_percent
             recent_memory = current_metrics.memory_mb
@@ -370,11 +386,17 @@ class PerformanceOptimizer:
 
         recommendations = []
         if recent_cpu > 70:
-            recommendations.append("High CPU usage detected - consider optimization")
+            recommendations.append(
+                "High CPU usage detected - consider optimization"
+            )
         if recent_memory > 500:
-            recommendations.append("High memory usage - implement memory optimization")
+            recommendations.append(
+                "High memory usage - implement memory optimization"
+            )
         if recent_cache_hit < 60:
-            recommendations.append("Low cache hit rate - review caching strategy")
+            recommendations.append(
+                "Low cache hit rate - review caching strategy"
+            )
 
         return {
             "status": status,
@@ -423,7 +445,11 @@ class PerformanceOptimizer:
                 unit="seconds",
                 threshold_warning=5.0,
                 threshold_critical=10.0,
-                status="warning" if data.get("processing_time", 0) > 5.0 else "normal",
+                status=(
+                    "warning"
+                    if data.get("processing_time", 0) > 5.0
+                    else "normal"
+                ),
             )
             self._add_metric("optimization_performance", time_metric)
 
@@ -436,7 +462,9 @@ class PerformanceOptimizer:
                 threshold_warning=70.0,
                 threshold_critical=50.0,
                 status=(
-                    "warning" if data.get("optimization_score", 0) < 70.0 else "normal"
+                    "warning"
+                    if data.get("optimization_score", 0) < 70.0
+                    else "normal"
                 ),
             )
             self._add_metric("optimization_quality", score_metric)
@@ -521,10 +549,14 @@ class PerformanceOptimizer:
             return {
                 "total_optimizations": len(recent_times),
                 "avg_processing_time": (
-                    sum(recent_times) / len(recent_times) if recent_times else 0
+                    sum(recent_times) / len(recent_times)
+                    if recent_times
+                    else 0
                 ),
                 "avg_optimization_score": (
-                    sum(recent_scores) / len(recent_scores) if recent_scores else 0
+                    sum(recent_scores) / len(recent_scores)
+                    if recent_scores
+                    else 0
                 ),
                 "avg_improvement": (
                     sum(recent_improvements) / len(recent_improvements)
@@ -555,7 +587,9 @@ class PerformanceOptimizer:
                     else 0
                 ),
                 "daily_avg": (
-                    sum(last_day_times) / len(last_day_times) if last_day_times else 0
+                    sum(last_day_times) / len(last_day_times)
+                    if last_day_times
+                    else 0
                 ),
                 "trend": (
                     "improving"
@@ -631,7 +665,10 @@ class PerformanceOptimizer:
                 metric_time = datetime.fromisoformat(
                     metric.timestamp.replace("Z", "+00:00")
                 )
-                if metric_time > cutoff_time and metric.metric_type == metric_type:
+                if (
+                    metric_time > cutoff_time
+                    and metric.metric_type == metric_type
+                ):
                     recent_metrics.append(metric.value)
 
             return recent_metrics

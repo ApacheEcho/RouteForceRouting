@@ -30,7 +30,10 @@ class PerformanceMonitoringTest:
     def authenticate(self):
         """Authenticate and get JWT token"""
         try:
-            auth_data = {"email": "admin@routeforce.com", "password": "admin123"}
+            auth_data = {
+                "email": "admin@routeforce.com",
+                "password": "admin123",
+            }
 
             response = requests.post(f"{BASE_URL}/auth/login", json=auth_data)
             if response.status_code == 200:
@@ -63,8 +66,12 @@ class PerformanceMonitoringTest:
             if response.status_code == 200:
                 health_data = response.json()
                 logger.info("✓ Health check successful")
-                logger.info(f"  Service: {health_data.get('service', 'Unknown')}")
-                logger.info(f"  Version: {health_data.get('version', 'Unknown')}")
+                logger.info(
+                    f"  Service: {health_data.get('service', 'Unknown')}"
+                )
+                logger.info(
+                    f"  Version: {health_data.get('version', 'Unknown')}"
+                )
                 return True
             else:
                 logger.error(f"✗ Health check failed: {response.status_code}")
@@ -80,7 +87,8 @@ class PerformanceMonitoringTest:
 
         try:
             response = requests.post(
-                f"{BASE_URL}/api/monitoring/start", headers=self.get_auth_headers()
+                f"{BASE_URL}/api/monitoring/start",
+                headers=self.get_auth_headers(),
             )
 
             if response.status_code == 200:
@@ -127,7 +135,9 @@ class PerformanceMonitoringTest:
                         value = metric_data.get("value", 0)
                         unit = metric_data.get("unit", "")
                         status = metric_data.get("status", "unknown")
-                        logger.info(f"  {metric_type}: {value:.1f}{unit} ({status})")
+                        logger.info(
+                            f"  {metric_type}: {value:.1f}{unit} ({status})"
+                        )
 
                     return True
                 else:
@@ -159,20 +169,30 @@ class PerformanceMonitoringTest:
                     health_score = health_data.get("health_score", {})
                     logger.info("✓ Health score calculation successful")
                     logger.info(f"  Score: {health_score.get('score', 0)}/100")
-                    logger.info(f"  Status: {health_score.get('status', 'unknown')}")
+                    logger.info(
+                        f"  Status: {health_score.get('status', 'unknown')}"
+                    )
 
                     details = health_score.get("details", {})
                     if details:
-                        logger.info(f"  Normal: {details.get('normal', 0)} metrics")
-                        logger.info(f"  Warning: {details.get('warning', 0)} metrics")
-                        logger.info(f"  Critical: {details.get('critical', 0)} metrics")
+                        logger.info(
+                            f"  Normal: {details.get('normal', 0)} metrics"
+                        )
+                        logger.info(
+                            f"  Warning: {details.get('warning', 0)} metrics"
+                        )
+                        logger.info(
+                            f"  Critical: {details.get('critical', 0)} metrics"
+                        )
 
                     return True
                 else:
                     logger.error(f"✗ Health score failed: {health_data}")
                     return False
             else:
-                logger.error(f"✗ Health score request failed: {response.status_code}")
+                logger.error(
+                    f"✗ Health score request failed: {response.status_code}"
+                )
                 return False
 
         except Exception as e:
@@ -229,7 +249,8 @@ class PerformanceMonitoringTest:
 
         try:
             response = requests.get(
-                f"{BASE_URL}/api/monitoring/alerts", headers=self.get_auth_headers()
+                f"{BASE_URL}/api/monitoring/alerts",
+                headers=self.get_auth_headers(),
             )
 
             if response.status_code == 200:
@@ -250,7 +271,9 @@ class PerformanceMonitoringTest:
                     logger.error(f"✗ Alerts system failed: {alerts_data}")
                     return False
             else:
-                logger.error(f"✗ Alerts system request failed: {response.status_code}")
+                logger.error(
+                    f"✗ Alerts system request failed: {response.status_code}"
+                )
                 return False
 
         except Exception as e:
@@ -263,7 +286,8 @@ class PerformanceMonitoringTest:
 
         try:
             response = requests.get(
-                f"{BASE_URL}/api/monitoring/summary", headers=self.get_auth_headers()
+                f"{BASE_URL}/api/monitoring/summary",
+                headers=self.get_auth_headers(),
             )
 
             if response.status_code == 200:
@@ -274,20 +298,28 @@ class PerformanceMonitoringTest:
 
                     # Show key summary information
                     health_score = summary.get("health_score", {})
-                    logger.info(f"  Health Score: {health_score.get('score', 0)}/100")
+                    logger.info(
+                        f"  Health Score: {health_score.get('score', 0)}/100"
+                    )
 
                     current_metrics = summary.get("current_metrics", {})
-                    logger.info(f"  Current Metrics: {len(current_metrics)} types")
+                    logger.info(
+                        f"  Current Metrics: {len(current_metrics)} types"
+                    )
 
                     active_alerts = summary.get("active_alerts", [])
                     logger.info(f"  Active Alerts: {len(active_alerts)}")
 
-                    monitoring_status = summary.get("monitoring_status", "unknown")
+                    monitoring_status = summary.get(
+                        "monitoring_status", "unknown"
+                    )
                     logger.info(f"  Monitoring Status: {monitoring_status}")
 
                     return True
                 else:
-                    logger.error(f"✗ Performance summary failed: {summary_data}")
+                    logger.error(
+                        f"✗ Performance summary failed: {summary_data}"
+                    )
                     return False
             else:
                 logger.error(
@@ -314,11 +346,15 @@ class PerformanceMonitoringTest:
                 if info_data.get("success"):
                     system_info = info_data.get("system_info", {})
                     logger.info("✓ System info retrieval successful")
-                    logger.info(f"  Platform: {system_info.get('platform', 'unknown')}")
+                    logger.info(
+                        f"  Platform: {system_info.get('platform', 'unknown')}"
+                    )
                     logger.info(
                         f"  Python Version: {system_info.get('python_version', 'unknown')}"
                     )
-                    logger.info(f"  CPU Count: {system_info.get('cpu_count', 0)}")
+                    logger.info(
+                        f"  CPU Count: {system_info.get('cpu_count', 0)}"
+                    )
                     logger.info(
                         f"  Process Count: {system_info.get('process_count', 0)}"
                     )
@@ -328,7 +364,9 @@ class PerformanceMonitoringTest:
                     logger.error(f"✗ System info failed: {info_data}")
                     return False
             else:
-                logger.error(f"✗ System info request failed: {response.status_code}")
+                logger.error(
+                    f"✗ System info request failed: {response.status_code}"
+                )
                 return False
 
         except Exception as e:

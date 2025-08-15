@@ -98,7 +98,9 @@ def test_algorithms_endpoint():
                         print(
                             f"     {param_name}: {param_info.get('description', 'No description')}"
                         )
-                        print(f"       Default: {param_info.get('default', 'N/A')}")
+                        print(
+                            f"       Default: {param_info.get('default', 'N/A')}"
+                        )
 
                 return True
             else:
@@ -152,7 +154,9 @@ def test_create_route_with_simulated_annealing():
                 metadata = route_data["metadata"]
 
                 print(f"   Route length: {len(route)} stops")
-                print(f"   Algorithm used: {metadata.get('algorithm_used', 'Unknown')}")
+                print(
+                    f"   Algorithm used: {metadata.get('algorithm_used', 'Unknown')}"
+                )
                 print(
                     f"   Processing time: {metadata.get('processing_time', 'N/A'):.2f}s"
                 )
@@ -209,7 +213,8 @@ def test_dedicated_simulated_annealing_endpoint():
         print("Sending request to dedicated SA endpoint...")
         start_time = time.time()
         response = requests.post(
-            f"{API_BASE}/routes/optimize/simulated_annealing", json=request_data
+            f"{API_BASE}/routes/optimize/simulated_annealing",
+            json=request_data,
         )
         api_time = time.time() - start_time
 
@@ -223,7 +228,9 @@ def test_dedicated_simulated_annealing_endpoint():
                 metadata = route_data["metadata"]
 
                 print(f"   Route length: {len(route)} stops")
-                print(f"   Algorithm used: {metadata.get('algorithm_used', 'Unknown')}")
+                print(
+                    f"   Algorithm used: {metadata.get('algorithm_used', 'Unknown')}"
+                )
                 print(
                     f"   Processing time: {metadata.get('processing_time', 'N/A'):.2f}s"
                 )
@@ -313,7 +320,8 @@ def test_simulated_annealing_performance():
         try:
             start_time = time.time()
             response = requests.post(
-                f"{API_BASE}/routes/optimize/simulated_annealing", json=request_data
+                f"{API_BASE}/routes/optimize/simulated_annealing",
+                json=request_data,
             )
             api_time = time.time() - start_time
 
@@ -325,7 +333,9 @@ def test_simulated_annealing_performance():
                     "name": test_config["name"],
                     "api_time": api_time,
                     "processing_time": metadata.get("processing_time", 0),
-                    "optimization_score": metadata.get("optimization_score", 0),
+                    "optimization_score": metadata.get(
+                        "optimization_score", 0
+                    ),
                     "route_length": len(route_data["route"]),
                 }
                 results.append(result)
@@ -376,7 +386,11 @@ def test_error_handling():
             "name": "Single store",
             "data": {
                 "stores": [
-                    {"name": "Store1", "latitude": 37.7749, "longitude": -122.4194}
+                    {
+                        "name": "Store1",
+                        "latitude": 37.7749,
+                        "longitude": -122.4194,
+                    }
                 ],
                 "constraints": {},
                 "sa_config": {},
@@ -399,7 +413,9 @@ def test_error_handling():
             if response.status_code == 400:
                 error_data = response.json()
                 if "error" in error_data:
-                    print(f"  ✅ Correctly returned error: {error_data['error']}")
+                    print(
+                        f"  ✅ Correctly returned error: {error_data['error']}"
+                    )
                     passed_tests += 1
                 else:
                     print(f"  ❌ Missing error message in response")
@@ -437,12 +453,20 @@ def main():
     test_results.append(("API Health Check", test_api_health()))
     test_results.append(("Algorithms Endpoint", test_algorithms_endpoint()))
     test_results.append(
-        ("Route Creation with SA", test_create_route_with_simulated_annealing())
+        (
+            "Route Creation with SA",
+            test_create_route_with_simulated_annealing(),
+        )
     )
     test_results.append(
-        ("Dedicated SA Endpoint", test_dedicated_simulated_annealing_endpoint())
+        (
+            "Dedicated SA Endpoint",
+            test_dedicated_simulated_annealing_endpoint(),
+        )
     )
-    test_results.append(("Performance Testing", test_simulated_annealing_performance()))
+    test_results.append(
+        ("Performance Testing", test_simulated_annealing_performance())
+    )
     test_results.append(("Error Handling", test_error_handling()))
 
     # Print summary

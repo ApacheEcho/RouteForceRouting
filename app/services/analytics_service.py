@@ -86,7 +86,9 @@ class AnalyticsService:
         except Exception as e:
             logger.error(f"Failed to track API usage: {e}")
 
-    def track_driver_performance(self, driver_id: str, metrics: Dict[str, Any]) -> None:
+    def track_driver_performance(
+        self, driver_id: str, metrics: Dict[str, Any]
+    ) -> None:
         """Track driver performance metrics"""
         try:
             driver_record = {
@@ -117,7 +119,9 @@ class AnalyticsService:
                 "optimization_time": route_data.get("optimization_time"),
                 "total_distance": route_data.get("total_distance"),
                 "total_time": route_data.get("total_time"),
-                "improvement_percentage": route_data.get("improvement_percentage"),
+                "improvement_percentage": route_data.get(
+                    "improvement_percentage"
+                ),
                 "timestamp": datetime.utcnow().isoformat(),
                 "success": route_data.get("success", False),
                 "traffic_aware": route_data.get("traffic_aware", False),
@@ -134,7 +138,9 @@ class AnalyticsService:
         except Exception as e:
             logger.error(f"Failed to track route optimization: {e}")
 
-    def track_system_event(self, event_type: str, event_data: Dict[str, Any]) -> None:
+    def track_system_event(
+        self, event_type: str, event_data: Dict[str, Any]
+    ) -> None:
         """Track system events for monitoring and debugging"""
         try:
             event_record = {
@@ -179,7 +185,9 @@ class AnalyticsService:
             )
 
             # API usage statistics
-            total_api_calls = sum(session["api_calls"] for session in recent_sessions)
+            total_api_calls = sum(
+                session["api_calls"] for session in recent_sessions
+            )
             avg_api_calls = (
                 total_api_calls / total_sessions if total_sessions > 0 else 0
             )
@@ -219,7 +227,8 @@ class AnalyticsService:
                 driver_recent = [
                     metric
                     for metric in metrics_list
-                    if datetime.fromisoformat(metric["timestamp"]) >= cutoff_time
+                    if datetime.fromisoformat(metric["timestamp"])
+                    >= cutoff_time
                 ]
                 recent_metrics.extend(driver_recent)
 
@@ -228,26 +237,36 @@ class AnalyticsService:
 
             # Calculate performance statistics
             location_accuracies = [
-                m["location_accuracy"] for m in recent_metrics if m["location_accuracy"]
+                m["location_accuracy"]
+                for m in recent_metrics
+                if m["location_accuracy"]
             ]
             speeds = [m["speed"] for m in recent_metrics if m["speed"]]
             customer_ratings = [
-                m["customer_rating"] for m in recent_metrics if m["customer_rating"]
+                m["customer_rating"]
+                for m in recent_metrics
+                if m["customer_rating"]
             ]
 
             return {
                 "timeframe": timeframe,
-                "total_drivers": len(set(m["driver_id"] for m in recent_metrics)),
+                "total_drivers": len(
+                    set(m["driver_id"] for m in recent_metrics)
+                ),
                 "total_location_updates": len(recent_metrics),
                 "avg_location_accuracy": (
-                    round(mean(location_accuracies), 2) if location_accuracies else 0
+                    round(mean(location_accuracies), 2)
+                    if location_accuracies
+                    else 0
                 ),
                 "avg_speed": round(mean(speeds), 2) if speeds else 0,
                 "avg_customer_rating": (
                     round(mean(customer_ratings), 2) if customer_ratings else 0
                 ),
                 "top_performers": self._get_top_performing_drivers(timeframe),
-                "performance_trends": self._get_driver_performance_trends(timeframe),
+                "performance_trends": self._get_driver_performance_trends(
+                    timeframe
+                ),
             }
 
         except Exception as e:
@@ -272,10 +291,14 @@ class AnalyticsService:
             # Calculate route statistics
             successful_routes = [r for r in recent_routes if r["success"]]
             optimization_times = [
-                r["optimization_time"] for r in recent_routes if r["optimization_time"]
+                r["optimization_time"]
+                for r in recent_routes
+                if r["optimization_time"]
             ]
             total_distances = [
-                r["total_distance"] for r in recent_routes if r["total_distance"]
+                r["total_distance"]
+                for r in recent_routes
+                if r["total_distance"]
             ]
             improvements = [
                 r["improvement_percentage"]
@@ -283,7 +306,9 @@ class AnalyticsService:
                 if r["improvement_percentage"]
             ]
 
-            algorithm_usage = Counter(route["algorithm"] for route in recent_routes)
+            algorithm_usage = Counter(
+                route["algorithm"] for route in recent_routes
+            )
 
             return {
                 "timeframe": timeframe,
@@ -293,12 +318,16 @@ class AnalyticsService:
                     len(successful_routes) / len(recent_routes) * 100, 2
                 ),
                 "avg_optimization_time": (
-                    round(mean(optimization_times), 3) if optimization_times else 0
+                    round(mean(optimization_times), 3)
+                    if optimization_times
+                    else 0
                 ),
                 "avg_total_distance": (
                     round(mean(total_distances), 2) if total_distances else 0
                 ),
-                "avg_improvement": round(mean(improvements), 2) if improvements else 0,
+                "avg_improvement": (
+                    round(mean(improvements), 2) if improvements else 0
+                ),
                 "algorithm_usage": dict(algorithm_usage),
                 "traffic_aware_routes": len(
                     [r for r in recent_routes if r["traffic_aware"]]
@@ -341,16 +370,26 @@ class AnalyticsService:
                 return {"timeframe": timeframe, "total_requests": 0}
 
             # Calculate API statistics
-            endpoint_usage = Counter(call["endpoint"] for call in recent_api_calls)
-            status_codes = Counter(call["status_code"] for call in recent_api_calls)
-            response_times = [call["response_time"] for call in recent_api_calls]
+            endpoint_usage = Counter(
+                call["endpoint"] for call in recent_api_calls
+            )
+            status_codes = Counter(
+                call["status_code"] for call in recent_api_calls
+            )
+            response_times = [
+                call["response_time"] for call in recent_api_calls
+            ]
             mobile_requests = len(
                 [call for call in recent_api_calls if call["is_mobile"]]
             )
 
             # Error rate calculation
             error_requests = len(
-                [call for call in recent_api_calls if call["status_code"] >= 400]
+                [
+                    call
+                    for call in recent_api_calls
+                    if call["status_code"] >= 400
+                ]
             )
             error_rate = (
                 (error_requests / len(recent_api_calls)) * 100
@@ -373,14 +412,18 @@ class AnalyticsService:
                         round(mean(response_times), 3) if response_times else 0
                     ),
                     "median_response_time": (
-                        round(median(response_times), 3) if response_times else 0
+                        round(median(response_times), 3)
+                        if response_times
+                        else 0
                     ),
                     "p95_response_time": (
                         round(np.percentile(response_times, 95), 3)
                         if response_times
                         else 0
                     ),
-                    "max_response_time": max(response_times) if response_times else 0,
+                    "max_response_time": (
+                        max(response_times) if response_times else 0
+                    ),
                 },
             }
 
@@ -392,15 +435,19 @@ class AnalyticsService:
         """Get overall system health metrics"""
         try:
             # Recent performance data
-            recent_response_times = self.performance_data["api_response_times"][-1000:]
-            recent_optimization_times = self.performance_data["optimization_times"][
-                -100:
-            ]
+            recent_response_times = self.performance_data[
+                "api_response_times"
+            ][-1000:]
+            recent_optimization_times = self.performance_data[
+                "optimization_times"
+            ][-100:]
 
             # Recent system events
             recent_events = self.system_events[-100:]
             error_events = [
-                e for e in recent_events if e["severity"] in ["error", "critical"]
+                e
+                for e in recent_events
+                if e["severity"] in ["error", "critical"]
             ]
 
             # Health score calculation (0-100)
@@ -433,7 +480,9 @@ class AnalyticsService:
             logger.error(f"Failed to get system health: {e}")
             return {"status": "error", "error": str(e)}
 
-    def generate_analytics_report(self, timeframe: str = "24h") -> Dict[str, Any]:
+    def generate_analytics_report(
+        self, timeframe: str = "24h"
+    ) -> Dict[str, Any]:
         """Generate comprehensive analytics report"""
         try:
             return {
@@ -472,8 +521,17 @@ class AnalyticsService:
         if not user_agent:
             return False
 
-        mobile_indicators = ["mobile", "iphone", "android", "ios", "tablet", "ipad"]
-        return any(indicator in user_agent.lower() for indicator in mobile_indicators)
+        mobile_indicators = [
+            "mobile",
+            "iphone",
+            "android",
+            "ios",
+            "tablet",
+            "ipad",
+        ]
+        return any(
+            indicator in user_agent.lower() for indicator in mobile_indicators
+        )
 
     def _empty_analytics_response(self) -> Dict[str, Any]:
         """Return empty analytics response"""
@@ -488,7 +546,9 @@ class AnalyticsService:
             "most_used_features": [],
         }
 
-    def _get_top_performing_drivers(self, timeframe: str) -> List[Dict[str, Any]]:
+    def _get_top_performing_drivers(
+        self, timeframe: str
+    ) -> List[Dict[str, Any]]:
         """Get top performing drivers for timeframe"""
         try:
             cutoff_time = self._get_cutoff_time(timeframe)
@@ -518,7 +578,9 @@ class AnalyticsService:
 
             # Return top 5 drivers
             return sorted(
-                driver_scores.values(), key=lambda x: x["avg_rating"], reverse=True
+                driver_scores.values(),
+                key=lambda x: x["avg_rating"],
+                reverse=True,
             )[:5]
 
         except Exception as e:
@@ -528,7 +590,11 @@ class AnalyticsService:
     def _get_driver_performance_trends(self, timeframe: str) -> Dict[str, Any]:
         """Get driver performance trends"""
         # Simplified trend analysis
-        return {"improving_drivers": 0, "declining_drivers": 0, "stable_drivers": 0}
+        return {
+            "improving_drivers": 0,
+            "declining_drivers": 0,
+            "stable_drivers": 0,
+        }
 
     def _calculate_health_score(
         self, response_times: List[float], error_events: List[Dict]

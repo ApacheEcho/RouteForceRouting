@@ -69,7 +69,9 @@ def init_analytics_websocket_events(websocket_manager):
             )
 
         except Exception as e:
-            emit("error", {"message": f"Error generating prediction: {str(e)}"})
+            emit(
+                "error", {"message": f"Error generating prediction: {str(e)}"}
+            )
 
     @websocket_manager.socketio.on("subscribe_analytics")
     def handle_analytics_subscription(data):
@@ -93,7 +95,10 @@ def init_analytics_websocket_events(websocket_manager):
             # Note: Periodic updates would be handled by a background task
 
         except Exception as e:
-            emit("error", {"message": f"Error subscribing to analytics: {str(e)}"})
+            emit(
+                "error",
+                {"message": f"Error subscribing to analytics: {str(e)}"},
+            )
 
 
 def broadcast_analytics_insights(socketio, insight_data):

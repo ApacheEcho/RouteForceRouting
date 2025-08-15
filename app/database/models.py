@@ -104,12 +104,16 @@ class PerformanceTrendDB(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     metric_name = Column(String(100), nullable=False, index=True)
     current_value = Column(Float, nullable=False)
-    trend_direction = Column(String(20), nullable=False)  # improving, declining, stable
+    trend_direction = Column(
+        String(20), nullable=False
+    )  # improving, declining, stable
     change_percentage = Column(Float)
     forecast_7d = Column(Float)
     forecast_30d = Column(Float)
     timeframe_days = Column(Integer, default=30)
-    calculation_timestamp = Column(DateTime, default=datetime.utcnow, index=True)
+    calculation_timestamp = Column(
+        DateTime, default=datetime.utcnow, index=True
+    )
 
 
 class FleetInsightDB(Base):
@@ -124,7 +128,9 @@ class FleetInsightDB(Base):
     recommendations = Column(JSON)  # Store as JSON array
     insights_summary = Column(JSON)  # Store insights as JSON
     trends_summary = Column(JSON)  # Store trends as JSON
-    calculation_timestamp = Column(DateTime, default=datetime.utcnow, index=True)
+    calculation_timestamp = Column(
+        DateTime, default=datetime.utcnow, index=True
+    )
 
 
 class AnalyticsAlert(Base):
@@ -134,7 +140,9 @@ class AnalyticsAlert(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     alert_type = Column(String(100), nullable=False, index=True)
-    severity = Column(String(20), nullable=False)  # low, medium, high, critical
+    severity = Column(
+        String(20), nullable=False
+    )  # low, medium, high, critical
     title = Column(String(200), nullable=False)
     message = Column(Text, nullable=False)
     metric_name = Column(String(100))
@@ -153,7 +161,8 @@ class DatabaseManager:
     """Database manager for analytics data"""
 
     def __init__(
-        self, database_url: str = "postgresql://user:password@localhost/routeforce"
+        self,
+        database_url: str = "postgresql://user:password@localhost/routeforce",
     ):
         self.engine = create_engine(database_url)
         self.SessionLocal = sessionmaker(
@@ -223,10 +232,16 @@ class DatabaseManager:
                 route_id=prediction_data["route_id"],
                 predicted_duration=prediction_data["predicted_duration"],
                 predicted_fuel_cost=prediction_data["predicted_fuel_cost"],
-                confidence_interval_low=prediction_data["confidence_interval"][0],
-                confidence_interval_high=prediction_data["confidence_interval"][1],
+                confidence_interval_low=prediction_data["confidence_interval"][
+                    0
+                ],
+                confidence_interval_high=prediction_data[
+                    "confidence_interval"
+                ][1],
                 risk_factors=prediction_data["risk_factors"],
-                optimization_suggestions=prediction_data["optimization_suggestions"],
+                optimization_suggestions=prediction_data[
+                    "optimization_suggestions"
+                ],
             )
             session.add(prediction)
             session.commit()
@@ -260,7 +275,10 @@ class DatabaseManager:
         session = self.get_session()
         try:
             routes = (
-                session.query(Route).order_by(Route.timestamp.desc()).limit(limit).all()
+                session.query(Route)
+                .order_by(Route.timestamp.desc())
+                .limit(limit)
+                .all()
             )
             return [self._route_to_dict(route) for route in routes]
         finally:
@@ -317,7 +335,9 @@ class DatabaseManager:
             "is_weekend": route.is_weekend,
             "is_rush_hour": route.is_rush_hour,
             "avg_stop_distance": route.avg_stop_distance,
-            "timestamp": route.timestamp.isoformat() if route.timestamp else None,
+            "timestamp": (
+                route.timestamp.isoformat() if route.timestamp else None
+            ),
         }
 
     def _alert_to_dict(self, alert):
@@ -336,10 +356,16 @@ class DatabaseManager:
             "is_acknowledged": alert.is_acknowledged,
             "acknowledged_by": alert.acknowledged_by,
             "acknowledged_at": (
-                alert.acknowledged_at.isoformat() if alert.acknowledged_at else None
+                alert.acknowledged_at.isoformat()
+                if alert.acknowledged_at
+                else None
             ),
-            "created_at": alert.created_at.isoformat() if alert.created_at else None,
-            "resolved_at": alert.resolved_at.isoformat() if alert.resolved_at else None,
+            "created_at": (
+                alert.created_at.isoformat() if alert.created_at else None
+            ),
+            "resolved_at": (
+                alert.resolved_at.isoformat() if alert.resolved_at else None
+            ),
         }
 
 

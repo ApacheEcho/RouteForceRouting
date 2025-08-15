@@ -30,7 +30,9 @@ class GeocodingCache:
     def _init_redis(self, redis_url: str) -> None:
         """Initialize Redis connection with error handling"""
         try:
-            self.redis_client = redis.from_url(redis_url, decode_responses=True)
+            self.redis_client = redis.from_url(
+                redis_url, decode_responses=True
+            )
             # Test connection
             self.redis_client.ping()
             self.redis_available = True
@@ -92,7 +94,9 @@ class GeocodingCache:
         try:
             with open(self.cache_file, "r") as f:
                 self.file_cache = json.load(f)
-            logger.info(f"📁 Loaded {len(self.file_cache)} entries from file cache")
+            logger.info(
+                f"📁 Loaded {len(self.file_cache)} entries from file cache"
+            )
         except FileNotFoundError:
             self.file_cache = {}
             logger.info("📁 Creating new file cache")
@@ -148,6 +152,8 @@ def get_geocoding_cache() -> GeocodingCache:
     """Get or create global geocoding cache instance"""
     global _geocoding_cache
     if _geocoding_cache is None:
-        redis_url = current_app.config.get("REDIS_URL", "redis://localhost:6379/0")
+        redis_url = current_app.config.get(
+            "REDIS_URL", "redis://localhost:6379/0"
+        )
         _geocoding_cache = GeocodingCache(redis_url)
     return _geocoding_cache

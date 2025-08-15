@@ -70,16 +70,24 @@ class SecurityMiddleware:
             logger.warning(
                 f"Suspicious request from {request.remote_addr}: {request.url}"
             )
-            return jsonify({"error": "Request blocked by security policy"}), 403
+            return (
+                jsonify({"error": "Request blocked by security policy"}),
+                403,
+            )
 
         # API key validation for protected endpoints
         if request.endpoint and request.endpoint.startswith("api."):
             if not self._validate_api_access():
-                return jsonify({"error": "Invalid or missing API credentials"}), 401
+                return (
+                    jsonify({"error": "Invalid or missing API credentials"}),
+                    401,
+                )
 
         # Request size validation
-        if request.content_length and request.content_length > current_app.config.get(
-            "MAX_CONTENT_LENGTH", 16 * 1024 * 1024
+        if (
+            request.content_length
+            and request.content_length
+            > current_app.config.get("MAX_CONTENT_LENGTH", 16 * 1024 * 1024)
         ):
             return jsonify({"error": "Request too large"}), 413
 
@@ -180,7 +188,10 @@ def validate_file_upload(file) -> tuple[bool, str]:
         return False, "No file provided"
 
     # Check file size
-    if hasattr(file, "content_length") and file.content_length > 16 * 1024 * 1024:
+    if (
+        hasattr(file, "content_length")
+        and file.content_length > 16 * 1024 * 1024
+    ):
         return False, "File too large"
 
     # Enhanced filename validation
@@ -201,7 +212,19 @@ def validate_file_upload(file) -> tuple[bool, str]:
         return False, f"File type .{extension} not allowed"
 
     # Check for suspicious filenames
-    suspicious_patterns = ["..", "/", "\\", "<", ">", "|", "*", "?", '"', ";", "&"]
+    suspicious_patterns = [
+        "..",
+        "/",
+        "\\",
+        "<",
+        ">",
+        "|",
+        "*",
+        "?",
+        '"',
+        ";",
+        "&",
+    ]
     if any(pattern in file.filename for pattern in suspicious_patterns):
         return False, "Suspicious filename detected"
 
@@ -272,7 +295,14 @@ def _is_valid_csv_header(content: str) -> bool:
         return False
 
     # Should not contain suspicious content
-    suspicious_content = ["<script", "<?php", "exec(", "eval(", "system(", "shell_exec"]
+    suspicious_content = [
+        "<script",
+        "<?php",
+        "exec(",
+        "eval(",
+        "system(",
+        "shell_exec",
+    ]
     return not any(sus in header.lower() for sus in suspicious_content)
 
 
@@ -392,7 +422,9 @@ def mobile_rate_limit(requests_per_minute: int = 30):
         @wraps(f)
         def decorated(*args, **kwargs):
             # Get client identifier (device ID or IP)
-            device_id = request.headers.get("X-Device-ID") or request.remote_addr
+            device_id = (
+                request.headers.get("X-Device-ID") or request.remote_addr
+            )
 
             # Simple rate limiting (use Redis in production)
             current_time = time.time()
@@ -403,7 +435,9 @@ def mobile_rate_limit(requests_per_minute: int = 30):
 
             client_requests = g.mobile_rate_storage.get(device_id, [])
             client_requests = [
-                req_time for req_time in client_requests if req_time > window_start
+                req_time
+                for req_time in client_requests
+                if req_time > window_start
             ]
 
             if len(client_requests) >= requests_per_minute:
@@ -457,11 +491,15 @@ class AdaptiveRateLimiter:
 
         pattern = self.user_patterns[user_id]
         pattern["requests"].append(timestamp)
-        pattern["endpoints"][endpoint] = pattern["endpoints"].get(endpoint, 0) + 1
+        pattern["endpoints"][endpoint] = (
+            pattern["endpoints"].get(endpoint, 0) + 1
+        )
 
         # Clean old requests (keep last hour)
         cutoff = timestamp - 3600
-        pattern["requests"] = [req for req in pattern["requests"] if req > cutoff]
+        pattern["requests"] = [
+            req for req in pattern["requests"] if req > cutoff
+        ]
 
         return self._calculate_risk_score(user_id, pattern, timestamp)
 
@@ -522,7 +560,9 @@ class AdaptiveRateLimiter:
     ) -> tuple[bool, Dict[str, Any]]:
         """Check if request should be allowed based on adaptive rate limiting"""
         timestamp = time.time()
-        pattern_analysis = self.analyze_user_pattern(user_id, endpoint, timestamp)
+        pattern_analysis = self.analyze_user_pattern(
+            user_id, endpoint, timestamp
+        )
 
         if pattern_analysis["should_block"]:
             return False, {
@@ -539,7 +579,9 @@ class AdaptiveRateLimiter:
             return True, {"risk_level": "low_risk"}
 
         recent_requests = [
-            req for req in self.user_patterns[user_id]["requests"] if req > window_start
+            req
+            for req in self.user_patterns[user_id]["requests"]
+            if req > window_start
         ]
 
         if len(recent_requests) >= allowed_rpm:
@@ -579,7 +621,9 @@ class APIKeyManager:
             "current_key": api_key,
             "created_at": current_time,
             "last_rotated": current_time,
-            "rotation_interval": rotation_days * 24 * 3600,  # Convert to seconds
+            "rotation_interval": rotation_days
+            * 24
+            * 3600,  # Convert to seconds
         }
 
         self.key_usage[api_key] = {

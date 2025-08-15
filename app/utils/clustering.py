@@ -77,7 +77,12 @@ def is_within_radius(
 
     try:
         # Convert to float in case they're strings
-        lat1, lon1, lat2, lon2 = float(lat1), float(lon1), float(lat2), float(lon2)
+        lat1, lon1, lat2, lon2 = (
+            float(lat1),
+            float(lon1),
+            float(lat2),
+            float(lon2),
+        )
 
         # Calculate distance using geodesic
         distance = geodesic((lat1, lon1), (lat2, lon2)).kilometers

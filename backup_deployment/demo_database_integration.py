@@ -71,7 +71,9 @@ def demo_database_integration():
         for user_data in test_users:
             try:
                 # Check if user exists
-                existing_user = db_service.get_user_by_username(user_data["username"])
+                existing_user = db_service.get_user_by_username(
+                    user_data["username"]
+                )
                 if existing_user:
                     print(f"✅ User {user_data['username']} already exists")
                     created_users.append(existing_user)
@@ -139,15 +141,36 @@ def demo_database_integration():
 
             # Test route generation
             test_route_stores = [
-                {"name": "Store A", "lat": 40.7128, "lon": -74.0060, "address": "NYC"},
-                {"name": "Store B", "lat": 40.7589, "lon": -73.9851, "address": "NYC"},
-                {"name": "Store C", "lat": 40.7831, "lon": -73.9712, "address": "NYC"},
-                {"name": "Store D", "lat": 40.7505, "lon": -73.9934, "address": "NYC"},
+                {
+                    "name": "Store A",
+                    "lat": 40.7128,
+                    "lon": -74.0060,
+                    "address": "NYC",
+                },
+                {
+                    "name": "Store B",
+                    "lat": 40.7589,
+                    "lon": -73.9851,
+                    "address": "NYC",
+                },
+                {
+                    "name": "Store C",
+                    "lat": 40.7831,
+                    "lon": -73.9712,
+                    "address": "NYC",
+                },
+                {
+                    "name": "Store D",
+                    "lat": 40.7505,
+                    "lon": -73.9934,
+                    "address": "NYC",
+                },
             ]
 
             try:
                 route = routing_service.generate_route(
-                    test_route_stores, {"max_distance": 100, "use_clustering": True}
+                    test_route_stores,
+                    {"max_distance": 100, "use_clustering": True},
                 )
 
                 if route:
@@ -157,7 +180,9 @@ def demo_database_integration():
                         print(
                             f"   📊 Optimization Score: {metrics.optimization_score}%"
                         )
-                        print(f"   ⏱️  Processing Time: {metrics.processing_time:.2f}s")
+                        print(
+                            f"   ⏱️  Processing Time: {metrics.processing_time:.2f}s"
+                        )
                         print(
                             f"   📈 Stores: {metrics.total_stores} total, {metrics.filtered_stores} filtered"
                         )
@@ -211,15 +236,21 @@ def demo_database_integration():
         routing_service = RoutingService(
             user_id=created_users[0].id if created_users else None
         )
-        route = routing_service.generate_route(test_stores, {"max_distance": 200})
+        route = routing_service.generate_route(
+            test_stores, {"max_distance": 200}
+        )
 
         end_time = time.time()
         processing_time = end_time - start_time
 
         print(f"✅ Performance test completed:")
-        print(f"   📊 Processed {len(test_stores)} stores in {processing_time:.2f}s")
+        print(
+            f"   📊 Processed {len(test_stores)} stores in {processing_time:.2f}s"
+        )
         print(f"   📈 Route length: {len(route)} stops")
-        print(f"   ⚡ Rate: {len(test_stores)/processing_time:.1f} stores/second")
+        print(
+            f"   ⚡ Rate: {len(test_stores)/processing_time:.1f} stores/second"
+        )
 
         print("\n7. Database Stats")
         print("-" * 30)

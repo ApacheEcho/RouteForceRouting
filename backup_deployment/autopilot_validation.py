@@ -19,15 +19,43 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__)))
 def test_genetic_algorithm_basic():
     """Test basic genetic algorithm functionality"""
     try:
-        from app.optimization.genetic_algorithm import GeneticAlgorithm, GeneticConfig
+        from app.optimization.genetic_algorithm import (
+            GeneticAlgorithm,
+            GeneticConfig,
+        )
 
         # Generate small test dataset
         test_stores = [
-            {"id": 1, "latitude": 40.7128, "longitude": -74.0060, "name": "Store 1"},
-            {"id": 2, "latitude": 40.7589, "longitude": -73.9851, "name": "Store 2"},
-            {"id": 3, "latitude": 40.6892, "longitude": -74.0445, "name": "Store 3"},
-            {"id": 4, "latitude": 40.7831, "longitude": -73.9712, "name": "Store 4"},
-            {"id": 5, "latitude": 40.7484, "longitude": -73.9857, "name": "Store 5"},
+            {
+                "id": 1,
+                "latitude": 40.7128,
+                "longitude": -74.0060,
+                "name": "Store 1",
+            },
+            {
+                "id": 2,
+                "latitude": 40.7589,
+                "longitude": -73.9851,
+                "name": "Store 2",
+            },
+            {
+                "id": 3,
+                "latitude": 40.6892,
+                "longitude": -74.0445,
+                "name": "Store 3",
+            },
+            {
+                "id": 4,
+                "latitude": 40.7831,
+                "longitude": -73.9712,
+                "name": "Store 4",
+            },
+            {
+                "id": 5,
+                "latitude": 40.7484,
+                "longitude": -73.9857,
+                "name": "Store 5",
+            },
         ]
 
         config = GeneticConfig(population_size=20, generations=50)
@@ -104,7 +132,10 @@ def test_frontend_build():
         frontend_dist = "frontend/dist"
 
         if not os.path.exists(frontend_dist):
-            return {"status": "error", "error": "Frontend dist directory not found"}
+            return {
+                "status": "error",
+                "error": "Frontend dist directory not found",
+            }
 
         # Check for key files
         key_files = ["index.html"]
@@ -119,7 +150,11 @@ def test_frontend_build():
         assets_count = 0
         if os.path.exists(assets_dir):
             assets_count = len(
-                [f for f in os.listdir(assets_dir) if f.endswith((".js", ".css"))]
+                [
+                    f
+                    for f in os.listdir(assets_dir)
+                    if f.endswith((".js", ".css"))
+                ]
             )
 
         # Calculate total size
@@ -177,13 +212,18 @@ def run_autopilot_validation():
     # Test suite
     results = {
         "timestamp": datetime.utcnow().isoformat(),
-        "system_info": {"python_version": sys.version, "platform": sys.platform},
+        "system_info": {
+            "python_version": sys.version,
+            "platform": sys.platform,
+        },
     }
 
     print("\n📊 Testing Genetic Algorithm...")
     results["genetic_algorithm"] = test_genetic_algorithm_basic()
     if results["genetic_algorithm"]["status"] == "success":
-        print(f"   ✅ GA Test: {results['genetic_algorithm']['execution_time']:.2f}s")
+        print(
+            f"   ✅ GA Test: {results['genetic_algorithm']['execution_time']:.2f}s"
+        )
     else:
         print(f"   ❌ GA Test Failed: {results['genetic_algorithm']['error']}")
 
@@ -194,19 +234,29 @@ def run_autopilot_validation():
             f"   ✅ System Health: CPU {results['system_performance']['cpu_percent']:.1f}%"
         )
     else:
-        print(f"   ❌ System Test Failed: {results['system_performance']['error']}")
+        print(
+            f"   ❌ System Test Failed: {results['system_performance']['error']}"
+        )
 
     print("\n📊 Testing Application Imports...")
     results["imports"] = test_application_imports()
-    success_count = sum(1 for v in results["imports"].values() if v == "success")
-    print(f"   ✅ Imports: {success_count}/{len(results['imports'])} successful")
+    success_count = sum(
+        1 for v in results["imports"].values() if v == "success"
+    )
+    print(
+        f"   ✅ Imports: {success_count}/{len(results['imports'])} successful"
+    )
 
     print("\n📊 Testing Frontend Build...")
     results["frontend_build"] = test_frontend_build()
     if results["frontend_build"]["status"] == "success":
-        print(f"   ✅ Frontend: {results['frontend_build']['total_size_mb']:.1f}MB")
+        print(
+            f"   ✅ Frontend: {results['frontend_build']['total_size_mb']:.1f}MB"
+        )
     else:
-        print(f"   ❌ Frontend Test Failed: {results['frontend_build']['error']}")
+        print(
+            f"   ❌ Frontend Test Failed: {results['frontend_build']['error']}"
+        )
 
     print("\n📊 Testing Deployment Readiness...")
     results["deployment"] = test_deployment_readiness()
@@ -214,7 +264,9 @@ def run_autopilot_validation():
         ready = results["deployment"]["ready_for_deployment"]
         print(f"   {'✅' if ready else '⚠️'} Deployment Ready: {ready}")
     else:
-        print(f"   ❌ Deployment Test Failed: {results['deployment']['error']}")
+        print(
+            f"   ❌ Deployment Test Failed: {results['deployment']['error']}"
+        )
 
     total_time = time.time() - start_time
     results["total_test_time"] = total_time

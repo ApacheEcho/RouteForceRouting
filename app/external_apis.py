@@ -125,7 +125,9 @@ class GoogleMapsIntegration:
                 # Get traffic duration if available
                 duration_in_traffic = duration
                 if "duration_in_traffic" in leg:
-                    duration_in_traffic = leg["duration_in_traffic"]["value"] / 60
+                    duration_in_traffic = (
+                        leg["duration_in_traffic"]["value"] / 60
+                    )
 
                 traffic_delay = duration_in_traffic - duration
 
@@ -189,7 +191,9 @@ class WeatherIntegration:
         self.base_url = "https://api.openweathermap.org/data/2.5"
         self.session = requests.Session()
 
-    def get_weather(self, latitude: float, longitude: float) -> Optional[WeatherInfo]:
+    def get_weather(
+        self, latitude: float, longitude: float
+    ) -> Optional[WeatherInfo]:
         """Get current weather for coordinates"""
         if not self.api_key:
             # Return simulated weather data
@@ -223,7 +227,8 @@ class WeatherIntegration:
                     temperature=main.get("temp", 20),
                     humidity=main.get("humidity", 50),
                     wind_speed=wind.get("speed", 0),
-                    visibility=data.get("visibility", 10000) / 1000,  # Convert to km
+                    visibility=data.get("visibility", 10000)
+                    / 1000,  # Convert to km
                     conditions=weather.get("main", "Clear"),
                     precipitation=data.get("rain", {}).get("1h", 0),
                     impact_score=impact_score,
@@ -373,7 +378,9 @@ class ExternalDataManager:
 
             # Get weather information
             if "coordinates" in enhanced and enhanced["coordinates"]:
-                weather_info = self._get_route_weather(enhanced["coordinates"][0])
+                weather_info = self._get_route_weather(
+                    enhanced["coordinates"][0]
+                )
                 if weather_info:
                     enhanced.update(
                         {
@@ -385,8 +392,8 @@ class ExternalDataManager:
                     )
 
             # Calculate enhanced efficiency score
-            enhanced["enhanced_efficiency_score"] = self._calculate_enhanced_efficiency(
-                enhanced
+            enhanced["enhanced_efficiency_score"] = (
+                self._calculate_enhanced_efficiency(enhanced)
             )
 
         except Exception as e:
@@ -422,9 +429,12 @@ class ExternalDataManager:
             return {
                 "optimized_waypoints": optimized_waypoints,
                 "original_waypoints": waypoints,
-                "traffic_info": traffic_info.__dict__ if traffic_info else None,
+                "traffic_info": (
+                    traffic_info.__dict__ if traffic_info else None
+                ),
                 "weather_impact": weather_impact,
-                "optimization_improvement": len(waypoints) != len(optimized_waypoints),
+                "optimization_improvement": len(waypoints)
+                != len(optimized_waypoints),
             }
 
         except Exception as e:
@@ -435,7 +445,9 @@ class ExternalDataManager:
                 "error": str(e),
             }
 
-    def get_route_recommendations(self, route_data: Dict[str, Any]) -> List[str]:
+    def get_route_recommendations(
+        self, route_data: Dict[str, Any]
+    ) -> List[str]:
         """Get AI recommendations based on external data"""
         recommendations = []
 
@@ -469,7 +481,9 @@ class ExternalDataManager:
                 )
 
             # Efficiency recommendations
-            efficiency_score = enhanced_data.get("enhanced_efficiency_score", 0)
+            efficiency_score = enhanced_data.get(
+                "enhanced_efficiency_score", 0
+            )
             if efficiency_score < 0.6:
                 recommendations.append(
                     "Route efficiency below optimal. Consider route optimization."
@@ -477,7 +491,9 @@ class ExternalDataManager:
 
         except Exception as e:
             logger.error(f"Recommendations error: {e}")
-            recommendations.append("Unable to generate external data recommendations.")
+            recommendations.append(
+                "Unable to generate external data recommendations."
+            )
 
         return recommendations
 
@@ -535,7 +551,9 @@ class ExternalDataManager:
 
         return weather
 
-    def _calculate_enhanced_efficiency(self, route_data: Dict[str, Any]) -> float:
+    def _calculate_enhanced_efficiency(
+        self, route_data: Dict[str, Any]
+    ) -> float:
         """Calculate enhanced efficiency score with external data"""
         base_score = 0.5
 

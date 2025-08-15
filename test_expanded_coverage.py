@@ -143,7 +143,11 @@ class TestStoreDataIngestion:
         invalid_data = {
             "stores": [
                 {"name": "Store 1"},  # Missing required fields
-                {"name": "", "lat": "invalid", "lon": "invalid"},  # Invalid data types
+                {
+                    "name": "",
+                    "lat": "invalid",
+                    "lon": "invalid",
+                },  # Invalid data types
             ]
         }
 
@@ -236,7 +240,12 @@ class TestRouteRecompute:
 
     def test_route_optimization_algorithms(self, client):
         """Test different optimization algorithms"""
-        algorithms = ["genetic", "simulated_annealing", "nearest_neighbor", "two_opt"]
+        algorithms = [
+            "genetic",
+            "simulated_annealing",
+            "nearest_neighbor",
+            "two_opt",
+        ]
 
         for algorithm in algorithms:
             optimize_data = {
@@ -328,7 +337,9 @@ class TestAdvancedFeatures:
         }
 
         response = client.post(
-            "/api/ml/predict", data=json.dumps(ml_data), content_type="application/json"
+            "/api/ml/predict",
+            data=json.dumps(ml_data),
+            content_type="application/json",
         )
 
         assert response.status_code in [200, 404, 501]
@@ -352,7 +363,9 @@ class TestAdvancedFeatures:
 
     def test_traffic_integration(self, client):
         """Test traffic data integration"""
-        response = client.get("/api/traffic/current?lat=40.7128&lon=-74.0060&radius=5")
+        response = client.get(
+            "/api/traffic/current?lat=40.7128&lon=-74.0060&radius=5"
+        )
 
         # Should handle traffic API calls
         assert response.status_code in [200, 404, 503]

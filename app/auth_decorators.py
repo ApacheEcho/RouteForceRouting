@@ -76,7 +76,9 @@ def auth_required(
                 # Check permission-based access
                 if permissions:
                     user_role = user["role"]
-                    user_permissions = ROLES.get(user_role, {}).get("permissions", [])
+                    user_permissions = ROLES.get(user_role, {}).get(
+                        "permissions", []
+                    )
 
                     # Admin has all permissions
                     if "all" not in user_permissions:
@@ -106,7 +108,9 @@ def auth_required(
             except Exception as e:
                 logger.error(f"Authentication error: {str(e)}")
                 return (
-                    jsonify({"error": "Authentication failed", "message": str(e)}),
+                    jsonify(
+                        {"error": "Authentication failed", "message": str(e)}
+                    ),
                     401,
                 )
 
@@ -160,9 +164,9 @@ def driver_access_required(f: Callable) -> Callable:
                 # Check if user is driver or has higher permissions
                 if user["role"] == "driver":
                     # Driver can only access their own data
-                    driver_id = request.view_args.get("driver_id") or request.args.get(
+                    driver_id = request.view_args.get(
                         "driver_id"
-                    )
+                    ) or request.args.get("driver_id")
                     if driver_id and driver_id != user["id"]:
                         return (
                             jsonify(
@@ -181,7 +185,9 @@ def driver_access_required(f: Callable) -> Callable:
             except Exception as e:
                 logger.error(f"Driver access authentication error: {str(e)}")
                 return (
-                    jsonify({"error": "Authentication failed", "message": str(e)}),
+                    jsonify(
+                        {"error": "Authentication failed", "message": str(e)}
+                    ),
                     401,
                 )
 
@@ -225,7 +231,9 @@ def validate_api_key(f: Callable) -> Callable:
 
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        api_key = request.headers.get("X-API-Key") or request.args.get("api_key")
+        api_key = request.headers.get("X-API-Key") or request.args.get(
+            "api_key"
+        )
 
         if not api_key:
             return (
@@ -265,7 +273,12 @@ def rate_limit_by_user(f: Callable) -> Callable:
             return f(*args, **kwargs)
 
         except Exception as e:
-            return jsonify({"error": "Rate limit check failed", "message": str(e)}), 429
+            return (
+                jsonify(
+                    {"error": "Rate limit check failed", "message": str(e)}
+                ),
+                429,
+            )
 
     return decorated_function
 

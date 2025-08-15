@@ -50,8 +50,12 @@ class DistanceCalculator:
             Distance in kilometers
         """
         # Convert to radians
-        lat1, lon1 = math.radians(coord1.latitude), math.radians(coord1.longitude)
-        lat2, lon2 = math.radians(coord2.latitude), math.radians(coord2.longitude)
+        lat1, lon1 = math.radians(coord1.latitude), math.radians(
+            coord1.longitude
+        )
+        lat2, lon2 = math.radians(coord2.latitude), math.radians(
+            coord2.longitude
+        )
 
         # Haversine formula
         dlat = lat2 - lat1
@@ -157,7 +161,9 @@ class RouteDistanceCalculator:
         self.distance_method = distance_method
         self._calculator = DistanceCalculator()
 
-    def _calculate_distance(self, coord1: Coordinates, coord2: Coordinates) -> float:
+    def _calculate_distance(
+        self, coord1: Coordinates, coord2: Coordinates
+    ) -> float:
         """Calculate distance using configured method"""
         if self.distance_method == "haversine":
             return self._calculator.haversine_distance(coord1, coord2)
@@ -207,7 +213,9 @@ class RouteDistanceCalculator:
         for i in range(len(route) - 1):
             distance = self.calculate_store_distance(route[i], route[i + 1])
             if distance == float("inf"):
-                logger.warning(f"Infinite distance detected in route at position {i}")
+                logger.warning(
+                    f"Infinite distance detected in route at position {i}"
+                )
                 return float("inf")
             total_distance += distance
 
@@ -288,7 +296,9 @@ class ProximityClusterer:
 
 
 # Factory functions for easy setup
-def create_distance_calculator(method: str = "geodesic") -> RouteDistanceCalculator:
+def create_distance_calculator(
+    method: str = "geodesic",
+) -> RouteDistanceCalculator:
     """Create a distance calculator with specified method"""
     return RouteDistanceCalculator(method)
 
@@ -300,7 +310,9 @@ def create_proximity_clusterer(method: str = "geodesic") -> ProximityClusterer:
 
 
 # Legacy compatibility functions
-def calculate_distance(store_a: Dict[str, Any], store_b: Dict[str, Any]) -> float:
+def calculate_distance(
+    store_a: Dict[str, Any], store_b: Dict[str, Any]
+) -> float:
     """Legacy compatibility function"""
     calculator = create_distance_calculator()
     return calculator.calculate_store_distance(store_a, store_b)

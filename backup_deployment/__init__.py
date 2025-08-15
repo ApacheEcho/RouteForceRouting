@@ -19,7 +19,9 @@ cache = Cache()
 limiter = Limiter(
     key_func=get_remote_address, default_limits=["200 per day", "50 per hour"]
 )
-socketio = SocketIO(cors_allowed_origins="*", logger=True, engineio_logger=True)
+socketio = SocketIO(
+    cors_allowed_origins="*", logger=True, engineio_logger=True
+)
 
 
 def create_app(config_name: str = "development") -> Flask:
@@ -135,21 +137,31 @@ def create_app(config_name: str = "development") -> Flask:
 
             # Application metrics
             app_metrics = []
-            app_metrics.append("# HELP routeforce_cpu_usage CPU usage percentage")
+            app_metrics.append(
+                "# HELP routeforce_cpu_usage CPU usage percentage"
+            )
             app_metrics.append("# TYPE routeforce_cpu_usage gauge")
             app_metrics.append(f"routeforce_cpu_usage {cpu_percent}")
 
-            app_metrics.append("# HELP routeforce_memory_usage Memory usage percentage")
+            app_metrics.append(
+                "# HELP routeforce_memory_usage Memory usage percentage"
+            )
             app_metrics.append("# TYPE routeforce_memory_usage gauge")
             app_metrics.append(f"routeforce_memory_usage {memory.percent}")
 
-            app_metrics.append("# HELP routeforce_disk_usage Disk usage percentage")
+            app_metrics.append(
+                "# HELP routeforce_disk_usage Disk usage percentage"
+            )
             app_metrics.append("# TYPE routeforce_disk_usage gauge")
             app_metrics.append(f"routeforce_disk_usage {disk.percent}")
 
-            app_metrics.append("# HELP routeforce_uptime Application uptime in seconds")
+            app_metrics.append(
+                "# HELP routeforce_uptime Application uptime in seconds"
+            )
             app_metrics.append("# TYPE routeforce_uptime counter")
-            app_metrics.append(f"routeforce_uptime {time.time() - psutil.boot_time()}")
+            app_metrics.append(
+                f"routeforce_uptime {time.time() - psutil.boot_time()}"
+            )
 
             return (
                 "\n".join(app_metrics),
@@ -165,7 +177,9 @@ def create_app(config_name: str = "development") -> Flask:
             )
 
     # Initialize WebSocket support
-    socketio.init_app(app, cors_allowed_origins="*", logger=True, engineio_logger=True)
+    socketio.init_app(
+        app, cors_allowed_origins="*", logger=True, engineio_logger=True
+    )
 
     # Initialize WebSocket handlers
     from app.websocket_handlers import init_websocket
@@ -265,7 +279,9 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(analytics_bp, url_prefix="/api/analytics")
     app.register_blueprint(analytics_ai_bp, url_prefix="/api/ai")
     app.register_blueprint(monitoring_bp)
-    app.register_blueprint(advanced_dashboard_bp)  # Register advanced dashboard
+    app.register_blueprint(
+        advanced_dashboard_bp
+    )  # Register advanced dashboard
 
     # Register enterprise blueprints
     from app.enterprise.organizations import organizations_bp

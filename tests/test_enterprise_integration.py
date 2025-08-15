@@ -85,7 +85,9 @@ class TestEnterpriseIntegration:
         ]
 
         for endpoint in endpoints:
-            response = requests.get(f"{base_url}{endpoint}", headers=auth_headers)
+            response = requests.get(
+                f"{base_url}{endpoint}", headers=auth_headers
+            )
             assert response.status_code == 200
             assert response.json()["success"] is True
 
@@ -100,7 +102,9 @@ class TestEnterpriseIntegration:
         ]
 
         for endpoint in endpoints:
-            response = requests.get(f"{base_url}{endpoint}", headers=auth_headers)
+            response = requests.get(
+                f"{base_url}{endpoint}", headers=auth_headers
+            )
             assert response.status_code == 200
             data = response.json()
             assert data["success"] is True
@@ -118,7 +122,9 @@ class TestEnterpriseIntegration:
 
         # Test genetic algorithm
         response = requests.post(
-            f"{base_url}/api/optimize/genetic", json=test_route, headers=auth_headers
+            f"{base_url}/api/optimize/genetic",
+            json=test_route,
+            headers=auth_headers,
         )
         assert response.status_code == 200
 
@@ -133,7 +139,8 @@ class TestEnterpriseIntegration:
     def test_performance_monitoring(self, base_url, auth_headers):
         """Test performance monitoring system"""
         response = requests.get(
-            f"{base_url}/dashboard/api/performance/alerts", headers=auth_headers
+            f"{base_url}/dashboard/api/performance/alerts",
+            headers=auth_headers,
         )
         assert response.status_code == 200
 
@@ -162,7 +169,9 @@ class TestEnterpriseIntegration:
 
     def test_data_export(self, base_url, auth_headers):
         """Test data export functionality"""
-        response = requests.get(f"{base_url}/api/export/routes", headers=auth_headers)
+        response = requests.get(
+            f"{base_url}/api/export/routes", headers=auth_headers
+        )
         assert response.status_code == 200
 
     def test_system_scalability(self, base_url, auth_headers):
@@ -268,7 +277,9 @@ class TestSecurityCompliance:
         }
 
         response = requests.post(
-            f"{base_url}/api/optimize/genetic", json=invalid_route, headers=auth_headers
+            f"{base_url}/api/optimize/genetic",
+            json=invalid_route,
+            headers=auth_headers,
         )
         # Should handle invalid input gracefully
         assert response.status_code in [400, 422]
@@ -279,7 +290,11 @@ class TestPerformanceBenchmarks:
 
     def test_api_response_times(self, base_url, auth_headers):
         """Test API response time requirements"""
-        endpoints = ["/health", "/api/ai/fleet/insights", "/advanced/api/ml-insights"]
+        endpoints = [
+            "/health",
+            "/api/ai/fleet/insights",
+            "/advanced/api/ml-insights",
+        ]
 
         for endpoint in endpoints:
             start_time = time.time()
@@ -289,7 +304,9 @@ class TestPerformanceBenchmarks:
             )
             end_time = time.time()
 
-            response_time = (end_time - start_time) * 1000  # Convert to milliseconds
+            response_time = (
+                end_time - start_time
+            ) * 1000  # Convert to milliseconds
             assert (
                 response_time < 2000
             ), f"Endpoint {endpoint} took {response_time}ms (too slow)"

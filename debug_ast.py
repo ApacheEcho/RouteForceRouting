@@ -26,7 +26,10 @@ for node in ast.walk(tree):
 
         # Find the __init__ method
         for method in node.body:
-            if isinstance(method, ast.FunctionDef) and method.name == "__init__":
+            if (
+                isinstance(method, ast.FunctionDef)
+                and method.name == "__init__"
+            ):
                 print(f"Found __init__ method at line {method.lineno}")
                 print(f"Method ends at line {method.end_lineno}")
 

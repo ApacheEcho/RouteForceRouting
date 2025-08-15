@@ -60,7 +60,10 @@ def test_index_route(client):
     response = client.get("/")
     assert response.status_code == 200
     assert b"<h1>RouteForce Routing</h1>" in response.data
-    assert b"Optimize your delivery routes with intelligent algorithms" in response.data
+    assert (
+        b"Optimize your delivery routes with intelligent algorithms"
+        in response.data
+    )
 
 
 def test_index_renders_template(client, monkeypatch):
@@ -89,7 +92,11 @@ def test_priority_sorting():
         "Chain C": {"priority": 1},
     }
     result = generate_route(stores, None, playbook)
-    assert [store["name"] for store in result] == ["Store B", "Store A", "Store C"]
+    assert [store["name"] for store in result] == [
+        "Store B",
+        "Store A",
+        "Store C",
+    ]
 
 
 def test_stop_limit_applies_after_sort():
@@ -123,8 +130,12 @@ def test_generate_route_submission(client):
     import io
 
     sample_csv = "name,chain\nStore A,Chain A\nStore B,Chain B"
-    data = {"file": (io.BytesIO(sample_csv.encode("utf-8")), "test_stores.csv")}
-    response = client.post("/generate", data=data, content_type="multipart/form-data")
+    data = {
+        "file": (io.BytesIO(sample_csv.encode("utf-8")), "test_stores.csv")
+    }
+    response = client.post(
+        "/generate", data=data, content_type="multipart/form-data"
+    )
     assert response.status_code == 200
     assert b"Store A" in response.data or b"Store B" in response.data
 
@@ -189,7 +200,11 @@ def test_param_route_sorting(stores, playbook, expected_names):
         ),  # Single store
         (
             [{"name": "Store A", "chain": "Chain A"}],
-            {"Chain A": {"visit_hours": {"start": "invalid", "end": "invalid"}}},
+            {
+                "Chain A": {
+                    "visit_hours": {"start": "invalid", "end": "invalid"}
+                }
+            },
             [],
         ),  # Malformed playbook
     ],
@@ -201,7 +216,9 @@ def test_generate_route_edge_cases(stores, playbook, expected):
 
 def test_disallowed_day():
     stores = [{"name": "Store A", "chain": "Chain A"}]
-    playbook = {"Chain A": {"days_allowed": ["Tuesday"]}}  # Will fail on most days
+    playbook = {
+        "Chain A": {"days_allowed": ["Tuesday"]}
+    }  # Will fail on most days
     # Pass a specific date (Wednesday) to test the filtering
     test_date = datetime.strptime("2025-07-16", "%Y-%m-%d")  # Wednesday
     result = generate_route(stores, test_date, playbook)
@@ -214,7 +231,9 @@ def test_disallowed_time_window():
         "Chain A": {"time_window": {"start": "00:00", "end": "01:00"}}
     }  # Will fail most times
     # Pass a specific time outside the window
-    test_date = datetime.strptime("2025-07-16 12:00", "%Y-%m-%d %H:%M")  # 12:00 PM
+    test_date = datetime.strptime(
+        "2025-07-16 12:00", "%Y-%m-%d %H:%M"
+    )  # 12:00 PM
     result = generate_route(stores, test_date, playbook)
     assert result == []
 
@@ -238,8 +257,12 @@ def test_export_route(client):
     import io
 
     sample_csv = "name,chain\nStore A,Chain A\nStore B,Chain B"
-    data = {"file": (io.BytesIO(sample_csv.encode("utf-8")), "test_stores.csv")}
-    response = client.post("/export", data=data, content_type="multipart/form-data")
+    data = {
+        "file": (io.BytesIO(sample_csv.encode("utf-8")), "test_stores.csv")
+    }
+    response = client.post(
+        "/export", data=data, content_type="multipart/form-data"
+    )
     assert response.status_code == 200
     assert response.mimetype == "text/csv"
     assert b"Store A" in response.data or b"Store B" in response.data
@@ -266,7 +289,9 @@ def test_export_route_with_playbook(client):
         "file": (io.BytesIO(sample_csv.encode("utf-8")), "test_stores.csv"),
         "playbook": (io.BytesIO(playbook_csv.encode("utf-8")), "playbook.csv"),
     }
-    response = client.post("/export", data=data, content_type="multipart/form-data")
+    response = client.post(
+        "/export", data=data, content_type="multipart/form-data"
+    )
     assert response.status_code == 200
     assert response.mimetype == "text/csv"
 
@@ -283,8 +308,12 @@ def test_generate_route_render_html(client):
     import io
 
     sample_csv = "name,chain\nStore A,Chain A\nStore B,Chain B"
-    data = {"file": (io.BytesIO(sample_csv.encode("utf-8")), "test_stores.csv")}
-    response = client.post("/generate", data=data, content_type="multipart/form-data")
+    data = {
+        "file": (io.BytesIO(sample_csv.encode("utf-8")), "test_stores.csv")
+    }
+    response = client.post(
+        "/generate", data=data, content_type="multipart/form-data"
+    )
     assert response.status_code == 200
     assert b"Store A" in response.data or b"Store B" in response.data
 
@@ -298,7 +327,9 @@ def test_export_route_csv(client):
         "file": (io.BytesIO(sample_csv.encode("utf-8")), "test_stores.csv"),
         "playbook": (io.BytesIO(playbook_csv.encode("utf-8")), "playbook.csv"),
     }
-    response = client.post("/export", data=data, content_type="multipart/form-data")
+    response = client.post(
+        "/export", data=data, content_type="multipart/form-data"
+    )
     assert response.status_code == 200
     assert b"Store A" in response.data or b"Store B" in response.data
 
@@ -327,7 +358,9 @@ def test_generate_route_with_all_filters(client):
         "max_stores_per_chain": "2",
         "min_sales_threshold": "800",
     }
-    response = client.post("/generate", data=data, content_type="multipart/form-data")
+    response = client.post(
+        "/generate", data=data, content_type="multipart/form-data"
+    )
     assert response.status_code == 200
     result = response.get_json()
     assert "route" in result
@@ -353,7 +386,9 @@ def test_generate_route_validation_errors(client):
         "time_start": "17:00",
         "time_end": "09:00",  # End before start
     }
-    response = client.post("/generate", data=data, content_type="multipart/form-data")
+    response = client.post(
+        "/generate", data=data, content_type="multipart/form-data"
+    )
     assert response.status_code == 400
     assert "Time start must be before time end" in response.get_json()["error"]
 
@@ -362,15 +397,25 @@ def test_generate_route_validation_errors(client):
         "file": (io.BytesIO(sample_csv.encode("utf-8")), "test_stores.csv"),
         "max_stores_per_chain": "0",  # Invalid value
     }
-    response = client.post("/generate", data=data, content_type="multipart/form-data")
+    response = client.post(
+        "/generate", data=data, content_type="multipart/form-data"
+    )
     assert response.status_code == 400
-    assert "Max stores per chain must be at least 1" in response.get_json()["error"]
+    assert (
+        "Max stores per chain must be at least 1"
+        in response.get_json()["error"]
+    )
 
     # Test invalid min sales threshold
     data = {
         "file": (io.BytesIO(sample_csv.encode("utf-8")), "test_stores.csv"),
         "min_sales_threshold": "-100",  # Invalid value
     }
-    response = client.post("/generate", data=data, content_type="multipart/form-data")
+    response = client.post(
+        "/generate", data=data, content_type="multipart/form-data"
+    )
     assert response.status_code == 400
-    assert "Min sales threshold must be non-negative" in response.get_json()["error"]
+    assert (
+        "Min sales threshold must be non-negative"
+        in response.get_json()["error"]
+    )

@@ -32,7 +32,9 @@ def test_analytics_health():
             print("✅ Analytics API health check successful!")
             print(f"Service: {result.get('service', 'N/A')}")
             print(f"Version: {result.get('version', 'N/A')}")
-            print(f"Capabilities: {len(result.get('capabilities', []))} features")
+            print(
+                f"Capabilities: {len(result.get('capabilities', []))} features"
+            )
             return True
         else:
             print(f"❌ Error: {response.text}")
@@ -59,7 +61,9 @@ def test_track_mobile_session():
     }
 
     try:
-        response = requests.post(url, json=test_data, headers=headers, timeout=10)
+        response = requests.post(
+            url, json=test_data, headers=headers, timeout=10
+        )
         print(f"Status Code: {response.status_code}")
 
         if response.status_code == 200:
@@ -95,7 +99,9 @@ def test_track_driver_performance():
     }
 
     try:
-        response = requests.post(url, json=test_data, headers=headers, timeout=10)
+        response = requests.post(
+            url, json=test_data, headers=headers, timeout=10
+        )
         print(f"Status Code: {response.status_code}")
 
         if response.status_code == 200:
@@ -123,9 +129,24 @@ def test_track_route_optimization():
         "route_id": str(uuid.uuid4()),
         "algorithm": "genetic",
         "stores": [
-            {"id": "store_1", "name": "Store A", "lat": 37.7749, "lng": -122.4194},
-            {"id": "store_2", "name": "Store B", "lat": 37.7849, "lng": -122.4094},
-            {"id": "store_3", "name": "Store C", "lat": 37.7649, "lng": -122.4294},
+            {
+                "id": "store_1",
+                "name": "Store A",
+                "lat": 37.7749,
+                "lng": -122.4194,
+            },
+            {
+                "id": "store_2",
+                "name": "Store B",
+                "lat": 37.7849,
+                "lng": -122.4094,
+            },
+            {
+                "id": "store_3",
+                "name": "Store C",
+                "lat": 37.7649,
+                "lng": -122.4294,
+            },
         ],
         "optimization_time": 2.5,
         "total_distance": 15.2,
@@ -136,7 +157,9 @@ def test_track_route_optimization():
     }
 
     try:
-        response = requests.post(url, json=test_data, headers=headers, timeout=10)
+        response = requests.post(
+            url, json=test_data, headers=headers, timeout=10
+        )
         print(f"Status Code: {response.status_code}")
 
         if response.status_code == 200:
@@ -171,7 +194,9 @@ def test_track_system_event():
     }
 
     try:
-        response = requests.post(url, json=test_data, headers=headers, timeout=10)
+        response = requests.post(
+            url, json=test_data, headers=headers, timeout=10
+        )
         print(f"Status Code: {response.status_code}")
 
         if response.status_code == 200:
@@ -197,7 +222,9 @@ def test_get_mobile_analytics():
     params = {"timeframe": "24h"}
 
     try:
-        response = requests.get(url, headers=headers, params=params, timeout=10)
+        response = requests.get(
+            url, headers=headers, params=params, timeout=10
+        )
         print(f"Status Code: {response.status_code}")
 
         if response.status_code == 200:
@@ -226,7 +253,9 @@ def test_get_driver_analytics():
     params = {"timeframe": "24h"}
 
     try:
-        response = requests.get(url, headers=headers, params=params, timeout=10)
+        response = requests.get(
+            url, headers=headers, params=params, timeout=10
+        )
         print(f"Status Code: {response.status_code}")
 
         if response.status_code == 200:
@@ -255,7 +284,9 @@ def test_get_route_analytics():
     params = {"timeframe": "24h"}
 
     try:
-        response = requests.get(url, headers=headers, params=params, timeout=10)
+        response = requests.get(
+            url, headers=headers, params=params, timeout=10
+        )
         print(f"Status Code: {response.status_code}")
 
         if response.status_code == 200:
@@ -264,7 +295,9 @@ def test_get_route_analytics():
             data = result.get("data", {})
             print(f"Total routes: {data.get('total_routes', 0)}")
             print(f"Success rate: {data.get('success_rate', 0)}%")
-            print(f"Avg optimization time: {data.get('avg_optimization_time', 0)}s")
+            print(
+                f"Avg optimization time: {data.get('avg_optimization_time', 0)}s"
+            )
             return True
         else:
             print(f"❌ Error: {response.text}")
@@ -284,7 +317,9 @@ def test_get_api_analytics():
     params = {"timeframe": "24h"}
 
     try:
-        response = requests.get(url, headers=headers, params=params, timeout=10)
+        response = requests.get(
+            url, headers=headers, params=params, timeout=10
+        )
         print(f"Status Code: {response.status_code}")
 
         if response.status_code == 200:
@@ -341,7 +376,9 @@ def test_get_analytics_report():
     params = {"timeframe": "24h"}
 
     try:
-        response = requests.get(url, headers=headers, params=params, timeout=15)
+        response = requests.get(
+            url, headers=headers, params=params, timeout=15
+        )
         print(f"Status Code: {response.status_code}")
 
         if response.status_code == 200:
@@ -410,8 +447,12 @@ def main():
 
     # Test tracking endpoints first (to generate data)
     test_results.append(("Track Mobile Session", test_track_mobile_session()))
-    test_results.append(("Track Driver Performance", test_track_driver_performance()))
-    test_results.append(("Track Route Optimization", test_track_route_optimization()))
+    test_results.append(
+        ("Track Driver Performance", test_track_driver_performance())
+    )
+    test_results.append(
+        ("Track Route Optimization", test_track_route_optimization())
+    )
     test_results.append(("Track System Event", test_track_system_event()))
 
     # Give a moment for data to be processed
@@ -452,7 +493,9 @@ def main():
             "\n🎉 All analytics API tests passed! Analytics system is fully functional."
         )
     else:
-        print(f"\n⚠️ {failed} test(s) failed. Please check the error messages above.")
+        print(
+            f"\n⚠️ {failed} test(s) failed. Please check the error messages above."
+        )
 
     print("\n📋 Next Steps:")
     print("- Integrate analytics into dashboard frontend")

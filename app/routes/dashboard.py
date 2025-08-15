@@ -39,7 +39,10 @@ def compare_algorithms():
         algorithms = [
             {"name": "Default", "algorithm": "default"},
             {"name": "Genetic Algorithm", "algorithm": "genetic"},
-            {"name": "Simulated Annealing", "algorithm": "simulated_annealing"},
+            {
+                "name": "Simulated Annealing",
+                "algorithm": "simulated_annealing",
+            },
             {"name": "Multi-Objective", "algorithm": "multi_objective"},
         ]
 
@@ -50,7 +53,9 @@ def compare_algorithms():
                 routing_service = RoutingService(user_id=user_id)
 
                 start_time = time.time()
-                route = routing_service.generate_route(stores, {}, algo["algorithm"])
+                route = routing_service.generate_route(
+                    stores, {}, algo["algorithm"]
+                )
                 processing_time = time.time() - start_time
 
                 # Get metrics
@@ -62,14 +67,16 @@ def compare_algorithms():
                     "success": True,
                     "processing_time": processing_time,
                     "route_length": len(route),
-                    "optimization_score": metrics.optimization_score if metrics else 0,
+                    "optimization_score": (
+                        metrics.optimization_score if metrics else 0
+                    ),
                     "metrics": metrics.__dict__ if metrics else {},
                 }
 
                 # Extract algorithm-specific metrics
                 if metrics and metrics.algorithm_metrics:
-                    result["improvement_percent"] = metrics.algorithm_metrics.get(
-                        "improvement_percent", 0
+                    result["improvement_percent"] = (
+                        metrics.algorithm_metrics.get("improvement_percent", 0)
                     )
                     result["initial_distance"] = metrics.algorithm_metrics.get(
                         "initial_distance", 0
@@ -120,21 +127,30 @@ def get_performance_history():
             {
                 "date": "2025-07-15",
                 "genetic": {"avg_improvement": 8.5, "avg_time": 1.2},
-                "simulated_annealing": {"avg_improvement": 24.2, "avg_time": 0.03},
+                "simulated_annealing": {
+                    "avg_improvement": 24.2,
+                    "avg_time": 0.03,
+                },
                 "multi_objective": {"avg_improvement": 15.8, "avg_time": 2.1},
                 "default": {"avg_improvement": 0, "avg_time": 0.1},
             },
             {
                 "date": "2025-07-16",
                 "genetic": {"avg_improvement": 9.1, "avg_time": 1.3},
-                "simulated_annealing": {"avg_improvement": 25.1, "avg_time": 0.02},
+                "simulated_annealing": {
+                    "avg_improvement": 25.1,
+                    "avg_time": 0.02,
+                },
                 "multi_objective": {"avg_improvement": 16.2, "avg_time": 2.0},
                 "default": {"avg_improvement": 0, "avg_time": 0.1},
             },
             {
                 "date": "2025-07-17",
                 "genetic": {"avg_improvement": 9.5, "avg_time": 1.4},
-                "simulated_annealing": {"avg_improvement": 26.0, "avg_time": 0.02},
+                "simulated_annealing": {
+                    "avg_improvement": 26.0,
+                    "avg_time": 0.02,
+                },
                 "multi_objective": {"avg_improvement": 17.1, "avg_time": 1.9},
                 "default": {"avg_improvement": 0, "avg_time": 0.1},
             },
@@ -147,7 +163,9 @@ def get_performance_history():
         return jsonify({"error": "Internal server error"}), 500
 
 
-@dashboard_bp.route("/dashboard/api/algorithm/details/<algorithm>", methods=["GET"])
+@dashboard_bp.route(
+    "/dashboard/api/algorithm/details/<algorithm>", methods=["GET"]
+)
 def get_algorithm_details(algorithm):
     """Get detailed information about a specific algorithm"""
     try:
@@ -173,7 +191,10 @@ def get_algorithm_details(algorithm):
                 "description": "Temperature-based optimization with probabilistic acceptance",
                 "best_for": "Quick optimization with excellent results",
                 "parameters": {
-                    "initial_temperature": {"default": 1000.0, "range": [100, 10000]},
+                    "initial_temperature": {
+                        "default": 1000.0,
+                        "range": [100, 10000],
+                    },
                     "cooling_rate": {"default": 0.95, "range": [0.8, 0.99]},
                     "cooling_schedule": {
                         "default": "exponential",
@@ -197,7 +218,12 @@ def get_algorithm_details(algorithm):
                 "parameters": {
                     "objectives": {
                         "default": "distance,time",
-                        "options": ["distance", "time", "priority", "fuel_cost"],
+                        "options": [
+                            "distance",
+                            "time",
+                            "priority",
+                            "fuel_cost",
+                        ],
                     },
                     "population_size": {"default": 100, "range": [20, 500]},
                     "generations": {"default": 200, "range": [50, 1000]},
@@ -230,7 +256,9 @@ def get_algorithm_details(algorithm):
         if algorithm not in algorithm_info:
             return jsonify({"error": "Algorithm not found"}), 404
 
-        return jsonify({"success": True, "algorithm": algorithm_info[algorithm]})
+        return jsonify(
+            {"success": True, "algorithm": algorithm_info[algorithm]}
+        )
 
     except Exception as e:
         logger.error(f"Error getting algorithm details: {str(e)}")

@@ -72,16 +72,26 @@ class TimeWindowFilter(RouteFilter):
             if chain in constraints.time_windows:
                 try:
                     time_window = constraints.time_windows[chain]
-                    start_time = datetime.strptime(time_window["start"], "%H:%M").time()
-                    end_time = datetime.strptime(time_window["end"], "%H:%M").time()
+                    start_time = datetime.strptime(
+                        time_window["start"], "%H:%M"
+                    ).time()
+                    end_time = datetime.strptime(
+                        time_window["end"], "%H:%M"
+                    ).time()
 
                     if start_time <= current_time <= end_time:
                         filtered_stores.append(store)
                 except (KeyError, ValueError) as e:
-                    logger.warning(f"Invalid time window for chain {chain}: {e}")
-                    filtered_stores.append(store)  # Include store if parsing fails
+                    logger.warning(
+                        f"Invalid time window for chain {chain}: {e}"
+                    )
+                    filtered_stores.append(
+                        store
+                    )  # Include store if parsing fails
             else:
-                filtered_stores.append(store)  # Include stores without time constraints
+                filtered_stores.append(
+                    store
+                )  # Include stores without time constraints
 
         return filtered_stores
 
@@ -134,7 +144,10 @@ class PriorityOptimizer:
         def sort_key(store):
             chain = store.get("chain", "")
             priority = 0
-            if constraints.priority_weights and chain in constraints.priority_weights:
+            if (
+                constraints.priority_weights
+                and chain in constraints.priority_weights
+            ):
                 priority = constraints.priority_weights[chain]
             return (-priority, store.get("name", ""))
 
@@ -157,7 +170,10 @@ class GreedyNearestNeighborOptimizer:
         # Find starting store (highest priority or first store)
         def priority_score(store):
             chain = store.get("chain", "")
-            if constraints.priority_weights and chain in constraints.priority_weights:
+            if (
+                constraints.priority_weights
+                and chain in constraints.priority_weights
+            ):
                 return constraints.priority_weights[chain]
             return 0
 
@@ -195,7 +211,9 @@ class ModernRouteGenerator:
     ):
         self.filters = filters or [TimeWindowFilter(), MaxStoresFilter()]
         self.optimizer = optimizer or PriorityOptimizer()
-        self.distance_calculator = distance_calculator or create_distance_calculator()
+        self.distance_calculator = (
+            distance_calculator or create_distance_calculator()
+        )
 
     def generate_route(
         self,
@@ -227,7 +245,9 @@ class ModernRouteGenerator:
         # Apply filters
         filtered_stores = stores.copy()
         for filter_instance in self.filters:
-            filtered_stores = filter_instance.apply(filtered_stores, constraints)
+            filtered_stores = filter_instance.apply(
+                filtered_stores, constraints
+            )
 
         # Optimize route
         optimized_route = self.optimizer.optimize(filtered_stores, constraints)
@@ -266,7 +286,9 @@ class ModernRouteGenerator:
             "total_stops": len(route),
             "original_stores": len(original_stores),
             "stores_filtered": len(original_stores) - len(route),
-            "chains_in_route": list({store.get("chain", "Unknown") for store in route}),
+            "chains_in_route": list(
+                {store.get("chain", "Unknown") for store in route}
+            ),
             "total_distance_km": self.distance_calculator.calculate_route_distance(
                 route
             ),
@@ -302,7 +324,9 @@ class ModernRouteGenerator:
 
 
 # Factory functions for easy setup
-def create_route_generator(algorithm: str = "priority") -> ModernRouteGenerator:
+def create_route_generator(
+    algorithm: str = "priority",
+) -> ModernRouteGenerator:
     """Create a route generator with specified algorithm"""
     distance_calc = create_distance_calculator()
 
@@ -339,7 +363,9 @@ def generate_route(
             if "priority" in config:
                 priority_weights[chain] = config["priority"]
         constraints.time_windows = time_windows if time_windows else None
-        constraints.priority_weights = priority_weights if priority_weights else None
+        constraints.priority_weights = (
+            priority_weights if priority_weights else None
+        )
 
     generator = create_route_generator("nearest_neighbor")
     route, _ = generator.generate_route(stores, constraints)
@@ -366,7 +392,9 @@ def summarize_route(
             if "priority" in config:
                 priority_weights[chain] = config["priority"]
         constraints.time_windows = time_windows if time_windows else None
-        constraints.priority_weights = priority_weights if priority_weights else None
+        constraints.priority_weights = (
+            priority_weights if priority_weights else None
+        )
 
     generator = create_route_generator()
     return generator.summarize_route(route, original_stores, constraints)

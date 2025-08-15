@@ -38,7 +38,11 @@ class MetricsCollector:
         self._start_system_monitoring()
 
     def record_request(
-        self, endpoint: str, response_time: float, status_code: int, user_ip: str
+        self,
+        endpoint: str,
+        response_time: float,
+        status_code: int,
+        user_ip: str,
     ):
         """Record request metrics"""
         with self.lock:
@@ -94,7 +98,9 @@ class MetricsCollector:
 
             return {
                 "requests_total": self.metrics["requests_total"],
-                "requests_by_endpoint": dict(self.metrics["requests_by_endpoint"]),
+                "requests_by_endpoint": dict(
+                    self.metrics["requests_by_endpoint"]
+                ),
                 "average_response_times": avg_response_times,
                 "errors_total": self.metrics["errors_total"],
                 "errors_by_type": dict(self.metrics["errors_by_type"]),
@@ -181,7 +187,9 @@ def setup_request_monitoring(app):
 
             # Log slow requests
             if duration > 5.0:  # 5 seconds
-                logger.warning(f"Slow request: {endpoint} took {duration:.3f}s")
+                logger.warning(
+                    f"Slow request: {endpoint} took {duration:.3f}s"
+                )
 
         return response
 

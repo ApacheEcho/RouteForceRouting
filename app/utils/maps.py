@@ -37,7 +37,10 @@ def generate_google_maps_link(waypoints: List[Dict[str, Any]]) -> str:
 
     if len(valid_waypoints) == 1:
         # Single destination
-        lat, lon = valid_waypoints[0]["latitude"], valid_waypoints[0]["longitude"]
+        lat, lon = (
+            valid_waypoints[0]["latitude"],
+            valid_waypoints[0]["longitude"],
+        )
         return f"https://www.google.com/maps/search/?api=1&query={lat},{lon}"
 
     # Multiple waypoints - create directions URL
@@ -89,7 +92,10 @@ def generate_apple_maps_link(waypoints: List[Dict[str, Any]]) -> str:
 
     if len(valid_waypoints) == 1:
         # Single destination
-        lat, lon = valid_waypoints[0]["latitude"], valid_waypoints[0]["longitude"]
+        lat, lon = (
+            valid_waypoints[0]["latitude"],
+            valid_waypoints[0]["longitude"],
+        )
         return f"http://maps.apple.com/?q={lat},{lon}"
 
     # Multiple waypoints - create directions URL

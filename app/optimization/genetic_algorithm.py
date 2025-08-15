@@ -121,10 +121,16 @@ class GeneticAlgorithm:
         Returns:
             Tuple of (optimized_route, optimization_metrics)
         """
-        logger.info(f"Starting genetic algorithm optimization for {len(stores)} stores")
+        logger.info(
+            f"Starting genetic algorithm optimization for {len(stores)} stores"
+        )
 
         if len(stores) < 2:
-            return stores, {"algorithm": "genetic", "generations": 0, "improvement": 0}
+            return stores, {
+                "algorithm": "genetic",
+                "generations": 0,
+                "improvement": 0,
+            }
 
         # Initialize population
         self._initialize_population(stores)
@@ -133,7 +139,9 @@ class GeneticAlgorithm:
         best_distances = []
 
         # Evolution loop with enhanced convergence detection
-        convergence_tracker = ConvergenceTracker(window_size=20, threshold=0.001)
+        convergence_tracker = ConvergenceTracker(
+            window_size=20, threshold=0.001
+        )
 
         for generation in range(self.config.generations):
             # Selection and reproduction
@@ -184,7 +192,9 @@ class GeneticAlgorithm:
             "best_fitness": self.best_individual.fitness,
         }
 
-        logger.info(f"Genetic algorithm completed: {improvement:.1f}% improvement")
+        logger.info(
+            f"Genetic algorithm completed: {improvement:.1f}% improvement"
+        )
         return optimized_route, metrics
 
     def _initialize_population(self, stores: List[Dict[str, Any]]):
@@ -245,7 +255,9 @@ class GeneticAlgorithm:
 
     def _tournament_selection(self) -> Individual:
         """Select individual using tournament selection"""
-        tournament = random.sample(self.population, self.config.tournament_size)
+        tournament = random.sample(
+            self.population, self.config.tournament_size
+        )
         return min(tournament)  # Best fitness (lowest distance)
 
     def _order_crossover(

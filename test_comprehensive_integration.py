@@ -81,13 +81,17 @@ class TestRouteForceIntegration:
                 insight_data = response.json()
                 if insight_data.get("success"):
                     logger.info("✓ Route insights generation successful")
-                    logger.info(f"  Insight: {insight_data['insight']['title']}")
+                    logger.info(
+                        f"  Insight: {insight_data['insight']['title']}"
+                    )
                     return True
                 else:
                     logger.error(f"✗ Route insights failed: {insight_data}")
                     return False
             else:
-                logger.error(f"✗ Route insights request failed: {response.status_code}")
+                logger.error(
+                    f"✗ Route insights request failed: {response.status_code}"
+                )
                 return False
 
         except Exception as e:
@@ -131,7 +135,9 @@ class TestRouteForceIntegration:
                     logger.error(f"✗ Prediction failed: {prediction_result}")
                     return False
             else:
-                logger.error(f"✗ Prediction request failed: {response.status_code}")
+                logger.error(
+                    f"✗ Prediction request failed: {response.status_code}"
+                )
                 return False
 
         except Exception as e:
@@ -144,7 +150,8 @@ class TestRouteForceIntegration:
 
         try:
             response = requests.get(
-                f"{BASE_URL}/api/ai/fleet/insights", headers=self.get_auth_headers()
+                f"{BASE_URL}/api/ai/fleet/insights",
+                headers=self.get_auth_headers(),
             )
 
             if response.status_code == 200:
@@ -152,7 +159,9 @@ class TestRouteForceIntegration:
                 if fleet_data.get("success"):
                     insights = fleet_data.get("fleet_insights", {})
                     logger.info("✓ Fleet insights successful")
-                    logger.info(f"  Total Routes: {insights.get('total_routes', 0)}")
+                    logger.info(
+                        f"  Total Routes: {insights.get('total_routes', 0)}"
+                    )
                     logger.info(
                         f"  Avg Fuel Efficiency: {insights.get('avg_fuel_efficiency', 0):.1f}"
                     )
@@ -161,7 +170,9 @@ class TestRouteForceIntegration:
                     logger.error(f"✗ Fleet insights failed: {fleet_data}")
                     return False
             else:
-                logger.error(f"✗ Fleet insights request failed: {response.status_code}")
+                logger.error(
+                    f"✗ Fleet insights request failed: {response.status_code}"
+                )
                 return False
 
         except Exception as e:
@@ -189,7 +200,9 @@ class TestRouteForceIntegration:
                         logger.info(f"  Recommendation {i+1}: {rec}")
                     return True
                 else:
-                    logger.error(f"✗ Recommendations failed: {recommendations}")
+                    logger.error(
+                        f"✗ Recommendations failed: {recommendations}"
+                    )
                     return False
             else:
                 logger.error(
@@ -208,7 +221,8 @@ class TestRouteForceIntegration:
         try:
             # Test dashboard overview
             response = requests.get(
-                f"{BASE_URL}/enterprise/api/overview", headers=self.get_auth_headers()
+                f"{BASE_URL}/enterprise/api/overview",
+                headers=self.get_auth_headers(),
             )
 
             if response.status_code == 200:
@@ -216,11 +230,17 @@ class TestRouteForceIntegration:
                 if overview_data.get("success"):
                     logger.info("✓ Enterprise dashboard overview successful")
                     metrics = overview_data.get("key_metrics", {})
-                    logger.info(f"  Total Routes: {metrics.get('total_routes', 0)}")
-                    logger.info(f"  Active Drivers: {metrics.get('active_drivers', 0)}")
+                    logger.info(
+                        f"  Total Routes: {metrics.get('total_routes', 0)}"
+                    )
+                    logger.info(
+                        f"  Active Drivers: {metrics.get('active_drivers', 0)}"
+                    )
                     return True
                 else:
-                    logger.error(f"✗ Dashboard overview failed: {overview_data}")
+                    logger.error(
+                        f"✗ Dashboard overview failed: {overview_data}"
+                    )
                     return False
             else:
                 logger.error(
@@ -250,7 +270,9 @@ class TestRouteForceIntegration:
                     logger.info(
                         f"  Analytics Engine: {status.get('analytics_engine', 'unknown')}"
                     )
-                    logger.info(f"  Database: {status.get('database', 'unknown')}")
+                    logger.info(
+                        f"  Database: {status.get('database', 'unknown')}"
+                    )
                     logger.info(
                         f"  External APIs: {status.get('external_apis', 'unknown')}"
                     )
@@ -259,7 +281,9 @@ class TestRouteForceIntegration:
                     logger.error(f"✗ System status failed: {status_data}")
                     return False
             else:
-                logger.error(f"✗ System status request failed: {response.status_code}")
+                logger.error(
+                    f"✗ System status request failed: {response.status_code}"
+                )
                 return False
 
         except Exception as e:
@@ -292,7 +316,9 @@ class TestRouteForceIntegration:
                     logger.error(f"✗ Active routes failed: {routes_data}")
                     return False
             else:
-                logger.error(f"✗ Active routes request failed: {response.status_code}")
+                logger.error(
+                    f"✗ Active routes request failed: {response.status_code}"
+                )
                 return False
 
         except Exception as e:
@@ -305,7 +331,8 @@ class TestRouteForceIntegration:
 
         try:
             response = requests.post(
-                f"{BASE_URL}/api/ai/demo/populate", headers=self.get_auth_headers()
+                f"{BASE_URL}/api/ai/demo/populate",
+                headers=self.get_auth_headers(),
             )
 
             if response.status_code == 200:
@@ -320,7 +347,9 @@ class TestRouteForceIntegration:
                     logger.error(f"✗ Demo data population failed: {demo_data}")
                     return False
             else:
-                logger.error(f"✗ Demo data request failed: {response.status_code}")
+                logger.error(
+                    f"✗ Demo data request failed: {response.status_code}"
+                )
                 return False
 
         except Exception as e:
@@ -355,10 +384,14 @@ class TestRouteForceIntegration:
                         logger.info(
                             f"  Recommended Route: {recommended.get('name', 'N/A')}"
                         )
-                        logger.info(f"  Score: {recommended.get('score', 0):.1f}")
+                        logger.info(
+                            f"  Score: {recommended.get('score', 0):.1f}"
+                        )
                     return True
                 else:
-                    logger.error(f"✗ Route optimization failed: {optimization_data}")
+                    logger.error(
+                        f"✗ Route optimization failed: {optimization_data}"
+                    )
                     return False
             else:
                 logger.error(
@@ -424,19 +457,25 @@ class TestRouteForceIntegration:
         logger.info("=" * 40)
 
         test_results.append(("Analytics Engine", self.test_analytics_engine()))
-        test_results.append(("Prediction Models", self.test_prediction_models()))
+        test_results.append(
+            ("Prediction Models", self.test_prediction_models())
+        )
         test_results.append(("Fleet Insights", self.test_fleet_insights()))
         test_results.append(
             ("Smart Recommendations", self.test_smart_recommendations())
         )
-        test_results.append(("Performance Trends", self.test_performance_trends()))
+        test_results.append(
+            ("Performance Trends", self.test_performance_trends())
+        )
 
         # Dashboard Tests
         logger.info("\n" + "=" * 40)
         logger.info("DASHBOARD & MONITORING TESTS")
         logger.info("=" * 40)
 
-        test_results.append(("Enterprise Dashboard", self.test_enterprise_dashboard()))
+        test_results.append(
+            ("Enterprise Dashboard", self.test_enterprise_dashboard())
+        )
         test_results.append(("System Status", self.test_system_status()))
         test_results.append(("Active Routes", self.test_active_routes()))
 
@@ -445,8 +484,12 @@ class TestRouteForceIntegration:
         logger.info("INTEGRATION & OPTIMIZATION TESTS")
         logger.info("=" * 40)
 
-        test_results.append(("Demo Data Population", self.test_demo_data_population()))
-        test_results.append(("Route Optimization", self.test_route_optimization()))
+        test_results.append(
+            ("Demo Data Population", self.test_demo_data_population())
+        )
+        test_results.append(
+            ("Route Optimization", self.test_route_optimization())
+        )
 
         # Results Summary
         logger.info("\n" + "=" * 60)
@@ -490,10 +533,14 @@ def main():
 
         if success:
             logger.info("\n🎉 All systems are operational!")
-            logger.info("RouteForce enhanced features are ready for production.")
+            logger.info(
+                "RouteForce enhanced features are ready for production."
+            )
         else:
             logger.error("\n⚠️  Some tests failed!")
-            logger.error("Please check the system before deploying to production.")
+            logger.error(
+                "Please check the system before deploying to production."
+            )
 
         return success
 

@@ -21,7 +21,9 @@ def test_analytics_endpoints():
         if response.status_code == 200:
             logger.info("✓ Server is healthy")
         else:
-            logger.error(f"✗ Server health check failed: {response.status_code}")
+            logger.error(
+                f"✗ Server health check failed: {response.status_code}"
+            )
             return False
     except Exception as e:
         logger.error(f"✗ Cannot connect to server: {e}")
@@ -86,12 +88,16 @@ def test_analytics_endpoints():
                 },
             ]
         }
-        response = requests.post(f"{base_url}/api/v1/routes/generate", json=test_data)
+        response = requests.post(
+            f"{base_url}/api/v1/routes/generate", json=test_data
+        )
         logger.info(f"Route generation endpoint: {response.status_code}")
         if response.status_code == 200:
             result = response.json()
             logger.info("✓ Route generation successful")
-            logger.info(f"  Generated route with {len(result.get('route', []))} stops")
+            logger.info(
+                f"  Generated route with {len(result.get('route', []))} stops"
+            )
         else:
             logger.info(f"Route generation response: {response.text[:200]}")
     except Exception as e:

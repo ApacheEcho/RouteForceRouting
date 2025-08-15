@@ -163,8 +163,12 @@ class PerformanceMonitor:
         # API Response Time (would be measured from actual requests)
         import random
 
-        api_response_time = random.uniform(50, 300)  # Simulated response time in ms
-        self._add_metric("api_response_time", api_response_time, "ms", timestamp)
+        api_response_time = random.uniform(
+            50, 300
+        )  # Simulated response time in ms
+        self._add_metric(
+            "api_response_time", api_response_time, "ms", timestamp
+        )
 
         # Active Routes (would come from route tracking system)
         active_routes = random.randint(5, 15)
@@ -172,13 +176,17 @@ class PerformanceMonitor:
 
         # Analytics Requests (would come from analytics engine)
         analytics_requests = random.randint(10, 50)
-        self._add_metric("analytics_requests", analytics_requests, "count", timestamp)
+        self._add_metric(
+            "analytics_requests", analytics_requests, "count", timestamp
+        )
 
         # Error Rate (would come from error tracking)
         error_rate = random.uniform(0.1, 2.0)
         self._add_metric("error_rate", error_rate, "percent", timestamp)
 
-    def _add_metric(self, metric_type: str, value: float, unit: str, timestamp: str):
+    def _add_metric(
+        self, metric_type: str, value: float, unit: str, timestamp: str
+    ):
         """Add a metric to the history"""
         thresholds = self.thresholds.get(metric_type, {})
 
@@ -258,11 +266,15 @@ class PerformanceMonitor:
             )
 
             self.active_alerts.append(alert)
-            logger.warning(f"Alert generated: {alert.title} - {alert.description}")
+            logger.warning(
+                f"Alert generated: {alert.title} - {alert.description}"
+            )
 
     def _cleanup_old_metrics(self):
         """Clean up metrics older than retention period"""
-        cutoff_time = datetime.now() - timedelta(hours=self.metrics_retention_hours)
+        cutoff_time = datetime.now() - timedelta(
+            hours=self.metrics_retention_hours
+        )
         cutoff_iso = cutoff_time.isoformat()
 
         for metric_type, metrics in self.metrics_history.items():
@@ -298,12 +310,16 @@ class PerformanceMonitor:
 
         metrics = self.metrics_history[metric_type]
         recent_metrics = [
-            asdict(metric) for metric in metrics if metric.timestamp >= cutoff_iso
+            asdict(metric)
+            for metric in metrics
+            if metric.timestamp >= cutoff_iso
         ]
 
         return recent_metrics
 
-    def get_active_alerts(self, severity: Optional[str] = None) -> List[Dict[str, Any]]:
+    def get_active_alerts(
+        self, severity: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
         """Get active alerts, optionally filtered by severity"""
         alerts = self.active_alerts
 
@@ -376,7 +392,9 @@ class PerformanceMonitor:
             "current_metrics": self.get_current_metrics(),
             "active_alerts": self.get_active_alerts(),
             "health_score": self.get_system_health_score(),
-            "monitoring_status": "active" if self.monitoring_active else "inactive",
+            "monitoring_status": (
+                "active" if self.monitoring_active else "inactive"
+            ),
             "last_updated": datetime.now().isoformat(),
         }
 

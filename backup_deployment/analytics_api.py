@@ -41,7 +41,9 @@ def get_route_insights(route_id: str):
             "duration": float(request.args.get("duration", 85.0)),
             "stops": request.args.get("stops", "5").split(","),
             "fuel_used": float(request.args.get("fuel_used", 3.2)),
-            "timestamp": request.args.get("timestamp", datetime.now().isoformat()),
+            "timestamp": request.args.get(
+                "timestamp", datetime.now().isoformat()
+            ),
         }
 
         # Generate insight
@@ -71,7 +73,12 @@ def get_route_insights(route_id: str):
     except Exception as e:
         current_app.logger.error(f"Error generating route insights: {str(e)}")
         return (
-            jsonify({"success": False, "error": "Failed to generate route insights"}),
+            jsonify(
+                {
+                    "success": False,
+                    "error": "Failed to generate route insights",
+                }
+            ),
             500,
         )
 
@@ -84,7 +91,10 @@ def predict_route_performance():
     try:
         data = request.get_json()
         if not data:
-            return jsonify({"success": False, "error": "No route data provided"}), 400
+            return (
+                jsonify({"success": False, "error": "No route data provided"}),
+                400,
+            )
 
         analytics = get_analytics_engine()
 
@@ -104,7 +114,9 @@ def predict_route_performance():
 
         # Calculate derived features
         if "distance" in data and "stops_count" in data:
-            data["avg_stop_distance"] = data["distance"] / max(data["stops_count"], 1)
+            data["avg_stop_distance"] = data["distance"] / max(
+                data["stops_count"], 1
+            )
 
         # Generate prediction
         prediction = analytics.predict_route_performance(data)
@@ -114,14 +126,22 @@ def predict_route_performance():
                 "success": True,
                 "prediction": {
                     "route_id": prediction.route_id,
-                    "predicted_duration": round(prediction.predicted_duration, 1),
+                    "predicted_duration": round(
+                        prediction.predicted_duration, 1
+                    ),
                     "predicted_duration_minutes": round(
                         prediction.predicted_duration, 1
                     ),
-                    "predicted_fuel_cost": round(prediction.predicted_fuel_cost, 2),
+                    "predicted_fuel_cost": round(
+                        prediction.predicted_fuel_cost, 2
+                    ),
                     "confidence_interval": {
-                        "min_duration": round(prediction.confidence_interval[0], 1),
-                        "max_duration": round(prediction.confidence_interval[1], 1),
+                        "min_duration": round(
+                            prediction.confidence_interval[0], 1
+                        ),
+                        "max_duration": round(
+                            prediction.confidence_interval[1], 1
+                        ),
                     },
                     "risk_factors": prediction.risk_factors,
                     "optimization_suggestions": prediction.optimization_suggestions,
@@ -130,9 +150,16 @@ def predict_route_performance():
         )
 
     except Exception as e:
-        current_app.logger.error(f"Error predicting route performance: {str(e)}")
+        current_app.logger.error(
+            f"Error predicting route performance: {str(e)}"
+        )
         return (
-            jsonify({"success": False, "error": "Failed to predict route performance"}),
+            jsonify(
+                {
+                    "success": False,
+                    "error": "Failed to predict route performance",
+                }
+            ),
             500,
         )
 
@@ -169,7 +196,9 @@ def get_performance_trends():
     except Exception as e:
         current_app.logger.error(f"Error getting performance trends: {str(e)}")
         return (
-            jsonify({"success": False, "error": "Failed to get performance trends"}),
+            jsonify(
+                {"success": False, "error": "Failed to get performance trends"}
+            ),
             500,
         )
 
@@ -187,7 +216,12 @@ def get_fleet_insights():
 
     except Exception as e:
         current_app.logger.error(f"Error getting fleet insights: {str(e)}")
-        return jsonify({"success": False, "error": "Failed to get fleet insights"}), 500
+        return (
+            jsonify(
+                {"success": False, "error": "Failed to get fleet insights"}
+            ),
+            500,
+        )
 
 
 @analytics_bp.route("/insights/batch", methods=["POST"])
@@ -198,7 +232,12 @@ def analyze_multiple_routes():
     try:
         data = request.get_json()
         if not data or "routes" not in data:
-            return jsonify({"success": False, "error": "No routes data provided"}), 400
+            return (
+                jsonify(
+                    {"success": False, "error": "No routes data provided"}
+                ),
+                400,
+            )
 
         analytics = get_analytics_engine()
         results = []
@@ -247,7 +286,10 @@ def analyze_multiple_routes():
 
     except Exception as e:
         current_app.logger.error(f"Error analyzing multiple routes: {str(e)}")
-        return jsonify({"success": False, "error": "Failed to analyze routes"}), 500
+        return (
+            jsonify({"success": False, "error": "Failed to analyze routes"}),
+            500,
+        )
 
 
 @analytics_bp.route("/recommendations/smart", methods=["GET"])
@@ -261,7 +303,9 @@ def get_smart_recommendations():
         time_window = request.args.get(
             "time_window", "morning"
         )  # morning, afternoon, evening
-        priority = request.args.get("priority", "efficiency")  # efficiency, speed, cost
+        priority = request.args.get(
+            "priority", "efficiency"
+        )  # efficiency, speed, cost
 
         analytics = get_analytics_engine()
 
@@ -355,9 +399,16 @@ def get_smart_recommendations():
         )
 
     except Exception as e:
-        current_app.logger.error(f"Error generating smart recommendations: {str(e)}")
+        current_app.logger.error(
+            f"Error generating smart recommendations: {str(e)}"
+        )
         return (
-            jsonify({"success": False, "error": "Failed to generate recommendations"}),
+            jsonify(
+                {
+                    "success": False,
+                    "error": "Failed to generate recommendations",
+                }
+            ),
             500,
         )
 
@@ -392,7 +443,9 @@ def populate_demo_data():
             fuel_used = distance / fuel_efficiency
 
             # Time progression
-            route_time = base_time + timedelta(days=i / 2, hours=random.randint(7, 18))
+            route_time = base_time + timedelta(
+                days=i / 2, hours=random.randint(7, 18)
+            )
 
             route_data = {
                 "route_id": f"demo_route_{i+1:03d}",
@@ -412,13 +465,20 @@ def populate_demo_data():
             {
                 "success": True,
                 "message": f"Successfully populated {len(demo_routes)} demo routes",
-                "sample_data": demo_routes[:5],  # Show first 5 for verification
+                "sample_data": demo_routes[
+                    :5
+                ],  # Show first 5 for verification
             }
         )
 
     except Exception as e:
         current_app.logger.error(f"Error populating demo data: {str(e)}")
-        return jsonify({"success": False, "error": "Failed to populate demo data"}), 500
+        return (
+            jsonify(
+                {"success": False, "error": "Failed to populate demo data"}
+            ),
+            500,
+        )
 
 
 @analytics_bp.route("/predict/advanced", methods=["POST"])
@@ -429,7 +489,10 @@ def predict_advanced_route_performance():
     try:
         data = request.get_json()
         if not data:
-            return jsonify({"success": False, "error": "No route data provided"}), 400
+            return (
+                jsonify({"success": False, "error": "No route data provided"}),
+                400,
+            )
 
         analytics = get_analytics_engine()
 
@@ -449,7 +512,9 @@ def predict_advanced_route_performance():
 
         # Calculate derived features
         if "distance" in data and "stops_count" in data:
-            data["avg_stop_distance"] = data["distance"] / max(data["stops_count"], 1)
+            data["avg_stop_distance"] = data["distance"] / max(
+                data["stops_count"], 1
+            )
 
         # Generate advanced prediction with uncertainty quantification
         prediction = analytics.predict_with_advanced_models(data)
@@ -459,8 +524,12 @@ def predict_advanced_route_performance():
                 "success": True,
                 "prediction": {
                     "route_id": prediction.route_id,
-                    "predicted_duration": round(prediction.predicted_duration, 2),
-                    "predicted_fuel_cost": round(prediction.predicted_fuel_cost, 2),
+                    "predicted_duration": round(
+                        prediction.predicted_duration, 2
+                    ),
+                    "predicted_fuel_cost": round(
+                        prediction.predicted_fuel_cost, 2
+                    ),
                     "uncertainty": {
                         "mean_prediction": round(
                             prediction.uncertainty.mean_prediction, 2
@@ -469,8 +538,18 @@ def predict_advanced_route_performance():
                             prediction.uncertainty.std_prediction, 2
                         ),
                         "confidence_interval_95": [
-                            round(prediction.uncertainty.confidence_interval_95[0], 2),
-                            round(prediction.uncertainty.confidence_interval_95[1], 2),
+                            round(
+                                prediction.uncertainty.confidence_interval_95[
+                                    0
+                                ],
+                                2,
+                            ),
+                            round(
+                                prediction.uncertainty.confidence_interval_95[
+                                    1
+                                ],
+                                2,
+                            ),
                         ],
                         "model_confidence": round(
                             prediction.uncertainty.model_confidence, 3
@@ -485,7 +564,8 @@ def predict_advanced_route_performance():
                     "risk_factors": prediction.risk_factors,
                     "optimization_suggestions": prediction.optimization_suggestions,
                     "feature_importance": {
-                        k: round(v, 3) for k, v in prediction.feature_importance.items()
+                        k: round(v, 3)
+                        for k, v in prediction.feature_importance.items()
                     },
                     "explainability": prediction.model_explainability,
                 },
@@ -493,7 +573,9 @@ def predict_advanced_route_performance():
         )
 
     except Exception as e:
-        current_app.logger.error(f"Error in advanced route prediction: {str(e)}")
+        current_app.logger.error(
+            f"Error in advanced route prediction: {str(e)}"
+        )
         return (
             jsonify(
                 {
@@ -538,7 +620,9 @@ def get_performance_monitoring():
         )
 
     except Exception as e:
-        current_app.logger.error(f"Error retrieving performance monitoring: {str(e)}")
+        current_app.logger.error(
+            f"Error retrieving performance monitoring: {str(e)}"
+        )
         return (
             jsonify(
                 {
@@ -563,7 +647,8 @@ def get_ensemble_status():
             "historical_data_count": len(analytics.historical_data),
             "feature_columns": analytics.feature_columns,
             "basic_model_available": analytics.route_predictor is not None,
-            "anomaly_detector_available": analytics.anomaly_detector is not None,
+            "anomaly_detector_available": analytics.anomaly_detector
+            is not None,
         }
 
         if hasattr(analytics.ensemble_engine, "model_metadata"):
@@ -582,6 +667,11 @@ def get_ensemble_status():
     except Exception as e:
         current_app.logger.error(f"Error retrieving ensemble status: {str(e)}")
         return (
-            jsonify({"success": False, "error": "Failed to retrieve ensemble status"}),
+            jsonify(
+                {
+                    "success": False,
+                    "error": "Failed to retrieve ensemble status",
+                }
+            ),
             500,
         )

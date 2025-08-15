@@ -37,14 +37,20 @@ class RouteForceSystemTest:
             if response.status_code == 200:
                 data = response.json()
                 self.log_test(
-                    "Backend Health", True, f"Status: {data.get('status', 'unknown')}"
+                    "Backend Health",
+                    True,
+                    f"Status: {data.get('status', 'unknown')}",
                 )
                 return True
             else:
-                self.log_test("Backend Health", False, f"HTTP {response.status_code}")
+                self.log_test(
+                    "Backend Health", False, f"HTTP {response.status_code}"
+                )
                 return False
         except Exception as e:
-            self.log_test("Backend Health", False, f"Connection error: {str(e)}")
+            self.log_test(
+                "Backend Health", False, f"Connection error: {str(e)}"
+            )
             return False
 
     def test_frontend_accessibility(self):
@@ -53,12 +59,16 @@ class RouteForceSystemTest:
             response = requests.get(self.frontend_url, timeout=5)
             if response.status_code == 200:
                 self.log_test(
-                    "Frontend Accessibility", True, "Frontend is serving content"
+                    "Frontend Accessibility",
+                    True,
+                    "Frontend is serving content",
                 )
                 return True
             else:
                 self.log_test(
-                    "Frontend Accessibility", False, f"HTTP {response.status_code}"
+                    "Frontend Accessibility",
+                    False,
+                    f"HTTP {response.status_code}",
                 )
                 return False
         except Exception as e:
@@ -100,14 +110,22 @@ class RouteForceSystemTest:
                             },
                         ],
                         "algorithm": "genetic",
-                        "depot": {"lat": 37.7649, "lng": -122.4294, "name": "Depot"},
+                        "depot": {
+                            "lat": 37.7649,
+                            "lng": -122.4294,
+                            "name": "Depot",
+                        },
                     }
                     response = requests.post(
-                        f"{self.backend_url}{endpoint}", json=test_data, timeout=10
+                        f"{self.backend_url}{endpoint}",
+                        json=test_data,
+                        timeout=10,
                     )
                 else:
                     # GET request for other endpoints
-                    response = requests.get(f"{self.backend_url}{endpoint}", timeout=5)
+                    response = requests.get(
+                        f"{self.backend_url}{endpoint}", timeout=5
+                    )
 
                 if response.status_code in [200, 201]:
                     self.log_test(
@@ -116,7 +134,9 @@ class RouteForceSystemTest:
                     success_count += 1
                 else:
                     self.log_test(
-                        f"API {endpoint}", False, f"HTTP {response.status_code}"
+                        f"API {endpoint}",
+                        False,
+                        f"HTTP {response.status_code}",
                     )
 
             except Exception as e:
@@ -128,14 +148,20 @@ class RouteForceSystemTest:
         """Test database integration"""
         try:
             # Test analytics endpoint that uses database
-            response = requests.get(f"{self.backend_url}/api/analytics", timeout=5)
+            response = requests.get(
+                f"{self.backend_url}/api/analytics", timeout=5
+            )
             if response.status_code == 200:
                 data = response.json()
-                self.log_test("Database Integration", True, "Analytics data retrieved")
+                self.log_test(
+                    "Database Integration", True, "Analytics data retrieved"
+                )
                 return True
             else:
                 self.log_test(
-                    "Database Integration", False, f"HTTP {response.status_code}"
+                    "Database Integration",
+                    False,
+                    f"HTTP {response.status_code}",
                 )
                 return False
         except Exception as e:
@@ -152,7 +178,9 @@ class RouteForceSystemTest:
                 data = response.json()
                 if data.get("success"):
                     self.log_test(
-                        "ML Integration", True, "ML insights retrieved successfully"
+                        "ML Integration",
+                        True,
+                        "ML insights retrieved successfully",
                     )
                     return True
                 else:
@@ -163,7 +191,9 @@ class RouteForceSystemTest:
                     )
                     return False
             else:
-                self.log_test("ML Integration", False, f"HTTP {response.status_code}")
+                self.log_test(
+                    "ML Integration", False, f"HTTP {response.status_code}"
+                )
                 return False
         except Exception as e:
             self.log_test("ML Integration", False, f"Error: {str(e)}")
@@ -173,13 +203,16 @@ class RouteForceSystemTest:
         """Test performance monitoring"""
         try:
             response = requests.get(
-                f"{self.backend_url}/advanced/api/performance-trends", timeout=5
+                f"{self.backend_url}/advanced/api/performance-trends",
+                timeout=5,
             )
             if response.status_code == 200:
                 data = response.json()
                 if data.get("success"):
                     self.log_test(
-                        "Performance Monitoring", True, "Performance data available"
+                        "Performance Monitoring",
+                        True,
+                        "Performance data available",
                     )
                     return True
                 else:
@@ -189,7 +222,9 @@ class RouteForceSystemTest:
                     return False
             else:
                 self.log_test(
-                    "Performance Monitoring", False, f"HTTP {response.status_code}"
+                    "Performance Monitoring",
+                    False,
+                    f"HTTP {response.status_code}",
                 )
                 return False
         except Exception as e:
@@ -203,9 +238,24 @@ class RouteForceSystemTest:
 
         test_data = {
             "stops": [
-                {"id": "1", "lat": 37.7749, "lng": -122.4194, "name": "Stop 1"},
-                {"id": "2", "lat": 37.7849, "lng": -122.4094, "name": "Stop 2"},
-                {"id": "3", "lat": 37.7649, "lng": -122.4394, "name": "Stop 3"},
+                {
+                    "id": "1",
+                    "lat": 37.7749,
+                    "lng": -122.4194,
+                    "name": "Stop 1",
+                },
+                {
+                    "id": "2",
+                    "lat": 37.7849,
+                    "lng": -122.4094,
+                    "name": "Stop 2",
+                },
+                {
+                    "id": "3",
+                    "lat": 37.7649,
+                    "lng": -122.4394,
+                    "name": "Stop 3",
+                },
             ],
             "depot": {"lat": 37.7549, "lng": -122.4494, "name": "Depot"},
         }
@@ -214,7 +264,9 @@ class RouteForceSystemTest:
             try:
                 test_data["algorithm"] = algorithm
                 response = requests.post(
-                    f"{self.backend_url}/api/optimize", json=test_data, timeout=15
+                    f"{self.backend_url}/api/optimize",
+                    json=test_data,
+                    timeout=15,
                 )
                 if response.status_code == 200:
                     data = response.json()
@@ -233,10 +285,14 @@ class RouteForceSystemTest:
                         )
                 else:
                     self.log_test(
-                        f"Algorithm {algorithm}", False, f"HTTP {response.status_code}"
+                        f"Algorithm {algorithm}",
+                        False,
+                        f"HTTP {response.status_code}",
                     )
             except Exception as e:
-                self.log_test(f"Algorithm {algorithm}", False, f"Error: {str(e)}")
+                self.log_test(
+                    f"Algorithm {algorithm}", False, f"Error: {str(e)}"
+                )
 
         return success_count == len(algorithms)
 
@@ -282,7 +338,9 @@ class RouteForceSystemTest:
         print("=" * 60)
 
         total_tests = len(self.test_results)
-        passed_tests = sum(1 for result in self.test_results if result["success"])
+        passed_tests = sum(
+            1 for result in self.test_results if result["success"]
+        )
         failed_tests = total_tests - passed_tests
 
         print(f"Total Tests: {total_tests}")

@@ -28,7 +28,10 @@ from app.services.route_scoring_service import RouteScorer
 
 # Import optimization algorithms (with fallback)
 try:
-    from app.optimization.genetic_algorithm import GeneticAlgorithm, GeneticConfig
+    from app.optimization.genetic_algorithm import (
+        GeneticAlgorithm,
+        GeneticConfig,
+    )
 except ImportError:
     GeneticAlgorithm = None
     GeneticConfig = None
@@ -90,8 +93,12 @@ class UnifiedRoutingService:
         self.metrics: Optional[UnifiedRoutingMetrics] = None
 
         # Initialize services with defaults if not provided
-        self.geocoding_service = geocoding_service or create_geocoding_service()
-        self.distance_calculator = distance_calculator or create_distance_calculator()
+        self.geocoding_service = (
+            geocoding_service or create_geocoding_service()
+        )
+        self.distance_calculator = (
+            distance_calculator or create_distance_calculator()
+        )
         self.route_generator = route_generator or create_route_generator(
             "nearest_neighbor"
         )
@@ -133,7 +140,9 @@ class UnifiedRoutingService:
             self.sa_config = None
             logger.warning("Simulated annealing not available")
 
-    def ensure_coordinates(self, stores: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def ensure_coordinates(
+        self, stores: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
         """
         Ensure all stores have coordinates, geocoding addresses if needed
 
@@ -230,9 +239,13 @@ class UnifiedRoutingService:
             self.last_processing_time = processing_time
 
             # Calculate metrics
-            total_distance = self.distance_calculator.calculate_route_distance(route)
+            total_distance = self.distance_calculator.calculate_route_distance(
+                route
+            )
             optimization_score = (
-                len(route) / max(total_distance, 0.1) if total_distance > 0 else 0
+                len(route) / max(total_distance, 0.1)
+                if total_distance > 0
+                else 0
             )
 
             self.metrics = UnifiedRoutingMetrics(
@@ -251,7 +264,9 @@ class UnifiedRoutingService:
                         route, constraints or {}, self.metrics
                     )
                     if route_record:
-                        self.metrics.route_id = getattr(route_record, "id", None)
+                        self.metrics.route_id = getattr(
+                            route_record, "id", None
+                        )
                 except Exception as e:
                     logger.error(f"Failed to save route to database: {e}")
 
@@ -301,7 +316,9 @@ class UnifiedRoutingService:
             config.population_size = algorithm_params.get(
                 "population_size", config.population_size
             )
-            config.generations = algorithm_params.get("generations", config.generations)
+            config.generations = algorithm_params.get(
+                "generations", config.generations
+            )
             config.mutation_rate = algorithm_params.get(
                 "mutation_rate", config.mutation_rate
             )
@@ -387,7 +404,9 @@ class UnifiedRoutingService:
             return None
 
     def score_route(
-        self, route: List[Dict[str, Any]], context: Optional[Dict[str, Any]] = None
+        self,
+        route: List[Dict[str, Any]],
+        context: Optional[Dict[str, Any]] = None,
     ):
         """
         Score a route using the integrated route scoring service
@@ -455,12 +474,16 @@ class UnifiedRoutingService:
 
     def get_cache_stats(self) -> Dict[str, int]:
         """Get cache statistics"""
-        return {"geocoding_cache_size": self.geocoding_service.get_cache_size()}
+        return {
+            "geocoding_cache_size": self.geocoding_service.get_cache_size()
+        }
 
     # ===== BACKWARD COMPATIBILITY METHODS =====
     # These methods maintain compatibility with existing tests and legacy code
 
-    def geocode_stores(self, stores: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def geocode_stores(
+        self, stores: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
         """
         Geocode stores list - backward compatibility method
 
@@ -569,7 +592,9 @@ class UnifiedRoutingService:
 
             lat_diff = lat2 - lat1
             lon_diff = lon2 - lon1
-            distance = math.sqrt(lat_diff**2 + lon_diff**2) * 111  # Rough km per degree
+            distance = (
+                math.sqrt(lat_diff**2 + lon_diff**2) * 111
+            )  # Rough km per degree
             return distance <= radius_km
 
     def _calculate_total_distance(self, route: List[Dict[str, Any]]) -> float:
@@ -584,7 +609,9 @@ class UnifiedRoutingService:
         """
         return self.distance_calculator.calculate_route_distance(route)
 
-    def _calculate_optimization_score(self, route: List[Dict[str, Any]]) -> float:
+    def _calculate_optimization_score(
+        self, route: List[Dict[str, Any]]
+    ) -> float:
         """
         Calculate optimization score for route - backward compatibility method
 
@@ -604,7 +631,9 @@ class UnifiedRoutingService:
                 "time_weight": 0.2,
                 "priority_weight": 0.2,
             }
-            score = self.route_scorer.calculate_comprehensive_score(route, weights)
+            score = self.route_scorer.calculate_comprehensive_score(
+                route, weights
+            )
             return min(100.0, max(0.0, score))
         except Exception as e:
             logger.warning(f"Error calculating optimization score: {e}")
@@ -614,7 +643,9 @@ class UnifiedRoutingService:
                 return 100.0
             # Normalize score (lower distance = higher score)
             baseline_distance = 100.0  # Arbitrary baseline
-            score = max(0, min(100, (baseline_distance / total_distance) * 100))
+            score = max(
+                0, min(100, (baseline_distance / total_distance) * 100)
+            )
             return round(score, 2)
 
 

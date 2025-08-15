@@ -76,7 +76,9 @@ class JSONFileCache(CacheStorage):
                     # Convert lists back to tuples
                     return {k: tuple(v) for k, v in data.items()}
             except (json.JSONDecodeError, ValueError) as e:
-                logger.warning(f"Error loading cache file {self.cache_file}: {e}")
+                logger.warning(
+                    f"Error loading cache file {self.cache_file}: {e}"
+                )
         return {}
 
     def _save_cache(self) -> None:

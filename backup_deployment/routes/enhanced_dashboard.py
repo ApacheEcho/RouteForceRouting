@@ -17,7 +17,8 @@ enhanced_dashboard_bp = Blueprint(
 def analytics_dashboard():
     """Enhanced analytics dashboard page"""
     return render_template(
-        "dashboard/enhanced_analytics.html", page_title="Advanced Analytics Dashboard"
+        "dashboard/enhanced_analytics.html",
+        page_title="Advanced Analytics Dashboard",
     )
 
 
@@ -25,7 +26,8 @@ def analytics_dashboard():
 def realtime_dashboard():
     """Real-time monitoring dashboard"""
     return render_template(
-        "dashboard/realtime_monitoring.html", page_title="Real-time Fleet Monitoring"
+        "dashboard/realtime_monitoring.html",
+        page_title="Real-time Fleet Monitoring",
     )
 
 
@@ -47,7 +49,9 @@ def analytics_summary():
             "avg_fuel_efficiency": round(
                 fleet_insights.get("avg_fuel_efficiency", 0), 2
             ),
-            "avg_duration": round(fleet_insights.get("avg_duration_minutes", 0), 1),
+            "avg_duration": round(
+                fleet_insights.get("avg_duration_minutes", 0), 1
+            ),
             "trends": [
                 {
                     "metric": trend.metric_name,
@@ -57,7 +61,9 @@ def analytics_summary():
                 }
                 for trend in trends
             ],
-            "recommendations": fleet_insights.get("recommendations", [])[:3],  # Top 3
+            "recommendations": fleet_insights.get("recommendations", [])[
+                :3
+            ],  # Top 3
             "last_updated": datetime.now().isoformat(),
         }
 
@@ -83,7 +89,9 @@ def performance_alerts():
         # Generate alerts based on trends
         for trend in trends:
             if trend.trend_direction == "declining":
-                severity = "high" if abs(trend.change_percentage) > 15 else "medium"
+                severity = (
+                    "high" if abs(trend.change_percentage) > 15 else "medium"
+                )
                 alerts.append(
                     {
                         "id": f"trend_{trend.metric_name.lower().replace(' ', '_')}",
@@ -132,7 +140,9 @@ def performance_alerts():
                 }
             )
 
-        return jsonify({"success": True, "alerts": alerts, "total_alerts": len(alerts)})
+        return jsonify(
+            {"success": True, "alerts": alerts, "total_alerts": len(alerts)}
+        )
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
@@ -153,7 +163,9 @@ def generate_insights():
         if insight_type == "fleet":
             # Generate fleet-wide insights
             fleet_data = analytics.get_fleet_insights()
-            trends = analytics.detect_performance_trends(timeframe_days=timeframe)
+            trends = analytics.detect_performance_trends(
+                timeframe_days=timeframe
+            )
 
             # Convert trends to insights
             for trend in trends:
@@ -163,9 +175,13 @@ def generate_insights():
                         "type": "trend_analysis",
                         "title": f"{trend.metric_name} Trend Analysis",
                         "description": f"{trend.metric_name} is {trend.trend_direction} by {abs(trend.change_percentage):.1f}%",
-                        "impact_score": min(abs(trend.change_percentage) * 2, 100),
+                        "impact_score": min(
+                            abs(trend.change_percentage) * 2, 100
+                        ),
                         "confidence": 0.85,
-                        "recommendations": generate_trend_recommendations(trend),
+                        "recommendations": generate_trend_recommendations(
+                            trend
+                        ),
                         "data": {
                             "current_value": trend.current_value,
                             "change_percentage": trend.change_percentage,
@@ -182,7 +198,9 @@ def generate_insights():
             route_data = data.get("route_data", {})
 
             if route_data:
-                insight = analytics.analyze_route_efficiency(route_id, route_data)
+                insight = analytics.analyze_route_efficiency(
+                    route_id, route_data
+                )
                 insights.append(
                     {
                         "id": f"route_{route_id}",
@@ -226,7 +244,9 @@ def generate_trend_recommendations(trend):
                 "Consider route optimization to reduce distance",
             ]
         )
-    elif "duration" in metric and direction == "declining":  # Longer duration is bad
+    elif (
+        "duration" in metric and direction == "declining"
+    ):  # Longer duration is bad
         recommendations.extend(
             [
                 "Analyze traffic patterns and adjust schedules",
@@ -274,8 +294,12 @@ def bulk_predictions():
                 predictions.append(
                     {
                         "route_id": route_data.get("route_id", "unknown"),
-                        "predicted_duration": round(prediction.predicted_duration, 2),
-                        "predicted_fuel_cost": round(prediction.predicted_fuel_cost, 2),
+                        "predicted_duration": round(
+                            prediction.predicted_duration, 2
+                        ),
+                        "predicted_fuel_cost": round(
+                            prediction.predicted_fuel_cost, 2
+                        ),
                         "confidence_interval": [
                             round(prediction.confidence_interval[0], 2),
                             round(prediction.confidence_interval[1], 2),
@@ -286,7 +310,10 @@ def bulk_predictions():
                 )
             except Exception as e:
                 predictions.append(
-                    {"route_id": route_data.get("route_id", "unknown"), "error": str(e)}
+                    {
+                        "route_id": route_data.get("route_id", "unknown"),
+                        "error": str(e),
+                    }
                 )
 
         return jsonify(

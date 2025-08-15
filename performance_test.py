@@ -94,7 +94,10 @@ def generate_test_fleet(size: int = 5) -> List[Vehicle]:
             max_packages=vtype["packages"],
             max_driving_hours=vtype["hours"],
             status=VehicleStatus.AVAILABLE,
-            current_location={"lat": 40.7128 + i * 0.01, "lng": -74.0060 + i * 0.01},
+            current_location={
+                "lat": 40.7128 + i * 0.01,
+                "lng": -74.0060 + i * 0.01,
+            },
             driver_id=f"DRIVER_{i + 1:02d}",
         )
         vehicles.append(vehicle)
@@ -172,7 +175,9 @@ def run_scalability_test(
                 "total_distance_km": total_distance,
                 "total_duration_hours": total_duration,
                 "total_stops": total_stops,
-                "avg_stops_per_route": total_stops / len(routes) if routes else 0,
+                "avg_stops_per_route": (
+                    total_stops / len(routes) if routes else 0
+                ),
                 "stores_per_second": (
                     size / perf_data["execution_time_seconds"]
                     if perf_data["execution_time_seconds"] > 0
@@ -185,14 +190,18 @@ def run_scalability_test(
             print(f"    Time: {perf_data['execution_time_seconds']:.3f}s")
             print(f"    Memory: {perf_data['memory_usage_mb']:.1f}MB")
             print(f"    Routes: {len(routes)}")
-            print(f"    Speed: {method_results['stores_per_second']:.1f} stores/sec")
+            print(
+                f"    Speed: {method_results['stores_per_second']:.1f} stores/sec"
+            )
 
         results["tests"].append(size_results)
 
     return results
 
 
-def run_stress_test(max_stores: int = 1000, increment: int = 100) -> Dict[str, Any]:
+def run_stress_test(
+    max_stores: int = 1000, increment: int = 100
+) -> Dict[str, Any]:
     """Run stress test to find performance breaking points."""
     print(f"\n{'=' * 60}")
     print(f"STRESS TEST: Finding performance limits up to {max_stores} stores")
@@ -200,7 +209,11 @@ def run_stress_test(max_stores: int = 1000, increment: int = 100) -> Dict[str, A
 
     fleet = generate_test_fleet(10)
     optimizer = RouteOptimizer()
-    stress_results = {"max_stores_tested": 0, "breaking_point": None, "results": []}
+    stress_results = {
+        "max_stores_tested": 0,
+        "breaking_point": None,
+        "results": [],
+    }
 
     current_size = increment
     while current_size <= max_stores:
@@ -243,7 +256,9 @@ def run_stress_test(max_stores: int = 1000, increment: int = 100) -> Dict[str, A
 
             # Check for performance degradation
             if execution_time > 60:  # More than 1 minute
-                print("  ⚠️  WARNING: Performance degrading (>60s execution time)")
+                print(
+                    "  ⚠️  WARNING: Performance degrading (>60s execution time)"
+                )
                 stress_results["breaking_point"] = current_size
                 break
 
@@ -254,7 +269,11 @@ def run_stress_test(max_stores: int = 1000, increment: int = 100) -> Dict[str, A
 
         except Exception as e:
             print(f"  ❌ FAILED: {str(e)}")
-            result = {"store_count": current_size, "status": "failed", "error": str(e)}
+            result = {
+                "store_count": current_size,
+                "status": "failed",
+                "error": str(e),
+            }
             stress_results["results"].append(result)
             stress_results["breaking_point"] = current_size
             break
@@ -295,7 +314,9 @@ def generate_performance_report(results: Dict[str, Any]) -> str:
     if "results" in results and "max_stores_tested" in results:
         report.append("## Stress Test Results")
         report.append("")
-        report.append(f"Maximum stores tested: {results['max_stores_tested']:,}")
+        report.append(
+            f"Maximum stores tested: {results['max_stores_tested']:,}"
+        )
 
         if results.get("breaking_point"):
             report.append(
@@ -316,7 +337,9 @@ def generate_performance_report(results: Dict[str, Any]) -> str:
                     f"{result['memory_usage_mb']:.1f} | {result['routes_generated']} | ✅ |"
                 )
             else:
-                report.append(f"| {result['store_count']:,} | - | - | - | ❌ |")
+                report.append(
+                    f"| {result['store_count']:,} | - | - | - | ❌ |"
+                )
 
     return "\n".join(report)
 
@@ -376,7 +399,9 @@ def main():
     print(f"{'=' * 60}")
     print(f"Results saved to: {results_file}")
     print(f"Report saved to: {report_file}")
-    print(f"Max stores tested: {stress_results.get('max_stores_tested', 'N/A')}")
+    print(
+        f"Max stores tested: {stress_results.get('max_stores_tested', 'N/A')}"
+    )
 
     if stress_results.get("breaking_point"):
         print(

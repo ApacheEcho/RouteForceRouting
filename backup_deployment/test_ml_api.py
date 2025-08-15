@@ -81,9 +81,13 @@ def test_ml_api_endpoints():
         if response.status_code == 200:
             health_data = response.json()
             ml_endpoints = [
-                ep for ep in health_data.get("endpoints", {}).keys() if "ml" in ep
+                ep
+                for ep in health_data.get("endpoints", {}).keys()
+                if "ml" in ep
             ]
-            print(f"   ✓ Health endpoint OK, ML endpoints found: {ml_endpoints}")
+            print(
+                f"   ✓ Health endpoint OK, ML endpoints found: {ml_endpoints}"
+            )
         else:
             print(f"   ✗ Health endpoint failed: {response.status_code}")
     except Exception as e:
@@ -138,7 +142,9 @@ def test_ml_api_endpoints():
             },
         }
 
-        response = requests.post(f"{base_url}/routes/generate/ml", json=ml_route_data)
+        response = requests.post(
+            f"{base_url}/routes/generate/ml", json=ml_route_data
+        )
         if response.status_code == 200:
             route_result = response.json()
             print(
@@ -152,9 +158,13 @@ def test_ml_api_endpoints():
                 print(
                     f"     - Confidence: {route_result.get('ml_recommendation', {}).get('confidence', 0):.2f}"
                 )
-                print(f"     - Route stops: {len(route_result.get('route', []))}")
+                print(
+                    f"     - Route stops: {len(route_result.get('route', []))}"
+                )
         else:
-            print(f"   ✗ ML-guided route generation failed: {response.status_code}")
+            print(
+                f"   ✗ ML-guided route generation failed: {response.status_code}"
+            )
             print(f"   Response: {response.text}")
     except Exception as e:
         print(f"   ✗ ML-guided route generation error: {str(e)}")
@@ -222,7 +232,9 @@ def main():
 
     # Check if server is running
     try:
-        response = requests.get("http://localhost:5000/api/v1/health", timeout=5)
+        response = requests.get(
+            "http://localhost:5000/api/v1/health", timeout=5
+        )
         if response.status_code != 200:
             print("❌ Server is not running or not responding correctly")
             print("Please start the server with: python app.py")

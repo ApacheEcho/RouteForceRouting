@@ -44,7 +44,10 @@ def wait_for_copilot(timeout=600):
     while time.time() - start < timeout:
         with open("copilot_prompt.py", "r") as f:
             content = f.read()
-            if "# TASK:" in content and "Please generate complete code" not in content:
+            if (
+                "# TASK:" in content
+                and "Please generate complete code" not in content
+            ):
                 return True
         time.sleep(3)
     return False

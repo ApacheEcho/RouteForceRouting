@@ -10,7 +10,9 @@ from typing import Dict, List, Optional
 # Import modern services
 from app.services.route_core import RouteConstraints, create_route_generator
 from app.services.route_core import generate_route as modern_generate_route
-from app.services.route_core import print_route_summary as modern_print_route_summary
+from app.services.route_core import (
+    print_route_summary as modern_print_route_summary,
+)
 from app.services.route_core import summarize_route as modern_summarize_route
 
 logger = logging.getLogger(__name__)
@@ -103,7 +105,9 @@ def apply_playbook_constraints(
             max_stores = config["max_route_stops"]
 
     constraints.time_windows = time_windows if time_windows else None
-    constraints.priority_weights = priority_weights if priority_weights else None
+    constraints.priority_weights = (
+        priority_weights if priority_weights else None
+    )
     constraints.max_stores = max_stores
 
     # Use modern route generator to apply constraints

@@ -2,7 +2,14 @@
 Main routes blueprint for RouteForce Routing
 """
 
-from flask import Blueprint, render_template, request, jsonify, current_app, send_file
+from flask import (
+    Blueprint,
+    render_template,
+    request,
+    jsonify,
+    current_app,
+    send_file,
+)
 from werkzeug.utils import secure_filename
 import os
 import logging
@@ -28,7 +35,11 @@ def index():
 def health_check():
     """Health check endpoint"""
     return jsonify(
-        {"status": "healthy", "service": "RouteForce Routing", "version": "1.0.0"}
+        {
+            "status": "healthy",
+            "service": "RouteForce Routing",
+            "version": "1.0.0",
+        }
     )
 
 
@@ -61,7 +72,10 @@ def generate_route():
                     413,
                 )
             else:
-                return jsonify({"error": "Invalid request", "details": [str(e)]}), 400
+                return (
+                    jsonify({"error": "Invalid request", "details": [str(e)]}),
+                    400,
+                )
 
         if not route_request.is_valid():
             return (
@@ -89,7 +103,9 @@ def generate_route():
             if not file_service.validate_file_content(file_path):
                 return (
                     jsonify(
-                        {"error": "Invalid file format or missing required columns"}
+                        {
+                            "error": "Invalid file format or missing required columns"
+                        }
                     ),
                     400,
                 )
@@ -199,7 +215,9 @@ def export_route():
             if playbook_file and playbook_file.filename:
                 playbook_path = file_service.save_uploaded_file(playbook_file)
                 try:
-                    playbook = file_service.load_playbook_from_file(playbook_path)
+                    playbook = file_service.load_playbook_from_file(
+                        playbook_path
+                    )
                 finally:
                     file_service.cleanup_file(playbook_path)
 
@@ -207,7 +225,9 @@ def export_route():
             route = routing_service.generate_route(stores, playbook)
             csv_response = file_service.export_route_to_csv(route)
 
-            logger.info(f"Exported route with {len(route) if route else 0} stops")
+            logger.info(
+                f"Exported route with {len(route) if route else 0} stops"
+            )
             return csv_response
 
         finally:
@@ -215,7 +235,10 @@ def export_route():
 
     except Exception as e:
         logger.error(f"Error exporting route: {str(e)}", exc_info=True)
-        return jsonify({"error": "Failed to export route", "details": str(e)}), 500
+        return (
+            jsonify({"error": "Failed to export route", "details": str(e)}),
+            500,
+        )
 
 
 @main_bp.route("/dashboard")
@@ -260,7 +283,9 @@ def generate_route_api():
             if not file_service.validate_file_content(file_path):
                 return (
                     jsonify(
-                        {"error": "Invalid file format or missing required columns"}
+                        {
+                            "error": "Invalid file format or missing required columns"
+                        }
                     ),
                     400,
                 )
@@ -321,4 +346,7 @@ def generate_route_api():
 
     except Exception as e:
         logger.error(f"Error generating route: {str(e)}")
-        return jsonify({"error": "Route generation failed", "details": str(e)}), 500
+        return (
+            jsonify({"error": "Route generation failed", "details": str(e)}),
+            500,
+        )

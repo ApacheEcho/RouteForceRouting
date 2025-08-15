@@ -60,7 +60,9 @@ def run_comprehensive_test():
     tests.append(("Demo Data Population", result))
 
     if result["success"]:
-        print(f"   ✅ Success: {result['data'].get('message', 'Data populated')}")
+        print(
+            f"   ✅ Success: {result['data'].get('message', 'Data populated')}"
+        )
         print(f"   📊 Response time: {result['response_time']:.3f}s")
     else:
         print(f"   ❌ Failed: {result['data']}")
@@ -100,7 +102,9 @@ def run_comprehensive_test():
         )
         print(f"   💰 Fuel cost: ${prediction['predicted_fuel_cost']:.2f}")
         print(f"   ⚠️  Risk factors: {len(prediction['risk_factors'])}")
-        print(f"   🔧 Suggestions: {len(prediction['optimization_suggestions'])}")
+        print(
+            f"   🔧 Suggestions: {len(prediction['optimization_suggestions'])}"
+        )
     else:
         print(f"   ❌ Failed: {result['data']}")
 
@@ -183,7 +187,9 @@ def run_comprehensive_test():
 
     if result["success"]:
         summary = result["data"]["summary"]
-        print(f"   ✅ Success: Analyzed {summary['total_routes_analyzed']} routes")
+        print(
+            f"   ✅ Success: Analyzed {summary['total_routes_analyzed']} routes"
+        )
         print(f"   📊 Average impact: {summary['average_impact_score']}")
         print(f"   🚨 High impact routes: {summary['high_impact_routes']}")
     else:
@@ -203,11 +209,15 @@ def run_comprehensive_test():
     print(f"Failed: {total_tests - successful_tests}")
     print(f"Success rate: {success_rate:.1f}%")
 
-    avg_response_time = sum(result["response_time"] for _, result in tests) / len(tests)
+    avg_response_time = sum(
+        result["response_time"] for _, result in tests
+    ) / len(tests)
     print(f"Average response time: {avg_response_time:.3f}s")
 
     if success_rate == 100:
-        print("\n🎉 ALL TESTS PASSED! AI Analytics system is fully operational.")
+        print(
+            "\n🎉 ALL TESTS PASSED! AI Analytics system is fully operational."
+        )
     elif success_rate >= 80:
         print("\n✅ Most tests passed. System is largely functional.")
     else:

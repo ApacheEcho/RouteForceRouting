@@ -149,7 +149,9 @@ def test_multi_objective_api():
 
     # Check if multi-objective algorithm is available
     try:
-        algorithms_response = requests.get(f"{base_url}/routes/algorithms", timeout=10)
+        algorithms_response = requests.get(
+            f"{base_url}/routes/algorithms", timeout=10
+        )
         if algorithms_response.status_code == 200:
             algorithms = algorithms_response.json()
             if "multi_objective" in algorithms["algorithms"]:
@@ -158,7 +160,9 @@ def test_multi_objective_api():
                 print("Multi-objective algorithm is NOT available ✗")
                 return None
         else:
-            print(f"Failed to get algorithms: {algorithms_response.status_code}")
+            print(
+                f"Failed to get algorithms: {algorithms_response.status_code}"
+            )
     except Exception as e:
         print(f"Error checking algorithms: {str(e)}")
 
@@ -178,13 +182,19 @@ def test_multi_objective_api():
                 data = response.json()
 
                 print(f"✓ Request successful ({response.status_code})")
-                print(f"API response time: {end_time - start_time:.4f} seconds")
+                print(
+                    f"API response time: {end_time - start_time:.4f} seconds"
+                )
                 print(f"Route generated with {len(data['route'])} stores")
 
                 # Display metadata
                 metadata = data.get("metadata", {})
-                print(f"Processing time: {metadata.get('processing_time', 'N/A'):.4f}s")
-                print(f"Algorithm used: {metadata.get('algorithm_used', 'N/A')}")
+                print(
+                    f"Processing time: {metadata.get('processing_time', 'N/A'):.4f}s"
+                )
+                print(
+                    f"Algorithm used: {metadata.get('algorithm_used', 'N/A')}"
+                )
                 print(
                     f"Optimization score: {metadata.get('optimization_score', 'N/A')}"
                 )
@@ -209,7 +219,9 @@ def test_multi_objective_api():
 
                 # Display route
                 print(f"\nOptimized route:")
-                for j, store in enumerate(data["route"][:5]):  # Show first 5 stores
+                for j, store in enumerate(
+                    data["route"][:5]
+                ):  # Show first 5 stores
                     print(
                         f"  {j+1}. {store['name']} (Priority: {store.get('priority', 'N/A')})"
                     )
@@ -248,7 +260,11 @@ def test_multi_objective_api():
         except Exception as e:
             print(f"✗ Exception during test case {i+1}: {str(e)}")
             results.append(
-                {"test_case": test_case["name"], "success": False, "error": str(e)}
+                {
+                    "test_case": test_case["name"],
+                    "success": False,
+                    "error": str(e),
+                }
             )
 
     # Summary
@@ -258,7 +274,8 @@ def test_multi_objective_api():
 
     if successful_tests > 0:
         avg_api_time = (
-            sum(r["api_time"] for r in results if r["success"]) / successful_tests
+            sum(r["api_time"] for r in results if r["success"])
+            / successful_tests
         )
         avg_processing_time = (
             sum(r["processing_time"] for r in results if r["success"])

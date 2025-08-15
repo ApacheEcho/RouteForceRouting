@@ -46,8 +46,12 @@ class RouteRequest:
             time_end=request.form.get("time_end") or None,
             priority_only="priority_only" in request.form,
             exclude_days=request.form.getlist("exclude_days") or [],
-            max_stores_per_chain=request.form.get("max_stores_per_chain", type=int),
-            min_sales_threshold=request.form.get("min_sales_threshold", type=float),
+            max_stores_per_chain=request.form.get(
+                "max_stores_per_chain", type=int
+            ),
+            min_sales_threshold=request.form.get(
+                "min_sales_threshold", type=float
+            ),
         )
 
     def is_valid(self) -> bool:
@@ -73,10 +77,16 @@ class RouteRequest:
                 errors.append("Time start must be before time end")
 
         # Numeric validation
-        if self.max_stores_per_chain is not None and self.max_stores_per_chain < 1:
+        if (
+            self.max_stores_per_chain is not None
+            and self.max_stores_per_chain < 1
+        ):
             errors.append("Max stores per chain must be at least 1")
 
-        if self.min_sales_threshold is not None and self.min_sales_threshold < 0:
+        if (
+            self.min_sales_threshold is not None
+            and self.min_sales_threshold < 0
+        ):
             errors.append("Min sales threshold must be non-negative")
 
         # Day validation
@@ -127,7 +137,8 @@ class RouteRequest:
         """Check if file extension is allowed"""
         allowed_extensions = {"csv", "xlsx", "xls"}
         return (
-            "." in filename and filename.rsplit(".", 1)[1].lower() in allowed_extensions
+            "." in filename
+            and filename.rsplit(".", 1)[1].lower() in allowed_extensions
         )
 
     def to_dict(self) -> Dict[str, Any]:

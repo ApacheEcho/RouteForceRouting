@@ -84,7 +84,10 @@ class RouteOptimizer:
 
     def __init__(self, depot_location: Dict[str, float] = None):
         """Initialize route optimizer with depot location."""
-        self.depot_location = depot_location or {"lat": 40.7128, "lng": -74.0060}
+        self.depot_location = depot_location or {
+            "lat": 40.7128,
+            "lng": -74.0060,
+        }
         self.optimization_cache = {}
 
     def calculate_distance(
@@ -142,7 +145,9 @@ class RouteOptimizer:
         while unvisited:
             nearest_store = min(
                 unvisited,
-                key=lambda s: self.calculate_distance(current_location, s.coordinates),
+                key=lambda s: self.calculate_distance(
+                    current_location, s.coordinates
+                ),
             )
             route.append(nearest_store)
             unvisited.remove(nearest_store)
@@ -167,14 +172,17 @@ class RouteOptimizer:
 
                     # Calculate current distance
                     current_dist = self.calculate_distance(
-                        best_route[i - 1].coordinates, best_route[i].coordinates
+                        best_route[i - 1].coordinates,
+                        best_route[i].coordinates,
                     ) + self.calculate_distance(
-                        best_route[j - 1].coordinates, best_route[j].coordinates
+                        best_route[j - 1].coordinates,
+                        best_route[j].coordinates,
                     )
 
                     # Calculate distance after 2-opt swap
                     new_dist = self.calculate_distance(
-                        best_route[i - 1].coordinates, best_route[j - 1].coordinates
+                        best_route[i - 1].coordinates,
+                        best_route[j - 1].coordinates,
                     ) + self.calculate_distance(
                         best_route[i].coordinates, best_route[j].coordinates
                     )
@@ -219,7 +227,8 @@ class RouteOptimizer:
         # Initialize vehicle assignments
         vehicle_assignments = {v.vehicle_id: [] for v in available_vehicles}
         vehicle_loads = {
-            v.vehicle_id: {"weight": 0.0, "packages": 0} for v in available_vehicles
+            v.vehicle_id: {"weight": 0.0, "packages": 0}
+            for v in available_vehicles
         }
 
         # Assign stores using best-fit decreasing algorithm
@@ -232,7 +241,8 @@ class RouteOptimizer:
 
                 # Check if store fits in vehicle
                 if (
-                    current_load["weight"] + store.weight_kg <= vehicle.capacity_kg
+                    current_load["weight"] + store.weight_kg
+                    <= vehicle.capacity_kg
                     and current_load["packages"] + store.packages
                     <= vehicle.max_packages
                 ):
@@ -243,7 +253,9 @@ class RouteOptimizer:
                     package_utilization = (
                         current_load["packages"] + store.packages
                     ) / vehicle.max_packages
-                    avg_utilization = (weight_utilization + package_utilization) / 2
+                    avg_utilization = (
+                        weight_utilization + package_utilization
+                    ) / 2
 
                     capacity_waste = 1.0 - avg_utilization
 
@@ -253,8 +265,12 @@ class RouteOptimizer:
 
             if best_vehicle:
                 vehicle_assignments[best_vehicle.vehicle_id].append(store)
-                vehicle_loads[best_vehicle.vehicle_id]["weight"] += store.weight_kg
-                vehicle_loads[best_vehicle.vehicle_id]["packages"] += store.packages
+                vehicle_loads[best_vehicle.vehicle_id][
+                    "weight"
+                ] += store.weight_kg
+                vehicle_loads[best_vehicle.vehicle_id][
+                    "packages"
+                ] += store.packages
             else:
                 # Store doesn't fit in any vehicle - needs special handling
                 print(
@@ -262,7 +278,11 @@ class RouteOptimizer:
                 )
 
         # Remove empty assignments
-        return {vid: stores for vid, stores in vehicle_assignments.items() if stores}
+        return {
+            vid: stores
+            for vid, stores in vehicle_assignments.items()
+            if stores
+        }
 
     def optimize_multi_vehicle_routes(
         self,
@@ -275,7 +295,9 @@ class RouteOptimizer:
             return []
 
         # Distribute stores across vehicles
-        vehicle_assignments = self.distribute_stores_to_vehicles(stores, vehicles)
+        vehicle_assignments = self.distribute_stores_to_vehicles(
+            stores, vehicles
+        )
 
         if not vehicle_assignments:
             raise ValueError("No feasible vehicle assignments found")
@@ -317,8 +339,12 @@ class RouteOptimizer:
                 stops=self.format_route_stops(optimized_sequence),
                 total_distance_km=route_metrics["total_distance"],
                 estimated_duration_hours=route_metrics["estimated_duration"],
-                total_weight_kg=sum(store.weight_kg for store in optimized_sequence),
-                total_packages=sum(store.packages for store in optimized_sequence),
+                total_weight_kg=sum(
+                    store.weight_kg for store in optimized_sequence
+                ),
+                total_packages=sum(
+                    store.packages for store in optimized_sequence
+                ),
                 optimization_method=method.value,
                 created_at=datetime.now(),
             )
@@ -340,7 +366,9 @@ class RouteOptimizer:
 
         for store in stores:
             # Add travel distance
-            distance = self.calculate_distance(current_location, store.coordinates)
+            distance = self.calculate_distance(
+                current_location, store.coordinates
+            )
             total_distance += distance
 
             # Add service time
@@ -349,7 +377,9 @@ class RouteOptimizer:
             current_location = store.coordinates
 
         # Add return to depot distance
-        total_distance += self.calculate_distance(current_location, start_location)
+        total_distance += self.calculate_distance(
+            current_location, start_location
+        )
 
         # Estimate driving time (assume 40 km/h average speed in urban areas)
         driving_time_hours = total_distance / 40.0
@@ -427,7 +457,10 @@ class PerformanceMonitor:
     ) -> Dict[str, Any]:
         """Benchmark different optimization methods."""
         if methods is None:
-            methods = [OptimizationMethod.NEAREST_NEIGHBOR, OptimizationMethod.TWO_OPT]
+            methods = [
+                OptimizationMethod.NEAREST_NEIGHBOR,
+                OptimizationMethod.TWO_OPT,
+            ]
 
         optimizer = RouteOptimizer()
         benchmark_results = {}
@@ -444,8 +477,12 @@ class PerformanceMonitor:
                 execution_time = (end_time - start_time).total_seconds()
 
                 # Calculate aggregate metrics
-                total_distance = sum(route.total_distance_km for route in routes)
-                total_duration = sum(route.estimated_duration_hours for route in routes)
+                total_distance = sum(
+                    route.total_distance_km for route in routes
+                )
+                total_duration = sum(
+                    route.estimated_duration_hours for route in routes
+                )
                 total_routes = len(routes)
 
                 benchmark_results[method.value] = {
@@ -454,7 +491,9 @@ class PerformanceMonitor:
                     "total_distance_km": total_distance,
                     "total_estimated_duration_hours": total_duration,
                     "avg_distance_per_route": (
-                        total_distance / total_routes if total_routes > 0 else 0
+                        total_distance / total_routes
+                        if total_routes > 0
+                        else 0
                     ),
                     "stores_processed": len(stores),
                     "vehicles_used": total_routes,
@@ -476,7 +515,9 @@ class PerformanceMonitor:
         # Calculate efficiency metrics
         distance_per_stop = route.total_distance_km / len(route.stops)
         time_per_stop = route.estimated_duration_hours / len(route.stops)
-        weight_utilization = route.total_weight_kg / 1000.0  # Assume 1000kg capacity
+        weight_utilization = (
+            route.total_weight_kg / 1000.0
+        )  # Assume 1000kg capacity
 
         # Priority distribution analysis
         priorities = [stop.get("priority", "medium") for stop in route.stops]
@@ -486,7 +527,8 @@ class PerformanceMonitor:
         efficiency_score = (
             min(100, 50 / distance_per_stop) * 0.3  # Distance efficiency (30%)
             + min(100, 2 / time_per_stop) * 0.3  # Time efficiency (30%)
-            + min(100, weight_utilization * 100) * 0.2  # Weight utilization (20%)
+            + min(100, weight_utilization * 100)
+            * 0.2  # Weight utilization (20%)
             + high_priority_ratio * 100 * 0.2  # Priority handling (20%)
         )
 

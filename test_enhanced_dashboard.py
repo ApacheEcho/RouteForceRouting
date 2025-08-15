@@ -27,7 +27,9 @@ def test_enhanced_dashboard():
         if response.status_code == 200:
             print("✅ Enhanced dashboard page loads successfully")
             print(f"   Status: {response.status_code}")
-            print(f"   Content-Type: {response.headers.get('Content-Type', 'Unknown')}")
+            print(
+                f"   Content-Type: {response.headers.get('Content-Type', 'Unknown')}"
+            )
         else:
             print(f"❌ Enhanced dashboard page failed: {response.status_code}")
     except Exception as e:
@@ -37,11 +39,36 @@ def test_enhanced_dashboard():
     print("\n2. Testing Algorithm Comparison API...")
     try:
         sample_stores = [
-            {"name": "Store A", "lat": 37.7749, "lng": -122.4194, "priority": 1},
-            {"name": "Store B", "lat": 37.7849, "lng": -122.4094, "priority": 2},
-            {"name": "Store C", "lat": 37.7649, "lng": -122.4294, "priority": 1},
-            {"name": "Store D", "lat": 37.7949, "lng": -122.3994, "priority": 3},
-            {"name": "Store E", "lat": 37.7549, "lng": -122.4394, "priority": 2},
+            {
+                "name": "Store A",
+                "lat": 37.7749,
+                "lng": -122.4194,
+                "priority": 1,
+            },
+            {
+                "name": "Store B",
+                "lat": 37.7849,
+                "lng": -122.4094,
+                "priority": 2,
+            },
+            {
+                "name": "Store C",
+                "lat": 37.7649,
+                "lng": -122.4294,
+                "priority": 1,
+            },
+            {
+                "name": "Store D",
+                "lat": 37.7949,
+                "lng": -122.3994,
+                "priority": 3,
+            },
+            {
+                "name": "Store E",
+                "lat": 37.7549,
+                "lng": -122.4394,
+                "priority": 2,
+            },
         ]
 
         response = requests.post(
@@ -72,7 +99,9 @@ def test_enhanced_dashboard():
     # Test 3: Performance history endpoint
     print("\n3. Testing Performance History API...")
     try:
-        response = requests.get(f"{base_url}/dashboard/api/performance/history")
+        response = requests.get(
+            f"{base_url}/dashboard/api/performance/history"
+        )
         if response.status_code == 200:
             data = response.json()
             print("✅ Performance history API works")
@@ -84,7 +113,9 @@ def test_enhanced_dashboard():
                 print(f"   Recent data: {recent['date']}")
                 for algo, metrics in recent.items():
                     if algo != "date" and isinstance(metrics, dict):
-                        print(f"     {algo}: {metrics['avg_improvement']}% improvement")
+                        print(
+                            f"     {algo}: {metrics['avg_improvement']}% improvement"
+                        )
         else:
             print(f"❌ Performance history failed: {response.status_code}")
     except Exception as e:
@@ -92,7 +123,12 @@ def test_enhanced_dashboard():
 
     # Test 4: Algorithm details endpoint
     print("\n4. Testing Algorithm Details API...")
-    algorithms = ["genetic", "simulated_annealing", "multi_objective", "default"]
+    algorithms = [
+        "genetic",
+        "simulated_annealing",
+        "multi_objective",
+        "default",
+    ]
 
     for algorithm in algorithms:
         try:
@@ -160,7 +196,9 @@ def test_enhanced_dashboard():
     print("\n" + "=" * 50)
     print("🎯 Enhanced Dashboard Test Complete!")
     print("\nNext steps:")
-    print("1. Visit http://localhost:5000/dashboard for the enhanced dashboard")
+    print(
+        "1. Visit http://localhost:5000/dashboard for the enhanced dashboard"
+    )
     print("2. Try the algorithm comparison feature")
     print("3. Explore the analytics and system status tabs")
     print("4. Check the real-time performance monitoring")

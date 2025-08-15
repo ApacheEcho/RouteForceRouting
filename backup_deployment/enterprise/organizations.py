@@ -11,7 +11,9 @@ from dataclasses import dataclass, asdict
 import logging
 
 # Initialize blueprint
-organizations_bp = Blueprint("organizations", __name__, url_prefix="/api/organizations")
+organizations_bp = Blueprint(
+    "organizations", __name__, url_prefix="/api/organizations"
+)
 logger = logging.getLogger(__name__)
 
 
@@ -142,7 +144,9 @@ class OrganizationManager:
         """Get organization by ID"""
         return self.organizations.get(org_id)
 
-    def get_organization_by_subdomain(self, subdomain: str) -> Optional[Organization]:
+    def get_organization_by_subdomain(
+        self, subdomain: str
+    ) -> Optional[Organization]:
         """Get organization by subdomain"""
         for org in self.organizations.values():
             if org.subdomain == subdomain:
@@ -153,7 +157,9 @@ class OrganizationManager:
         """List all organizations"""
         return list(self.organizations.values())
 
-    def update_organization(self, org_id: str, data: Dict) -> Optional[Organization]:
+    def update_organization(
+        self, org_id: str, data: Dict
+    ) -> Optional[Organization]:
         """Update organization"""
         org = self.organizations.get(org_id)
         if not org:
@@ -218,7 +224,10 @@ def list_organizations():
         orgs = org_manager.list_organizations()
         return (
             jsonify(
-                {"organizations": [asdict(org) for org in orgs], "total": len(orgs)}
+                {
+                    "organizations": [asdict(org) for org in orgs],
+                    "total": len(orgs),
+                }
             ),
             200,
         )
@@ -238,7 +247,10 @@ def create_organization():
         required_fields = ["name", "subdomain"]
         for field in required_fields:
             if field not in data:
-                return jsonify({"error": f"Missing required field: {field}"}), 400
+                return (
+                    jsonify({"error": f"Missing required field: {field}"}),
+                    400,
+                )
 
         # Check if subdomain is unique
         existing = org_manager.get_organization_by_subdomain(data["subdomain"])

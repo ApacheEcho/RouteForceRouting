@@ -34,7 +34,8 @@ class PerformanceTest:
     def _setup_logging(self):
         """Setup logging for test results"""
         logging.basicConfig(
-            level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+            level=logging.INFO,
+            format="%(asctime)s - %(levelname)s - %(message)s",
         )
         return logging.getLogger(__name__)
 
@@ -112,7 +113,8 @@ class PerformanceTest:
                 "generations_run": metrics["generations"],
                 "improvement_percent": metrics["improvement_percent"],
                 "final_distance_km": metrics["final_distance"],
-                "performance_score": size / execution_time,  # stores per second
+                "performance_score": size
+                / execution_time,  # stores per second
             }
 
             self.logger.info(
@@ -248,13 +250,16 @@ class PerformanceTest:
             "initial_memory_mb": initial_memory / (1024 * 1024),
             "final_memory_mb": final_memory / (1024 * 1024),
             "memory_growth_mb": memory_growth / (1024 * 1024),
-            "memory_leak_detected": memory_growth > 50 * 1024 * 1024,  # 50MB threshold
+            "memory_leak_detected": memory_growth
+            > 50 * 1024 * 1024,  # 50MB threshold
             "cycles_completed": 5,
         }
 
     def run_full_suite(self) -> Dict[str, Any]:
         """Run complete performance test suite"""
-        self.logger.info("Starting RouteForce Performance Regression Test Suite")
+        self.logger.info(
+            "Starting RouteForce Performance Regression Test Suite"
+        )
 
         start_time = time.time()
 
@@ -281,7 +286,9 @@ class PerformanceTest:
             result["performance_score"]
             for result in test_results["genetic_algorithm"].values()
         ]
-        avg_ga_performance = sum(ga_scores) / len(ga_scores) if ga_scores else 0
+        avg_ga_performance = (
+            sum(ga_scores) / len(ga_scores) if ga_scores else 0
+        )
 
         cache_speedup = test_results["caching"]["speedup_factor"]
         memory_ok = not test_results["memory_leaks"]["memory_leak_detected"]
@@ -325,8 +332,12 @@ def main():
         print("\n" + "=" * 60)
         print("ROUTEFORCE PERFORMANCE TEST SUMMARY")
         print("=" * 60)
-        print(f"Overall Performance Score: {results['overall_performance_score']:.1f}")
-        print(f"Total Test Time: {results['total_test_time_seconds']:.2f} seconds")
+        print(
+            f"Overall Performance Score: {results['overall_performance_score']:.1f}"
+        )
+        print(
+            f"Total Test Time: {results['total_test_time_seconds']:.2f} seconds"
+        )
         print(
             f"Memory Leaks Detected: {'Yes' if results['memory_leaks']['memory_leak_detected'] else 'No'}"
         )

@@ -7,7 +7,11 @@ from flask import Blueprint, request, jsonify, current_app
 from datetime import datetime
 from typing import Dict, Any
 
-from app.auth_decorators import admin_required, analytics_access_required, audit_log
+from app.auth_decorators import (
+    admin_required,
+    analytics_access_required,
+    audit_log,
+)
 from app.performance_monitor import get_performance_monitor
 
 monitoring_bp = Blueprint("monitoring", __name__, url_prefix="/api/monitoring")
@@ -46,7 +50,12 @@ def get_current_metrics():
     except Exception as e:
         current_app.logger.error(f"Error retrieving current metrics: {str(e)}")
         return (
-            jsonify({"success": False, "error": "Failed to retrieve current metrics"}),
+            jsonify(
+                {
+                    "success": False,
+                    "error": "Failed to retrieve current metrics",
+                }
+            ),
             500,
         )
 
@@ -75,11 +84,19 @@ def get_metrics_history(metric_type: str):
         )
 
     except ValueError:
-        return jsonify({"success": False, "error": "Invalid hours parameter"}), 400
+        return (
+            jsonify({"success": False, "error": "Invalid hours parameter"}),
+            400,
+        )
     except Exception as e:
         current_app.logger.error(f"Error retrieving metrics history: {str(e)}")
         return (
-            jsonify({"success": False, "error": "Failed to retrieve metrics history"}),
+            jsonify(
+                {
+                    "success": False,
+                    "error": "Failed to retrieve metrics history",
+                }
+            ),
             500,
         )
 
@@ -107,7 +124,10 @@ def get_alerts():
 
     except Exception as e:
         current_app.logger.error(f"Error retrieving alerts: {str(e)}")
-        return jsonify({"success": False, "error": "Failed to retrieve alerts"}), 500
+        return (
+            jsonify({"success": False, "error": "Failed to retrieve alerts"}),
+            500,
+        )
 
 
 @monitoring_bp.route("/alerts/<alert_id>/acknowledge", methods=["POST"])
@@ -129,13 +149,20 @@ def acknowledge_alert(alert_id: str):
             )
         else:
             return (
-                jsonify({"success": False, "error": f"Alert {alert_id} not found"}),
+                jsonify(
+                    {"success": False, "error": f"Alert {alert_id} not found"}
+                ),
                 404,
             )
 
     except Exception as e:
         current_app.logger.error(f"Error acknowledging alert: {str(e)}")
-        return jsonify({"success": False, "error": "Failed to acknowledge alert"}), 500
+        return (
+            jsonify(
+                {"success": False, "error": "Failed to acknowledge alert"}
+            ),
+            500,
+        )
 
 
 @monitoring_bp.route("/health/score", methods=["GET"])
@@ -158,7 +185,9 @@ def get_health_score():
     except Exception as e:
         current_app.logger.error(f"Error retrieving health score: {str(e)}")
         return (
-            jsonify({"success": False, "error": "Failed to retrieve health score"}),
+            jsonify(
+                {"success": False, "error": "Failed to retrieve health score"}
+            ),
             500,
         )
 
@@ -175,10 +204,15 @@ def get_performance_summary():
         return jsonify({"success": True, "summary": summary})
 
     except Exception as e:
-        current_app.logger.error(f"Error retrieving performance summary: {str(e)}")
+        current_app.logger.error(
+            f"Error retrieving performance summary: {str(e)}"
+        )
         return (
             jsonify(
-                {"success": False, "error": "Failed to retrieve performance summary"}
+                {
+                    "success": False,
+                    "error": "Failed to retrieve performance summary",
+                }
             ),
             500,
         )
@@ -203,7 +237,10 @@ def start_monitoring():
 
     except Exception as e:
         current_app.logger.error(f"Error starting monitoring: {str(e)}")
-        return jsonify({"success": False, "error": "Failed to start monitoring"}), 500
+        return (
+            jsonify({"success": False, "error": "Failed to start monitoring"}),
+            500,
+        )
 
 
 @monitoring_bp.route("/stop", methods=["POST"])
@@ -225,7 +262,10 @@ def stop_monitoring():
 
     except Exception as e:
         current_app.logger.error(f"Error stopping monitoring: {str(e)}")
-        return jsonify({"success": False, "error": "Failed to stop monitoring"}), 500
+        return (
+            jsonify({"success": False, "error": "Failed to stop monitoring"}),
+            500,
+        )
 
 
 @monitoring_bp.route("/thresholds", methods=["GET"])
@@ -248,7 +288,9 @@ def get_monitoring_thresholds():
     except Exception as e:
         current_app.logger.error(f"Error retrieving thresholds: {str(e)}")
         return (
-            jsonify({"success": False, "error": "Failed to retrieve thresholds"}),
+            jsonify(
+                {"success": False, "error": "Failed to retrieve thresholds"}
+            ),
             500,
         )
 
@@ -262,7 +304,9 @@ def update_monitoring_thresholds():
         data = request.get_json()
         if not data:
             return (
-                jsonify({"success": False, "error": "No threshold data provided"}),
+                jsonify(
+                    {"success": False, "error": "No threshold data provided"}
+                ),
                 400,
             )
 
@@ -291,12 +335,22 @@ def update_monitoring_thresholds():
 
     except (ValueError, TypeError) as e:
         return (
-            jsonify({"success": False, "error": f"Invalid threshold values: {str(e)}"}),
+            jsonify(
+                {
+                    "success": False,
+                    "error": f"Invalid threshold values: {str(e)}",
+                }
+            ),
             400,
         )
     except Exception as e:
         current_app.logger.error(f"Error updating thresholds: {str(e)}")
-        return jsonify({"success": False, "error": "Failed to update thresholds"}), 500
+        return (
+            jsonify(
+                {"success": False, "error": "Failed to update thresholds"}
+            ),
+            500,
+        )
 
 
 @monitoring_bp.route("/system/info", methods=["GET"])
@@ -314,7 +368,9 @@ def get_system_info():
             "cpu_count": psutil.cpu_count(),
             "memory_total": psutil.virtual_memory().total,
             "disk_total": psutil.disk_usage("/").total,
-            "boot_time": datetime.fromtimestamp(psutil.boot_time()).isoformat(),
+            "boot_time": datetime.fromtimestamp(
+                psutil.boot_time()
+            ).isoformat(),
             "process_count": len(psutil.pids()),
         }
 
@@ -330,7 +386,10 @@ def get_system_info():
         current_app.logger.error(f"Error retrieving system info: {str(e)}")
         return (
             jsonify(
-                {"success": False, "error": "Failed to retrieve system information"}
+                {
+                    "success": False,
+                    "error": "Failed to retrieve system information",
+                }
             ),
             500,
         )

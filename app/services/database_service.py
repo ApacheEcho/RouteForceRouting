@@ -5,7 +5,14 @@ Database service for RouteForce Routing
 from typing import List, Dict, Any, Optional
 from flask import current_app
 from sqlalchemy import func, desc
-from app.models.database import db, User, Store, Route, RouteOptimization, Analytics
+from app.models.database import (
+    db,
+    User,
+    Store,
+    Route,
+    RouteOptimization,
+    Analytics,
+)
 import logging
 
 logger = logging.getLogger(__name__)
@@ -15,7 +22,9 @@ class DatabaseService:
     """Service for database operations"""
 
     @staticmethod
-    def create_user(username: str, email: str, password: str, **kwargs) -> User:
+    def create_user(
+        username: str, email: str, password: str, **kwargs
+    ) -> User:
         """Create a new user"""
         try:
             user = User(
@@ -140,7 +149,9 @@ class DatabaseService:
         )
 
     @staticmethod
-    def create_route_optimization(route_id: int, **kwargs) -> RouteOptimization:
+    def create_route_optimization(
+        route_id: int, **kwargs
+    ) -> RouteOptimization:
         """Create route optimization record"""
         try:
             optimization = RouteOptimization(
@@ -209,7 +220,8 @@ class DatabaseService:
             # Events by type
             events_by_type = (
                 db.session.query(
-                    Analytics.event_type, func.count(Analytics.id).label("count")
+                    Analytics.event_type,
+                    func.count(Analytics.id).label("count"),
                 )
                 .filter(Analytics.created_at >= start_date)
                 .group_by(Analytics.event_type)
@@ -222,7 +234,8 @@ class DatabaseService:
                     func.count(func.distinct(Analytics.user_id)).label("count")
                 )
                 .filter(
-                    Analytics.created_at >= start_date, Analytics.user_id.isnot(None)
+                    Analytics.created_at >= start_date,
+                    Analytics.user_id.isnot(None),
                 )
                 .scalar()
             )
@@ -260,7 +273,9 @@ class DatabaseService:
 
             # Average improvement score
             avg_improvement = db.session.query(
-                func.avg(RouteOptimization.improvement_score).label("avg_improvement")
+                func.avg(RouteOptimization.improvement_score).label(
+                    "avg_improvement"
+                )
             ).scalar()
 
             # Most used algorithm
@@ -276,7 +291,9 @@ class DatabaseService:
 
             return {
                 "avg_optimization_time": (
-                    float(avg_optimization_time) if avg_optimization_time else 0
+                    float(avg_optimization_time)
+                    if avg_optimization_time
+                    else 0
                 ),
                 "total_routes": total_routes,
                 "avg_improvement_score": (

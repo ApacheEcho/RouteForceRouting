@@ -240,7 +240,9 @@ class RoutingService:
 
         return optimized_route, metrics
 
-    def _calculate_optimization_score(self, route: List[Dict[str, Any]]) -> float:
+    def _calculate_optimization_score(
+        self, route: List[Dict[str, Any]]
+    ) -> float:
         """Calculate a score for route optimization quality"""
         if not route or len(route) < 2:
             return 0.0
@@ -297,7 +299,9 @@ class RoutingService:
         Returns:
             List of optimized route stops
         """
-        return self.generate_route_from_stores(stores, constraints, algorithm=algorithm)
+        return self.generate_route_from_stores(
+            stores, constraints, algorithm=algorithm
+        )
 
     def cluster_stores_by_proximity(
         self, stores: List[Dict], radius_km: float = 2.0

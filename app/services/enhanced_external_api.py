@@ -80,7 +80,9 @@ class EnhancedExternalAPIService:
         """
         try:
             # Generate cache key
-            cache_key = f"enhanced_route:{hash(f'{origin}:{destination}:{waypoints}')}"
+            cache_key = (
+                f"enhanced_route:{hash(f'{origin}:{destination}:{waypoints}')}"
+            )
 
             # Check cache first
             cached_data = self._get_from_cache(cache_key)
@@ -88,7 +90,9 @@ class EnhancedExternalAPIService:
                 return ContextualRouteData(**cached_data)
 
             # Get basic route data
-            route_data = self.maps_api.get_route_data(origin, destination, waypoints)
+            route_data = self.maps_api.get_route_data(
+                origin, destination, waypoints
+            )
 
             # Get traffic information
             traffic_info = self.maps_api.get_traffic_info(origin, destination)
@@ -99,7 +103,9 @@ class EnhancedExternalAPIService:
 
             with ThreadPoolExecutor(max_workers=5) as executor:
                 weather_futures = [
-                    executor.submit(self.weather_api.get_weather_data, location)
+                    executor.submit(
+                        self.weather_api.get_weather_data, location
+                    )
                     for location in locations
                 ]
 
@@ -113,13 +119,17 @@ class EnhancedExternalAPIService:
                         logger.error(f"Error getting weather data: {e}")
 
             # Calculate impact factors
-            fuel_impact = self._calculate_fuel_impact(weather_data, traffic_info)
+            fuel_impact = self._calculate_fuel_impact(
+                weather_data, traffic_info
+            )
             delay_probability = self._calculate_delay_probability(
                 traffic_info, weather_data
             )
             risk_score = self._calculate_risk_score(weather_data, traffic_info)
-            optimization_opportunities = self._identify_optimization_opportunities(
-                route_data, traffic_info, weather_data
+            optimization_opportunities = (
+                self._identify_optimization_opportunities(
+                    route_data, traffic_info, weather_data
+                )
             )
 
             # Create enhanced route data
@@ -136,7 +146,9 @@ class EnhancedExternalAPIService:
             )
 
             # Cache the result
-            self._store_in_cache(cache_key, asdict(enhanced_data), ttl=300)  # 5 minutes
+            self._store_in_cache(
+                cache_key, asdict(enhanced_data), ttl=300
+            )  # 5 minutes
 
             return enhanced_data
 
@@ -152,7 +164,9 @@ class EnhancedExternalAPIService:
                 fuel_impact_factor=1.0,
                 delay_probability=0.1,
                 risk_score=0.3,
-                optimization_opportunities=["Data unavailable - using defaults"],
+                optimization_opportunities=[
+                    "Data unavailable - using defaults"
+                ],
             )
 
     def get_real_time_updates(
@@ -209,7 +223,9 @@ class EnhancedExternalAPIService:
                         "recommendation": "Consider alternative route",
                     }
                 )
-                updates["eta_adjustment"] += traffic_data.get("delay_minutes", 0)
+                updates["eta_adjustment"] += traffic_data.get(
+                    "delay_minutes", 0
+                )
 
             if weather_data and weather_data.get("impact_score", 0) > 0.7:
                 updates["alerts"].append(
@@ -279,7 +295,9 @@ class EnhancedExternalAPIService:
                 alt_routes = self.maps_api.get_alternative_routes(
                     origin, destination, waypoints
                 )
-                for i, alt_route in enumerate(alt_routes[:2]):  # Max 2 alternatives
+                for i, alt_route in enumerate(
+                    alt_routes[:2]
+                ):  # Max 2 alternatives
                     enhanced_alt = self.get_enhanced_route_data(
                         alt_route["origin"],
                         alt_route["destination"],
@@ -314,7 +332,9 @@ class EnhancedExternalAPIService:
                     "traffic_delay_risk": best_route["data"].delay_probability,
                     "overall_risk": best_route["data"].risk_score,
                 },
-                "recommendations": best_route["data"].optimization_opportunities,
+                "recommendations": best_route[
+                    "data"
+                ].optimization_opportunities,
                 "analysis_timestamp": datetime.now().isoformat(),
             }
 
@@ -406,7 +426,9 @@ class EnhancedExternalAPIService:
                 risk_factors.append(weather.impact_score)
 
             # Traffic risks
-            traffic_risk = min(traffic_info.traffic_delay / 30, 1.0)  # Normalize to 0-1
+            traffic_risk = min(
+                traffic_info.traffic_delay / 30, 1.0
+            )  # Normalize to 0-1
             risk_factors.append(traffic_risk)
 
             # Calculate weighted average
@@ -452,13 +474,17 @@ class EnhancedExternalAPIService:
 
             # Traffic-based opportunities
             if traffic_info.traffic_delay > 10:
-                opportunities.append("Heavy traffic - explore alternative routes")
+                opportunities.append(
+                    "Heavy traffic - explore alternative routes"
+                )
                 opportunities.append("Consider departure time adjustment")
 
             # General opportunities
             route_distance = route_data.get("distance", 0)
             if route_distance > 50:
-                opportunities.append("Long route - plan fuel stops and driver breaks")
+                opportunities.append(
+                    "Long route - plan fuel stops and driver breaks"
+                )
 
             return opportunities[:5]  # Limit to top 5 opportunities
 
@@ -475,14 +501,20 @@ class EnhancedExternalAPIService:
             base_score = 100.0
 
             # Apply penalties based on factors
-            base_score -= route_data.fuel_impact_factor * 20  # Fuel efficiency penalty
-            base_score -= route_data.delay_probability * 30  # Delay probability penalty
+            base_score -= (
+                route_data.fuel_impact_factor * 20
+            )  # Fuel efficiency penalty
+            base_score -= (
+                route_data.delay_probability * 30
+            )  # Delay probability penalty
             base_score -= route_data.risk_score * 25  # Risk penalty
 
             # Apply preferences
             priority = preferences.get("priority", "balanced")
             if priority == "speed":
-                base_score -= route_data.duration * 0.5  # Penalize longer routes more
+                base_score -= (
+                    route_data.duration * 0.5
+                )  # Penalize longer routes more
             elif priority == "efficiency":
                 base_score -= (
                     route_data.fuel_impact_factor * 30
@@ -503,15 +535,21 @@ class EnhancedExternalAPIService:
         return {
             "distance_km": round(route_data.distance, 1),
             "estimated_duration_min": round(route_data.duration, 0),
-            "traffic_delay_min": round(route_data.traffic_info.traffic_delay, 0),
-            "fuel_impact_percent": round((route_data.fuel_impact_factor - 1) * 100, 1),
+            "traffic_delay_min": round(
+                route_data.traffic_info.traffic_delay, 0
+            ),
+            "fuel_impact_percent": round(
+                (route_data.fuel_impact_factor - 1) * 100, 1
+            ),
             "delay_risk_percent": round(route_data.delay_probability * 100, 1),
             "overall_risk": (
                 "low"
                 if route_data.risk_score < 0.3
                 else "medium" if route_data.risk_score < 0.7 else "high"
             ),
-            "weather_conditions": [w.conditions for w in route_data.weather_info],
+            "weather_conditions": [
+                w.conditions for w in route_data.weather_info
+            ],
             "key_recommendations": route_data.optimization_opportunities[:3],
         }
 

@@ -207,9 +207,9 @@ class TrafficService:
                 destination=destination_str,
                 distance_meters=leg["distance"]["value"],
                 duration_seconds=leg["duration"]["value"],
-                duration_in_traffic_seconds=leg.get("duration_in_traffic", {}).get(
-                    "value", leg["duration"]["value"]
-                ),
+                duration_in_traffic_seconds=leg.get(
+                    "duration_in_traffic", {}
+                ).get("value", leg["duration"]["value"]),
                 traffic_delay=leg.get("duration_in_traffic", {}).get(
                     "value", leg["duration"]["value"]
                 )
@@ -257,7 +257,10 @@ class TrafficService:
                 {"avoid": [], "traffic_model": "best_guess"},
                 {"avoid": ["highways"], "traffic_model": "best_guess"},
                 {"avoid": ["tolls"], "traffic_model": "pessimistic"},
-                {"avoid": ["highways", "tolls"], "traffic_model": "optimistic"},
+                {
+                    "avoid": ["highways", "tolls"],
+                    "traffic_model": "optimistic",
+                },
             ]
 
             for i, config in enumerate(route_configs[:max_alternatives]):
@@ -275,9 +278,15 @@ class TrafficService:
                             "route": optimized_route,
                             "traffic_data": traffic_info,
                             "config": config,
-                            "total_distance": traffic_info.get("total_distance", 0),
-                            "total_duration": traffic_info.get("total_duration", 0),
-                            "traffic_delay": traffic_info.get("total_traffic_delay", 0),
+                            "total_distance": traffic_info.get(
+                                "total_distance", 0
+                            ),
+                            "total_duration": traffic_info.get(
+                                "total_duration", 0
+                            ),
+                            "traffic_delay": traffic_info.get(
+                                "total_traffic_delay", 0
+                            ),
                         }
                     )
 
@@ -291,7 +300,9 @@ class TrafficService:
             return []
 
     def predict_traffic_conditions(
-        self, stores: List[Dict[str, Any]], future_hours: List[int] = [1, 2, 4, 8]
+        self,
+        stores: List[Dict[str, Any]],
+        future_hours: List[int] = [1, 2, 4, 8],
     ) -> Dict[str, Any]:
         """
         Predict traffic conditions for future departure times
@@ -323,9 +334,15 @@ class TrafficService:
                     traffic_info = self._process_traffic_data(route_data)
                     predictions[f"{hours}h"] = {
                         "departure_time": departure_time.isoformat(),
-                        "total_duration": traffic_info.get("total_duration", 0),
-                        "traffic_delay": traffic_info.get("total_traffic_delay", 0),
-                        "recommended": traffic_info.get("total_traffic_delay", 0)
+                        "total_duration": traffic_info.get(
+                            "total_duration", 0
+                        ),
+                        "traffic_delay": traffic_info.get(
+                            "total_traffic_delay", 0
+                        ),
+                        "recommended": traffic_info.get(
+                            "total_traffic_delay", 0
+                        )
                         < 300,  # Less than 5 min delay
                     }
 
@@ -333,7 +350,10 @@ class TrafficService:
                 "success": True,
                 "predictions": predictions,
                 "best_time": (
-                    min(predictions.items(), key=lambda x: x[1]["total_duration"])[0]
+                    min(
+                        predictions.items(),
+                        key=lambda x: x[1]["total_duration"],
+                    )[0]
                     if predictions
                     else None
                 ),
@@ -352,8 +372,14 @@ class TrafficService:
         waypoints = []
 
         # Add start location if provided
-        if start_location and "lat" in start_location and "lng" in start_location:
-            waypoints.append(f"{start_location['lat']},{start_location['lng']}")
+        if (
+            start_location
+            and "lat" in start_location
+            and "lng" in start_location
+        ):
+            waypoints.append(
+                f"{start_location['lat']},{start_location['lng']}"
+            )
 
         # Add store locations
         for store in stores:
@@ -364,7 +390,9 @@ class TrafficService:
 
         return waypoints
 
-    def _cluster_waypoints(self, waypoints: List[str], max_points: int) -> List[str]:
+    def _cluster_waypoints(
+        self, waypoints: List[str], max_points: int
+    ) -> List[str]:
         """Cluster waypoints to reduce to maximum allowed"""
         if len(waypoints) <= max_points:
             return waypoints
@@ -381,7 +409,9 @@ class TrafficService:
         return clustered[:max_points]
 
     def _get_google_maps_route(
-        self, waypoints: List[str], constraints: Optional[Dict[str, Any]] = None
+        self,
+        waypoints: List[str],
+        constraints: Optional[Dict[str, Any]] = None,
     ) -> Optional[Dict[str, Any]]:
         """Get route from Google Maps API"""
         try:
@@ -423,7 +453,9 @@ class TrafficService:
             response = requests.get(url, params=params, timeout=15)
 
             if response.status_code != 200:
-                logger.error(f"Google Maps API HTTP error: {response.status_code}")
+                logger.error(
+                    f"Google Maps API HTTP error: {response.status_code}"
+                )
                 return None
 
             data = response.json()
@@ -438,7 +470,9 @@ class TrafficService:
             logger.error(f"Error calling Google Maps API: {str(e)}")
             return None
 
-    def _process_traffic_data(self, route_data: Dict[str, Any]) -> Dict[str, Any]:
+    def _process_traffic_data(
+        self, route_data: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Process traffic data from Google Maps response"""
         try:
             route = route_data["routes"][0]
@@ -479,7 +513,9 @@ class TrafficService:
                 "total_duration": total_duration,
                 "total_traffic_delay": total_traffic_delay,
                 "average_speed": (
-                    (total_distance / total_duration * 3.6) if total_duration > 0 else 0
+                    (total_distance / total_duration * 3.6)
+                    if total_duration > 0
+                    else 0
                 ),  # km/h
                 "traffic_severity": self._classify_overall_traffic(
                     total_duration, total_traffic_delay
@@ -505,7 +541,9 @@ class TrafficService:
         else:
             return "severe"
 
-    def _classify_overall_traffic(self, total_duration: int, total_delay: int) -> str:
+    def _classify_overall_traffic(
+        self, total_duration: int, total_delay: int
+    ) -> str:
         """Classify overall traffic severity"""
         if total_delay <= 0:
             return "no_delay"
@@ -591,7 +629,9 @@ class TrafficService:
     def get_cache_stats(self) -> Dict[str, Any]:
         """Get cache statistics"""
         total_entries = len(self.cache)
-        valid_entries = sum(1 for key in self.cache if self._is_cache_valid(key))
+        valid_entries = sum(
+            1 for key in self.cache if self._is_cache_valid(key)
+        )
 
         return {
             "total_entries": total_entries,

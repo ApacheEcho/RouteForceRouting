@@ -129,7 +129,9 @@ def test_get_algorithms():
         response = requests.get(f"{BASE_URL}/api/v1/routes/algorithms")
         if response.status_code == 200:
             data = response.json()
-            print(f"✅ Available algorithms: {list(data['algorithms'].keys())}")
+            print(
+                f"✅ Available algorithms: {list(data['algorithms'].keys())}"
+            )
 
             # Print genetic algorithm parameters
             if "genetic" in data["algorithms"]:
@@ -171,8 +173,12 @@ def test_default_algorithm():
                 f"✅ Default Algorithm - Generated route with {metadata.get('route_stores', 0)} stores"
             )
             print(f"⏱️  Processing time: {duration:.2f}s")
-            print(f"📊 Optimization score: {metadata.get('optimization_score', 0):.2f}")
-            print(f"🔧 Algorithm used: {metadata.get('algorithm_used', 'unknown')}")
+            print(
+                f"📊 Optimization score: {metadata.get('optimization_score', 0):.2f}"
+            )
+            print(
+                f"🔧 Algorithm used: {metadata.get('algorithm_used', 'unknown')}"
+            )
 
             return data
         else:
@@ -214,14 +220,20 @@ def test_genetic_algorithm():
                 f"✅ Genetic Algorithm - Generated route with {metadata.get('route_stores', 0)} stores"
             )
             print(f"⏱️  Processing time: {duration:.2f}s")
-            print(f"📊 Optimization score: {metadata.get('optimization_score', 0):.2f}")
-            print(f"🔧 Algorithm used: {metadata.get('algorithm_used', 'unknown')}")
+            print(
+                f"📊 Optimization score: {metadata.get('optimization_score', 0):.2f}"
+            )
+            print(
+                f"🔧 Algorithm used: {metadata.get('algorithm_used', 'unknown')}"
+            )
 
             # Print genetic algorithm specific metrics
             if "algorithm_metrics" in metadata:
                 ga_metrics = metadata["algorithm_metrics"]
                 print(f"🧬 Genetic Algorithm Metrics:")
-                print(f"  - Generations: {ga_metrics.get('generations', 'N/A')}")
+                print(
+                    f"  - Generations: {ga_metrics.get('generations', 'N/A')}"
+                )
                 print(
                     f"  - Final distance: {ga_metrics.get('final_distance', 'N/A'):.2f}km"
                 )
@@ -273,13 +285,17 @@ def test_genetic_optimize_endpoint():
                 f"✅ Genetic Optimize - Generated route with {metadata.get('route_stores', 0)} stores"
             )
             print(f"⏱️  Processing time: {duration:.2f}s")
-            print(f"📊 Optimization score: {metadata.get('optimization_score', 0):.2f}")
+            print(
+                f"📊 Optimization score: {metadata.get('optimization_score', 0):.2f}"
+            )
 
             # Print genetic algorithm specific metrics
             if "genetic_metrics" in data:
                 ga_metrics = data["genetic_metrics"]
                 print(f"🧬 Genetic Algorithm Metrics:")
-                print(f"  - Generations: {ga_metrics.get('generations', 'N/A')}")
+                print(
+                    f"  - Generations: {ga_metrics.get('generations', 'N/A')}"
+                )
                 print(
                     f"  - Final distance: {ga_metrics.get('final_distance', 'N/A'):.2f}km"
                 )

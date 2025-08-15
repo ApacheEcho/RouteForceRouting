@@ -4,6 +4,7 @@ Modern Flask application with enterprise-grade architecture and real-time featur
 """
 
 import os
+
 # from app import create_app, socketio  # Commented out to fix circular import
 
 # Create application instance

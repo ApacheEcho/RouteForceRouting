@@ -109,7 +109,10 @@ class RoutingService:
 
         # Initialize ML predictor
         try:
-            from app.optimization.ml_predictor import MLRoutePredictor, MLConfig
+            from app.optimization.ml_predictor import (
+                MLRoutePredictor,
+                MLConfig,
+            )
 
             self.ml_predictor = MLRoutePredictor(MLConfig())
         except Exception as e:
@@ -170,10 +173,14 @@ class RoutingService:
                 self.last_processing_time = time.time() - start_time
                 return []
 
-            logger.info(f"Filtered to {filtered_count} stores based on criteria")
+            logger.info(
+                f"Filtered to {filtered_count} stores based on criteria"
+            )
 
             # Generate route using selected algorithm
-            route_id = f"route_{int(time.time() * 1000)}"  # Generate unique route ID
+            route_id = (
+                f"route_{int(time.time() * 1000)}"  # Generate unique route ID
+            )
 
             # Broadcast route generation start
             self._broadcast_route_update(
@@ -195,7 +202,9 @@ class RoutingService:
                 self.last_processing_time = time.time() - start_time
                 # Broadcast failure
                 self._broadcast_route_update(
-                    route_id, "generation_failed", {"error": "Route generation failed"}
+                    route_id,
+                    "generation_failed",
+                    {"error": "Route generation failed"},
                 )
                 return []
 
@@ -217,7 +226,9 @@ class RoutingService:
 
             # Save route to database if requested and database is available
             if save_to_db and self.user_id and self.database_service:
-                route_record = self._save_route_to_db(route, filters, self.metrics)
+                route_record = self._save_route_to_db(
+                    route, filters, self.metrics
+                )
                 if route_record:
                     self.metrics.route_id = route_record.id
                     route_id = f"route_{route_record.id}"
@@ -230,7 +241,9 @@ class RoutingService:
                     "route_length": len(route),
                     "processing_time": processing_time,
                     "optimization_score": optimization_score,
-                    "algorithm_used": algorithm_metrics.get("algorithm", "default"),
+                    "algorithm_used": algorithm_metrics.get(
+                        "algorithm", "default"
+                    ),
                 },
             )
 
@@ -275,7 +288,9 @@ class RoutingService:
             return []
 
         try:
-            routes = self.database_service.get_routes_by_user(self.user_id, limit)
+            routes = self.database_service.get_routes_by_user(
+                self.user_id, limit
+            )
             return [route.to_dict() for route in routes]
         except Exception as e:
             logger.error(f"Error retrieving route history: {str(e)}")
@@ -345,7 +360,9 @@ class RoutingService:
             return None
 
         try:
-            route_name = f"Route {len(route)} stops - {time.strftime('%Y-%m-%d %H:%M')}"
+            route_name = (
+                f"Route {len(route)} stops - {time.strftime('%Y-%m-%d %H:%M')}"
+            )
             route_record = self.database_service.create_route(
                 route_data=route,
                 name=route_name,
@@ -411,11 +428,15 @@ class RoutingService:
         # Proximity clustering
         if filters.get("use_clustering", True):
             constraints["use_clustering"] = True
-            constraints["cluster_radius"] = float(filters.get("cluster_radius", 2.0))
+            constraints["cluster_radius"] = float(
+                filters.get("cluster_radius", 2.0)
+            )
 
         return constraints
 
-    def _apply_filters(self, stores: List[Dict], filters: Dict[str, Any]) -> List[Dict]:
+    def _apply_filters(
+        self, stores: List[Dict], filters: Dict[str, Any]
+    ) -> List[Dict]:
         """Apply filtering logic to stores"""
         filtered_stores = stores.copy()
 
@@ -518,7 +539,9 @@ class RoutingService:
             List of optimized route stops
         """
         start_time = time.time()
-        route_id = f"route_{int(time.time() * 1000)}"  # Generate unique route ID
+        route_id = (
+            f"route_{int(time.time() * 1000)}"  # Generate unique route ID
+        )
 
         try:
             if not stores:
@@ -547,7 +570,9 @@ class RoutingService:
                 self.last_processing_time = time.time() - start_time
                 # Broadcast failure
                 self._broadcast_route_update(
-                    route_id, "generation_failed", {"error": "Route generation failed"}
+                    route_id,
+                    "generation_failed",
+                    {"error": "Route generation failed"},
                 )
                 return []
 
@@ -575,7 +600,9 @@ class RoutingService:
                     "route": route,
                     "processing_time": processing_time,
                     "optimization_score": optimization_score,
-                    "algorithm_used": algorithm_metrics.get("algorithm", "default"),
+                    "algorithm_used": algorithm_metrics.get(
+                        "algorithm", "default"
+                    ),
                     "total_stores": len(stores),
                 },
             )
@@ -621,7 +648,10 @@ class RoutingService:
             return {
                 "success": False,
                 "error": str(e),
-                "prediction": {"predicted_improvement": 0.0, "confidence": 0.0},
+                "prediction": {
+                    "predicted_improvement": 0.0,
+                    "confidence": 0.0,
+                },
             }
 
     def recommend_algorithm(
@@ -639,7 +669,9 @@ class RoutingService:
         """
         try:
             if self.ml_predictor:
-                recommendation = self.ml_predictor.recommend_algorithm(stores, context)
+                recommendation = self.ml_predictor.recommend_algorithm(
+                    stores, context
+                )
                 return {"success": True, "recommendation": recommendation}
             else:
                 # Fall back to heuristic recommendation
@@ -726,8 +758,8 @@ class RoutingService:
 
                 # Apply traffic optimization if available
                 if self.traffic_service and self.traffic_service.api_available:
-                    traffic_result = self.traffic_service.get_traffic_optimized_route(
-                        route
+                    traffic_result = (
+                        self.traffic_service.get_traffic_optimized_route(route)
                     )
                     if traffic_result["success"]:
                         optimized_route = traffic_result["route"]
@@ -748,8 +780,8 @@ class RoutingService:
 
                 # Apply traffic optimization if available
                 if self.traffic_service and self.traffic_service.api_available:
-                    traffic_result = self.traffic_service.get_traffic_optimized_route(
-                        route
+                    traffic_result = (
+                        self.traffic_service.get_traffic_optimized_route(route)
                     )
                     if traffic_result["success"]:
                         optimized_route = traffic_result["route"]
@@ -770,10 +802,14 @@ class RoutingService:
                 }
 
         except Exception as e:
-            logger.error(f"Error generating route with ML recommendation: {str(e)}")
+            logger.error(
+                f"Error generating route with ML recommendation: {str(e)}"
+            )
             return {"success": False, "error": str(e), "route": []}
 
-    def _heuristic_algorithm_recommendation(self, stores: List[Dict]) -> Dict[str, Any]:
+    def _heuristic_algorithm_recommendation(
+        self, stores: List[Dict]
+    ) -> Dict[str, Any]:
         """
         Provide heuristic algorithm recommendation based on simple rules
 
@@ -829,7 +865,9 @@ class RoutingService:
                 },
             }
 
-    def _heuristic_performance_prediction(self, stores: List[Dict]) -> Dict[str, Any]:
+    def _heuristic_performance_prediction(
+        self, stores: List[Dict]
+    ) -> Dict[str, Any]:
         """
         Provide heuristic performance prediction based on simple rules
 
@@ -863,7 +901,10 @@ class RoutingService:
             return {
                 "success": False,
                 "error": str(e),
-                "prediction": {"predicted_improvement": 0.0, "confidence": 0.0},
+                "prediction": {
+                    "predicted_improvement": 0.0,
+                    "confidence": 0.0,
+                },
             }
 
     def _generate_route_ml(
@@ -905,8 +946,12 @@ class RoutingService:
                 algorithm_metrics = {
                     "algorithm": "ml",
                     "ml_recommended_algorithm": recommended_algo,
-                    "ml_confidence": recommendation["recommendation"]["confidence"],
-                    "ml_reasoning": recommendation["recommendation"]["reasoning"],
+                    "ml_confidence": recommendation["recommendation"][
+                        "confidence"
+                    ],
+                    "ml_reasoning": recommendation["recommendation"][
+                        "reasoning"
+                    ],
                     "base_algorithm_metrics": base_metrics,
                 }
 
@@ -1005,9 +1050,15 @@ class RoutingService:
                     {
                         "route_length": len(traffic_result["route"]),
                         "processing_time": processing_time,
-                        "total_distance": traffic_result.get("total_distance", 0),
-                        "total_duration": traffic_result.get("total_duration", 0),
-                        "traffic_delay": traffic_result.get("traffic_delay", 0),
+                        "total_distance": traffic_result.get(
+                            "total_distance", 0
+                        ),
+                        "total_duration": traffic_result.get(
+                            "total_duration", 0
+                        ),
+                        "traffic_delay": traffic_result.get(
+                            "traffic_delay", 0
+                        ),
                     },
                 )
 
@@ -1024,7 +1075,8 @@ class RoutingService:
                 )
 
                 return self._fallback_to_basic_route(
-                    stores, traffic_result.get("error", "Traffic optimization failed")
+                    stores,
+                    traffic_result.get("error", "Traffic optimization failed"),
                 )
 
         except Exception as e:
@@ -1046,7 +1098,10 @@ class RoutingService:
         """
         try:
             if not self.traffic_service:
-                return {"success": False, "error": "Traffic service not available"}
+                return {
+                    "success": False,
+                    "error": "Traffic service not available",
+                }
 
             alternatives = self.traffic_service.get_route_alternatives(
                 stores, max_alternatives
@@ -1054,7 +1109,9 @@ class RoutingService:
 
             if alternatives:
                 # Find the best alternative
-                best_alternative = min(alternatives, key=lambda x: x["total_duration"])
+                best_alternative = min(
+                    alternatives, key=lambda x: x["total_duration"]
+                )
 
                 return {
                     "success": True,
@@ -1084,7 +1141,9 @@ class RoutingService:
             return {"success": False, "error": str(e)}
 
     def predict_traffic_for_route(
-        self, stores: List[Dict[str, Any]], future_hours: List[int] = [1, 2, 4, 8]
+        self,
+        stores: List[Dict[str, Any]],
+        future_hours: List[int] = [1, 2, 4, 8],
     ) -> Dict[str, Any]:
         """
         Predict traffic conditions for future departure times
@@ -1098,7 +1157,10 @@ class RoutingService:
         """
         try:
             if not self.traffic_service:
-                return {"success": False, "error": "Traffic service not available"}
+                return {
+                    "success": False,
+                    "error": "Traffic service not available",
+                }
 
             predictions = self.traffic_service.predict_traffic_conditions(
                 stores, future_hours
@@ -1212,7 +1274,9 @@ class RoutingService:
             return min(100.0, efficiency_score + traffic_bonus)
 
         except Exception as e:
-            logger.error(f"Error calculating traffic optimization score: {str(e)}")
+            logger.error(
+                f"Error calculating traffic optimization score: {str(e)}"
+            )
             return 50.0  # Default neutral score
 
     def generate_route_from_stores(
@@ -1276,7 +1340,9 @@ class RoutingService:
             if optimization_engine:
                 optimization_engine.track_optimization_completion(
                     {
-                        "algorithm": algorithm_metrics.get("algorithm", "default"),
+                        "algorithm": algorithm_metrics.get(
+                            "algorithm", "default"
+                        ),
                         "stores_count": len(stores),
                         "processing_time": processing_time,
                         "optimization_score": optimization_score,
@@ -1309,14 +1375,20 @@ class RoutingService:
 
             return []
 
-    def _broadcast_route_update(self, route_id: str, status: str, data: Dict[str, Any]):
+    def _broadcast_route_update(
+        self, route_id: str, status: str, data: Dict[str, Any]
+    ):
         """Broadcast route update via WebSocket"""
         try:
             # Check if we're in Flask app context and WebSocket is available
             if current_app and hasattr(current_app, "websocket_manager"):
                 websocket_manager = current_app.websocket_manager
 
-                update_data = {"route_id": route_id, "status": status, "data": data}
+                update_data = {
+                    "route_id": route_id,
+                    "status": status,
+                    "data": data,
+                }
 
                 websocket_manager.broadcast_route_update(route_id, update_data)
                 logger.debug(
@@ -1324,15 +1396,23 @@ class RoutingService:
                 )
 
         except Exception as e:
-            logger.debug(f"WebSocket broadcast failed (non-critical): {str(e)}")
+            logger.debug(
+                f"WebSocket broadcast failed (non-critical): {str(e)}"
+            )
 
-    def _broadcast_optimization_progress(self, route_id: str, progress: Dict[str, Any]):
+    def _broadcast_optimization_progress(
+        self, route_id: str, progress: Dict[str, Any]
+    ):
         """Broadcast optimization progress via WebSocket"""
         try:
             if current_app and hasattr(current_app, "websocket_manager"):
                 websocket_manager = current_app.websocket_manager
-                websocket_manager.broadcast_optimization_progress(route_id, progress)
-                logger.debug(f"Broadcasted optimization progress for route {route_id}")
+                websocket_manager.broadcast_optimization_progress(
+                    route_id, progress
+                )
+                logger.debug(
+                    f"Broadcasted optimization progress for route {route_id}"
+                )
 
         except Exception as e:
             logger.debug(
@@ -1387,7 +1467,9 @@ class RoutingService:
                     stores, constraints, route_id
                 )
             elif algorithm == "ml":
-                route, metrics = self._generate_route_ml(stores, constraints, filters)
+                route, metrics = self._generate_route_ml(
+                    stores, constraints, filters
+                )
             else:
                 # Default proximity clustering
                 route, metrics = self._generate_route_default(
@@ -1417,9 +1499,13 @@ class RoutingService:
             return route, metrics
 
         except Exception as e:
-            logger.error(f"Error in route generation with {algorithm}: {str(e)}")
+            logger.error(
+                f"Error in route generation with {algorithm}: {str(e)}"
+            )
             # Fall back to default algorithm
-            route, metrics = self._generate_route_default(stores, constraints, route_id)
+            route, metrics = self._generate_route_default(
+                stores, constraints, route_id
+            )
             metrics.update({"error": str(e), "fallback_used": True})
             return route, metrics
 
@@ -1474,7 +1560,9 @@ class RoutingService:
 
             # Use optimized genetic algorithm configuration
             config = GeneticConfig(
-                population_size=min(100, len(stores) * 5),  # Adaptive population size
+                population_size=min(
+                    100, len(stores) * 5
+                ),  # Adaptive population size
                 generations=200,
                 mutation_rate=0.02,
                 crossover_rate=0.8,
@@ -1492,7 +1580,9 @@ class RoutingService:
                     route_id,
                     {
                         "stage": "genetic_completed",
-                        "generations": optimization_metrics.get("generations", 0),
+                        "generations": optimization_metrics.get(
+                            "generations", 0
+                        ),
                         "improvement": optimization_metrics.get(
                             "improvement_percent", 0
                         ),
@@ -1502,14 +1592,22 @@ class RoutingService:
             # Return route and enhanced metrics
             return optimized_route, {
                 "algorithm": "genetic",
-                "generations_completed": optimization_metrics.get("generations", 0),
-                "initial_distance_km": optimization_metrics.get("initial_distance", 0),
-                "final_distance_km": optimization_metrics.get("final_distance", 0),
+                "generations_completed": optimization_metrics.get(
+                    "generations", 0
+                ),
+                "initial_distance_km": optimization_metrics.get(
+                    "initial_distance", 0
+                ),
+                "final_distance_km": optimization_metrics.get(
+                    "final_distance", 0
+                ),
                 "improvement_percent": optimization_metrics.get(
                     "improvement_percent", 0
                 ),
                 "population_size": config.population_size,
-                "execution_time": optimization_metrics.get("execution_time", 0),
+                "execution_time": optimization_metrics.get(
+                    "execution_time", 0
+                ),
             }
 
         except Exception as e:
@@ -1582,7 +1680,9 @@ class RoutingService:
                     {
                         "stage": "mo_completed",
                         "objectives": ["distance", "time", "priority"],
-                        "pareto_solutions": route_data.get("pareto_solutions", 1),
+                        "pareto_solutions": route_data.get(
+                            "pareto_solutions", 1
+                        ),
                     },
                 )
 

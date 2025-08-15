@@ -86,7 +86,12 @@ def score_route():
             if errs:
                 all_errors.extend([f"route[{idx}]: {e}" for e in errs])
         if all_errors:
-            return jsonify({"error": "Invalid route data", "details": all_errors}), 422
+            return (
+                jsonify(
+                    {"error": "Invalid route data", "details": all_errors}
+                ),
+                422,
+            )
 
         context = data.get("context", {})
 
@@ -96,7 +101,12 @@ def score_route():
                 return jsonify({"error": "'weights' must be an object"}), 400
             weight_errors = _validate_weights(data["weights"])
             if weight_errors:
-                return jsonify({"error": "Invalid weights", "details": weight_errors}), 422
+                return (
+                    jsonify(
+                        {"error": "Invalid weights", "details": weight_errors}
+                    ),
+                    422,
+                )
             weights_data = data["weights"]
             weights = ScoringWeights(**weights_data)
             scorer = create_route_scorer(weights)
@@ -155,9 +165,16 @@ def compare_routes():
             for i_idx, item in enumerate(route):
                 errs = _validate_location(item)
                 if errs:
-                    all_errors.extend([f"routes[{r_idx}][{i_idx}]: {e}" for e in errs])
+                    all_errors.extend(
+                        [f"routes[{r_idx}][{i_idx}]: {e}" for e in errs]
+                    )
         if all_errors:
-            return jsonify({"error": "Invalid routes data", "details": all_errors}), 422
+            return (
+                jsonify(
+                    {"error": "Invalid routes data", "details": all_errors}
+                ),
+                422,
+            )
 
         context = data.get("context", {})
         preset = data.get("preset", "balanced")
@@ -165,7 +182,9 @@ def compare_routes():
         if preset not in PRESET_WEIGHTS:
             return (
                 jsonify(
-                    {"error": f"Invalid preset. Available: {list(PRESET_WEIGHTS.keys())}"}
+                    {
+                        "error": f"Invalid preset. Available: {list(PRESET_WEIGHTS.keys())}"
+                    }
                 ),
                 400,
             )
@@ -195,7 +214,9 @@ def get_available_weights():
                 "efficiency_weight": weights.efficiency_weight,
             }
 
-        return jsonify({"success": True, "presets": presets, "default": "balanced"})
+        return jsonify(
+            {"success": True, "presets": presets, "default": "balanced"}
+        )
 
     except Exception as e:
         logger.error(f"Error in get_available_weights endpoint: {e}")
@@ -213,7 +234,9 @@ def get_scoring_history():
         scorer = create_route_scorer()
         history = scorer.get_scoring_history(limit)
 
-        return jsonify({"success": True, "history": history, "count": len(history)})
+        return jsonify(
+            {"success": True, "history": history, "count": len(history)}
+        )
 
     except Exception as e:
         logger.error(f"Error in get_scoring_history endpoint: {e}")

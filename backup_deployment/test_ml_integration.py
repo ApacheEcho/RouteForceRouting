@@ -95,7 +95,9 @@ def test_ml_direct():
         # Add some mock training data
         print("\n5. Adding mock training data...")
         for i in range(3):
-            algorithm = ["genetic", "simulated_annealing", "multi_objective"][i % 3]
+            algorithm = ["genetic", "simulated_annealing", "multi_objective"][
+                i % 3
+            ]
             performance = {
                 "improvement_percent": 15.5 + i * 5,
                 "original_distance": 100.0 + i * 10,
@@ -210,8 +212,10 @@ def test_ml_routing_service():
             "start_location": {"lat": 40.7128, "lon": -74.0060},
         }
 
-        ml_route_result = routing_service.generate_route_with_ml_recommendation(
-            test_stores, constraints, context
+        ml_route_result = (
+            routing_service.generate_route_with_ml_recommendation(
+                test_stores, constraints, context
+            )
         )
         print(
             f"   ✓ ML-guided route generation: {ml_route_result.get('success', False)}"
@@ -243,7 +247,10 @@ def test_heuristic_recommendations():
     print("=" * 60)
 
     test_cases = [
-        {"name": "Small route", "stores": [{"id": "1", "lat": 40.7, "lon": -74.0}] * 3},
+        {
+            "name": "Small route",
+            "stores": [{"id": "1", "lat": 40.7, "lon": -74.0}] * 3,
+        },
         {
             "name": "Medium route",
             "stores": [{"id": "1", "lat": 40.7, "lon": -74.0}] * 10,
@@ -262,8 +269,10 @@ def test_heuristic_recommendations():
                 f"\n{i}. Testing {test_case['name']} ({len(test_case['stores'])} stores)..."
             )
 
-            recommendation = routing_service._heuristic_algorithm_recommendation(
-                test_case["stores"]
+            recommendation = (
+                routing_service._heuristic_algorithm_recommendation(
+                    test_case["stores"]
+                )
             )
 
             if recommendation.get("success"):

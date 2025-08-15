@@ -2,7 +2,15 @@
 Authentication routes
 """
 
-from flask import render_template, request, redirect, url_for, flash, session, jsonify
+from flask import (
+    render_template,
+    request,
+    redirect,
+    url_for,
+    flash,
+    session,
+    jsonify,
+)
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.auth import auth_bp
 from app.models.database import db

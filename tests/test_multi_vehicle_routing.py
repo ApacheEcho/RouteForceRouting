@@ -144,7 +144,9 @@ class TestMultiVehicleRouting:
 
         # Verify capacity constraints are respected
         for vehicle_id, assigned_stores in vehicle_assignments.items():
-            vehicle = next(v for v in available_vehicles if v.vehicle_id == vehicle_id)
+            vehicle = next(
+                v for v in available_vehicles if v.vehicle_id == vehicle_id
+            )
 
             total_weight = sum(store.weight_kg for store in assigned_stores)
             total_packages = sum(store.packages for store in assigned_stores)
@@ -188,9 +190,15 @@ class TestMultiVehicleRouting:
             )
 
             # Verify routes were generated
-            assert len(routes) > 0, f"No routes generated for method {method.value}"
+            assert (
+                len(routes) > 0
+            ), f"No routes generated for method {method.value}"
             assert len(routes) <= len(
-                [v for v in sample_vehicles if v.status == VehicleStatus.AVAILABLE]
+                [
+                    v
+                    for v in sample_vehicles
+                    if v.status == VehicleStatus.AVAILABLE
+                ]
             )
 
             # Verify each route is valid
@@ -214,7 +222,10 @@ class TestMultiVehicleRouting:
                 store_id=f"HEAVY_{i}",
                 name=f"Heavy Store {i}",
                 address=f"Heavy St {i}",
-                coordinates={"lat": 40.7128 + i * 0.01, "lng": -74.0060 + i * 0.01},
+                coordinates={
+                    "lat": 40.7128 + i * 0.01,
+                    "lng": -74.0060 + i * 0.01,
+                },
                 delivery_window="09:00-17:00",
                 priority="high",
                 estimated_service_time=15,
@@ -230,7 +241,9 @@ class TestMultiVehicleRouting:
         )
 
         # Some stores may not be assignable due to size constraints
-        total_assigned = sum(len(stores) for stores in vehicle_assignments.values())
+        total_assigned = sum(
+            len(stores) for stores in vehicle_assignments.values()
+        )
         assert total_assigned <= len(
             oversized_stores
         ), "Cannot assign more stores than created"
@@ -239,7 +252,9 @@ class TestMultiVehicleRouting:
             f"Assigned {total_assigned} out of {len(oversized_stores)} oversized stores"
         )
 
-    def test_route_metrics_calculation(self, large_store_dataset, sample_vehicles):
+    def test_route_metrics_calculation(
+        self, large_store_dataset, sample_vehicles
+    ):
         """Test accuracy of route metrics calculation."""
         optimizer = RouteOptimizer()
 
@@ -249,16 +264,24 @@ class TestMultiVehicleRouting:
 
         for route in routes:
             # Verify metrics are reasonable
-            assert route.total_distance_km > 0, "Route should have positive distance"
+            assert (
+                route.total_distance_km > 0
+            ), "Route should have positive distance"
             assert (
                 route.estimated_duration_hours > 0
             ), "Route should have positive duration"
-            assert route.total_weight_kg > 0, "Route should have positive weight"
-            assert route.total_packages > 0, "Route should have positive package count"
+            assert (
+                route.total_weight_kg > 0
+            ), "Route should have positive weight"
+            assert (
+                route.total_packages > 0
+            ), "Route should have positive package count"
 
             # Check distance vs duration relationship (should be roughly correlated)
             # Assuming urban speeds of 20-60 km/h
-            implied_speed = route.total_distance_km / route.estimated_duration_hours
+            implied_speed = (
+                route.total_distance_km / route.estimated_duration_hours
+            )
             assert (
                 10 <= implied_speed <= 80
             ), f"Implied speed {implied_speed} km/h seems unrealistic"
@@ -267,7 +290,9 @@ class TestMultiVehicleRouting:
             expected_packages = sum(stop["packages"] for stop in route.stops)
             expected_weight = sum(stop["weight_kg"] for stop in route.stops)
 
-            assert route.total_packages == expected_packages, "Package count mismatch"
+            assert (
+                route.total_packages == expected_packages
+            ), "Package count mismatch"
             assert (
                 abs(route.total_weight_kg - expected_weight) < 0.01
             ), "Weight calculation mismatch"
@@ -301,7 +326,9 @@ class TestMultiVehicleRouting:
                 "within_stop_limit",
             ]
             for key in expected_keys:
-                assert key in validation_results, f"Missing validation key: {key}"
+                assert (
+                    key in validation_results
+                ), f"Missing validation key: {key}"
                 assert isinstance(
                     validation_results[key], bool
                 ), f"Validation {key} should be boolean"
@@ -311,7 +338,9 @@ class TestMultiVehicleRouting:
                 key for key, passed in validation_results.items() if not passed
             ]
             if violations:
-                print(f"Route {route.route_id} constraint violations: {violations}")
+                print(
+                    f"Route {route.route_id} constraint violations: {violations}"
+                )
 
     def test_empty_input_handling(self, sample_vehicles):
         """Test handling of edge cases with empty inputs."""
@@ -362,9 +391,13 @@ class TestMultiVehicleRouting:
             )
         ]
 
-        routes = optimizer.optimize_multi_vehicle_routes(single_store, sample_vehicles)
+        routes = optimizer.optimize_multi_vehicle_routes(
+            single_store, sample_vehicles
+        )
 
-        assert len(routes) == 1, "Should generate exactly one route for single store"
+        assert (
+            len(routes) == 1
+        ), "Should generate exactly one route for single store"
         assert len(routes[0].stops) == 1, "Route should have exactly one stop"
         assert routes[0].stops[0]["store_id"] == "SINGLE_001"
 
@@ -397,7 +430,10 @@ class TestPerformanceMonitoring:
         )
 
         # Verify benchmark results structure
-        for method in [OptimizationMethod.NEAREST_NEIGHBOR, OptimizationMethod.TWO_OPT]:
+        for method in [
+            OptimizationMethod.NEAREST_NEIGHBOR,
+            OptimizationMethod.TWO_OPT,
+        ]:
             method_name = method.value
             assert (
                 method_name in benchmark_results
@@ -440,9 +476,15 @@ class TestPerformanceMonitoring:
         for method, metrics in benchmark_results.items():
             if "error" not in metrics:
                 print(f"  {method}:")
-                print(f"    Execution Time: {metrics['execution_time_seconds']:.3f}s")
-                print(f"    Routes Generated: {metrics['total_routes_generated']}")
-                print(f"    Total Distance: {metrics['total_distance_km']:.2f}km")
+                print(
+                    f"    Execution Time: {metrics['execution_time_seconds']:.3f}s"
+                )
+                print(
+                    f"    Routes Generated: {metrics['total_routes_generated']}"
+                )
+                print(
+                    f"    Total Distance: {metrics['total_distance_km']:.2f}km"
+                )
                 print(
                     f"    Avg Distance/Route: {metrics['avg_distance_per_route']:.2f}km"
                 )
@@ -458,7 +500,9 @@ class TestPerformanceMonitoring:
         )
 
         for route in routes:
-            efficiency_metrics = performance_monitor.analyze_route_efficiency(route)
+            efficiency_metrics = performance_monitor.analyze_route_efficiency(
+                route
+            )
 
             # Verify efficiency metrics structure
             expected_metrics = [
@@ -501,7 +545,9 @@ class TestPerformanceMonitoring:
             print(
                 f"  Distance/Stop: {efficiency_metrics['distance_per_stop_km']:.2f}km"
             )
-            print(f"  Time/Stop: {efficiency_metrics['time_per_stop_hours']:.2f}h")
+            print(
+                f"  Time/Stop: {efficiency_metrics['time_per_stop_hours']:.2f}h"
+            )
             print(
                 f"  Weight Utilization: {efficiency_metrics['weight_utilization_percent']:.1f}%"
             )
@@ -543,7 +589,9 @@ class TestPerformanceMonitoring:
             execution_time = (end_time - start_time).total_seconds()
 
             # Verify performance is reasonable (should complete within reasonable time)
-            max_expected_time = size * 0.1  # Allow 0.1 seconds per store maximum
+            max_expected_time = (
+                size * 0.1
+            )  # Allow 0.1 seconds per store maximum
             assert (
                 execution_time <= max_expected_time
             ), f"Optimization took too long for {size} stores: {execution_time}s"
@@ -594,7 +642,9 @@ class TestPerformanceMonitoring:
                 memory_growth <= max_memory_mb
             ), f"Excessive memory usage: {memory_growth} bytes"
 
-            print(f"Dataset size {size}: Memory growth = {memory_growth} bytes")
+            print(
+                f"Dataset size {size}: Memory growth = {memory_growth} bytes"
+            )
 
             # Clean up
             del dataset, routes, optimizer

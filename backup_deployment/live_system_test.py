@@ -25,7 +25,9 @@ class LiveSystemTest:
             "details": details,
         }
         self.test_results.append(result)
-        status_icon = "✅" if status == "PASS" else "❌" if status == "FAIL" else "⚠️"
+        status_icon = (
+            "✅" if status == "PASS" else "❌" if status == "FAIL" else "⚠️"
+        )
         print(f"{status_icon} {name}: {status}")
         if details:
             print(f"   Details: {details}")
@@ -41,11 +43,15 @@ class LiveSystemTest:
             if response.status_code == 200:
                 data = response.json()
                 self.log_test(
-                    "Health Endpoint", "PASS", f"System status: {data.get('status')}"
+                    "Health Endpoint",
+                    "PASS",
+                    f"System status: {data.get('status')}",
                 )
             else:
                 self.log_test(
-                    "Health Endpoint", "FAIL", f"Status code: {response.status_code}"
+                    "Health Endpoint",
+                    "FAIL",
+                    f"Status code: {response.status_code}",
                 )
         except Exception as e:
             self.log_test("Health Endpoint", "FAIL", str(e))
@@ -72,10 +78,18 @@ class LiveSystemTest:
                 "stops": [
                     {"lat": 40.7128, "lon": -74.0060, "name": "NYC Office"},
                     {"lat": 40.7589, "lon": -73.9851, "name": "Times Square"},
-                    {"lat": 40.6892, "lon": -74.0445, "name": "Statue of Liberty"},
+                    {
+                        "lat": 40.6892,
+                        "lon": -74.0445,
+                        "name": "Statue of Liberty",
+                    },
                     {"lat": 40.7831, "lon": -73.9712, "name": "Central Park"},
                     {"lat": 40.7505, "lon": -73.9934, "name": "Empire State"},
-                    {"lat": 40.7061, "lon": -74.0087, "name": "Brooklyn Bridge"},
+                    {
+                        "lat": 40.7061,
+                        "lon": -74.0087,
+                        "name": "Brooklyn Bridge",
+                    },
                 ],
                 "algorithm": "simulated_annealing",
             },
@@ -93,7 +107,9 @@ class LiveSystemTest:
             try:
                 start_time = time.time()
                 response = requests.post(
-                    f"{self.backend_url}/api/optimize", json=test_case, timeout=30
+                    f"{self.backend_url}/api/optimize",
+                    json=test_case,
+                    timeout=30,
                 )
                 processing_time = time.time() - start_time
 
@@ -125,7 +141,11 @@ class LiveSystemTest:
                     f"{self.backend_url}/api/optimize",
                     json={
                         "stops": [
-                            {"lat": 37.7749, "lon": -122.4194, "name": "Start"},
+                            {
+                                "lat": 37.7749,
+                                "lon": -122.4194,
+                                "name": "Start",
+                            },
                             {"lat": 37.7849, "lon": -122.4094, "name": "End"},
                         ],
                         "algorithm": "genetic",
@@ -148,7 +168,8 @@ class LiveSystemTest:
                 for _ in range(concurrent_requests)
             ]
             results = [
-                future.result() for future in concurrent.futures.as_completed(futures)
+                future.result()
+                for future in concurrent.futures.as_completed(futures)
             ]
 
         total_time = time.time() - start_time
@@ -162,7 +183,9 @@ class LiveSystemTest:
             )
         else:
             self.log_test(
-                "Concurrent Load Test", "FAIL", f"Only {success_rate:.1f}% success rate"
+                "Concurrent Load Test",
+                "FAIL",
+                f"Only {success_rate:.1f}% success rate",
             )
 
     def test_real_world_addresses(self):
@@ -194,7 +217,9 @@ class LiveSystemTest:
                 )
             else:
                 self.log_test(
-                    "Cross-Country Route", "FAIL", f"Status: {response.status_code}"
+                    "Cross-Country Route",
+                    "FAIL",
+                    f"Status: {response.status_code}",
                 )
         except Exception as e:
             self.log_test("Cross-Country Route", "FAIL", str(e))
@@ -205,7 +230,11 @@ class LiveSystemTest:
         print("-" * 30)
 
         error_tests = [
-            {"name": "Empty Request", "data": {}, "expected_status": [400, 422]},
+            {
+                "name": "Empty Request",
+                "data": {},
+                "expected_status": [400, 422],
+            },
             {
                 "name": "Invalid Coordinates",
                 "data": {"stops": [{"lat": "invalid", "lon": "invalid"}]},
@@ -221,7 +250,9 @@ class LiveSystemTest:
         for test in error_tests:
             try:
                 response = requests.post(
-                    f"{self.backend_url}/api/optimize", json=test["data"], timeout=10
+                    f"{self.backend_url}/api/optimize",
+                    json=test["data"],
+                    timeout=10,
                 )
 
                 if response.status_code in test["expected_status"]:
@@ -246,10 +277,16 @@ class LiveSystemTest:
         print("=" * 60)
 
         total_tests = len(self.test_results)
-        passed_tests = len([r for r in self.test_results if r["status"] == "PASS"])
-        failed_tests = len([r for r in self.test_results if r["status"] == "FAIL"])
+        passed_tests = len(
+            [r for r in self.test_results if r["status"] == "PASS"]
+        )
+        failed_tests = len(
+            [r for r in self.test_results if r["status"] == "FAIL"]
+        )
 
-        success_rate = (passed_tests / total_tests) * 100 if total_tests > 0 else 0
+        success_rate = (
+            (passed_tests / total_tests) * 100 if total_tests > 0 else 0
+        )
 
         print(f"📊 SUMMARY:")
         print(f"   Total Tests: {total_tests}")

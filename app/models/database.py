@@ -30,7 +30,9 @@ class User(db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     first_name = db.Column(db.String(50), nullable=True)
     last_name = db.Column(db.String(50), nullable=True)
-    role = db.Column(db.String(20), default="user")  # admin, manager, user, driver
+    role = db.Column(
+        db.String(20), default="user"
+    )  # admin, manager, user, driver
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(
@@ -60,8 +62,12 @@ class User(db.Model):
             "last_name": self.last_name,
             "role": self.role,
             "is_active": self.is_active,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "last_login": self.last_login.isoformat() if self.last_login else None,
+            "created_at": (
+                self.created_at.isoformat() if self.created_at else None
+            ),
+            "last_login": (
+                self.last_login.isoformat() if self.last_login else None
+            ),
         }
 
 
@@ -123,7 +129,9 @@ class Store(db.Model):
             "priority": self.priority,
             "is_active": self.is_active,
             "store_metadata": self.get_metadata(),
-            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "created_at": (
+                self.created_at.isoformat() if self.created_at else None
+            ),
         }
 
 
@@ -157,7 +165,9 @@ class Route(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
 
     # Relationships
-    optimizations = db.relationship("RouteOptimization", backref="route", lazy=True)
+    optimizations = db.relationship(
+        "RouteOptimization", backref="route", lazy=True
+    )
 
     def set_route_data(self, route_data: List[Dict[str, Any]]):
         """Set route data as JSON string"""
@@ -184,8 +194,12 @@ class Route(db.Model):
             "optimization_score": self.optimization_score,
             "algorithm_used": self.algorithm_used,
             "status": self.status,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+            "created_at": (
+                self.created_at.isoformat() if self.created_at else None
+            ),
+            "updated_at": (
+                self.updated_at.isoformat() if self.updated_at else None
+            ),
         }
 
 
@@ -211,7 +225,9 @@ class RouteOptimization(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Foreign keys
-    route_id = db.Column(db.Integer, db.ForeignKey("routes.id"), nullable=False)
+    route_id = db.Column(
+        db.Integer, db.ForeignKey("routes.id"), nullable=False
+    )
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
 
     def set_parameters(self, parameters: Dict[str, Any]):
@@ -238,7 +254,9 @@ class RouteOptimization(db.Model):
             "original_distance": self.original_distance,
             "optimized_distance": self.optimized_distance,
             "stores_count": self.stores_count,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "created_at": (
+                self.created_at.isoformat() if self.created_at else None
+            ),
         }
 
 
@@ -285,5 +303,7 @@ class Analytics(db.Model):
             "user_id": self.user_id,
             "session_id": self.session_id,
             "ip_address": self.ip_address,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "created_at": (
+                self.created_at.isoformat() if self.created_at else None
+            ),
         }

@@ -17,7 +17,10 @@ import os
 
 # Remove main app import, use mock or skip if not available
 try:
-    from app.optimization.genetic_algorithm import GeneticAlgorithm, GeneticConfig
+    from app.optimization.genetic_algorithm import (
+        GeneticAlgorithm,
+        GeneticConfig,
+    )
     from app.performance.optimization_engine import PerformanceOptimizer
     from app.database.optimized_connection_pool import DatabaseConnectionPool
     from app.services.geocoding_cache import GeocodingCache
@@ -39,7 +42,8 @@ class PerformanceTest:
     def _setup_logging(self):
         """Setup logging for test results"""
         logging.basicConfig(
-            level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+            level=logging.INFO,
+            format="%(asctime)s - %(levelname)s - %(message)s",
         )
         return logging.getLogger(__name__)
 
@@ -77,7 +81,9 @@ class PerformanceTest:
     def test_genetic_algorithm_performance(self) -> Dict[str, Any]:
         """Test genetic algorithm performance and convergence"""
         if GeneticAlgorithm is None or GeneticConfig is None:
-            self.logger.warning("GeneticAlgorithm not available. Skipping test.")
+            self.logger.warning(
+                "GeneticAlgorithm not available. Skipping test."
+            )
             return {"skipped": True}
 
         self.logger.info("Testing Genetic Algorithm Performance...")
@@ -121,7 +127,8 @@ class PerformanceTest:
                 "generations_run": metrics["generations"],
                 "improvement_percent": metrics["improvement_percent"],
                 "final_distance_km": metrics["final_distance"],
-                "performance_score": size / execution_time,  # stores per second
+                "performance_score": size
+                / execution_time,  # stores per second
             }
 
             self.logger.info(
@@ -181,7 +188,9 @@ class PerformanceTest:
     def test_optimization_engine(self) -> Dict[str, Any]:
         """Test performance optimization engine"""
         if PerformanceOptimizer is None:
-            self.logger.warning("PerformanceOptimizer not available. Skipping test.")
+            self.logger.warning(
+                "PerformanceOptimizer not available. Skipping test."
+            )
             return {"skipped": True}
 
         self.logger.info("Testing Performance Optimization Engine...")
@@ -211,7 +220,9 @@ class PerformanceTest:
     def test_database_pool_performance(self) -> Dict[str, Any]:
         """Test optimized database connection pool"""
         if DatabaseConnectionPool is None:
-            self.logger.warning("DatabaseConnectionPool not available. Skipping test.")
+            self.logger.warning(
+                "DatabaseConnectionPool not available. Skipping test."
+            )
             return {"skipped": True}
 
         self.logger.info("Testing Database Connection Pool...")
@@ -269,13 +280,16 @@ class PerformanceTest:
             "initial_memory_mb": initial_memory / (1024 * 1024),
             "final_memory_mb": final_memory / (1024 * 1024),
             "memory_growth_mb": memory_growth / (1024 * 1024),
-            "memory_leak_detected": memory_growth > 50 * 1024 * 1024,  # 50MB threshold
+            "memory_leak_detected": memory_growth
+            > 50 * 1024 * 1024,  # 50MB threshold
             "cycles_completed": 5,
         }
 
     def run_full_suite(self) -> Dict[str, Any]:
         """Run complete performance test suite"""
-        self.logger.info("Starting RouteForce Performance Regression Test Suite")
+        self.logger.info(
+            "Starting RouteForce Performance Regression Test Suite"
+        )
 
         start_time = time.time()
 
@@ -302,7 +316,9 @@ class PerformanceTest:
             result["performance_score"]
             for result in test_results["genetic_algorithm"].values()
         ]
-        avg_ga_performance = sum(ga_scores) / len(ga_scores) if ga_scores else 0
+        avg_ga_performance = (
+            sum(ga_scores) / len(ga_scores) if ga_scores else 0
+        )
 
         cache_speedup = test_results["caching"]["speedup_factor"]
         memory_ok = not test_results["memory_leaks"]["memory_leak_detected"]
@@ -346,8 +362,12 @@ def main():
         print("\n" + "=" * 60)
         print("ROUTEFORCE PERFORMANCE TEST SUMMARY")
         print("=" * 60)
-        print(f"Overall Performance Score: {results['overall_performance_score']:.1f}")
-        print(f"Total Test Time: {results['total_test_time_seconds']:.2f} seconds")
+        print(
+            f"Overall Performance Score: {results['overall_performance_score']:.1f}"
+        )
+        print(
+            f"Total Test Time: {results['total_test_time_seconds']:.2f} seconds"
+        )
         print(
             f"Memory Leaks Detected: {'Yes' if results['memory_leaks']['memory_leak_detected'] else 'No'}"
         )

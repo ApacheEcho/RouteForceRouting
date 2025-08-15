@@ -16,7 +16,9 @@ logger = logging.getLogger(__name__)
 class ValidationError(Exception):
     """Custom validation error for API requests"""
 
-    def __init__(self, message: str, field: str = None, code: str = "VALIDATION_ERROR"):
+    def __init__(
+        self, message: str, field: str = None, code: str = "VALIDATION_ERROR"
+    ):
         self.message = message
         self.field = field
         self.code = code
@@ -26,7 +28,9 @@ class ValidationError(Exception):
 class APIError(Exception):
     """Custom API error with status code"""
 
-    def __init__(self, message: str, status_code: int = 500, code: str = "API_ERROR"):
+    def __init__(
+        self, message: str, status_code: int = 500, code: str = "API_ERROR"
+    ):
         self.message = message
         self.status_code = status_code
         self.code = code
@@ -50,7 +54,9 @@ def validate_json_request(
         ValidationError: If validation fails
     """
     if not request.is_json:
-        raise ValidationError("Request must be JSON", code="INVALID_CONTENT_TYPE")
+        raise ValidationError(
+            "Request must be JSON", code="INVALID_CONTENT_TYPE"
+        )
 
     try:
         data = request.get_json()
@@ -62,7 +68,9 @@ def validate_json_request(
 
     # Check required fields
     if required_fields:
-        missing_fields = [field for field in required_fields if field not in data]
+        missing_fields = [
+            field for field in required_fields if field not in data
+        ]
         if missing_fields:
             raise ValidationError(
                 f"Missing required fields: {', '.join(missing_fields)}",
@@ -100,7 +108,9 @@ def validate_stores_data(stores: List[Dict]) -> List[Dict]:
 
     for i, store in enumerate(stores):
         if not isinstance(store, dict):
-            raise ValidationError(f"Store {i} must be an object", field=f"stores[{i}]")
+            raise ValidationError(
+                f"Store {i} must be an object", field=f"stores[{i}]"
+            )
 
         # Check required fields
         for field in required_store_fields:
@@ -111,16 +121,23 @@ def validate_stores_data(stores: List[Dict]) -> List[Dict]:
                 )
 
         # Validate address
-        if not isinstance(store["address"], str) or len(store["address"].strip()) < 5:
+        if (
+            not isinstance(store["address"], str)
+            or len(store["address"].strip()) < 5
+        ):
             raise ValidationError(
                 f"Store {i} address must be a valid string (min 5 characters)",
                 field=f"stores[{i}].address",
             )
 
         # Validate name
-        if not isinstance(store["name"], str) or len(store["name"].strip()) < 1:
+        if (
+            not isinstance(store["name"], str)
+            or len(store["name"].strip()) < 1
+        ):
             raise ValidationError(
-                f"Store {i} name must be a valid string", field=f"stores[{i}].name"
+                f"Store {i} name must be a valid string",
+                field=f"stores[{i}].name",
             )
 
         # Validate coordinates if provided
@@ -174,7 +191,12 @@ def validate_algorithm_options(options: Dict) -> Dict:
         raise ValidationError("Options must be an object", field="options")
 
     # Validate algorithm choice
-    valid_algorithms = ["default", "genetic", "simulated_annealing", "multi_objective"]
+    valid_algorithms = [
+        "default",
+        "genetic",
+        "simulated_annealing",
+        "multi_objective",
+    ]
     algorithm = options.get("algorithm", "default")
 
     if algorithm not in valid_algorithms:
@@ -223,7 +245,12 @@ def validate_algorithm_options(options: Dict) -> Dict:
     # Validate string parameters
     if "mo_objectives" in options:
         objectives = options["mo_objectives"]
-        valid_objectives = ["distance", "time", "distance,time", "time,distance"]
+        valid_objectives = [
+            "distance",
+            "time",
+            "distance,time",
+            "time,distance",
+        ]
         if objectives not in valid_objectives:
             raise ValidationError(
                 f"mo_objectives must be one of: {', '.join(valid_objectives)}",
@@ -291,7 +318,10 @@ def api_error_handler(f):
 
 
 def create_success_response(
-    data: Any, status_code: int = 200, message: str = None, metadata: Dict = None
+    data: Any,
+    status_code: int = 200,
+    message: str = None,
+    metadata: Dict = None,
 ) -> Tuple[Dict, int]:
     """
     Create standardized success response
@@ -343,7 +373,9 @@ def paginate_response(
         raise ValidationError("Per page must be >= 1", field="per_page")
 
     if per_page > max_per_page:
-        raise ValidationError(f"Per page must be <= {max_per_page}", field="per_page")
+        raise ValidationError(
+            f"Per page must be <= {max_per_page}", field="per_page"
+        )
 
     total_items = len(items)
     total_pages = (total_items + per_page - 1) // per_page

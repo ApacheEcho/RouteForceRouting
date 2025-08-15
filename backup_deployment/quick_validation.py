@@ -16,7 +16,10 @@ def test_genetic_algorithm():
     """Test the optimized genetic algorithm"""
     print("\n🧬 Testing Genetic Algorithm...")
     try:
-        from app.optimization.genetic_algorithm import GeneticAlgorithm, GeneticConfig
+        from app.optimization.genetic_algorithm import (
+            GeneticAlgorithm,
+            GeneticConfig,
+        )
 
         # Create test stores
         test_stores = [
@@ -36,7 +39,9 @@ def test_genetic_algorithm():
         end_time = time.time()
 
         print(f"✅ Genetic Algorithm: {end_time - start_time:.2f}s")
-        print(f"   - Improvement: {metrics.get('improvement_percent', 0):.1f}%")
+        print(
+            f"   - Improvement: {metrics.get('improvement_percent', 0):.1f}%"
+        )
         print(f"   - Generations: {metrics.get('generations', 0)}")
         print(f"   - Final distance: {metrics.get('final_distance', 0):.2f}km")
         return True
@@ -50,7 +55,9 @@ def test_optimization_engine():
     """Test the performance optimization engine"""
     print("\n⚡ Testing Performance Optimization Engine...")
     try:
-        from app.performance.optimization_engine import PerformanceOptimizationEngine
+        from app.performance.optimization_engine import (
+            PerformanceOptimizationEngine,
+        )
 
         engine = PerformanceOptimizationEngine()
 
@@ -79,7 +86,9 @@ def test_database_pool():
     """Test the optimized database connection pool"""
     print("\n🗄️ Testing Database Connection Pool...")
     try:
-        from app.database.optimized_connection_pool import OptimizedConnectionPool
+        from app.database.optimized_connection_pool import (
+            OptimizedConnectionPool,
+        )
 
         # Test with in-memory SQLite
         pool = OptimizedConnectionPool("sqlite:///:memory:")
@@ -125,7 +134,9 @@ def test_geocoding_cache():
         result = cache.memory_cache.get(cache_key)
         end_time = time.time()
 
-        print(f"✅ Geocoding Cache: {(end_time - start_time) * 1000:.3f}ms retrieval")
+        print(
+            f"✅ Geocoding Cache: {(end_time - start_time) * 1000:.3f}ms retrieval"
+        )
         print(f"   - Cache size: {len(cache.memory_cache)}")
         print(f"   - Result: {bool(result)}")
         return True
@@ -152,7 +163,9 @@ def test_flask_app_integration():
         has_db_pool = hasattr(app, "db_pool")
 
         print(f"✅ Flask App: Created successfully")
-        print(f"   - Optimization Engine: {'✅' if has_optimization_engine else '❌'}")
+        print(
+            f"   - Optimization Engine: {'✅' if has_optimization_engine else '❌'}"
+        )
         print(f"   - DB Pool: {'✅' if has_db_pool else '❌'}")
 
         return True

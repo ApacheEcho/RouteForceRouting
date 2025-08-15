@@ -93,7 +93,10 @@ def handle_leave_dashboard():
 
     leave_room(room)
 
-    if client_id in connected_clients and room in connected_clients[client_id]["rooms"]:
+    if (
+        client_id in connected_clients
+        and room in connected_clients[client_id]["rooms"]
+    ):
         connected_clients[client_id]["rooms"].remove(room)
 
     logger.info(f"Client {client_id} left dashboard room")
@@ -220,7 +223,9 @@ def broadcast_route_update(route_id: str, update_data: Dict[str, Any]):
     )
 
 
-def broadcast_system_alert(alert_type: str, message: str, severity: str = "info"):
+def broadcast_system_alert(
+    alert_type: str, message: str, severity: str = "info"
+):
     """Broadcast system alert to all connected clients"""
     socketio.emit(
         "system_alert",
@@ -241,7 +246,11 @@ def get_connection_stats() -> Dict[str, Any]:
         "active_routes": len(active_routes),
         "rooms": {
             "dashboard": len(
-                [c for c in connected_clients.values() if "dashboard" in c["rooms"]]
+                [
+                    c
+                    for c in connected_clients.values()
+                    if "dashboard" in c["rooms"]
+                ]
             ),
             "route_tracking": len(
                 [
@@ -321,12 +330,16 @@ def background_thread():
                 logger.error(f"❌ Error in background thread: {e}")
 
                 if error_count >= max_errors:
-                    logger.critical("💥 Too many errors, stopping background thread")
+                    logger.critical(
+                        "💥 Too many errors, stopping background thread"
+                    )
                     break
 
                 # AUTO-PILOT: Exponential backoff on errors
                 backoff_time = min(60, 5 * (2 ** (error_count - 1)))
-                logger.warning(f"⏳ Backing off for {backoff_time}s due to errors")
+                logger.warning(
+                    f"⏳ Backing off for {backoff_time}s due to errors"
+                )
                 if shutdown_event.wait(timeout=backoff_time):
                     break
 

@@ -75,8 +75,12 @@ def test_traffic_alternatives():
         if response.status_code == 200:
             result = response.json()
             print("✅ Traffic alternatives successful!")
-            print(f"Found {len(result.get('alternatives', []))} alternative routes")
-            for i, alt in enumerate(result.get("alternatives", [])[:3]):  # Show first 3
+            print(
+                f"Found {len(result.get('alternatives', []))} alternative routes"
+            )
+            for i, alt in enumerate(
+                result.get("alternatives", [])[:3]
+            ):  # Show first 3
                 print(
                     f"  Route {i+1}: {alt.get('summary', 'N/A')} - {alt.get('duration', 'N/A')}"
                 )
@@ -109,8 +113,12 @@ def test_traffic_prediction():
         if response.status_code == 200:
             result = response.json()
             print("✅ Traffic prediction successful!")
-            print(f"Predicted duration: {result.get('predicted_duration', 'N/A')}")
-            print(f"Traffic conditions: {result.get('traffic_conditions', 'N/A')}")
+            print(
+                f"Predicted duration: {result.get('predicted_duration', 'N/A')}"
+            )
+            print(
+                f"Traffic conditions: {result.get('traffic_conditions', 'N/A')}"
+            )
             print(f"Confidence: {result.get('confidence', 'N/A')}")
         else:
             print(f"❌ Error: {response.text}")
@@ -161,7 +169,9 @@ def test_segment_traffic():
         if response.status_code == 200:
             result = response.json()
             print("✅ Segment traffic info retrieved!")
-            print(f"Duration in traffic: {result.get('duration_in_traffic', 'N/A')}")
+            print(
+                f"Duration in traffic: {result.get('duration_in_traffic', 'N/A')}"
+            )
             print(f"Normal duration: {result.get('normal_duration', 'N/A')}")
             print(f"Traffic severity: {result.get('traffic_severity', 'N/A')}")
         else:
@@ -208,7 +218,9 @@ def main():
 
     print("\n" + "=" * 50)
     print("🏁 Traffic API Tests Complete!")
-    print("\nNote: Some tests may fail if Google Maps API key is not configured.")
+    print(
+        "\nNote: Some tests may fail if Google Maps API key is not configured."
+    )
     print("Check app/config.py for GOOGLE_MAPS_API_KEY configuration.")
 
 

@@ -203,13 +203,19 @@ def demo_complete_enterprise_system():
 
             # Display results
             print(f"   ✅ Status: SUCCESS")
-            print(f"   ⏱️  Processing time: {end_time - start_time:.2f} seconds")
+            print(
+                f"   ⏱️  Processing time: {end_time - start_time:.2f} seconds"
+            )
             print(f"   📈 Route improvement: {improvement:.1f}%")
 
             # Algorithm-specific metrics
             if algorithm["name"] == "Genetic Algorithm":
-                print(f"   🧬 Generations: {metrics.get('generations', 'N/A')}")
-                print(f"   🏆 Best fitness: {metrics.get('best_fitness', 'N/A')}")
+                print(
+                    f"   🧬 Generations: {metrics.get('generations', 'N/A')}"
+                )
+                print(
+                    f"   🏆 Best fitness: {metrics.get('best_fitness', 'N/A')}"
+                )
                 print(
                     f"   🔄 Convergence: {metrics.get('convergence_generation', 'N/A')}"
                 )
@@ -218,14 +224,20 @@ def demo_complete_enterprise_system():
                 print(
                     f"   🌡️  Final temperature: {metrics.get('final_temperature', 'N/A'):.4f}"
                 )
-                print(f"   ✅ Accepted moves: {metrics.get('accepted_moves', 'N/A')}")
-                print(f"   📊 Acceptance rate: {metrics.get('acceptance_rate', 0):.1%}")
+                print(
+                    f"   ✅ Accepted moves: {metrics.get('accepted_moves', 'N/A')}"
+                )
+                print(
+                    f"   📊 Acceptance rate: {metrics.get('acceptance_rate', 0):.1%}"
+                )
 
             elif algorithm["name"] == "Multi-Objective NSGA-II":
                 print(
                     f"   🎯 Pareto front size: {metrics.get('pareto_front_size', 'N/A')}"
                 )
-                print(f"   📊 Hypervolume: {metrics.get('hypervolume', 'N/A'):.2f}")
+                print(
+                    f"   📊 Hypervolume: {metrics.get('hypervolume', 'N/A'):.2f}"
+                )
                 print(
                     f"   🏅 Objectives optimized: {len(metrics.get('objectives_optimized', []))}"
                 )
@@ -253,7 +265,11 @@ def demo_complete_enterprise_system():
         except Exception as e:
             print(f"   ❌ Status: FAILED - {str(e)}")
             results.append(
-                {"algorithm": algorithm["name"], "success": False, "error": str(e)}
+                {
+                    "algorithm": algorithm["name"],
+                    "success": False,
+                    "error": str(e),
+                }
             )
 
         print()
@@ -267,19 +283,23 @@ def demo_complete_enterprise_system():
     successful_algorithms = [r for r in results if r["success"]]
 
     if successful_algorithms:
-        print(f"✅ Successful algorithms: {len(successful_algorithms)}/{len(results)}")
-
-        avg_time = sum(r["processing_time"] for r in successful_algorithms) / len(
-            successful_algorithms
+        print(
+            f"✅ Successful algorithms: {len(successful_algorithms)}/{len(results)}"
         )
+
+        avg_time = sum(
+            r["processing_time"] for r in successful_algorithms
+        ) / len(successful_algorithms)
         print(f"⏱️  Average processing time: {avg_time:.2f} seconds")
 
-        avg_improvement = sum(r["improvement"] for r in successful_algorithms) / len(
-            successful_algorithms
-        )
+        avg_improvement = sum(
+            r["improvement"] for r in successful_algorithms
+        ) / len(successful_algorithms)
         print(f"📈 Average route improvement: {avg_improvement:.1f}%")
 
-        best_algorithm = max(successful_algorithms, key=lambda x: x["improvement"])
+        best_algorithm = max(
+            successful_algorithms, key=lambda x: x["improvement"]
+        )
         print(
             f"🏆 Best performer: {best_algorithm['algorithm']} ({best_algorithm['improvement']:.1f}% improvement)"
         )
@@ -311,8 +331,12 @@ def demo_complete_enterprise_system():
 
     print("\n" + "=" * 80)
     print("🎉 ROUTEFORCE ENTERPRISE ROUTING SYSTEM DEMONSTRATION COMPLETE!")
-    print("The system successfully demonstrates enterprise-grade routing capabilities")
-    print("with multiple advanced optimization algorithms working seamlessly together.")
+    print(
+        "The system successfully demonstrates enterprise-grade routing capabilities"
+    )
+    print(
+        "with multiple advanced optimization algorithms working seamlessly together."
+    )
     print("=" * 80)
 
     # Save comprehensive results

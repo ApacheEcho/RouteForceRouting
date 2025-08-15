@@ -279,7 +279,9 @@ def test_simulated_annealing_comparison():
 
     # Print comparison summary
     print("\n📊 Configuration Comparison:")
-    print("Configuration      | Time (s) | Iterations | Best Fitness | Final Temp")
+    print(
+        "Configuration      | Time (s) | Iterations | Best Fitness | Final Temp"
+    )
     print("-" * 70)
     for result in results:
         print(
@@ -298,11 +300,15 @@ def main():
     test_results = []
 
     # Run tests
-    test_results.append(("Basic Functionality", test_simulated_annealing_basic()))
+    test_results.append(
+        ("Basic Functionality", test_simulated_annealing_basic())
+    )
     test_results.append(
         ("Custom Configuration", test_simulated_annealing_custom_config())
     )
-    test_results.append(("Performance Testing", test_simulated_annealing_performance()))
+    test_results.append(
+        ("Performance Testing", test_simulated_annealing_performance())
+    )
     test_results.append(
         ("Configuration Comparison", test_simulated_annealing_comparison())
     )

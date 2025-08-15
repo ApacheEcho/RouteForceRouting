@@ -47,32 +47,34 @@ def check_file_exists(filepath: str) -> bool:
 def create_env_file() -> None:
     """Create .env file from .env.example if it doesn't exist"""
     print_step("Setting up environment file...")
-    
-    if check_file_exists('.env'):
+
+    if check_file_exists(".env"):
         print_warning(".env file already exists, skipping...")
         return
-    
-    if check_file_exists('.env.example'):
-        shutil.copy('.env.example', '.env')
+
+    if check_file_exists(".env.example"):
+        shutil.copy(".env.example", ".env")
         print_success("Created .env file from .env.example")
         print_info("Edit .env file to configure your settings")
     else:
-        print_warning(".env.example not found, you'll need to create .env manually")
+        print_warning(
+            ".env.example not found, you'll need to create .env manually"
+        )
 
 
 def create_directories() -> None:
     """Create necessary directories"""
     print_step("Creating necessary directories...")
-    
+
     directories = [
-        'uploads',
-        'logs',
-        'temp',
-        'data',
-        'backups',
-        'codeql-results',
+        "uploads",
+        "logs",
+        "temp",
+        "data",
+        "backups",
+        "codeql-results",
     ]
-    
+
     for directory in directories:
         if not os.path.exists(directory):
             os.makedirs(directory, exist_ok=True)
@@ -84,16 +86,16 @@ def create_directories() -> None:
 def setup_git_hooks() -> None:
     """Set up useful git hooks"""
     print_step("Setting up Git hooks...")
-    
-    hooks_dir = Path('.git/hooks')
+
+    hooks_dir = Path(".git/hooks")
     if not hooks_dir.exists():
         print_warning("No .git directory found, skipping git hooks setup")
         return
-    
+
     # Pre-commit hook for basic checks
-    pre_commit_hook = hooks_dir / 'pre-commit'
+    pre_commit_hook = hooks_dir / "pre-commit"
     if not pre_commit_hook.exists():
-        hook_content = '''#!/bin/sh
+        hook_content = """#!/bin/sh
 # RouteForce Routing pre-commit hook
 # Runs basic checks before committing
 
@@ -114,8 +116,8 @@ if git diff --cached --name-only | xargs grep -l "SECRET_KEY.*=" 2>/dev/null | g
 fi
 
 echo "✅ Pre-commit checks passed"
-'''
-        with open(pre_commit_hook, 'w') as f:
+"""
+        with open(pre_commit_hook, "w") as f:
             f.write(hook_content)
         os.chmod(pre_commit_hook, 0o755)
         print_success("Created pre-commit git hook")
@@ -126,25 +128,30 @@ echo "✅ Pre-commit checks passed"
 def check_requirements() -> None:
     """Check if requirements are installed"""
     print_step("Checking Python dependencies...")
-    
+
     try:
         import flask
+
         print_success("Flask is installed")
     except ImportError:
         print_warning("Flask not found - run: pip install -r requirements.txt")
-    
+
     try:
         import sqlalchemy
+
         print_success("SQLAlchemy is installed")
     except ImportError:
-        print_warning("SQLAlchemy not found - run: pip install -r requirements.txt")
+        print_warning(
+            "SQLAlchemy not found - run: pip install -r requirements.txt"
+        )
 
 
 def display_next_steps() -> None:
     """Display next steps for the user"""
     print_header("🚀 SETUP COMPLETE!")
-    
-    print("""
+
+    print(
+        """
 Next steps to get RouteForce Routing running:
 
 1. Configure your environment:
@@ -180,24 +187,25 @@ Important files to review:
 📄 requirements.txt       - Python dependencies
 
 For more information, check the documentation in the project files.
-""")
+"""
+    )
 
 
 def main():
     """Main setup function"""
     print_header("RouteForce Routing - Initial Setup")
     print("This script will help you set up your RouteForce Routing project.")
-    
+
     # Change to project directory
     project_root = Path(__file__).parent.absolute()
     os.chdir(project_root)
-    
+
     # Run setup steps
     create_env_file()
     create_directories()
     setup_git_hooks()
     check_requirements()
-    
+
     # Display completion message
     display_next_steps()
 

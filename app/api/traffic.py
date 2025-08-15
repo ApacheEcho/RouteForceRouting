@@ -29,7 +29,12 @@ def optimize_route_with_traffic():
         data = request.get_json()
 
         if not data or "stores" not in data:
-            return jsonify({"success": False, "error": "Stores data is required"}), 400
+            return (
+                jsonify(
+                    {"success": False, "error": "Stores data is required"}
+                ),
+                400,
+            )
 
         stores = data["stores"]
         constraints = data.get("constraints", {})
@@ -37,7 +42,12 @@ def optimize_route_with_traffic():
 
         if not stores:
             return (
-                jsonify({"success": False, "error": "At least one store is required"}),
+                jsonify(
+                    {
+                        "success": False,
+                        "error": "At least one store is required",
+                    }
+                ),
                 400,
             )
 
@@ -61,7 +71,9 @@ def optimize_route_with_traffic():
                         "traffic_delay": result.get("traffic_delay", 0),
                         "processing_time": routing_service.last_processing_time,
                     },
-                    "algorithm_used": result.get("algorithm_used", "traffic_optimized"),
+                    "algorithm_used": result.get(
+                        "algorithm_used", "traffic_optimized"
+                    ),
                 }
             )
         else:
@@ -69,7 +81,9 @@ def optimize_route_with_traffic():
                 jsonify(
                     {
                         "success": False,
-                        "error": result.get("error", "Traffic optimization failed"),
+                        "error": result.get(
+                            "error", "Traffic optimization failed"
+                        ),
                         "fallback_route": result.get("route", []),
                     }
                 ),
@@ -79,7 +93,9 @@ def optimize_route_with_traffic():
     except Exception as e:
         logger.error(f"Error in traffic optimization API: {str(e)}")
         return (
-            jsonify({"success": False, "error": f"Internal server error: {str(e)}"}),
+            jsonify(
+                {"success": False, "error": f"Internal server error: {str(e)}"}
+            ),
             500,
         )
 
@@ -99,14 +115,24 @@ def get_route_alternatives():
         data = request.get_json()
 
         if not data or "stores" not in data:
-            return jsonify({"success": False, "error": "Stores data is required"}), 400
+            return (
+                jsonify(
+                    {"success": False, "error": "Stores data is required"}
+                ),
+                400,
+            )
 
         stores = data["stores"]
         max_alternatives = data.get("max_alternatives", 3)
 
         if not stores:
             return (
-                jsonify({"success": False, "error": "At least one store is required"}),
+                jsonify(
+                    {
+                        "success": False,
+                        "error": "At least one store is required",
+                    }
+                ),
                 400,
             )
 
@@ -114,7 +140,9 @@ def get_route_alternatives():
         routing_service = RoutingService()
 
         # Get alternatives
-        result = routing_service.get_traffic_alternatives(stores, max_alternatives)
+        result = routing_service.get_traffic_alternatives(
+            stores, max_alternatives
+        )
 
         if result["success"]:
             return jsonify(
@@ -131,7 +159,9 @@ def get_route_alternatives():
                 jsonify(
                     {
                         "success": False,
-                        "error": result.get("error", "Failed to generate alternatives"),
+                        "error": result.get(
+                            "error", "Failed to generate alternatives"
+                        ),
                     }
                 ),
                 500,
@@ -140,7 +170,9 @@ def get_route_alternatives():
     except Exception as e:
         logger.error(f"Error in traffic alternatives API: {str(e)}")
         return (
-            jsonify({"success": False, "error": f"Internal server error: {str(e)}"}),
+            jsonify(
+                {"success": False, "error": f"Internal server error: {str(e)}"}
+            ),
             500,
         )
 
@@ -160,14 +192,24 @@ def predict_traffic():
         data = request.get_json()
 
         if not data or "stores" not in data:
-            return jsonify({"success": False, "error": "Stores data is required"}), 400
+            return (
+                jsonify(
+                    {"success": False, "error": "Stores data is required"}
+                ),
+                400,
+            )
 
         stores = data["stores"]
         future_hours = data.get("future_hours", [1, 2, 4, 8])
 
         if not stores:
             return (
-                jsonify({"success": False, "error": "At least one store is required"}),
+                jsonify(
+                    {
+                        "success": False,
+                        "error": "At least one store is required",
+                    }
+                ),
                 400,
             )
 
@@ -175,7 +217,9 @@ def predict_traffic():
         routing_service = RoutingService()
 
         # Get traffic predictions
-        result = routing_service.predict_traffic_for_route(stores, future_hours)
+        result = routing_service.predict_traffic_for_route(
+            stores, future_hours
+        )
 
         if result.get("success"):
             return jsonify(
@@ -192,7 +236,9 @@ def predict_traffic():
                 jsonify(
                     {
                         "success": False,
-                        "error": result.get("error", "Traffic prediction failed"),
+                        "error": result.get(
+                            "error", "Traffic prediction failed"
+                        ),
                     }
                 ),
                 500,
@@ -201,7 +247,9 @@ def predict_traffic():
     except Exception as e:
         logger.error(f"Error in traffic prediction API: {str(e)}")
         return (
-            jsonify({"success": False, "error": f"Internal server error: {str(e)}"}),
+            jsonify(
+                {"success": False, "error": f"Internal server error: {str(e)}"}
+            ),
             500,
         )
 
@@ -223,7 +271,10 @@ def get_segment_traffic():
         if not data or "origin" not in data or "destination" not in data:
             return (
                 jsonify(
-                    {"success": False, "error": "Origin and destination are required"}
+                    {
+                        "success": False,
+                        "error": "Origin and destination are required",
+                    }
                 ),
                 400,
             )
@@ -248,7 +299,9 @@ def get_segment_traffic():
         routing_service = RoutingService()
 
         # Get segment traffic data
-        traffic_data = routing_service.get_traffic_segment_data(origin, destination)
+        traffic_data = routing_service.get_traffic_segment_data(
+            origin, destination
+        )
 
         if traffic_data:
             return jsonify({"success": True, "traffic_data": traffic_data})
@@ -266,7 +319,9 @@ def get_segment_traffic():
     except Exception as e:
         logger.error(f"Error in segment traffic API: {str(e)}")
         return (
-            jsonify({"success": False, "error": f"Internal server error: {str(e)}"}),
+            jsonify(
+                {"success": False, "error": f"Internal server error: {str(e)}"}
+            ),
             500,
         )
 
@@ -279,7 +334,10 @@ def get_traffic_service_status():
 
         if not routing_service.traffic_service:
             return jsonify(
-                {"available": False, "reason": "Traffic service not initialized"}
+                {
+                    "available": False,
+                    "reason": "Traffic service not initialized",
+                }
             )
 
         traffic_service = routing_service.traffic_service
@@ -316,7 +374,12 @@ def clear_traffic_cache():
 
         if not routing_service.traffic_service:
             return (
-                jsonify({"success": False, "error": "Traffic service not available"}),
+                jsonify(
+                    {
+                        "success": False,
+                        "error": "Traffic service not available",
+                    }
+                ),
                 503,
             )
 
@@ -329,7 +392,9 @@ def clear_traffic_cache():
     except Exception as e:
         logger.error(f"Error clearing traffic cache: {str(e)}")
         return (
-            jsonify({"success": False, "error": f"Failed to clear cache: {str(e)}"}),
+            jsonify(
+                {"success": False, "error": f"Failed to clear cache: {str(e)}"}
+            ),
             500,
         )
 
@@ -337,7 +402,9 @@ def clear_traffic_cache():
 @traffic_bp.errorhandler(400)
 def bad_request(error):
     return (
-        jsonify({"success": False, "error": "Bad request", "message": str(error)}),
+        jsonify(
+            {"success": False, "error": "Bad request", "message": str(error)}
+        ),
         400,
     )
 
@@ -346,7 +413,11 @@ def bad_request(error):
 def internal_error(error):
     return (
         jsonify(
-            {"success": False, "error": "Internal server error", "message": str(error)}
+            {
+                "success": False,
+                "error": "Internal server error",
+                "message": str(error),
+            }
         ),
         500,
     )

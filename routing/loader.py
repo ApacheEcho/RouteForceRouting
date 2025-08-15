@@ -36,7 +36,11 @@ def _read_store_file(filepath: str) -> pd.DataFrame:
         with open_fn(filepath, "rb") as f:
             if base_ext.endswith(".csv"):
                 # For gzipped csv, wrap in TextIOWrapper to get text stream
-                return pd.read_csv(TextIOWrapper(f)) if is_gzip else pd.read_csv(f)
+                return (
+                    pd.read_csv(TextIOWrapper(f))
+                    if is_gzip
+                    else pd.read_csv(f)
+                )
             elif base_ext.endswith(".xlsx"):
                 return pd.read_excel(f, engine="openpyxl")
             elif base_ext.endswith(".xls"):
@@ -84,7 +88,9 @@ def load_stores(filepath: str) -> List[Dict[str, Any]]:
     df.columns = df.columns.str.lower()
 
     # Use the highly efficient to_dict method instead of iterrows()
-    stores = df.rename(columns={"store name": "name"}).to_dict(orient="records")
+    stores = df.rename(columns={"store name": "name"}).to_dict(
+        orient="records"
+    )
 
     # Validate that stores have required fields
     validate_store_rows(stores)
@@ -136,7 +142,9 @@ if __name__ == "__main__":
             stores = load_stores(args.filepath)
             print(f"Stores loaded successfully: {len(stores)} stores")
             for i, store in enumerate(stores[:5]):  # Show first 5 stores
-                print(f"  {i + 1}. Name: {store['name']}, Address: {store['address']}")
+                print(
+                    f"  {i + 1}. Name: {store['name']}, Address: {store['address']}"
+                )
             if len(stores) > 5:
                 print(f"  ... and {len(stores) - 5} more stores")
         except (FileNotFoundError, ValueError, RuntimeError) as e:

@@ -63,7 +63,9 @@ class AddressCache:
 geocoding_cache = GeocodingCache()
 
 
-def calculate_distance(store_a: Dict[str, Any], store_b: Dict[str, Any]) -> float:
+def calculate_distance(
+    store_a: Dict[str, Any], store_b: Dict[str, Any]
+) -> float:
     """
     Calculate distance between two store locations (legacy compatibility)
 

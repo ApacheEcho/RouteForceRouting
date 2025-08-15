@@ -71,7 +71,9 @@ def main():
 
     print("\n" + "=" * 60)
     print("RouteForce Routing is now ML-powered and enterprise-ready!")
-    print("Ready for production deployment with intelligent route optimization.")
+    print(
+        "Ready for production deployment with intelligent route optimization."
+    )
     print("=" * 60)
 
     return True

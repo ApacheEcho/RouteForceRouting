@@ -40,7 +40,9 @@ class EnhancedDashboardDemo:
                 health_data = response.json()
                 print("✅ Server is running and healthy")
                 print(f"   Status: {health_data.get('status', 'Unknown')}")
-                print(f"   Timestamp: {health_data.get('timestamp', 'Unknown')}")
+                print(
+                    f"   Timestamp: {health_data.get('timestamp', 'Unknown')}"
+                )
                 return True
             else:
                 print(f"❌ Server health check failed: {response.status_code}")
@@ -67,7 +69,12 @@ class EnhancedDashboardDemo:
                 "lng": -122.4094,
                 "priority": 2,
             },
-            {"name": "Store C - SOMA", "lat": 37.7649, "lng": -122.4294, "priority": 1},
+            {
+                "name": "Store C - SOMA",
+                "lat": 37.7649,
+                "lng": -122.4294,
+                "priority": 1,
+            },
             {
                 "name": "Store D - Marina",
                 "lat": 37.7949,
@@ -127,7 +134,9 @@ class EnhancedDashboardDemo:
                 data = response.json()
                 total_time = time.time() - start_time
 
-                print(f"✅ Algorithm comparison completed in {total_time:.2f} seconds")
+                print(
+                    f"✅ Algorithm comparison completed in {total_time:.2f} seconds"
+                )
                 print(f"   Timestamp: {data['timestamp']}")
                 print(f"   Algorithms tested: {len(data['results'])}")
 
@@ -149,13 +158,17 @@ class EnhancedDashboardDemo:
                         improvement = result.get("improvement_percent", 0)
                         processing_time = result.get("processing_time", 0)
                         route_length = result.get("route_length", 0)
-                        optimization_score = result.get("optimization_score", 0)
+                        optimization_score = result.get(
+                            "optimization_score", 0
+                        )
 
                         print(f"{status} #{i} {result['algorithm']}")
                         print(f"     Improvement: {improvement:.1f}%")
                         print(f"     Processing Time: {processing_time:.3f}s")
                         print(f"     Route Length: {route_length} stops")
-                        print(f"     Optimization Score: {optimization_score:.2f}")
+                        print(
+                            f"     Optimization Score: {optimization_score:.2f}"
+                        )
 
                         if result.get("initial_distance") and result.get(
                             "final_distance"
@@ -176,7 +189,8 @@ class EnhancedDashboardDemo:
                 successful_results = [r for r in results if r["success"]]
                 if successful_results:
                     avg_improvement = sum(
-                        r.get("improvement_percent", 0) for r in successful_results
+                        r.get("improvement_percent", 0)
+                        for r in successful_results
                     ) / len(successful_results)
                     avg_time = sum(
                         r.get("processing_time", 0) for r in successful_results
@@ -191,7 +205,9 @@ class EnhancedDashboardDemo:
 
                 return True
             else:
-                print(f"❌ Algorithm comparison failed: {response.status_code}")
+                print(
+                    f"❌ Algorithm comparison failed: {response.status_code}"
+                )
                 print(f"   Response: {response.text}")
                 return False
 
@@ -237,7 +253,12 @@ class EnhancedDashboardDemo:
         """Demonstrate algorithm details retrieval"""
         self.print_section("Algorithm Details Demo")
 
-        algorithms = ["genetic", "simulated_annealing", "multi_objective", "default"]
+        algorithms = [
+            "genetic",
+            "simulated_annealing",
+            "multi_objective",
+            "default",
+        ]
 
         for algorithm in algorithms:
             try:
@@ -255,7 +276,9 @@ class EnhancedDashboardDemo:
                     print(
                         f"     Average Improvement: {algo_info['performance']['avg_improvement']}"
                     )
-                    print(f"     Average Time: {algo_info['performance']['avg_time']}")
+                    print(
+                        f"     Average Time: {algo_info['performance']['avg_time']}"
+                    )
                     print(
                         f"     Consistency: {algo_info['performance']['consistency']}"
                     )
@@ -265,10 +288,14 @@ class EnhancedDashboardDemo:
                         for param, details in algo_info["parameters"].items():
                             if isinstance(details, dict):
                                 if "default" in details:
-                                    print(f"     {param}: {details['default']}")
+                                    print(
+                                        f"     {param}: {details['default']}"
+                                    )
                     print()
                 else:
-                    print(f"❌ {algorithm} details failed: {response.status_code}")
+                    print(
+                        f"❌ {algorithm} details failed: {response.status_code}"
+                    )
 
             except Exception as e:
                 print(f"❌ Error retrieving {algorithm} details: {e}")
@@ -278,7 +305,9 @@ class EnhancedDashboardDemo:
         self.print_section("System Monitoring Demo")
 
         try:
-            response = self.session.get(f"{self.base_url}/dashboard/api/system/status")
+            response = self.session.get(
+                f"{self.base_url}/dashboard/api/system/status"
+            )
             if response.status_code == 200:
                 data = response.json()
 
@@ -289,11 +318,19 @@ class EnhancedDashboardDemo:
                 performance = data["performance"]
 
                 print("\n📊 System Statistics:")
-                print(f"   Total Routes Optimized: {stats['total_routes_optimized']:,}")
-                print(f"   Total Distance Saved: {stats['total_distance_saved']:,} km")
-                print(f"   Total Time Saved: {stats['total_time_saved']} hours")
+                print(
+                    f"   Total Routes Optimized: {stats['total_routes_optimized']:,}"
+                )
+                print(
+                    f"   Total Distance Saved: {stats['total_distance_saved']:,} km"
+                )
+                print(
+                    f"   Total Time Saved: {stats['total_time_saved']} hours"
+                )
                 print(f"   Average Improvement: {stats['avg_improvement']}%")
-                print(f"   Algorithms Available: {stats['algorithms_available']}")
+                print(
+                    f"   Algorithms Available: {stats['algorithms_available']}"
+                )
                 print(f"   API Endpoints: {stats['api_endpoints']}")
                 print(f"   System Uptime: {stats['uptime']}")
                 print(f"   System Status: {stats['status']}")
@@ -301,7 +338,9 @@ class EnhancedDashboardDemo:
                 print("\n⚡ System Performance:")
                 print(f"   CPU Usage: {performance['cpu_usage']}%")
                 print(f"   Memory Usage: {performance['memory_usage']} MB")
-                print(f"   Request Rate: {performance['request_rate']} req/min")
+                print(
+                    f"   Request Rate: {performance['request_rate']} req/min"
+                )
                 print(
                     f"   Average Response Time: {performance['avg_response_time']*1000:.1f}ms"
                 )
@@ -371,9 +410,13 @@ class EnhancedDashboardDemo:
         """Run comprehensive enhanced dashboard demo"""
         self.print_header("RouteForce Enhanced Dashboard Demo")
 
-        print("🎯 Demonstrating advanced algorithm comparison and analytics features")
+        print(
+            "🎯 Demonstrating advanced algorithm comparison and analytics features"
+        )
         print(f"🌐 Server: {self.base_url}")
-        print(f"⏰ Demo started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(
+            f"⏰ Demo started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        )
 
         # Test server connectivity first
         if not self.test_server_connectivity():

@@ -13,7 +13,7 @@ log_dir = "logs/2025-07-XX/"
 os.makedirs(log_dir, exist_ok=True)
 
 logging.basicConfig(
-    filename=os.path.join(log_dir, "test.log"), 
+    filename=os.path.join(log_dir, "test.log"),
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )

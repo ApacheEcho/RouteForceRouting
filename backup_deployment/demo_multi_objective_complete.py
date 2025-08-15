@@ -117,7 +117,9 @@ def demo_multi_objective_complete():
         },
     ]
 
-    print(f"Scenario: Optimizing delivery route for {len(stores)} stores in NYC")
+    print(
+        f"Scenario: Optimizing delivery route for {len(stores)} stores in NYC"
+    )
     print("Each store has different priorities, demands, and service times")
     print()
 
@@ -127,14 +129,18 @@ def demo_multi_objective_complete():
             "name": "Scenario 1: Distance vs Time",
             "description": "Minimize total distance while considering travel time",
             "config": MultiObjectiveConfig(
-                population_size=80, generations=100, objectives=["distance", "time"]
+                population_size=80,
+                generations=100,
+                objectives=["distance", "time"],
             ),
         },
         {
             "name": "Scenario 2: Distance vs Priority",
             "description": "Balance distance efficiency with priority-based routing",
             "config": MultiObjectiveConfig(
-                population_size=80, generations=100, objectives=["distance", "priority"]
+                population_size=80,
+                generations=100,
+                objectives=["distance", "priority"],
             ),
         },
         {
@@ -175,11 +181,15 @@ def demo_multi_objective_complete():
             end_time = time.time()
 
             # Display results
-            print(f"✓ Optimization completed in {end_time - start_time:.2f} seconds")
+            print(
+                f"✓ Optimization completed in {end_time - start_time:.2f} seconds"
+            )
             print(
                 f"✓ Pareto front size: {metrics.get('pareto_front_size', 0)} solutions"
             )
-            print(f"✓ Total generations: {metrics.get('total_generations', 0)}")
+            print(
+                f"✓ Total generations: {metrics.get('total_generations', 0)}"
+            )
             print(f"✓ Hypervolume: {metrics.get('hypervolume', 0.0):.2f}")
 
             # Show best compromise solution
@@ -213,14 +223,20 @@ def demo_multi_objective_complete():
                     "pareto_front_size": metrics.get("pareto_front_size", 0),
                     "hypervolume": metrics.get("hypervolume", 0.0),
                     "objectives": scenario["config"].objectives,
-                    "best_solution": metrics.get("best_compromise_solution", {}),
+                    "best_solution": metrics.get(
+                        "best_compromise_solution", {}
+                    ),
                 }
             )
 
         except Exception as e:
             print(f"✗ Error in {scenario['name']}: {str(e)}")
             results.append(
-                {"scenario": scenario["name"], "success": False, "error": str(e)}
+                {
+                    "scenario": scenario["name"],
+                    "success": False,
+                    "error": str(e),
+                }
             )
 
         print("\n" + "=" * 60 + "\n")
@@ -235,23 +251,31 @@ def demo_multi_objective_complete():
             f"✅ Successful optimizations: {len(successful_scenarios)}/{len(results)}"
         )
 
-        avg_time = sum(r["processing_time"] for r in successful_scenarios) / len(
-            successful_scenarios
-        )
+        avg_time = sum(
+            r["processing_time"] for r in successful_scenarios
+        ) / len(successful_scenarios)
         print(f"⏱️  Average processing time: {avg_time:.2f} seconds")
 
-        best_scenario = max(successful_scenarios, key=lambda x: x["pareto_front_size"])
+        best_scenario = max(
+            successful_scenarios, key=lambda x: x["pareto_front_size"]
+        )
         print(
             f"🏆 Best Pareto front: {best_scenario['pareto_front_size']} solutions ({best_scenario['scenario']})"
         )
 
-        total_objectives = sum(len(r["objectives"]) for r in successful_scenarios)
+        total_objectives = sum(
+            len(r["objectives"]) for r in successful_scenarios
+        )
         print(f"🎯 Total objectives optimized: {total_objectives}")
 
         print("\n💡 Key Insights:")
-        print("• Multi-objective optimization provides multiple trade-off solutions")
+        print(
+            "• Multi-objective optimization provides multiple trade-off solutions"
+        )
         print("• Larger Pareto fronts offer more choice in route selection")
-        print("• Different objective combinations suit different business needs")
+        print(
+            "• Different objective combinations suit different business needs"
+        )
         print("• NSGA-II efficiently handles complex routing constraints")
 
     else:

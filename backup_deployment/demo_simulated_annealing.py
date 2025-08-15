@@ -134,7 +134,9 @@ def test_api_integration():
                     f"   Algorithm from metrics: {alg_metrics.get('algorithm', 'unknown')}"
                 )
                 if "improvement_percent" in alg_metrics:
-                    print(f"   Improvement: {alg_metrics['improvement_percent']:.2f}%")
+                    print(
+                        f"   Improvement: {alg_metrics['improvement_percent']:.2f}%"
+                    )
         else:
             print(f"❌ Main API endpoint failed: {response.status_code}")
             print(f"   Error: {response.text}")
@@ -183,9 +185,13 @@ def test_api_integration():
                     f"   Algorithm from SA metrics: {sa_metrics.get('algorithm', 'unknown')}"
                 )
                 if "improvement_percent" in sa_metrics:
-                    print(f"   Improvement: {sa_metrics['improvement_percent']:.2f}%")
+                    print(
+                        f"   Improvement: {sa_metrics['improvement_percent']:.2f}%"
+                    )
                 if "total_iterations" in sa_metrics:
-                    print(f"   Total iterations: {sa_metrics['total_iterations']}")
+                    print(
+                        f"   Total iterations: {sa_metrics['total_iterations']}"
+                    )
                 if "accepted_moves" in sa_metrics:
                     print(f"   Accepted moves: {sa_metrics['accepted_moves']}")
 
@@ -264,9 +270,13 @@ def test_routing_service_integration():
                     f"Algorithm from metrics: {alg_metrics.get('algorithm', 'unknown')}"
                 )
                 if "improvement_percent" in alg_metrics:
-                    print(f"Improvement: {alg_metrics['improvement_percent']:.2f}%")
+                    print(
+                        f"Improvement: {alg_metrics['improvement_percent']:.2f}%"
+                    )
                 if "total_iterations" in alg_metrics:
-                    print(f"Total iterations: {alg_metrics['total_iterations']}")
+                    print(
+                        f"Total iterations: {alg_metrics['total_iterations']}"
+                    )
 
         return metrics.algorithm_used == "simulated_annealing"
 

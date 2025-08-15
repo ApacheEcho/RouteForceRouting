@@ -108,7 +108,9 @@ class DatabaseIntegrationService:
                 insight_ids.append(str(insight.id))
 
             db.session.commit()
-            self.logger.info(f"Stored {len(insights)} insights for route {route_id}")
+            self.logger.info(
+                f"Stored {len(insights)} insights for route {route_id}"
+            )
             return insight_ids
 
         except Exception as e:
@@ -116,7 +118,9 @@ class DatabaseIntegrationService:
             db.session.rollback()
             raise
 
-    def store_predictions(self, route_id: str, predictions: Dict[str, Any]) -> str:
+    def store_predictions(
+        self, route_id: str, predictions: Dict[str, Any]
+    ) -> str:
         """
         Store route predictions in database
 
@@ -134,7 +138,9 @@ class DatabaseIntegrationService:
                 model_name=predictions.get("model", "ensemble"),
                 model_version=predictions.get("version", "1.0"),
                 predicted_value=predictions.get("predicted_value", 0.0),
-                confidence_interval=predictions.get("confidence_interval", [0.0, 0.0]),
+                confidence_interval=predictions.get(
+                    "confidence_interval", [0.0, 0.0]
+                ),
                 feature_importance=predictions.get("feature_importance", {}),
                 prediction_metadata=predictions.get("metadata", {}),
                 actual_value=predictions.get("actual_value"),
@@ -245,7 +251,9 @@ class DatabaseIntegrationService:
                 query = query.filter(RouteInsightDB.route_id == route_id)
 
             if insight_type:
-                query = query.filter(RouteInsightDB.insight_type == insight_type)
+                query = query.filter(
+                    RouteInsightDB.insight_type == insight_type
+                )
 
             if days_back:
                 cutoff_date = datetime.now() - timedelta(days=days_back)
@@ -302,7 +310,9 @@ class DatabaseIntegrationService:
                     func.count(Route.id).label("total_routes"),
                     func.avg(Route.distance).label("avg_distance"),
                     func.avg(Route.duration).label("avg_duration"),
-                    func.avg(Route.fuel_efficiency).label("avg_fuel_efficiency"),
+                    func.avg(Route.fuel_efficiency).label(
+                        "avg_fuel_efficiency"
+                    ),
                     func.sum(Route.distance).label("total_distance"),
                     func.sum(Route.duration).label("total_duration"),
                 )
@@ -343,7 +353,9 @@ class DatabaseIntegrationService:
                 "total_routes": route_metrics.total_routes or 0,
                 "avg_distance": float(route_metrics.avg_distance or 0),
                 "avg_duration": float(route_metrics.avg_duration or 0),
-                "avg_fuel_efficiency": float(route_metrics.avg_fuel_efficiency or 0),
+                "avg_fuel_efficiency": float(
+                    route_metrics.avg_fuel_efficiency or 0
+                ),
                 "total_distance": float(route_metrics.total_distance or 0),
                 "total_duration": float(route_metrics.total_duration or 0),
                 "top_drivers": [
@@ -391,7 +403,9 @@ class DatabaseIntegrationService:
 
             # Count records to be deleted
             routes_to_delete = (
-                db.session.query(Route).filter(Route.timestamp < cutoff_date).count()
+                db.session.query(Route)
+                .filter(Route.timestamp < cutoff_date)
+                .count()
             )
             insights_to_delete = (
                 db.session.query(RouteInsightDB)
@@ -411,7 +425,9 @@ class DatabaseIntegrationService:
             db.session.query(RoutePredictionDB).filter(
                 RoutePredictionDB.timestamp < cutoff_date
             ).delete()
-            db.session.query(Route).filter(Route.timestamp < cutoff_date).delete()
+            db.session.query(Route).filter(
+                Route.timestamp < cutoff_date
+            ).delete()
 
             db.session.commit()
 

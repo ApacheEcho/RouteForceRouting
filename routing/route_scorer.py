@@ -12,7 +12,9 @@ def score_route(route: Dict[str, Any]) -> float:
     # Map priority to numeric: high=3, medium=2, low=1
     priority_map = {"high": 3, "medium": 2, "low": 1}
     if stores:
-        avg_priority = sum(priority_map.get(s.get("priority", "medium"), 2) for s in stores) / len(stores)
+        avg_priority = sum(
+            priority_map.get(s.get("priority", "medium"), 2) for s in stores
+        ) / len(stores)
     else:
         avg_priority = 2.0
     # Scoring formula matches the test's comments

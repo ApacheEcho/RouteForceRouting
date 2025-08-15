@@ -14,7 +14,11 @@ def debug_methods():
     routing_service = RoutingService()
 
     # Get all methods
-    methods = [method for method in dir(routing_service) if not method.startswith("__")]
+    methods = [
+        method
+        for method in dir(routing_service)
+        if not method.startswith("__")
+    ]
 
     print("Available methods:")
     for method in sorted(methods):

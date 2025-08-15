@@ -29,7 +29,9 @@ class AdvancedAnalyticsTest:
         try:
             # Login
             login_data = {"username": "admin", "password": "admin123"}
-            response = self.session.post(f"{self.base_url}/auth/login", json=login_data)
+            response = self.session.post(
+                f"{self.base_url}/auth/login", json=login_data
+            )
             if response.status_code == 200:
                 result = response.json()
                 self.auth_token = result.get("access_token")
@@ -39,7 +41,9 @@ class AdvancedAnalyticsTest:
                 logger.info("✓ Authentication successful")
                 return True
             else:
-                logger.error(f"✗ Authentication failed: {response.status_code}")
+                logger.error(
+                    f"✗ Authentication failed: {response.status_code}"
+                )
                 return False
         except Exception as e:
             logger.error(f"✗ Authentication error: {e}")
@@ -93,25 +97,35 @@ class AdvancedAnalyticsTest:
         """Test performance monitoring endpoints"""
         try:
             # Test system metrics
-            response = self.session.get(f"{self.base_url}/api/v1/monitoring/metrics")
+            response = self.session.get(
+                f"{self.base_url}/api/v1/monitoring/metrics"
+            )
             if response.status_code == 200:
                 metrics = response.json()
                 logger.info("✓ Performance monitoring successful")
                 logger.info(f"  CPU Usage: {metrics.get('cpu_usage', 'N/A')}")
-                logger.info(f"  Memory Usage: {metrics.get('memory_usage', 'N/A')}")
+                logger.info(
+                    f"  Memory Usage: {metrics.get('memory_usage', 'N/A')}"
+                )
                 logger.info(
                     f"  Response Time: {metrics.get('api_response_time', 'N/A')}"
                 )
 
                 # Test performance trends
-                response = self.session.get(f"{self.base_url}/api/v1/monitoring/trends")
+                response = self.session.get(
+                    f"{self.base_url}/api/v1/monitoring/trends"
+                )
                 if response.status_code == 200:
                     trends = response.json()
                     logger.info("✓ Performance trends successful")
-                    logger.info(f"  Trends available: {len(trends.get('trends', []))}")
+                    logger.info(
+                        f"  Trends available: {len(trends.get('trends', []))}"
+                    )
                     return True
 
-            logger.error(f"✗ Performance monitoring failed: {response.status_code}")
+            logger.error(
+                f"✗ Performance monitoring failed: {response.status_code}"
+            )
             return False
 
         except Exception as e:
@@ -122,7 +136,9 @@ class AdvancedAnalyticsTest:
         """Test advanced dashboard API endpoints"""
         try:
             # Test ML insights
-            response = self.session.get(f"{self.base_url}/api/v1/dashboard/ml-insights")
+            response = self.session.get(
+                f"{self.base_url}/api/v1/dashboard/ml-insights"
+            )
             if response.status_code == 200:
                 insights = response.json()
                 logger.info("✓ ML insights API successful")
@@ -153,7 +169,9 @@ class AdvancedAnalyticsTest:
                         )
                         return True
 
-            logger.error(f"✗ Advanced dashboard API failed: {response.status_code}")
+            logger.error(
+                f"✗ Advanced dashboard API failed: {response.status_code}"
+            )
             return False
 
         except Exception as e:
@@ -176,14 +194,17 @@ class AdvancedAnalyticsTest:
                         "day_of_week": i % 7,
                         "weather_factor": 1.0 + (i % 3) * 0.1,
                         "traffic_factor": 1.0 + (i % 4) * 0.2,
-                        "timestamp": (datetime.now() - timedelta(days=i)).isoformat(),
+                        "timestamp": (
+                            datetime.now() - timedelta(days=i)
+                        ).isoformat(),
                     }
                     for i in range(50)  # Generate 50 training samples
                 ]
             }
 
             response = self.session.post(
-                f"{self.base_url}/api/v1/analytics/train-ensemble", json=training_data
+                f"{self.base_url}/api/v1/analytics/train-ensemble",
+                json=training_data,
             )
 
             if response.status_code == 200:
@@ -197,7 +218,9 @@ class AdvancedAnalyticsTest:
                 )
                 return True
             else:
-                logger.error(f"✗ Ensemble training failed: {response.status_code}")
+                logger.error(
+                    f"✗ Ensemble training failed: {response.status_code}"
+                )
                 logger.error(f"  Response: {response.text}")
                 return False
 
@@ -244,7 +267,9 @@ class AdvancedAnalyticsTest:
                 # Check confidence intervals
                 ci = result.get("confidence_intervals", {})
                 if ci:
-                    logger.info(f"  95% confidence interval: {ci.get('95%', 'N/A')}")
+                    logger.info(
+                        f"  95% confidence interval: {ci.get('95%', 'N/A')}"
+                    )
 
                 return True
             else:
@@ -266,7 +291,9 @@ class AdvancedAnalyticsTest:
             if response.status_code == 200:
                 alerts = response.json()
                 logger.info("✓ Real-time alerts API successful")
-                logger.info(f"  Active alerts: {len(alerts.get('alerts', []))}")
+                logger.info(
+                    f"  Active alerts: {len(alerts.get('alerts', []))}"
+                )
 
                 # Check alert types
                 alert_types = set()
@@ -278,7 +305,9 @@ class AdvancedAnalyticsTest:
                 )
                 return True
             else:
-                logger.error(f"✗ Real-time alerts failed: {response.status_code}")
+                logger.error(
+                    f"✗ Real-time alerts failed: {response.status_code}"
+                )
                 return False
 
         except Exception as e:
@@ -288,7 +317,9 @@ class AdvancedAnalyticsTest:
     def test_advanced_dashboard_ui(self) -> bool:
         """Test advanced dashboard UI availability"""
         try:
-            response = self.session.get(f"{self.base_url}/dashboard/advanced-analytics")
+            response = self.session.get(
+                f"{self.base_url}/dashboard/advanced-analytics"
+            )
             if response.status_code == 200:
                 logger.info("✓ Advanced dashboard UI accessible")
 
@@ -310,7 +341,9 @@ class AdvancedAnalyticsTest:
                 logger.info(
                     f"  UI sections found: {len(found_sections)}/{len(ui_sections)}"
                 )
-                return len(found_sections) >= 3  # At least 3 sections should be present
+                return (
+                    len(found_sections) >= 3
+                )  # At least 3 sections should be present
             else:
                 logger.error(
                     f"✗ Advanced dashboard UI not accessible: {response.status_code}"
@@ -337,7 +370,10 @@ class AdvancedAnalyticsTest:
             ("Performance Monitoring", self.test_performance_monitoring),
             ("Advanced Dashboard API", self.test_advanced_dashboard_api),
             ("Ensemble Training", self.test_ensemble_training),
-            ("Uncertainty Quantification", self.test_uncertainty_quantification),
+            (
+                "Uncertainty Quantification",
+                self.test_uncertainty_quantification,
+            ),
             ("Real-time Alerts", self.test_real_time_alerts),
             ("Advanced Dashboard UI", self.test_advanced_dashboard_ui),
         ]
@@ -372,7 +408,9 @@ class AdvancedAnalyticsTest:
 
         if passed == total:
             logger.info("✓ ADVANCED ANALYTICS TEST SUITE: PASSED")
-            logger.info("\n🚀 Advanced analytics features are fully operational!")
+            logger.info(
+                "\n🚀 Advanced analytics features are fully operational!"
+            )
         else:
             logger.error("✗ ADVANCED ANALYTICS TEST SUITE: FAILED")
             logger.error("\n⚠️  Some advanced features need attention.")

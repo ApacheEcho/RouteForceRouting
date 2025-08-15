@@ -170,7 +170,9 @@ def create_route():
     # Validate constraints (optional)
     constraints = data.get("constraints", {})
     if not isinstance(constraints, dict):
-        raise ValidationError("Constraints must be an object", field="constraints")
+        raise ValidationError(
+            "Constraints must be an object", field="constraints"
+        )
 
     # Validate options (optional)
     options = data.get("options", {})
@@ -198,11 +200,15 @@ def create_route():
         }
     elif algorithm == "simulated_annealing":
         algorithm_params = {
-            "sa_initial_temperature": options.get("sa_initial_temperature", 1000.0),
+            "sa_initial_temperature": options.get(
+                "sa_initial_temperature", 1000.0
+            ),
             "sa_final_temperature": options.get("sa_final_temperature", 0.1),
             "sa_cooling_rate": options.get("sa_cooling_rate", 0.99),
             "sa_max_iterations": options.get("sa_max_iterations", 10000),
-            "sa_iterations_per_temp": options.get("sa_iterations_per_temp", 100),
+            "sa_iterations_per_temp": options.get(
+                "sa_iterations_per_temp", 100
+            ),
             "sa_reheat_threshold": options.get("sa_reheat_threshold", 1000),
             "sa_min_improvement_threshold": options.get(
                 "sa_min_improvement_threshold", 0.001
@@ -240,7 +246,9 @@ def create_route():
         # Build response data
         route_data = {
             "route": route,
-            "route_id": metrics.route_id if metrics and metrics.route_id else None,
+            "route_id": (
+                metrics.route_id if metrics and metrics.route_id else None
+            ),
             "algorithm_used": metrics.algorithm_used if metrics else algorithm,
         }
 
@@ -271,7 +279,9 @@ def get_route(route_id: int):
     """Get route by ID from database"""
     # AUTO-PILOT: Enhanced validation and error handling
     if route_id <= 0:
-        raise ValidationError("Route ID must be a positive integer", field="route_id")
+        raise ValidationError(
+            "Route ID must be a positive integer", field="route_id"
+        )
 
     user_id = get_current_user_id()
     routing_service = RoutingService(user_id=user_id)
@@ -279,9 +289,13 @@ def get_route(route_id: int):
     route = routing_service.get_route_by_id(route_id)
 
     if not route:
-        raise APIError("Route not found", status_code=404, code="ROUTE_NOT_FOUND")
+        raise APIError(
+            "Route not found", status_code=404, code="ROUTE_NOT_FOUND"
+        )
 
-    return create_success_response(data=route, message="Route retrieved successfully")
+    return create_success_response(
+        data=route, message="Route retrieved successfully"
+    )
 
 
 @api_bp.route("/v1/routes", methods=["GET"])
@@ -291,7 +305,9 @@ def get_routes():
     """Get route history for current user with pagination"""
     user_id = get_current_user_id()
     if not user_id:
-        raise APIError("Authentication required", status_code=401, code="AUTH_REQUIRED")
+        raise APIError(
+            "Authentication required", status_code=401, code="AUTH_REQUIRED"
+        )
 
     # AUTO-PILOT: Enhanced pagination support
     page = request.args.get("page", 1, type=int)
@@ -305,7 +321,9 @@ def get_routes():
     )  # Get more for pagination
 
     # Apply pagination
-    paginated_data = paginate_response(all_routes, page, per_page, max_per_page=50)
+    paginated_data = paginate_response(
+        all_routes, page, per_page, max_per_page=50
+    )
 
     return create_success_response(
         data=paginated_data["items"],
@@ -321,7 +339,9 @@ def get_stores():
     """Get stores for current user with pagination"""
     user_id = get_current_user_id()
     if not user_id:
-        raise APIError("Authentication required", status_code=401, code="AUTH_REQUIRED")
+        raise APIError(
+            "Authentication required", status_code=401, code="AUTH_REQUIRED"
+        )
 
     # AUTO-PILOT: Enhanced pagination support
     page = request.args.get("page", 1, type=int)
@@ -331,7 +351,9 @@ def get_stores():
     all_stores = routing_service.get_user_stores()
 
     # Apply pagination
-    paginated_data = paginate_response(all_stores, page, per_page, max_per_page=100)
+    paginated_data = paginate_response(
+        all_stores, page, per_page, max_per_page=100
+    )
 
     return create_success_response(
         data=paginated_data["items"],
@@ -385,7 +407,9 @@ def generate_route_from_stores():
             return jsonify({"error": "Authentication required"}), 401
 
         routing_service = RoutingService(user_id=user_id)
-        route = routing_service.generate_route_from_db_stores(store_ids, filters)
+        route = routing_service.generate_route_from_db_stores(
+            store_ids, filters
+        )
 
         if not route:
             return jsonify({"error": "Failed to generate route"}), 500
@@ -398,7 +422,9 @@ def generate_route_from_stores():
                 "total_stores": len(store_ids),
                 "route_stores": len(route),
                 "processing_time": routing_service.get_last_processing_time(),
-                "optimization_score": metrics.optimization_score if metrics else 0,
+                "optimization_score": (
+                    metrics.optimization_score if metrics else 0
+                ),
             },
         }
 
@@ -480,12 +506,18 @@ def create_clusters():
         for store in stores:
             if "latitude" not in store or "longitude" not in store:
                 return (
-                    jsonify({"error": "All stores must have latitude and longitude"}),
+                    jsonify(
+                        {
+                            "error": "All stores must have latitude and longitude"
+                        }
+                    ),
                     400,
                 )
 
         routing_service = RoutingService()
-        clusters = routing_service.cluster_stores_by_proximity(stores, radius_km)
+        clusters = routing_service.cluster_stores_by_proximity(
+            stores, radius_km
+        )
 
         return (
             jsonify(
@@ -562,7 +594,11 @@ def get_live_metrics():
                 {
                     "status": "error",
                     "message": "Failed to retrieve metrics",
-                    "error": str(e) if current_app.debug else "Internal server error",
+                    "error": (
+                        str(e)
+                        if current_app.debug
+                        else "Internal server error"
+                    ),
                 }
             ),
             500,
@@ -605,7 +641,9 @@ def optimize_route_genetic():
         if len(stores) < 2:
             return (
                 jsonify(
-                    {"error": "At least 2 stores required for genetic optimization"}
+                    {
+                        "error": "At least 2 stores required for genetic optimization"
+                    }
                 ),
                 400,
             )
@@ -642,7 +680,9 @@ def optimize_route_genetic():
                 "total_stores": len(stores),
                 "route_stores": len(route) if route else 0,
                 "processing_time": routing_service.get_last_processing_time(),
-                "optimization_score": metrics.optimization_score if metrics else 0,
+                "optimization_score": (
+                    metrics.optimization_score if metrics else 0
+                ),
                 "algorithm_used": "genetic",
             },
         }
@@ -659,7 +699,9 @@ def optimize_route_genetic():
         return jsonify(response_data), 201
 
     except Exception as e:
-        logger.error(f"API error optimizing route with genetic algorithm: {str(e)}")
+        logger.error(
+            f"API error optimizing route with genetic algorithm: {str(e)}"
+        )
         return jsonify({"error": "Internal server error"}), 500
 
 
@@ -714,11 +756,15 @@ def optimize_route_simulated_annealing():
 
         # Prepare simulated annealing algorithm parameters
         algorithm_params = {
-            "sa_initial_temperature": sa_config.get("initial_temperature", 1000.0),
+            "sa_initial_temperature": sa_config.get(
+                "initial_temperature", 1000.0
+            ),
             "sa_final_temperature": sa_config.get("final_temperature", 0.1),
             "sa_cooling_rate": sa_config.get("cooling_rate", 0.99),
             "sa_max_iterations": sa_config.get("max_iterations", 10000),
-            "sa_iterations_per_temp": sa_config.get("iterations_per_temp", 100),
+            "sa_iterations_per_temp": sa_config.get(
+                "iterations_per_temp", 100
+            ),
             "sa_reheat_threshold": sa_config.get("reheat_threshold", 1000),
             "sa_min_improvement_threshold": sa_config.get(
                 "min_improvement_threshold", 0.001
@@ -744,14 +790,18 @@ def optimize_route_simulated_annealing():
                 "total_stores": len(stores),
                 "route_stores": len(route) if route else 0,
                 "processing_time": routing_service.get_last_processing_time(),
-                "optimization_score": metrics.optimization_score if metrics else 0,
+                "optimization_score": (
+                    metrics.optimization_score if metrics else 0
+                ),
                 "algorithm_used": "simulated_annealing",
             },
         }
 
         # Include simulated annealing specific metrics
         if metrics and metrics.algorithm_metrics:
-            response_data["simulated_annealing_metrics"] = metrics.algorithm_metrics
+            response_data["simulated_annealing_metrics"] = (
+                metrics.algorithm_metrics
+            )
 
         # Include route ID if saved to database
         if metrics and metrics.route_id:
@@ -761,7 +811,9 @@ def optimize_route_simulated_annealing():
         return jsonify(response_data), 201
 
     except Exception as e:
-        logger.error(f"API error optimizing route with simulated annealing: {str(e)}")
+        logger.error(
+            f"API error optimizing route with simulated annealing: {str(e)}"
+        )
         return jsonify({"error": "Internal server error"}), 500
 
 
@@ -1177,7 +1229,11 @@ def optimize_route():
         depot = data.get("depot", {})
 
         # Validate algorithm
-        valid_algorithms = ["genetic", "simulated_annealing", "multi_objective"]
+        valid_algorithms = [
+            "genetic",
+            "simulated_annealing",
+            "multi_objective",
+        ]
         if algorithm not in valid_algorithms:
             return (
                 jsonify(
@@ -1193,7 +1249,12 @@ def optimize_route():
             return jsonify({"error": "No stops provided"}), 400
 
         if len(stops) < 2:
-            return jsonify({"error": "At least 2 stops required for optimization"}), 400
+            return (
+                jsonify(
+                    {"error": "At least 2 stops required for optimization"}
+                ),
+                400,
+            )
 
         # Convert stops to stores format
         stores = []
@@ -1255,7 +1316,10 @@ def optimize_route():
                 lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
                 dlon = lon2 - lon1
                 dlat = lat2 - lat1
-                a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
+                a = (
+                    sin(dlat / 2) ** 2
+                    + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
+                )
                 c = 2 * asin(sqrt(a))
                 r = 6371  # Radius of earth in kilometers
                 return c * r
@@ -1264,7 +1328,10 @@ def optimize_route():
                 curr = optimized_route[i]
                 next_stop = optimized_route[i + 1]
                 distance = haversine(
-                    curr["lng"], curr["lat"], next_stop["lng"], next_stop["lat"]
+                    curr["lng"],
+                    curr["lat"],
+                    next_stop["lng"],
+                    next_stop["lat"],
                 )
                 total_distance += distance
 
@@ -1286,7 +1353,9 @@ def optimize_route():
     except Exception as e:
         logger.error(f"API error optimizing route: {str(e)}")
         return (
-            jsonify({"success": False, "error": f"Optimization failed: {str(e)}"}),
+            jsonify(
+                {"success": False, "error": f"Optimization failed: {str(e)}"}
+            ),
             500,
         )
 
@@ -1327,7 +1396,9 @@ def get_analytics():
                     if r.get("optimization_score")
                 ]
                 if scores:
-                    analytics["avg_optimization_score"] = sum(scores) / len(scores)
+                    analytics["avg_optimization_score"] = sum(scores) / len(
+                        scores
+                    )
         except:
             pass  # Continue with default values
 
@@ -1344,4 +1415,9 @@ def get_analytics():
 
     except Exception as e:
         logger.error(f"API error getting analytics: {str(e)}")
-        return jsonify({"success": False, "error": f"Analytics failed: {str(e)}"}), 500
+        return (
+            jsonify(
+                {"success": False, "error": f"Analytics failed: {str(e)}"}
+            ),
+            500,
+        )

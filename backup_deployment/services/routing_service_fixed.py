@@ -145,7 +145,9 @@ class RoutingService:
                 self.last_processing_time = time.time() - start_time
                 return []
 
-            logger.info(f"Filtered to {filtered_count} stores based on criteria")
+            logger.info(
+                f"Filtered to {filtered_count} stores based on criteria"
+            )
 
             # Generate route using selected algorithm
             route, algorithm_metrics = self._generate_route_with_algorithm(
@@ -175,7 +177,9 @@ class RoutingService:
 
             # Save route to database if requested and database is available
             if save_to_db and self.user_id and self.database_service:
-                route_record = self._save_route_to_db(route, filters, self.metrics)
+                route_record = self._save_route_to_db(
+                    route, filters, self.metrics
+                )
                 if route_record:
                     self.metrics.route_id = route_record.id
 
@@ -361,11 +365,15 @@ class RoutingService:
 
         # Configure simulated annealing algorithm
         config = SimulatedAnnealingConfig(
-            initial_temperature=float(filters.get("sa_initial_temperature", 1000.0)),
+            initial_temperature=float(
+                filters.get("sa_initial_temperature", 1000.0)
+            ),
             final_temperature=float(filters.get("sa_final_temperature", 0.1)),
             cooling_rate=float(filters.get("sa_cooling_rate", 0.99)),
             max_iterations=int(filters.get("sa_max_iterations", 10000)),
-            iterations_per_temp=int(filters.get("sa_iterations_per_temp", 100)),
+            iterations_per_temp=int(
+                filters.get("sa_iterations_per_temp", 100)
+            ),
             reheat_threshold=int(filters.get("sa_reheat_threshold", 1000)),
             min_improvement_threshold=float(
                 filters.get("sa_min_improvement_threshold", 0.001)
@@ -409,7 +417,9 @@ class RoutingService:
             return []
 
         try:
-            routes = self.database_service.get_routes_by_user(self.user_id, limit)
+            routes = self.database_service.get_routes_by_user(
+                self.user_id, limit
+            )
             return [route.to_dict() for route in routes]
         except Exception as e:
             logger.error(f"Error retrieving route history: {str(e)}")
@@ -479,7 +489,9 @@ class RoutingService:
             return None
 
         try:
-            route_name = f"Route {len(route)} stops - {time.strftime('%Y-%m-%d %H:%M')}"
+            route_name = (
+                f"Route {len(route)} stops - {time.strftime('%Y-%m-%d %H:%M')}"
+            )
             route_record = self.database_service.create_route(
                 route_data=route,
                 name=route_name,
@@ -545,11 +557,15 @@ class RoutingService:
         # Proximity clustering
         if filters.get("use_clustering", True):
             constraints["use_clustering"] = True
-            constraints["cluster_radius"] = float(filters.get("cluster_radius", 2.0))
+            constraints["cluster_radius"] = float(
+                filters.get("cluster_radius", 2.0)
+            )
 
         return constraints
 
-    def _apply_filters(self, stores: List[Dict], filters: Dict[str, Any]) -> List[Dict]:
+    def _apply_filters(
+        self, stores: List[Dict], filters: Dict[str, Any]
+    ) -> List[Dict]:
         """Apply filtering logic to stores"""
         filtered_stores = stores.copy()
 

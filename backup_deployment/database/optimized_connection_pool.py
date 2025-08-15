@@ -34,7 +34,9 @@ class ConnectionMetrics:
 class DatabaseConnectionPool:
     """Advanced database connection pool with monitoring and optimization"""
 
-    def __init__(self, database_url: str, pool_size: int = 10, max_overflow: int = 20):
+    def __init__(
+        self, database_url: str, pool_size: int = 10, max_overflow: int = 20
+    ):
         self.database_url = database_url
         self.pool_size = pool_size
         self.max_overflow = max_overflow
@@ -80,7 +82,9 @@ class DatabaseConnectionPool:
         # PostgreSQL-specific optimizations
         if "postgresql" in self.database_url:
             engine_config["connect_args"].update(
-                {"options": "-c statement_timeout=30000"}  # 30 second statement timeout
+                {
+                    "options": "-c statement_timeout=30000"
+                }  # 30 second statement timeout
             )
 
         self.engine = create_engine(self.database_url, **engine_config)
@@ -166,7 +170,8 @@ class DatabaseConnectionPool:
             # Auto-optimization check
             if (
                 self.auto_optimize
-                and time.time() - self.last_optimization > self.optimization_interval
+                and time.time() - self.last_optimization
+                > self.optimization_interval
             ):
                 self._auto_optimize()
 
@@ -182,7 +187,9 @@ class DatabaseConnectionPool:
 
             # Pool size optimization
             if self.metrics.pool_overflow > 5:
-                new_pool_size = min(self.pool_size + 2, 50)  # Increase pool size
+                new_pool_size = min(
+                    self.pool_size + 2, 50
+                )  # Increase pool size
                 if new_pool_size != self.pool_size:
                     self.pool_size = new_pool_size
                     optimizations_applied.append(
@@ -250,11 +257,15 @@ class DatabaseConnectionPool:
                 "connections_errored": self.connection_stats["errors"],
                 "pool_status": {
                     "size": pool.size() if hasattr(pool, "size") else 0,
-                    "checked_in": pool.checkedin() if hasattr(pool, "checkedin") else 0,
+                    "checked_in": (
+                        pool.checkedin() if hasattr(pool, "checkedin") else 0
+                    ),
                     "checked_out": (
                         pool.checkedout() if hasattr(pool, "checkedout") else 0
                     ),
-                    "overflow": pool.overflow() if hasattr(pool, "overflow") else 0,
+                    "overflow": (
+                        pool.overflow() if hasattr(pool, "overflow") else 0
+                    ),
                 },
             }
 
@@ -266,7 +277,9 @@ class DatabaseConnectionPool:
 
         # Analyze usage patterns
         avg_active = status["active_connections"]
-        error_rate = status["connection_errors"] / max(status["total_connections"], 1)
+        error_rate = status["connection_errors"] / max(
+            status["total_connections"], 1
+        )
 
         # Pool size recommendations
         if avg_active > self.pool_size * 0.8:
@@ -308,7 +321,9 @@ class DatabaseConnectionPool:
         score = 100.0
 
         # Penalize high error rates
-        error_rate = status["connection_errors"] / max(status["total_connections"], 1)
+        error_rate = status["connection_errors"] / max(
+            status["total_connections"], 1
+        )
         score -= error_rate * 500  # Heavy penalty for errors
 
         # Penalize slow queries
@@ -339,9 +354,9 @@ class OptimizedDatabase:
 
         # Get database URL from app config
         if not self.database_url:
-            self.database_url = app.config.get("DATABASE_URL") or app.config.get(
-                "SQLALCHEMY_DATABASE_URI"
-            )
+            self.database_url = app.config.get(
+                "DATABASE_URL"
+            ) or app.config.get("SQLALCHEMY_DATABASE_URI")
 
         if not self.database_url:
             raise ValueError("Database URL not configured")

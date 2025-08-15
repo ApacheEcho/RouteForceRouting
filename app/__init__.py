@@ -8,7 +8,6 @@ import warnings
 from datetime import datetime
 import os
 import uuid
-
 import psutil
 from flask import Flask, jsonify, request, abort, g
 from flask_caching import Cache
@@ -18,6 +17,37 @@ from flask_limiter.util import get_remote_address
 from flask_socketio import SocketIO
 from flasgger import Swagger
 from werkzeug.middleware.proxy_fix import ProxyFix
+from app.config import config
+from app.models.database import db, migrate
+from app.auth_system import init_jwt
+from app.monitoring import setup_monitoring
+from sqlalchemy import text
+from app.websocket_handlers import init_websocket
+from app.middleware.analytics import init_analytics_middleware
+from app.services.analytics_service import AnalyticsService
+from app.performance.beast_mode_integration import init_beast_mode
+from app.services.auto_commit_service import start_auto_commit_service
+from app.performance_monitor import get_performance_monitor
+from app.advanced_dashboard_api import advanced_dashboard_bp
+from app.analytics_api import analytics_bp as analytics_ai_bp
+from app.api.analytics import analytics_bp
+from app.api.mobile import mobile_bp
+from app.api.traffic import traffic_bp
+from app.api.voice import voice_bp
+from app.auth_system import auth_bp
+from app.monitoring_api import monitoring_bp
+from app.routes.api import api_bp
+from app.routes.dashboard import dashboard_bp
+from app.routes.docs import docs_bp
+from app.routes.enhanced_dashboard import enhanced_dashboard_bp
+from app.routes.enterprise_dashboard import enterprise_bp
+from app.routes.main_enhanced import main_bp
+from app.routes.metrics import metrics_bp
+from app.routes.scoring import scoring_bp
+from app.routes.voice_dashboard import voice_dashboard_bp
+from app.enterprise.organizations import organizations_bp
+from app.enterprise.users import users_bp
+
 
 # Initialize extensions
 cache = Cache()
@@ -25,7 +55,12 @@ limiter = Limiter(
     key_func=get_remote_address,
     default_limits=os.getenv("RATE_LIMITS", "200/day;50/hour").split(";"),
 )
-socketio = SocketIO(cors_allowed_origins="*", logger=True, engineio_logger=True, async_mode="threading")
+socketio = SocketIO(
+    cors_allowed_origins="*",
+    logger=True,
+    engineio_logger=True,
+    async_mode="threading",
+)
 swagger = Swagger()
 
 
@@ -42,23 +77,23 @@ def create_app(config_name: str = "development") -> Flask:
     app = Flask(__name__)
 
     # Respect X-Forwarded-* headers from upstream proxy (Nginx/Render)
-    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
+    app.wsgi_app = ProxyFix(
+        app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1
+    )
 
     # Load configuration
-    from app.config import config
-
     app.config.from_object(config[config_name])
 
     # Initialize database
-    from app.models.database import db, migrate
-
     db.init_app(app)
     migrate.init_app(app, db)
 
     # Request ID correlation
     @app.before_request
     def _assign_request_id():
-        g.request_id = request.headers.get(app.config.get("REQUEST_ID_HEADER", "X-Request-ID")) or str(uuid.uuid4())
+        g.request_id = request.headers.get(
+            app.config.get("REQUEST_ID_HEADER", "X-Request-ID")
+        ) or str(uuid.uuid4())
 
     @app.after_request
     def _add_request_id(resp):
@@ -69,8 +104,13 @@ def create_app(config_name: str = "development") -> Flask:
     # Minimal API request validation for JSON endpoints
     @app.before_request
     def _validate_request():
-        # Only apply to API routes, but skip /api/mobile/auth/logout for legacy/mobile compatibility
-        if request.path.startswith("/api") and request.method in {"POST", "PUT", "PATCH"}:
+        # Only apply to API routes, but skip /api/mobile/auth/logout for
+        # legacy/mobile compatibility
+        if request.path.startswith("/api") and request.method in {
+            "POST",
+            "PUT",
+            "PATCH",
+        }:
             if request.path == "/api/mobile/auth/logout":
                 return  # Allow any content-type or no body for logout
             if not request.is_json:
@@ -86,11 +126,15 @@ def create_app(config_name: str = "development") -> Flask:
     cors_env = os.getenv("CORS_ORIGINS", "")
     cors_origins = [
         o.strip()
-        for o in (cors_env.split(",") if cors_env else [
-            "http://localhost:3000",
-            "https://app.routeforcepro.com",
-            "https://routeforcepro.netlify.app",
-        ])
+        for o in (
+            cors_env.split(",")
+            if cors_env
+            else [
+                "http://localhost:3000",
+                "https://app.routeforcepro.com",
+                "https://routeforcepro.netlify.app",
+            ]
+        )
         if o.strip()
     ]
     CORS(
@@ -108,7 +152,11 @@ def create_app(config_name: str = "development") -> Flask:
         "swagger": "2.0",
         "info": {
             "title": "RouteForce Routing API",
-            "description": "API documentation for RouteForce Routing application - A comprehensive route optimization platform for field execution teams",
+            "description": (
+                "API documentation for RouteForce Routing application - "
+                "A comprehensive route optimization platform for field "
+                "execution teams"
+            ),
             "version": "1.0.0",
             "contact": {
                 "name": "RouteForce Support",
@@ -119,13 +167,23 @@ def create_app(config_name: str = "development") -> Flask:
         "basePath": "/",
         "schemes": ["http", "https"],
         "tags": [
-            {"name": "Analytics", "description": "Analytics and monitoring endpoints"},
+            {
+                "name": "Analytics",
+                "description": "Analytics and monitoring endpoints",
+            },
             {"name": "Mobile", "description": "Mobile app specific endpoints"},
-            {"name": "Routes", "description": "Route optimization and management"},
+            {
+                "name": "Routes",
+                "description": "Route optimization and management",
+            },
             {"name": "Traffic", "description": "Traffic data and routing"},
         ],
         "securityDefinitions": {
-            "ApiKeyAuth": {"type": "apiKey", "in": "header", "name": "X-API-Key"}
+            "ApiKeyAuth": {
+                "type": "apiKey",
+                "in": "header",
+                "name": "X-API-Key",
+            }
         },
     }
 
@@ -144,16 +202,12 @@ def create_app(config_name: str = "development") -> Flask:
         "specs_route": "/api/docs",
     }
 
-    swagger = Swagger(app, config=swagger_config, template=swagger_template)
+    Swagger(app, config=swagger_config, template=swagger_template)
 
     # Initialize JWT authentication
-    from app.auth_system import init_jwt
-
     init_jwt(app)
 
     # Initialize Sentry monitoring
-    from app.monitoring import setup_monitoring
-    
     setup_monitoring(app)
 
     # Security headers
@@ -166,7 +220,8 @@ def create_app(config_name: str = "development") -> Flask:
         # Enable HSTS only when serving over HTTPS
         if app.config.get("PREFERRED_URL_SCHEME", "http") == "https":
             resp.headers.setdefault(
-                "Strict-Transport-Security", "max-age=31536000; includeSubDomains"
+                "Strict-Transport-Security",
+                "max-age=31536000; includeSubDomains",
             )
         return resp
 
@@ -180,8 +235,6 @@ def create_app(config_name: str = "development") -> Flask:
             # Check database connectivity
             db_status = "healthy"
             try:
-                from sqlalchemy import text
-
                 db.session.execute(text("SELECT 1"))
                 db.session.commit()
             except Exception as e:
@@ -244,21 +297,31 @@ def create_app(config_name: str = "development") -> Flask:
 
             # Application metrics
             app_metrics = []
-            app_metrics.append("# HELP routeforce_cpu_usage CPU usage percentage")
+            app_metrics.append(
+                "# HELP routeforce_cpu_usage CPU usage percentage"
+            )
             app_metrics.append("# TYPE routeforce_cpu_usage gauge")
             app_metrics.append(f"routeforce_cpu_usage {cpu_percent}")
 
-            app_metrics.append("# HELP routeforce_memory_usage Memory usage percentage")
+            app_metrics.append(
+                "# HELP routeforce_memory_usage Memory usage percentage"
+            )
             app_metrics.append("# TYPE routeforce_memory_usage gauge")
             app_metrics.append(f"routeforce_memory_usage {memory.percent}")
 
-            app_metrics.append("# HELP routeforce_disk_usage Disk usage percentage")
+            app_metrics.append(
+                "# HELP routeforce_disk_usage Disk usage percentage"
+            )
             app_metrics.append("# TYPE routeforce_disk_usage gauge")
             app_metrics.append(f"routeforce_disk_usage {disk.percent}")
 
-            app_metrics.append("# HELP routeforce_uptime Application uptime in seconds")
+            app_metrics.append(
+                "# HELP routeforce_uptime Application uptime in seconds"
+            )
             app_metrics.append("# TYPE routeforce_uptime counter")
-            app_metrics.append(f"routeforce_uptime {time.time() - psutil.boot_time()}")
+            app_metrics.append(
+                f"routeforce_uptime {time.time() - psutil.boot_time()}"
+            )
 
             return (
                 "\n".join(app_metrics),
@@ -283,14 +346,9 @@ def create_app(config_name: str = "development") -> Flask:
     )
 
     # Initialize WebSocket handlers
-    from app.websocket_handlers import init_websocket
-
     init_websocket(app, socketio)
 
     # Initialize analytics service and middleware
-    from app.middleware.analytics import init_analytics_middleware
-    from app.services.analytics_service import AnalyticsService
-
     analytics_service = AnalyticsService()
     init_analytics_middleware(app, analytics_service)
 
@@ -312,35 +370,34 @@ def create_app(config_name: str = "development") -> Flask:
     register_error_handlers(app)
 
     # Initialize Beast Mode Performance Optimizations
-    from app.performance.beast_mode_integration import init_beast_mode
-    
     # Get Redis client for optimizations
     redis_client = None
     try:
         import redis
-        redis_url = app.config.get('REDIS_URL', 'redis://localhost:6379/0')
+
+        redis_url = app.config.get("REDIS_URL", "redis://localhost:6379/0")
         redis_client = redis.from_url(redis_url, decode_responses=False)
         redis_client.ping()  # Test connection
     except Exception as e:
         logging.warning(f"Redis not available for optimizations: {e}")
-    
+
     # Initialize all Beast Mode optimizations
     beast_mode_results = init_beast_mode(app, socketio, redis_client)
     app.beast_mode_results = beast_mode_results
-    logging.info(f"🚀 Beast Mode Status: {beast_mode_results.get('beast_mode_status', 'UNKNOWN')}")
-    
+    logging.info(
+        "🚀 Beast Mode Status: %s",
+        beast_mode_results.get("beast_mode_status", "UNKNOWN"),
+    )
+
     # Initialize legacy performance monitor as backup
     try:
-        from app.performance_monitor import get_performance_monitor
         monitor = get_performance_monitor()
         monitor.start_monitoring()
         logging.info("Legacy performance monitoring started as backup")
     except Exception as e:
-        logging.warning(f"Legacy performance monitor not available: {e}")
+        logging.warning("Legacy performance monitor not available: %s", e)
 
     # Initialize auto-commit service for background code backup
-    from app.services.auto_commit_service import start_auto_commit_service
-
     if app.config.get("AUTO_COMMIT_ENABLED", True):
         start_auto_commit_service()
         logging.info("Auto-commit background service started")
@@ -349,7 +406,10 @@ def create_app(config_name: str = "development") -> Flask:
 
 
 def configure_logging(app: Flask) -> None:
-    """Configure application logging with optional JSON output and request correlation"""
+    """
+    Configure application logging with optional JSON output and
+    request correlation
+    """
     # Suppress specific warnings for production readiness
     if not app.debug:
         warnings.filterwarnings("ignore", message="Flask-Caching.*deprecated")
@@ -357,7 +417,11 @@ def configure_logging(app: Flask) -> None:
             "ignore", message="Using the in-memory storage.*not recommended"
         )
 
-    log_level = getattr(logging, str(app.config.get("LOG_LEVEL", "INFO")).upper(), logging.INFO)
+    log_level = getattr(
+        logging,
+        str(app.config.get("LOG_LEVEL", "INFO")).upper(),
+        logging.INFO,
+    )
     root_logger = logging.getLogger()
     root_logger.handlers.clear()
     root_logger.setLevel(log_level)
@@ -377,13 +441,15 @@ def configure_logging(app: Flask) -> None:
             # Fallback to plain format if json logger not available
             handler.setFormatter(
                 logging.Formatter(
-                    "%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]"
+                    "%(asctime)s %(levelname)s: %(message)s "
+                    "[in %(pathname)s:%(lineno)d]"
                 )
             )
     else:
         handler.setFormatter(
             logging.Formatter(
-                "%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]"
+                "%(asctime)s %(levelname)s: %(message)s "
+                "[in %(pathname)s:%(lineno)d]"
             )
         )
 
@@ -398,11 +464,16 @@ def configure_logging(app: Flask) -> None:
                     "method": request.method,
                     "path": request.path,
                     "status": resp.status_code,
-                    "remote_addr": request.headers.get("X-Forwarded-For", request.remote_addr),
+                    "remote_addr": request.headers.get(
+                        "X-Forwarded-For", request.remote_addr
+                    ),
                     "request_id": getattr(g, "request_id", None),
                 }
                 if app.config.get("LOG_JSON", False)
-                else f"{request.method} {request.path} -> {resp.status_code} rid={getattr(g,'request_id',None)}"
+                else (
+                    f"{request.method} {request.path} -> {resp.status_code} "
+                    f"rid={getattr(g, 'request_id', None)}"
+                )
             )
         except Exception:
             pass
@@ -411,24 +482,6 @@ def configure_logging(app: Flask) -> None:
 
 def register_blueprints(app: Flask) -> None:
     """Register application blueprints"""
-    from app.advanced_dashboard_api import advanced_dashboard_bp
-    from app.analytics_api import analytics_bp as analytics_ai_bp
-    from app.api.analytics import analytics_bp
-    from app.api.mobile import mobile_bp
-    from app.api.traffic import traffic_bp
-    from app.api.voice import voice_bp  # Voice-to-code integration API
-    from app.auth_system import auth_bp  # Use JWT-based auth system
-    from app.monitoring_api import monitoring_bp
-    from app.routes.api import api_bp
-    from app.routes.dashboard import dashboard_bp
-    from app.routes.docs import docs_bp
-    from app.routes.enhanced_dashboard import enhanced_dashboard_bp
-    from app.routes.enterprise_dashboard import enterprise_bp
-    from app.routes.main_enhanced import main_bp  # Use enhanced main blueprint
-    from app.routes.metrics import metrics_bp
-    from app.routes.scoring import scoring_bp
-    from app.routes.voice_dashboard import voice_dashboard_bp  # Voice dashboard route
-
     app.register_blueprint(main_bp)
     app.register_blueprint(api_bp, url_prefix="/api")
     app.register_blueprint(scoring_bp, url_prefix="/api/route")
@@ -443,14 +496,15 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(mobile_bp, url_prefix="/api/mobile")
     app.register_blueprint(analytics_bp, url_prefix="/api/analytics")
     app.register_blueprint(analytics_ai_bp, url_prefix="/api/ai")
-    app.register_blueprint(voice_bp, url_prefix="/api/voice")  # Voice-to-code API
+    app.register_blueprint(
+        voice_bp, url_prefix="/api/voice"
+    )  # Voice-to-code API
     app.register_blueprint(monitoring_bp)
-    app.register_blueprint(advanced_dashboard_bp)  # Register advanced dashboard
+    app.register_blueprint(
+        advanced_dashboard_bp
+    )  # Register advanced dashboard
 
     # Register enterprise blueprints
-    from app.enterprise.organizations import organizations_bp
-    from app.enterprise.users import users_bp
-
     app.register_blueprint(organizations_bp)
     app.register_blueprint(users_bp)
 

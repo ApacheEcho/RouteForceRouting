@@ -22,9 +22,13 @@ class SimulatedAnnealingConfig:
     cooling_rate: float = 0.95
     max_iterations: int = 10000
     iterations_per_temp: int = 100
-    cooling_schedule: str = "exponential"  # 'exponential', 'linear', 'logarithmic'
+    cooling_schedule: str = (
+        "exponential"  # 'exponential', 'linear', 'logarithmic'
+    )
     neighborhood_operator: str = "swap"  # 'swap', 'insert', 'reverse', 'mixed'
-    reheat_threshold: int = 1000  # Iterations without improvement before reheating
+    reheat_threshold: int = (
+        1000  # Iterations without improvement before reheating
+    )
     reheat_factor: float = 1.5
     min_improvement_threshold: float = 0.001
 
@@ -110,7 +114,9 @@ class SimulatedAnnealingOptimizer:
         )
 
     def optimize(
-        self, stores: List[Dict[str, Any]], constraints: Optional[Dict[str, Any]] = None
+        self,
+        stores: List[Dict[str, Any]],
+        constraints: Optional[Dict[str, Any]] = None,
     ) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
         """
         Optimize route using simulated annealing
@@ -130,7 +136,9 @@ class SimulatedAnnealingOptimizer:
 
             # Initialize metrics
             self.metrics.cooling_schedule = self.config.cooling_schedule
-            self.metrics.neighborhood_operator = self.config.neighborhood_operator
+            self.metrics.neighborhood_operator = (
+                self.config.neighborhood_operator
+            )
 
             # Create distance matrix
             self.distance_matrix = self._create_distance_matrix(stores)
@@ -173,14 +181,20 @@ class SimulatedAnnealingOptimizer:
                         break
 
                     # Generate neighbor solution
-                    neighbor_route = self.neighborhood_function(current_route.copy())
-                    neighbor_distance = self._calculate_route_distance(neighbor_route)
+                    neighbor_route = self.neighborhood_function(
+                        current_route.copy()
+                    )
+                    neighbor_distance = self._calculate_route_distance(
+                        neighbor_route
+                    )
 
                     # Calculate change in objective function
                     delta = neighbor_distance - current_distance
 
                     # Accept or reject the neighbor
-                    if delta < 0 or random.random() < math.exp(-delta / temperature):
+                    if delta < 0 or random.random() < math.exp(
+                        -delta / temperature
+                    ):
                         # Accept the neighbor
                         current_route = neighbor_route
                         current_distance = neighbor_distance
@@ -202,14 +216,19 @@ class SimulatedAnnealingOptimizer:
                     iterations += 1
 
                 # Check for reheating
-                if iterations_without_improvement >= self.config.reheat_threshold:
+                if (
+                    iterations_without_improvement
+                    >= self.config.reheat_threshold
+                ):
                     temperature *= self.config.reheat_factor
                     reheats += 1
                     iterations_without_improvement = 0
                     logger.debug(f"Reheated to temperature {temperature:.4f}")
 
                 # Cool down the temperature
-                temperature = self.cooling_function(temperature, temperature_reductions)
+                temperature = self.cooling_function(
+                    temperature, temperature_reductions
+                )
                 temperature_reductions += 1
 
                 # Log progress periodically
@@ -274,7 +293,9 @@ class SimulatedAnnealingOptimizer:
             return optimized_route, metrics_dict
 
         except Exception as e:
-            logger.error(f"Error in Simulated Annealing optimization: {str(e)}")
+            logger.error(
+                f"Error in Simulated Annealing optimization: {str(e)}"
+            )
             processing_time = time.time() - start_time
             return stores, {
                 "algorithm": "simulated_annealing",
@@ -342,7 +363,9 @@ class SimulatedAnnealingOptimizer:
         return total_distance
 
     # Cooling schedule functions
-    def _exponential_cooling(self, temperature: float, iteration: int) -> float:
+    def _exponential_cooling(
+        self, temperature: float, iteration: int
+    ) -> float:
         """Exponential cooling schedule"""
         return temperature * self.config.cooling_rate
 
@@ -354,7 +377,9 @@ class SimulatedAnnealingOptimizer:
             / self.config.max_iterations
         )
 
-    def _logarithmic_cooling(self, temperature: float, iteration: int) -> float:
+    def _logarithmic_cooling(
+        self, temperature: float, iteration: int
+    ) -> float:
         """Logarithmic cooling schedule"""
         return self.config.initial_temperature / (1 + math.log(1 + iteration))
 
@@ -398,7 +423,11 @@ class SimulatedAnnealingOptimizer:
 
     def _mixed_neighborhood(self, route: List[int]) -> List[int]:
         """Randomly choose between different neighborhood operations"""
-        operations = [self._swap_two_nodes, self._insert_node, self._reverse_segment]
+        operations = [
+            self._swap_two_nodes,
+            self._insert_node,
+            self._reverse_segment,
+        ]
         operation = random.choice(operations)
         return operation(route)
 

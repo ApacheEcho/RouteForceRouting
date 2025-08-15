@@ -39,7 +39,9 @@ def get_ml_insights():
             "data_points": len(analytics.historical_data),
             "feature_count": len(analytics.feature_columns),
             "last_training": (
-                "Recently" if analytics.advanced_models_trained else "Not trained"
+                "Recently"
+                if analytics.advanced_models_trained
+                else "Not trained"
             ),
         }
 
@@ -64,7 +66,9 @@ def get_ml_insights():
                     "uncertainty_metrics": uncertainty_metrics,
                     "feature_importance": (
                         analytics.ensemble_engine.feature_importance
-                        if hasattr(analytics.ensemble_engine, "feature_importance")
+                        if hasattr(
+                            analytics.ensemble_engine, "feature_importance"
+                        )
                         else {}
                     ),
                 },
@@ -75,7 +79,10 @@ def get_ml_insights():
     except Exception as e:
         return (
             jsonify(
-                {"success": False, "error": f"Failed to retrieve ML insights: {str(e)}"}
+                {
+                    "success": False,
+                    "error": f"Failed to retrieve ML insights: {str(e)}",
+                }
             ),
             500,
         )
@@ -92,7 +99,12 @@ def get_performance_trends():
 
         # Get historical metrics for different timeframes
         trends_data = {}
-        metric_types = ["cpu_usage", "memory_usage", "api_response_time", "error_rate"]
+        metric_types = [
+            "cpu_usage",
+            "memory_usage",
+            "api_response_time",
+            "error_rate",
+        ]
 
         for metric_type in metric_types:
             history = monitor.get_metrics_history(metric_type, hours)
@@ -109,12 +121,19 @@ def get_performance_trends():
                     len(data), 10
                 )
 
-                if metric_type == "api_response_time" or metric_type == "error_rate":
+                if (
+                    metric_type == "api_response_time"
+                    or metric_type == "error_rate"
+                ):
                     # Lower is better
                     trend = (
                         "improving"
                         if recent_avg < older_avg
-                        else "degrading" if recent_avg > older_avg * 1.1 else "stable"
+                        else (
+                            "degrading"
+                            if recent_avg > older_avg * 1.1
+                            else "stable"
+                        )
                     )
                 else:
                     # For CPU/memory, stable is better
@@ -189,7 +208,9 @@ def get_predictive_analytics():
                         current_value * 1.02, 16000
                     )  # Slight increase, capped reasonably
                 elif metric_name == "api_response_time":
-                    forecast = max(current_value * 0.98, 10)  # Slight improvement
+                    forecast = max(
+                        current_value * 0.98, 10
+                    )  # Slight improvement
                 else:
                     forecast = current_value
 
@@ -307,13 +328,25 @@ def get_real_time_alerts():
                     "alert_summary": {
                         "total_alerts": len(active_alerts),
                         "high_priority": len(
-                            [a for a in active_alerts if a["priority"] == "high"]
+                            [
+                                a
+                                for a in active_alerts
+                                if a["priority"] == "high"
+                            ]
                         ),
                         "medium_priority": len(
-                            [a for a in active_alerts if a["priority"] == "medium"]
+                            [
+                                a
+                                for a in active_alerts
+                                if a["priority"] == "medium"
+                            ]
                         ),
                         "low_priority": len(
-                            [a for a in active_alerts if a["priority"] == "low"]
+                            [
+                                a
+                                for a in active_alerts
+                                if a["priority"] == "low"
+                            ]
                         ),
                         "critical_alerts": len(
                             [
@@ -323,7 +356,11 @@ def get_real_time_alerts():
                             ]
                         ),
                         "warning_alerts": len(
-                            [a for a in active_alerts if a.get("severity") == "warning"]
+                            [
+                                a
+                                for a in active_alerts
+                                if a.get("severity") == "warning"
+                            ]
                         ),
                     },
                 },

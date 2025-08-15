@@ -19,7 +19,9 @@ import time
 
 def test_multi_objective_direct():
     """Test multi-objective optimization directly"""
-    print("=== Testing Multi-Objective Optimization - Direct Implementation ===")
+    print(
+        "=== Testing Multi-Objective Optimization - Direct Implementation ==="
+    )
 
     # Test stores with various attributes
     stores = [
@@ -97,14 +99,18 @@ def test_multi_objective_direct():
             "name": "Distance + Time",
             "objectives": ["distance", "time"],
             "config": MultiObjectiveConfig(
-                population_size=50, generations=100, objectives=["distance", "time"]
+                population_size=50,
+                generations=100,
+                objectives=["distance", "time"],
             ),
         },
         {
             "name": "Distance + Priority",
             "objectives": ["distance", "priority"],
             "config": MultiObjectiveConfig(
-                population_size=50, generations=100, objectives=["distance", "priority"]
+                population_size=50,
+                generations=100,
+                objectives=["distance", "priority"],
             ),
         },
         {
@@ -176,7 +182,11 @@ def test_multi_objective_direct():
         except Exception as e:
             print(f"Error in test case {i+1}: {str(e)}")
             results.append(
-                {"test_case": test_case["name"], "success": False, "error": str(e)}
+                {
+                    "test_case": test_case["name"],
+                    "success": False,
+                    "error": str(e),
+                }
             )
 
     # Summary

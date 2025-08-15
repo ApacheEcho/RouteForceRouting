@@ -55,7 +55,10 @@ class MetricsCollector:
         logger.info("Metrics collector initialized")
 
     def increment_counter(
-        self, name: str, value: float = 1.0, labels: Optional[Dict[str, str]] = None
+        self,
+        name: str,
+        value: float = 1.0,
+        labels: Optional[Dict[str, str]] = None,
     ):
         """Increment a counter metric"""
         with self._lock:
@@ -79,7 +82,10 @@ class MetricsCollector:
             self.gauges[metric_key] = value
 
             self.metrics[metric_key] = MetricPoint(
-                name=name, value=value, labels=labels or {}, metric_type="gauge"
+                name=name,
+                value=value,
+                labels=labels or {},
+                metric_type="gauge",
             )
 
     def observe_histogram(
@@ -92,11 +98,16 @@ class MetricsCollector:
 
             # Keep only recent observations
             if len(self.histograms[metric_key]) > 1000:
-                self.histograms[metric_key] = self.histograms[metric_key][-1000:]
+                self.histograms[metric_key] = self.histograms[metric_key][
+                    -1000:
+                ]
 
             # Store current value as MetricPoint
             self.metrics[metric_key] = MetricPoint(
-                name=name, value=value, labels=labels or {}, metric_type="histogram"
+                name=name,
+                value=value,
+                labels=labels or {},
+                metric_type="histogram",
             )
 
     def record_service_request(
@@ -132,7 +143,9 @@ class MetricsCollector:
                 f"{service_name}_requests_total",
                 labels={"status": "success" if success else "error"},
             )
-            self.observe_histogram(f"{service_name}_duration_seconds", duration)
+            self.observe_histogram(
+                f"{service_name}_duration_seconds", duration
+            )
             self.set_gauge(f"{service_name}_error_rate", metrics.error_rate)
 
     def get_prometheus_metrics(self) -> str:
@@ -148,12 +161,16 @@ class MetricsCollector:
             for metric_name, metric_list in metrics_by_name.items():
                 # Add HELP and TYPE comments
                 lines.append(f"# HELP {metric_name} {metric_name}")
-                lines.append(f"# TYPE {metric_name} {metric_list[0].metric_type}")
+                lines.append(
+                    f"# TYPE {metric_name} {metric_list[0].metric_type}"
+                )
 
                 for metric in metric_list:
                     labels_str = ""
                     if metric.labels:
-                        label_pairs = [f'{k}="{v}"' for k, v in metric.labels.items()]
+                        label_pairs = [
+                            f'{k}="{v}"' for k, v in metric.labels.items()
+                        ]
                         labels_str = "{" + ",".join(label_pairs) + "}"
 
                     lines.append(f"{metric_name}{labels_str} {metric.value}")
@@ -240,12 +257,16 @@ def track_route_generation(func: Callable) -> Callable:
                 metrics_collector.set_gauge(
                     "route_total_distance", result.total_distance
                 )
-                metrics_collector.set_gauge("route_store_count", len(result.route))
+                metrics_collector.set_gauge(
+                    "route_store_count", len(result.route)
+                )
 
             return result
         finally:
             duration = time.time() - start_time
-            metrics_collector.record_service_request("route_generation", duration)
+            metrics_collector.record_service_request(
+                "route_generation", duration
+            )
 
     return wrapper
 
@@ -285,11 +306,15 @@ def track_distance_calculation(func: Callable) -> Callable:
 
             # Track distance if available in result
             if isinstance(result, (int, float)):
-                metrics_collector.observe_histogram("distance_calculated", result)
+                metrics_collector.observe_histogram(
+                    "distance_calculated", result
+                )
 
             return result
         finally:
             duration = time.time() - start_time
-            metrics_collector.record_service_request("distance_calculation", duration)
+            metrics_collector.record_service_request(
+                "distance_calculation", duration
+            )
 
     return wrapper

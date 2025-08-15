@@ -87,7 +87,9 @@ class MLRoutePredictor:
         # Load existing model if available
         self._load_model()
 
-        logger.info(f"Initialized ML Route Predictor with {config.model_type} model")
+        logger.info(
+            f"Initialized ML Route Predictor with {config.model_type} model"
+        )
 
     def _initialize_models(self):
         """Initialize ML models based on configuration"""
@@ -168,7 +170,9 @@ class MLRoutePredictor:
                         logger.warning(f"Missing coordinates for store {i}")
 
                 except (ValueError, TypeError) as e:
-                    logger.warning(f"Error parsing coordinates for store {i}: {e}")
+                    logger.warning(
+                        f"Error parsing coordinates for store {i}: {e}"
+                    )
                     continue
 
             # Calculate geographic spread safely
@@ -227,7 +231,9 @@ class MLRoutePredictor:
                 features.demand_variance = np.var(demands) if demands else 0.0
 
             except Exception as e:
-                logger.error(f"Error calculating priority/demand features: {e}")
+                logger.error(
+                    f"Error calculating priority/demand features: {e}"
+                )
                 features.priority_score = len(stores)  # Default
                 features.demand_total = 0.0
                 features.demand_variance = 0.0
@@ -248,8 +254,12 @@ class MLRoutePredictor:
                     features.day_of_week = now.weekday()
 
                     # Weather and traffic factors
-                    features.weather_factor = float(context.get("weather_factor", 1.0))
-                    features.traffic_factor = float(context.get("traffic_factor", 1.0))
+                    features.weather_factor = float(
+                        context.get("weather_factor", 1.0)
+                    )
+                    features.traffic_factor = float(
+                        context.get("traffic_factor", 1.0)
+                    )
 
             except Exception as e:
                 logger.warning(f"Error extracting temporal features: {e}")
@@ -342,7 +352,9 @@ class MLRoutePredictor:
             )
             return {}
 
-        logger.info(f"Training ML models with {len(self.training_data)} samples")
+        logger.info(
+            f"Training ML models with {len(self.training_data)} samples"
+        )
 
         # Prepare training data
         X = []
@@ -366,7 +378,9 @@ class MLRoutePredictor:
             ]
 
             X.append(feature_vector)
-            y_performance.append(sample["performance"].get("improvement_percent", 0))
+            y_performance.append(
+                sample["performance"].get("improvement_percent", 0)
+            )
             y_algorithm.append(sample["algorithm"])
 
         X = np.array(X)
@@ -386,11 +400,13 @@ class MLRoutePredictor:
             random_state=self.config.random_state,
         )
 
-        X_train_algo, X_test_algo, y_algo_train, y_algo_test = train_test_split(
-            X_scaled,
-            y_algorithm_encoded,
-            test_size=self.config.test_size,
-            random_state=self.config.random_state,
+        X_train_algo, X_test_algo, y_algo_train, y_algo_test = (
+            train_test_split(
+                X_scaled,
+                y_algorithm_encoded,
+                test_size=self.config.test_size,
+                random_state=self.config.random_state,
+            )
         )
 
         # Train route performance predictor
@@ -423,7 +439,9 @@ class MLRoutePredictor:
         return metrics
 
     def predict_route_performance(
-        self, stores: List[Dict[str, Any]], context: Optional[Dict[str, Any]] = None
+        self,
+        stores: List[Dict[str, Any]],
+        context: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, float]:
         """
         Predict route optimization performance for given stores
@@ -458,7 +476,9 @@ class MLRoutePredictor:
         )
 
         try:
-            feature_vector_scaled = self.feature_scaler.transform(feature_vector)
+            feature_vector_scaled = self.feature_scaler.transform(
+                feature_vector
+            )
             prediction = self.route_predictor.predict(feature_vector_scaled)[0]
 
             # Calculate confidence based on feature importance
@@ -480,7 +500,9 @@ class MLRoutePredictor:
             return {"predicted_improvement": 0.0, "confidence": 0.0}
 
     def recommend_algorithm(
-        self, stores: List[Dict[str, Any]], context: Optional[Dict[str, Any]] = None
+        self,
+        stores: List[Dict[str, Any]],
+        context: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
         Recommend best algorithm for given stores and context
@@ -519,11 +541,17 @@ class MLRoutePredictor:
         )
 
         try:
-            feature_vector_scaled = self.feature_scaler.transform(feature_vector)
-            prediction = self.algorithm_selector.predict(feature_vector_scaled)[0]
+            feature_vector_scaled = self.feature_scaler.transform(
+                feature_vector
+            )
+            prediction = self.algorithm_selector.predict(
+                feature_vector_scaled
+            )[0]
 
             # Get algorithm name
-            algorithm_name = self.algorithm_encoder.inverse_transform([prediction])[0]
+            algorithm_name = self.algorithm_encoder.inverse_transform(
+                [prediction]
+            )[0]
 
             # Calculate confidence
             if hasattr(self.algorithm_selector, "predict_proba"):
@@ -556,7 +584,9 @@ class MLRoutePredictor:
                 "reasoning": f"Error in recommendation: {str(e)}",
             }
 
-    def _generate_reasoning(self, features: RouteFeatures, algorithm: str) -> str:
+    def _generate_reasoning(
+        self, features: RouteFeatures, algorithm: str
+    ) -> str:
         """Generate human-readable reasoning for algorithm recommendation"""
         if algorithm == "genetic":
             if features.num_stores > 15:
@@ -581,9 +611,13 @@ class MLRoutePredictor:
                 "algorithm_selector": self.algorithm_selector,
                 "feature_scaler": self.feature_scaler,
                 "algorithm_encoder": self.algorithm_encoder,
-                "training_data": self.training_data[-1000:],  # Keep last 1000 samples
+                "training_data": self.training_data[
+                    -1000:
+                ],  # Keep last 1000 samples
                 "last_trained": (
-                    self.last_trained.isoformat() if self.last_trained else None
+                    self.last_trained.isoformat()
+                    if self.last_trained
+                    else None
                 ),
                 "config": self.config,
             }
@@ -605,7 +639,9 @@ class MLRoutePredictor:
 
                 self.route_predictor = model_data.get("route_predictor")
                 self.algorithm_selector = model_data.get("algorithm_selector")
-                self.feature_scaler = model_data.get("feature_scaler", StandardScaler())
+                self.feature_scaler = model_data.get(
+                    "feature_scaler", StandardScaler()
+                )
                 self.algorithm_encoder = model_data.get(
                     "algorithm_encoder", LabelEncoder()
                 )
@@ -613,7 +649,9 @@ class MLRoutePredictor:
 
                 last_trained_str = model_data.get("last_trained")
                 if last_trained_str:
-                    self.last_trained = datetime.fromisoformat(last_trained_str)
+                    self.last_trained = datetime.fromisoformat(
+                        last_trained_str
+                    )
 
                 logger.info(f"Model loaded from {self.model_path}")
 

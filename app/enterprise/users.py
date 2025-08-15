@@ -3,7 +3,11 @@ Advanced User Management with Role-Based Access Control
 """
 
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token
+from flask_jwt_extended import (
+    jwt_required,
+    get_jwt_identity,
+    create_access_token,
+)
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 import uuid
@@ -57,8 +61,12 @@ class RoleManager:
             Permission("routes.export", "Export route data", "routes"),
             # Analytics
             Permission("analytics.view", "View analytics", "analytics"),
-            Permission("analytics.advanced", "Access advanced analytics", "analytics"),
-            Permission("analytics.export", "Export analytics data", "analytics"),
+            Permission(
+                "analytics.advanced", "Access advanced analytics", "analytics"
+            ),
+            Permission(
+                "analytics.export", "Export analytics data", "analytics"
+            ),
             Permission("analytics.ml", "Access ML features", "analytics"),
             # User Management
             Permission("users.view", "View users", "users"),
@@ -69,7 +77,9 @@ class RoleManager:
             # Organization Management
             Permission("org.view", "View organization", "organization"),
             Permission("org.edit", "Edit organization", "organization"),
-            Permission("org.settings", "Manage organization settings", "organization"),
+            Permission(
+                "org.settings", "Manage organization settings", "organization"
+            ),
             Permission("org.billing", "Manage billing", "organization"),
             # System Administration
             Permission("system.monitor", "Monitor system", "system"),
@@ -313,7 +323,13 @@ class UserManager:
             return None
 
         # Update allowed fields
-        allowed_fields = ["first_name", "last_name", "role", "is_active", "profile"]
+        allowed_fields = [
+            "first_name",
+            "last_name",
+            "role",
+            "is_active",
+            "profile",
+        ]
         for field in allowed_fields:
             if field in data:
                 if field == "profile" and isinstance(data[field], dict):
@@ -420,7 +436,10 @@ def update_profile():
         if not user:
             return jsonify({"error": "User not found"}), 404
 
-        return jsonify({"user": user, "message": "Profile updated successfully"}), 200
+        return (
+            jsonify({"user": user, "message": "Profile updated successfully"}),
+            200,
+        )
 
     except Exception as e:
         logger.error(f"Update profile error: {str(e)}")
@@ -442,9 +461,14 @@ def change_password():
             return jsonify({"error": "Current and new password required"}), 400
 
         if len(new_password) < 6:
-            return jsonify({"error": "Password must be at least 6 characters"}), 400
+            return (
+                jsonify({"error": "Password must be at least 6 characters"}),
+                400,
+            )
 
-        success = user_manager.change_password(user_id, current_password, new_password)
+        success = user_manager.change_password(
+            user_id, current_password, new_password
+        )
         if not success:
             return jsonify({"error": "Invalid current password"}), 400
 
@@ -517,7 +541,9 @@ def check_permissions():
 
         results = {}
         for permission in permissions:
-            results[permission] = user_manager.has_permission(user_id, permission)
+            results[permission] = user_manager.has_permission(
+                user_id, permission
+            )
 
         return jsonify({"permissions": results}), 200
 

@@ -55,8 +55,18 @@ def main():
     try:
         test_data = {
             "stops": [
-                {"id": "1", "lat": 37.7749, "lng": -122.4194, "name": "San Francisco"},
-                {"id": "2", "lat": 37.7849, "lng": -122.4094, "name": "North Beach"},
+                {
+                    "id": "1",
+                    "lat": 37.7749,
+                    "lng": -122.4194,
+                    "name": "San Francisco",
+                },
+                {
+                    "id": "2",
+                    "lat": 37.7849,
+                    "lng": -122.4094,
+                    "name": "North Beach",
+                },
             ],
             "algorithm": "genetic",
         }
@@ -69,7 +79,9 @@ def main():
             print(f"   Algorithm: {result.get('algorithm_used', 'unknown')}")
             print(f"   Route Length: {result.get('total_stops', 0)} stops")
             print(f"   Distance: {result.get('total_distance_km', 0)} km")
-            print(f"   Processing Time: {result.get('processing_time', 0)} seconds")
+            print(
+                f"   Processing Time: {result.get('processing_time', 0)} seconds"
+            )
         else:
             print("🎯 OPTIMIZATION API: ❌ ISSUES DETECTED")
     except Exception as e:

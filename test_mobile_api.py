@@ -36,7 +36,9 @@ def test_mobile_health():
             print("✅ Mobile API health check successful!")
             print(f"Service: {result.get('service', 'N/A')}")
             print(f"Version: {result.get('version', 'N/A')}")
-            print(f"Capabilities: {len(result.get('capabilities', []))} features")
+            print(
+                f"Capabilities: {len(result.get('capabilities', []))} features"
+            )
             return True
         else:
             print(f"❌ Error: {response.text}")
@@ -121,7 +123,9 @@ def test_mobile_route_optimization():
     headers = {"Content-Type": "application/json", "X-API-Key": "test-api-key"}
 
     try:
-        response = requests.post(url, json=test_data, headers=headers, timeout=30)
+        response = requests.post(
+            url, json=test_data, headers=headers, timeout=30
+        )
         print(f"Status Code: {response.status_code}")
 
         if response.status_code == 200:
@@ -131,7 +135,9 @@ def test_mobile_route_optimization():
                 f"Route generated with {len(result.get('route', {}).get('stops', []))} stops"
             )
             print(f"Mobile optimized: {result.get('mobile_optimized', False)}")
-            print(f"Optimization time: {result.get('optimization_time', 'N/A')}")
+            print(
+                f"Optimization time: {result.get('optimization_time', 'N/A')}"
+            )
         else:
             print(f"❌ Error: {response.text}")
 
@@ -160,7 +166,9 @@ def test_mobile_traffic_routing():
     headers = {"Content-Type": "application/json", "X-API-Key": "test-api-key"}
 
     try:
-        response = requests.post(url, json=test_data, headers=headers, timeout=30)
+        response = requests.post(
+            url, json=test_data, headers=headers, timeout=30
+        )
         print(f"Status Code: {response.status_code}")
 
         if response.status_code == 200:
@@ -207,7 +215,9 @@ def test_driver_location_updates():
         }
 
         try:
-            response = requests.post(url, json=test_data, headers=headers, timeout=10)
+            response = requests.post(
+                url, json=test_data, headers=headers, timeout=10
+            )
 
             if response.status_code == 200:
                 success_count += 1
@@ -215,7 +225,9 @@ def test_driver_location_updates():
                     f"  📍 Location {i+1}: ✅ Updated ({location['lat']:.4f}, {location['lng']:.4f})"
                 )
             else:
-                print(f"  📍 Location {i+1}: ❌ Failed - {response.status_code}")
+                print(
+                    f"  📍 Location {i+1}: ❌ Failed - {response.status_code}"
+                )
 
         except Exception as e:
             print(f"  📍 Location {i+1}: ❌ Exception - {str(e)}")
@@ -232,7 +244,14 @@ def test_driver_status_updates():
     url = f"{BASE_URL}/api/mobile/driver/status"
 
     driver_id = f"driver_{uuid.uuid4().hex[:8]}"
-    statuses = ["available", "busy", "en_route", "delivering", "break", "offline"]
+    statuses = [
+        "available",
+        "busy",
+        "en_route",
+        "delivering",
+        "break",
+        "offline",
+    ]
 
     headers = {"Content-Type": "application/json", "X-API-Key": "test-api-key"}
 
@@ -253,13 +272,17 @@ def test_driver_status_updates():
         }
 
         try:
-            response = requests.post(url, json=test_data, headers=headers, timeout=10)
+            response = requests.post(
+                url, json=test_data, headers=headers, timeout=10
+            )
 
             if response.status_code == 200:
                 success_count += 1
                 print(f"  👤 Status '{status}': ✅ Updated")
             else:
-                print(f"  👤 Status '{status}': ❌ Failed - {response.status_code}")
+                print(
+                    f"  👤 Status '{status}': ❌ Failed - {response.status_code}"
+                )
 
         except Exception as e:
             print(f"  👤 Status '{status}': ❌ Exception - {str(e)}")
@@ -283,7 +306,9 @@ def test_offline_sync():
                 "driver_id": "driver_offline_test",
                 "lat": 37.7749,
                 "lng": -122.4194,
-                "timestamp": (datetime.utcnow() - timedelta(hours=2)).isoformat(),
+                "timestamp": (
+                    datetime.utcnow() - timedelta(hours=2)
+                ).isoformat(),
             },
         },
         {
@@ -291,7 +316,9 @@ def test_offline_sync():
             "data": {
                 "driver_id": "driver_offline_test",
                 "status": "delivering",
-                "timestamp": (datetime.utcnow() - timedelta(hours=1)).isoformat(),
+                "timestamp": (
+                    datetime.utcnow() - timedelta(hours=1)
+                ).isoformat(),
             },
         },
         {
@@ -300,17 +327,24 @@ def test_offline_sync():
                 "driver_id": "driver_offline_test",
                 "store_id": "store_123",
                 "completed": True,
-                "timestamp": (datetime.utcnow() - timedelta(minutes=30)).isoformat(),
+                "timestamp": (
+                    datetime.utcnow() - timedelta(minutes=30)
+                ).isoformat(),
             },
         },
     ]
 
-    test_data = {"device_id": DEVICE_DATA["device_id"], "offline_data": offline_data}
+    test_data = {
+        "device_id": DEVICE_DATA["device_id"],
+        "offline_data": offline_data,
+    }
 
     headers = {"Content-Type": "application/json", "X-API-Key": "test-api-key"}
 
     try:
-        response = requests.post(url, json=test_data, headers=headers, timeout=15)
+        response = requests.post(
+            url, json=test_data, headers=headers, timeout=15
+        )
         print(f"Status Code: {response.status_code}")
 
         if response.status_code == 200:

@@ -28,7 +28,11 @@ AUTONOMOUS_FEATURES = {
         "complexity": "medium",
         "timeline": "2 months",
         "impact": "40% maintenance cost reduction",
-        "technologies": ["time_series_analysis", "anomaly_detection", "IoT_sensors"],
+        "technologies": [
+            "time_series_analysis",
+            "anomaly_detection",
+            "IoT_sensors",
+        ],
     },
 }
 
@@ -52,7 +56,11 @@ NEXT_GEN_INTERFACE = {
     },
     "mobile_native_apps": {
         "description": "Native iOS/Android apps with offline capabilities",
-        "features": ["offline_routing", "gps_tracking", "driver_mobile_interface"],
+        "features": [
+            "offline_routing",
+            "gps_tracking",
+            "driver_mobile_interface",
+        ],
         "timeline": "3 months",
         "impact": "100% mobile workforce enablement",
     },
@@ -106,13 +114,21 @@ BLOCKCHAIN_FEATURES = {
     },
     "autonomous_fleet_dao": {
         "description": "Decentralized autonomous organization for fleet management",
-        "features": ["governance_tokens", "automated_decisions", "profit_sharing"],
+        "features": [
+            "governance_tokens",
+            "automated_decisions",
+            "profit_sharing",
+        ],
         "timeline": "5 months",
         "impact": "Revolutionary business model",
     },
     "carbon_credit_tracking": {
         "description": "Blockchain-verified carbon footprint and offset trading",
-        "features": ["emission_tracking", "carbon_credits", "sustainability_scoring"],
+        "features": [
+            "emission_tracking",
+            "carbon_credits",
+            "sustainability_scoring",
+        ],
         "timeline": "2 months",
         "impact": "Environmental compliance + revenue",
     },
@@ -204,4 +220,6 @@ if __name__ == "__main__":
     print("3. Cognitive Analytics & Intelligence")
     print("4. Blockchain & Decentralization")
     print("5. IoT & Edge Computing")
-    print("\n🚀 EXPECTED IMPACT: Revolutionary transformation of logistics industry")
+    print(
+        "\n🚀 EXPECTED IMPACT: Revolutionary transformation of logistics industry"
+    )

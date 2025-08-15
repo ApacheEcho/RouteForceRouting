@@ -56,7 +56,9 @@ class TestRouteRequest:
             }.get(key, default)
         )
         mock_form.getlist = Mock(return_value=["Monday", "Tuesday"])
-        mock_form.__contains__ = Mock(side_effect=lambda key: key in ["proximity"])
+        mock_form.__contains__ = Mock(
+            side_effect=lambda key: key in ["proximity"]
+        )
         mock_request.form = mock_form
 
         route_request = RouteRequest.from_request(mock_request)
@@ -88,7 +90,9 @@ class TestRouteRequest:
         route_request.time_end = "09:00"
 
         errors = route_request.get_validation_errors()
-        assert any("Time start must be before time end" in error for error in errors)
+        assert any(
+            "Time start must be before time end" in error for error in errors
+        )
 
 
 class TestFileService:
@@ -220,7 +224,9 @@ class TestRoutingService:
             "app.services.routing_service_unified.UnifiedRoutingService"
         ) as mock_service:
             mock_instance = Mock()
-            mock_instance._calculate_optimization_score = Mock(return_value=75.0)
+            mock_instance._calculate_optimization_score = Mock(
+                return_value=75.0
+            )
             mock_service.return_value = mock_instance
 
             service = UnifiedRoutingService()
@@ -287,9 +293,21 @@ class TestAPIEndpoints:
         """Test API clusters endpoint"""
         test_data = {
             "stores": [
-                {"name": "Store A", "latitude": 40.7128, "longitude": -74.0060},
-                {"name": "Store B", "latitude": 40.7130, "longitude": -74.0062},
-                {"name": "Store C", "latitude": 40.7500, "longitude": -73.9500},
+                {
+                    "name": "Store A",
+                    "latitude": 40.7128,
+                    "longitude": -74.0060,
+                },
+                {
+                    "name": "Store B",
+                    "latitude": 40.7130,
+                    "longitude": -74.0062,
+                },
+                {
+                    "name": "Store C",
+                    "latitude": 40.7500,
+                    "longitude": -73.9500,
+                },
             ],
             "radius_km": 1.0,
         }
@@ -315,7 +333,11 @@ class TestAPIEndpoints:
             "/api/v1/clusters",
             json={
                 "stores": [
-                    {"name": "Store A", "latitude": 40.7128, "longitude": -74.0060}
+                    {
+                        "name": "Store A",
+                        "latitude": 40.7128,
+                        "longitude": -74.0060,
+                    }
                 ],
                 "radius_km": -1.0,
             },
@@ -324,7 +346,8 @@ class TestAPIEndpoints:
 
         # Missing coordinates
         response = client.post(
-            "/api/v1/clusters", json={"stores": [{"name": "Store A"}], "radius_km": 1.0}
+            "/api/v1/clusters",
+            json={"stores": [{"name": "Store A"}], "radius_km": 1.0},
         )
         assert response.status_code == 400
 
@@ -362,7 +385,9 @@ class TestMainRoutes:
 
     def test_generate_route_no_file(self, client):
         """Test route generation without file"""
-        response = client.post("/generate", data={}, content_type="multipart/form-data")
+        response = client.post(
+            "/generate", data={}, content_type="multipart/form-data"
+        )
         assert response.status_code == 400
 
         data = response.get_json()
@@ -401,7 +426,9 @@ class TestCaching:
         """Test cache key generation"""
         mock_request = Mock()
         mock_request.files = {
-            "file": Mock(filename="test.csv", read=Mock(return_value=b"test content"))
+            "file": Mock(
+                filename="test.csv", read=Mock(return_value=b"test content")
+            )
         }
         mock_form = Mock()
         mock_form.get = Mock(return_value=None)
@@ -432,8 +459,16 @@ class TestProximityClustering:
 
         stores = [
             {"name": "Store A", "lat": 40.7128, "lon": -74.0060},  # NYC
-            {"name": "Store B", "lat": 40.7130, "lon": -74.0062},  # Very close to A
-            {"name": "Store C", "lat": 40.7500, "lon": -73.9500},  # Further away
+            {
+                "name": "Store B",
+                "lat": 40.7130,
+                "lon": -74.0062,
+            },  # Very close to A
+            {
+                "name": "Store C",
+                "lat": 40.7500,
+                "lon": -73.9500,
+            },  # Further away
         ]
 
         clusters = cluster_by_proximity(stores, radius_km=1.0)
@@ -647,7 +682,9 @@ class TestTimeWindowRoutingConflicts:
         route_request.time_end = "08:00"
 
         errors = route_request.get_validation_errors()
-        assert any("Time start must be before time end" in error for error in errors)
+        assert any(
+            "Time start must be before time end" in error for error in errors
+        )
 
     def test_zero_duration_time_window(self):
         """Test time window with zero duration"""
@@ -670,7 +707,8 @@ class TestTimeWindowRoutingConflicts:
 
         errors = route_request.get_validation_errors()
         assert any(
-            "Time window must have duration greater than 0" in error for error in errors
+            "Time window must have duration greater than 0" in error
+            for error in errors
         )
 
     def test_extremely_short_time_window(self):
@@ -788,7 +826,9 @@ class TestMultiUserRequestIsolation:
         # Create identical requests for two different users
         mock_request1 = Mock()
         mock_request1.files = {
-            "file": Mock(filename="test.csv", read=Mock(return_value=b"same content"))
+            "file": Mock(
+                filename="test.csv", read=Mock(return_value=b"same content")
+            )
         }
         mock_form1 = Mock()
         mock_form1.get = Mock(
@@ -803,7 +843,9 @@ class TestMultiUserRequestIsolation:
 
         mock_request2 = Mock()
         mock_request2.files = {
-            "file": Mock(filename="test.csv", read=Mock(return_value=b"same content"))
+            "file": Mock(
+                filename="test.csv", read=Mock(return_value=b"same content")
+            )
         }
         mock_form2 = Mock()
         mock_form2.get = Mock(

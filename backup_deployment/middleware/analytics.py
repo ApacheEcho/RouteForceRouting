@@ -56,7 +56,9 @@ class AnalyticsMiddleware:
                             "method": g.analytics_data["method"],
                             "response_time": response_time,
                             "severity": (
-                                "error" if response.status_code >= 500 else "warning"
+                                "error"
+                                if response.status_code >= 500
+                                else "warning"
                             ),
                         },
                     )

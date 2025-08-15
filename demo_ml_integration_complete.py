@@ -80,7 +80,9 @@ def test_ml_api_direct():
         if response.status_code == 200:
             health_data = response.json()
             print(f"   ✓ API is healthy")
-            print(f"   Available endpoints: {len(health_data.get('endpoints', {}))}")
+            print(
+                f"   Available endpoints: {len(health_data.get('endpoints', {}))}"
+            )
         else:
             print(f"   ✗ API health check failed: {response.status_code}")
             return False
@@ -93,12 +95,16 @@ def test_ml_api_direct():
             print(f"   ✓ Basic route generated successfully")
             print(f"   Route stops: {len(route_data.get('route', []))}")
         else:
-            print(f"   ✗ Basic route generation failed: {response.status_code}")
+            print(
+                f"   ✗ Basic route generation failed: {response.status_code}"
+            )
             return False
 
         # Test genetic algorithm optimization
         print("\n3. Testing genetic algorithm optimization...")
-        response = requests.post(f"{base_url}/routes/optimize/genetic", json=test_data)
+        response = requests.post(
+            f"{base_url}/routes/optimize/genetic", json=test_data
+        )
         if response.status_code == 200:
             genetic_data = response.json()
             print(f"   ✓ Genetic algorithm optimization successful")
@@ -106,7 +112,9 @@ def test_ml_api_direct():
                 f"   Improvement: {genetic_data.get('metrics', {}).get('improvement_percent', 0):.2f}%"
             )
         else:
-            print(f"   ✗ Genetic algorithm optimization failed: {response.status_code}")
+            print(
+                f"   ✗ Genetic algorithm optimization failed: {response.status_code}"
+            )
 
         # Test simulated annealing optimization
         print("\n4. Testing simulated annealing optimization...")
@@ -276,7 +284,11 @@ def demonstrate_optimization_algorithms():
 
         except Exception as e:
             results.append(
-                {"algorithm": algorithm["name"], "success": False, "error": str(e)}
+                {
+                    "algorithm": algorithm["name"],
+                    "success": False,
+                    "error": str(e),
+                }
             )
             print(f"   ✗ Error: {str(e)}")
 
@@ -303,7 +315,9 @@ def main():
 
     # Check if server is running
     try:
-        response = requests.get("http://localhost:5001/api/v1/health", timeout=5)
+        response = requests.get(
+            "http://localhost:5001/api/v1/health", timeout=5
+        )
         if response.status_code != 200:
             print("❌ Server is not running or not responding correctly")
             print("Please start the server with: python app.py")
@@ -345,7 +359,9 @@ def main():
         # Show best performing algorithm
         successful_results = [r for r in results if r["success"]]
         if successful_results:
-            best_algorithm = max(successful_results, key=lambda x: x["improvement"])
+            best_algorithm = max(
+                successful_results, key=lambda x: x["improvement"]
+            )
             print(
                 f"✓ Best performing algorithm: {best_algorithm['algorithm']} ({best_algorithm['improvement']:.1f}% improvement)"
             )

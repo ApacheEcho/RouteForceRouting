@@ -87,9 +87,15 @@ def test_genetic_algorithm():
         print(f"📊 Results:")
         print(f"  - Algorithm: {metrics.get('algorithm', 'unknown')}")
         print(f"  - Generations: {metrics.get('generations', 'N/A')}")
-        print(f"  - Initial Distance: {metrics.get('initial_distance', 'N/A'):.2f}km")
-        print(f"  - Final Distance: {metrics.get('final_distance', 'N/A'):.2f}km")
-        print(f"  - Improvement: {metrics.get('improvement_percent', 'N/A'):.1f}%")
+        print(
+            f"  - Initial Distance: {metrics.get('initial_distance', 'N/A'):.2f}km"
+        )
+        print(
+            f"  - Final Distance: {metrics.get('final_distance', 'N/A'):.2f}km"
+        )
+        print(
+            f"  - Improvement: {metrics.get('improvement_percent', 'N/A'):.1f}%"
+        )
         print(f"  - Population Size: {metrics.get('population_size', 'N/A')}")
         print(f"  - Best Fitness: {metrics.get('best_fitness', 'N/A'):.6f}")
 
@@ -116,7 +122,9 @@ def test_edge_cases():
     try:
         ga = GeneticAlgorithm()
         route, metrics = ga.optimize(TEST_STORES[:2])
-        print(f"✅ 2 stores: {metrics.get('improvement_percent', 0):.1f}% improvement")
+        print(
+            f"✅ 2 stores: {metrics.get('improvement_percent', 0):.1f}% improvement"
+        )
     except Exception as e:
         print(f"❌ 2 stores failed: {e}")
 

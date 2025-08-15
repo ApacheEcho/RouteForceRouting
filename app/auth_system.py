@@ -66,7 +66,11 @@ ROLES = {
         "description": "Route management and analytics access",
     },
     "driver": {
-        "permissions": ["view_own_routes", "update_location", "view_basic_analytics"],
+        "permissions": [
+            "view_own_routes",
+            "update_location",
+            "view_basic_analytics",
+        ],
         "description": "Limited access to own routes and updates",
     },
     "viewer": {
@@ -147,7 +151,9 @@ class AuthManager:
                 return user
         return None
 
-    def authenticate_user(self, email: str, password: str) -> Optional[Dict[str, Any]]:
+    def authenticate_user(
+        self, email: str, password: str
+    ) -> Optional[Dict[str, Any]]:
         """Authenticate user with email and password"""
         user = self.get_user_by_email(email)
         if (
@@ -290,7 +296,10 @@ def register():
         role = data.get("role", "viewer")
 
         if not email or not name or not password:
-            return jsonify({"error": "Email, name, and password required"}), 400
+            return (
+                jsonify({"error": "Email, name, and password required"}),
+                400,
+            )
 
         # Create user
         user = auth_manager.create_user(email, name, password, role)
@@ -365,7 +374,9 @@ def list_users():
                 }
             )
 
-        return jsonify({"success": True, "users": users_list, "total": len(users_list)})
+        return jsonify(
+            {"success": True, "users": users_list, "total": len(users_list)}
+        )
 
     except Exception as e:
         logger.error(f"List users error: {e}")
@@ -394,7 +405,9 @@ def update_user_role():
                 stored_user["role"] = new_role
                 break
 
-        return jsonify({"success": True, "message": "User role updated successfully"})
+        return jsonify(
+            {"success": True, "message": "User role updated successfully"}
+        )
 
     except Exception as e:
         logger.error(f"Update role error: {e}")
@@ -417,7 +430,10 @@ def validate_token():
         user = auth_manager.get_user_by_id(current_user_id)
 
         if not user or not user["is_active"]:
-            return jsonify({"valid": False, "error": "Invalid or inactive user"}), 401
+            return (
+                jsonify({"valid": False, "error": "Invalid or inactive user"}),
+                401,
+            )
 
         return jsonify(
             {

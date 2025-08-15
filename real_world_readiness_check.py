@@ -64,7 +64,9 @@ class RealWorldReadinessCheck:
 
         # Check authentication endpoints
         try:
-            response = requests.get(f"{self.backend_url}/auth/status", timeout=5)
+            response = requests.get(
+                f"{self.backend_url}/auth/status", timeout=5
+            )
             if response.status_code in [200, 401]:  # 401 means auth is working
                 print("   ✅ Authentication system: Active")
                 score += 20
@@ -78,7 +80,9 @@ class RealWorldReadinessCheck:
             self.warnings.append("Unable to verify authentication system")
 
         # Check HTTPS readiness (in production)
-        print("   ✅ HTTPS Configuration: Ready (SSL termination at load balancer)")
+        print(
+            "   ✅ HTTPS Configuration: Ready (SSL termination at load balancer)"
+        )
         score += 15
 
         # Check input validation
@@ -86,7 +90,9 @@ class RealWorldReadinessCheck:
             # Test malicious input
             malicious_data = {"stops": ["<script>alert('xss')</script>"]}
             response = requests.post(
-                f"{self.backend_url}/api/optimize", json=malicious_data, timeout=5
+                f"{self.backend_url}/api/optimize",
+                json=malicious_data,
+                timeout=5,
             )
             if response.status_code == 400:  # Should reject malicious input
                 print("   ✅ Input validation: Working")
@@ -112,8 +118,12 @@ class RealWorldReadinessCheck:
             print("   ✅ Environment configuration: Production ready")
             score += 15
         else:
-            print("   ⚠️  Environment configuration: Should use .env.production")
-            self.warnings.append("Create .env.production file for production secrets")
+            print(
+                "   ⚠️  Environment configuration: Should use .env.production"
+            )
+            self.warnings.append(
+                "Create .env.production file for production secrets"
+            )
             score += 10
 
         # Check SQL injection protection
@@ -139,7 +149,9 @@ class RealWorldReadinessCheck:
                 )
                 score += 25
             elif response_time < 0.5:  # Under 500ms
-                print(f"   ✅ API response time: {response_time*1000:.1f}ms (Good)")
+                print(
+                    f"   ✅ API response time: {response_time*1000:.1f}ms (Good)"
+                )
                 score += 20
             else:
                 print(
@@ -177,11 +189,17 @@ class RealWorldReadinessCheck:
                 )
                 score += 25
             elif opt_time < 15:  # Under 15 seconds
-                print(f"   ✅ Route optimization: {opt_time:.2f}s for 10 stops (Good)")
+                print(
+                    f"   ✅ Route optimization: {opt_time:.2f}s for 10 stops (Good)"
+                )
                 score += 20
             else:
-                print(f"   ⚠️  Route optimization: {opt_time:.2f}s for 10 stops (Slow)")
-                self.warnings.append("Route optimization performance could be improved")
+                print(
+                    f"   ⚠️  Route optimization: {opt_time:.2f}s for 10 stops (Slow)"
+                )
+                self.warnings.append(
+                    "Route optimization performance could be improved"
+                )
                 score += 10
         except:
             print("   ❌ Route optimization: Cannot test")
@@ -212,7 +230,9 @@ class RealWorldReadinessCheck:
             score += 25
         else:
             print("   ❌ Docker: Missing production Dockerfile")
-            self.critical_issues.append("Missing production Docker configuration")
+            self.critical_issues.append(
+                "Missing production Docker configuration"
+            )
 
         # Check Kubernetes configuration
         if os.path.exists("k8s/"):
@@ -220,7 +240,9 @@ class RealWorldReadinessCheck:
             score += 25
         else:
             print("   ⚠️  Kubernetes: No K8s manifests found")
-            self.warnings.append("Kubernetes manifests would help with scalability")
+            self.warnings.append(
+                "Kubernetes manifests would help with scalability"
+            )
             score += 10
 
         # Check horizontal scaling readiness
@@ -245,7 +267,9 @@ class RealWorldReadinessCheck:
         # Check error handling
         try:
             # Test invalid endpoint
-            response = requests.get(f"{self.backend_url}/invalid/endpoint", timeout=5)
+            response = requests.get(
+                f"{self.backend_url}/invalid/endpoint", timeout=5
+            )
             if response.status_code == 404:
                 print("   ✅ Error handling: 404 errors handled properly")
                 score += 20
@@ -269,7 +293,9 @@ class RealWorldReadinessCheck:
                     score += 15
             else:
                 print("   ❌ Health checks: Not responding")
-                self.critical_issues.append("Health check endpoint not working")
+                self.critical_issues.append(
+                    "Health check endpoint not working"
+                )
         except:
             print("   ❌ Health checks: Cannot reach")
             self.critical_issues.append("Cannot reach health check endpoint")

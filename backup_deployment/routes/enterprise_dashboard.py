@@ -55,8 +55,12 @@ def get_overview_data():
             fleet_insights = analytics.get_fleet_insights()
             performance_metrics = {
                 "total_routes": fleet_insights.get("total_routes", 102),
-                "avg_fuel_efficiency": fleet_insights.get("avg_fuel_efficiency", 9.6),
-                "avg_duration": fleet_insights.get("avg_duration_minutes", 85.0),
+                "avg_fuel_efficiency": fleet_insights.get(
+                    "avg_fuel_efficiency", 9.6
+                ),
+                "avg_duration": fleet_insights.get(
+                    "avg_duration_minutes", 85.0
+                ),
                 "total_distance": 2500.0,
                 "total_duration": 8670.0,
             }
@@ -80,13 +84,19 @@ def get_overview_data():
                 performance_metrics.get("avg_fuel_efficiency", 0), 1
             ),
             "active_drivers": len(performance_metrics.get("top_drivers", [])),
-            "total_distance": round(performance_metrics.get("total_distance", 0), 1),
-            "avg_duration": round(performance_metrics.get("avg_duration", 0), 1),
+            "total_distance": round(
+                performance_metrics.get("total_distance", 0), 1
+            ),
+            "avg_duration": round(
+                performance_metrics.get("avg_duration", 0), 1
+            ),
             "cost_savings": calculate_cost_savings(performance_metrics),
         }
 
         # Get trend data
-        trends = analytics.detect_performance_trends(timeframe_days=timeframe_days)
+        trends = analytics.detect_performance_trends(
+            timeframe_days=timeframe_days
+        )
 
         # Format response
         overview_data = {
@@ -134,7 +144,12 @@ def get_system_status():
 
     except Exception as e:
         current_app.logger.error(f"Error getting system status: {str(e)}")
-        return jsonify({"success": False, "error": "Failed to get system status"}), 500
+        return (
+            jsonify(
+                {"success": False, "error": "Failed to get system status"}
+            ),
+            500,
+        )
 
 
 @enterprise_bp.route("/api/routes/active", methods=["GET"])
@@ -159,7 +174,9 @@ def get_active_routes():
     except Exception as e:
         current_app.logger.error(f"Error getting active routes: {str(e)}")
         return (
-            jsonify({"success": False, "error": "Failed to retrieve active routes"}),
+            jsonify(
+                {"success": False, "error": "Failed to retrieve active routes"}
+            ),
             500,
         )
 
@@ -189,7 +206,12 @@ def get_recent_insights():
 
     except Exception as e:
         current_app.logger.error(f"Error getting recent insights: {str(e)}")
-        return jsonify({"success": False, "error": "Failed to retrieve insights"}), 500
+        return (
+            jsonify(
+                {"success": False, "error": "Failed to retrieve insights"}
+            ),
+            500,
+        )
 
 
 @enterprise_bp.route("/api/recommendations/generate", methods=["POST"])
@@ -201,7 +223,9 @@ def generate_enterprise_recommendations():
         data = request.get_json() or {}
 
         # Get parameters
-        focus_area = data.get("focus_area", "all")  # efficiency, cost, safety, all
+        focus_area = data.get(
+            "focus_area", "all"
+        )  # efficiency, cost, safety, all
         timeframe = data.get("timeframe", 30)
 
         analytics = get_analytics_engine()
@@ -232,7 +256,12 @@ def generate_enterprise_recommendations():
     except Exception as e:
         current_app.logger.error(f"Error generating recommendations: {str(e)}")
         return (
-            jsonify({"success": False, "error": "Failed to generate recommendations"}),
+            jsonify(
+                {
+                    "success": False,
+                    "error": "Failed to generate recommendations",
+                }
+            ),
             500,
         )
 
@@ -245,10 +274,15 @@ def optimize_route_with_ai():
     try:
         data = request.get_json()
         if not data:
-            return jsonify({"success": False, "error": "No route data provided"}), 400
+            return (
+                jsonify({"success": False, "error": "No route data provided"}),
+                400,
+            )
 
         # Use enhanced external API service for optimization
-        optimization_result = enhanced_api_service.optimize_route_with_context(data)
+        optimization_result = enhanced_api_service.optimize_route_with_context(
+            data
+        )
 
         return jsonify({"success": True, "optimization": optimization_result})
 
@@ -287,14 +321,20 @@ def get_real_time_route_update():
         location = data["location"]  # [lat, lon]
 
         # Get real-time updates using enhanced external API service
-        updates = enhanced_api_service.get_real_time_updates(route_id, tuple(location))
+        updates = enhanced_api_service.get_real_time_updates(
+            route_id, tuple(location)
+        )
 
-        return jsonify({"success": True, "route_id": route_id, "updates": updates})
+        return jsonify(
+            {"success": True, "route_id": route_id, "updates": updates}
+        )
 
     except Exception as e:
         current_app.logger.error(f"Error getting real-time updates: {str(e)}")
         return (
-            jsonify({"success": False, "error": "Failed to get real-time updates"}),
+            jsonify(
+                {"success": False, "error": "Failed to get real-time updates"}
+            ),
             500,
         )
 
@@ -326,8 +366,8 @@ def export_dashboard_data():
             )
 
         if "routes" in data_types:
-            export_data["historical_routes"] = database_service.get_historical_routes(
-                days_back=timeframe
+            export_data["historical_routes"] = (
+                database_service.get_historical_routes(days_back=timeframe)
             )
 
         # Add metadata
@@ -361,7 +401,10 @@ def export_dashboard_data():
 
     except Exception as e:
         current_app.logger.error(f"Error exporting data: {str(e)}")
-        return jsonify({"success": False, "error": "Failed to export data"}), 500
+        return (
+            jsonify({"success": False, "error": "Failed to export data"}),
+            500,
+        )
 
 
 # Utility functions
@@ -375,7 +418,9 @@ def calculate_cost_savings(performance_metrics: Dict[str, Any]) -> float:
         baseline_efficiency = 7.5  # km/L
 
         # Calculate fuel savings
-        fuel_saved = total_distance * (1 / baseline_efficiency - 1 / avg_efficiency)
+        fuel_saved = total_distance * (
+            1 / baseline_efficiency - 1 / avg_efficiency
+        )
         fuel_price = 1.45  # $ per liter
 
         cost_savings = fuel_saved * fuel_price

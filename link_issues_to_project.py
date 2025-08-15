@@ -4,7 +4,9 @@ import os
 # Load GitHub Token from environment only (do not hardcode tokens)
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 if not GITHUB_TOKEN:
-    raise SystemExit("❌ GITHUB_TOKEN not set. Export it securely or use GitHub Actions secrets.")
+    raise SystemExit(
+        "❌ GITHUB_TOKEN not set. Export it securely or use GitHub Actions secrets."
+    )
 
 REPO_NAME = "ApacheEcho/RouteForceRouting"
 PROJECT_NAME = "Route Force Pro"
@@ -25,9 +27,13 @@ items = repo.get_issues(state="open")
 
 for item in items:
     # Only link items not already in the project
-    project_cards = [c.content_url for c in project.get_columns()[0].get_cards()]
+    project_cards = [
+        c.content_url for c in project.get_columns()[0].get_cards()
+    ]
     if item.url not in project_cards:
-        project.get_columns()[0].create_card(content_id=item.id, content_type="Issue")
+        project.get_columns()[0].create_card(
+            content_id=item.id, content_type="Issue"
+        )
         print(f"✅ Linked: {item.title}")
     else:
         print(f"↪️ Already linked: {item.title}")

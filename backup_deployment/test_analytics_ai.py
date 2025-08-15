@@ -38,7 +38,9 @@ def test_analytics_engine():
 
     # Test prediction
     prediction = analytics.predict_route_performance(sample_route)
-    print(f"✅ Generated prediction: {prediction.predicted_duration:.1f} minutes")
+    print(
+        f"✅ Generated prediction: {prediction.predicted_duration:.1f} minutes"
+    )
     print(f"   Fuel cost: ${prediction.predicted_fuel_cost:.2f}")
     print(f"   Risk factors: {len(prediction.risk_factors)}")
     print(f"   Suggestions: {len(prediction.optimization_suggestions)}")

@@ -36,7 +36,9 @@ class WebSocketManager:
                 user_id = session.get("user_id")
                 username = session.get("username", "Anonymous")
 
-                logger.info(f"Client connected: {request.sid}, User: {username}")
+                logger.info(
+                    f"Client connected: {request.sid}, User: {username}"
+                )
 
                 # Store connection info
                 self.active_connections[request.sid] = {
@@ -64,7 +66,8 @@ class WebSocketManager:
 
                 # Broadcast user count update
                 self.socketio.emit(
-                    "user_count_update", {"active_users": len(self.active_connections)}
+                    "user_count_update",
+                    {"active_users": len(self.active_connections)},
                 )
 
             except Exception as e:
@@ -80,7 +83,9 @@ class WebSocketManager:
                     username = user_data.get("username", "Unknown")
                     user_id = user_data.get("user_id")
 
-                    logger.info(f"Client disconnected: {request.sid}, User: {username}")
+                    logger.info(
+                        f"Client disconnected: {request.sid}, User: {username}"
+                    )
 
                     # Leave user room
                     if user_id and user_id in self.user_rooms:
@@ -173,7 +178,10 @@ class WebSocketManager:
                 # Send confirmation
                 emit(
                     "left_route",
-                    {"route_id": route_id, "message": f"Left route {route_id}"},
+                    {
+                        "route_id": route_id,
+                        "message": f"Left route {route_id}",
+                    },
                 )
 
             except Exception as e:
@@ -197,13 +205,15 @@ class WebSocketManager:
                     "route_id": route_id,
                     "progress": progress,
                     "timestamp": datetime.now().isoformat(),
-                    "updated_by": self.active_connections.get(request.sid, {}).get(
-                        "username", "Unknown"
-                    ),
+                    "updated_by": self.active_connections.get(
+                        request.sid, {}
+                    ).get("username", "Unknown"),
                 }
 
                 # Broadcast to all users watching this route
-                self.socketio.emit("route_progress", progress_data, room=room_id)
+                self.socketio.emit(
+                    "route_progress", progress_data, room=room_id
+                )
 
                 logger.info(f"Route {route_id} progress updated: {progress}")
 
@@ -251,7 +261,9 @@ class WebSocketManager:
             except Exception as e:
                 logger.error(f"Error handling ping: {str(e)}")
 
-    def broadcast_route_update(self, route_id: str, update_data: Dict[str, Any]):
+    def broadcast_route_update(
+        self, route_id: str, update_data: Dict[str, Any]
+    ):
         """Broadcast route update to all connected clients"""
         try:
             room_id = f"route_{route_id}"
@@ -263,7 +275,9 @@ class WebSocketManager:
         except Exception as e:
             logger.error(f"Error broadcasting route update: {str(e)}")
 
-    def broadcast_optimization_progress(self, route_id: str, progress: Dict[str, Any]):
+    def broadcast_optimization_progress(
+        self, route_id: str, progress: Dict[str, Any]
+    ):
         """Broadcast optimization progress to interested clients"""
         try:
             room_id = f"route_{route_id}"
@@ -273,7 +287,9 @@ class WebSocketManager:
                 "timestamp": datetime.now().isoformat(),
             }
 
-            self.socketio.emit("optimization_progress", progress_data, room=room_id)
+            self.socketio.emit(
+                "optimization_progress", progress_data, room=room_id
+            )
             logger.info(f"Broadcasted optimization progress for {route_id}")
 
         except Exception as e:
@@ -322,7 +338,8 @@ class WebSocketManager:
         inactive_sids = [
             sid
             for sid, data in self.active_connections.items()
-            if (current_time - data["last_activity"]).seconds > inactive_threshold
+            if (current_time - data["last_activity"]).seconds
+            > inactive_threshold
         ]
 
         for sid in inactive_sids:

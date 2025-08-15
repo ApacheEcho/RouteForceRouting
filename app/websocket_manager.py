@@ -216,7 +216,9 @@ def init_websocket(socketio: SocketIO):
 
             # Broadcast to subscribers
             socketio.emit(
-                "driver_location", asdict(location), room=f"driver_{location.driver_id}"
+                "driver_location",
+                asdict(location),
+                room=f"driver_{location.driver_id}",
             )
 
             # If on a route, also broadcast to route subscribers
@@ -246,7 +248,11 @@ def init_websocket(socketio: SocketIO):
                 return
 
             connection_info = active_connections[session_id]
-            if connection_info.user_type not in ["driver", "dispatcher", "admin"]:
+            if connection_info.user_type not in [
+                "driver",
+                "dispatcher",
+                "admin",
+            ]:
                 emit("error", {"message": "Insufficient permissions"})
                 return
 
@@ -311,7 +317,10 @@ def init_websocket(socketio: SocketIO):
 
         emit(
             "joined_room",
-            {"room": "dispatchers", "message": "Subscribed to fleet-wide updates"},
+            {
+                "room": "dispatchers",
+                "message": "Subscribed to fleet-wide updates",
+            },
         )
 
         # Send current fleet status
@@ -347,9 +356,13 @@ def init_websocket(socketio: SocketIO):
         target_id = data.get("target_id")
 
         if target_type == "driver" and target_id:
-            socketio.emit("notification", notification, room=f"driver_{target_id}")
+            socketio.emit(
+                "notification", notification, room=f"driver_{target_id}"
+            )
         elif target_type == "route" and target_id:
-            socketio.emit("notification", notification, room=f"route_{target_id}")
+            socketio.emit(
+                "notification", notification, room=f"route_{target_id}"
+            )
         elif target_type == "dispatchers":
             socketio.emit("notification", notification, room="dispatchers")
         else:

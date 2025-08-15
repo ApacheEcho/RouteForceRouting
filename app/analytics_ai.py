@@ -150,7 +150,10 @@ class AdvancedAnalytics:
             self._train_models()
 
         # Train advanced ensemble every 100 samples
-        if len(self.historical_data) % 100 == 0 and len(self.historical_data) >= 200:
+        if (
+            len(self.historical_data) % 100 == 0
+            and len(self.historical_data) >= 200
+        ):
             self._train_advanced_ensemble()
 
     def load_historical_data(self, days_back: int = 30) -> None:
@@ -223,9 +226,9 @@ class AdvancedAnalytics:
         # Route complexity
         if "stops" in route_data:
             enriched["stops_count"] = len(route_data["stops"])
-            enriched["avg_stop_distance"] = route_data.get("distance", 0) / max(
-                len(route_data["stops"]), 1
-            )
+            enriched["avg_stop_distance"] = route_data.get(
+                "distance", 0
+            ) / max(len(route_data["stops"]), 1)
 
         return enriched
 
@@ -248,7 +251,9 @@ class AdvancedAnalytics:
         ]
 
         # Filter available features and ensure consistency
-        available_features = [col for col in feature_columns if col in df.columns]
+        available_features = [
+            col for col in feature_columns if col in df.columns
+        ]
 
         if len(available_features) < 3 or "duration" not in df.columns:
             return
@@ -272,7 +277,9 @@ class AdvancedAnalytics:
             self.route_predictor.fit(X_train, y_train)
 
             # Train anomaly detector
-            self.anomaly_detector = IsolationForest(contamination=0.1, random_state=42)
+            self.anomaly_detector = IsolationForest(
+                contamination=0.1, random_state=42
+            )
             self.anomaly_detector.fit(X_scaled)
 
     def _train_advanced_ensemble(self) -> None:
@@ -303,7 +310,9 @@ class AdvancedAnalytics:
                     df["stops_count"], 1
                 )
                 df["complexity_score"] = df["distance"] * df["stops_count"]
-                feature_columns.extend(["distance_per_stop", "complexity_score"])
+                feature_columns.extend(
+                    ["distance_per_stop", "complexity_score"]
+                )
 
             # Time-based features
             if "hour_of_day" in df.columns:
@@ -312,10 +321,14 @@ class AdvancedAnalytics:
                 feature_columns.extend(["hour_sin", "hour_cos"])
 
             # Filter available features
-            available_features = [col for col in feature_columns if col in df.columns]
+            available_features = [
+                col for col in feature_columns if col in df.columns
+            ]
 
             if len(available_features) < 5 or "duration" not in df.columns:
-                logger.warning("Insufficient features for advanced ensemble training")
+                logger.warning(
+                    "Insufficient features for advanced ensemble training"
+                )
                 return
 
             X = df[available_features].fillna(0).values
@@ -325,8 +338,10 @@ class AdvancedAnalytics:
             X_scaled = self.scaler.fit_transform(X)
 
             # Train advanced ensemble
-            training_results = self.ensemble_engine.train_ensemble_with_uncertainty(
-                X_scaled, y
+            training_results = (
+                self.ensemble_engine.train_ensemble_with_uncertainty(
+                    X_scaled, y
+                )
             )
 
             self.advanced_models_trained = True
@@ -391,9 +406,13 @@ class AdvancedAnalytics:
         # Detect anomalies/risk factors
         risk_factors = []
         if self.anomaly_detector:
-            anomaly_score = self.anomaly_detector.decision_function(X_scaled)[0]
+            anomaly_score = self.anomaly_detector.decision_function(X_scaled)[
+                0
+            ]
             if anomaly_score < -0.1:
-                risk_factors.append("Route parameters unusual - higher uncertainty")
+                risk_factors.append(
+                    "Route parameters unusual - higher uncertainty"
+                )
 
         # Add context-based risk factors
         if route_features.get("is_rush_hour", False):
@@ -464,9 +483,7 @@ class AdvancedAnalytics:
         else:
             insight_type = "performance_good"
             title = "Good Route Performance"
-            description = (
-                f"Route {route_id} is performing well with good efficiency metrics."
-            )
+            description = f"Route {route_id} is performing well with good efficiency metrics."
             impact_score = 30
             recommendations = [
                 "Maintain current procedures",
@@ -553,7 +570,8 @@ class AdvancedAnalytics:
                     current_value=recent_efficiency,
                     trend_direction=trend_direction,
                     change_percentage=change_pct,
-                    forecast_7d=recent_efficiency * (1 + change_pct / 100 * 0.25),
+                    forecast_7d=recent_efficiency
+                    * (1 + change_pct / 100 * 0.25),
                     forecast_30d=recent_efficiency * (1 + change_pct / 100),
                 )
             )
@@ -562,7 +580,9 @@ class AdvancedAnalytics:
         if "duration" in df.columns and len(df) > 5:
             recent_duration = df["duration"].tail(10).mean()
             older_duration = df["duration"].head(10).mean()
-            change_pct = ((recent_duration - older_duration) / older_duration) * 100
+            change_pct = (
+                (recent_duration - older_duration) / older_duration
+            ) * 100
 
             trend_direction = "stable"
             if change_pct < -5:  # Lower duration is better
@@ -576,7 +596,8 @@ class AdvancedAnalytics:
                     current_value=recent_duration,
                     trend_direction=trend_direction,
                     change_percentage=change_pct,
-                    forecast_7d=recent_duration * (1 + change_pct / 100 * 0.25),
+                    forecast_7d=recent_duration
+                    * (1 + change_pct / 100 * 0.25),
                     forecast_30d=recent_duration * (1 + change_pct / 100),
                 )
             )
@@ -609,7 +630,9 @@ class AdvancedAnalytics:
         # Fleet-wide recommendations
         recommendations = []
         if avg_efficiency < 10:
-            recommendations.append("Consider fuel efficiency training for drivers")
+            recommendations.append(
+                "Consider fuel efficiency training for drivers"
+            )
         if avg_duration > 120:
             recommendations.append("Review route optimization algorithms")
 
@@ -648,7 +671,10 @@ class AdvancedMLModels:
 
         # Base models
         rf_model = RandomForestRegressor(
-            n_estimators=200, max_depth=15, min_samples_split=5, random_state=42
+            n_estimators=200,
+            max_depth=15,
+            min_samples_split=5,
+            random_state=42,
         )
 
         gb_model = GradientBoostingRegressor(
@@ -670,7 +696,9 @@ class AdvancedMLModels:
 
         return ensemble
 
-    def optimize_hyperparameters(self, X: np.ndarray, y: np.ndarray) -> Dict[str, Any]:
+    def optimize_hyperparameters(
+        self, X: np.ndarray, y: np.ndarray
+    ) -> Dict[str, Any]:
         """Optimize model hyperparameters using grid search"""
 
         param_grid = {
@@ -715,12 +743,18 @@ class AdvancedMLModels:
             enhanced_df["distance_per_stop"] = df["distance"] / np.maximum(
                 df["stops_count"], 1
             )
-            enhanced_df["complexity_score"] = df["distance"] * df["stops_count"]
+            enhanced_df["complexity_score"] = (
+                df["distance"] * df["stops_count"]
+            )
 
         # Time-based features
         if "hour_of_day" in df.columns:
-            enhanced_df["hour_sin"] = np.sin(2 * np.pi * df["hour_of_day"] / 24)
-            enhanced_df["hour_cos"] = np.cos(2 * np.pi * df["hour_of_day"] / 24)
+            enhanced_df["hour_sin"] = np.sin(
+                2 * np.pi * df["hour_of_day"] / 24
+            )
+            enhanced_df["hour_cos"] = np.cos(
+                2 * np.pi * df["hour_of_day"] / 24
+            )
             enhanced_df["is_peak_morning"] = (
                 (df["hour_of_day"] >= 7) & (df["hour_of_day"] <= 9)
             ).astype(int)
@@ -798,7 +832,9 @@ class AdvancedMLModels:
 
         # Prepare data
         X = df_enhanced[available_features].fillna(0)
-        y_duration = df_enhanced["duration"].fillna(df_enhanced["duration"].mean())
+        y_duration = df_enhanced["duration"].fillna(
+            df_enhanced["duration"].mean()
+        )
 
         # Feature selection
         self.feature_selector = SelectKBest(
@@ -810,7 +846,9 @@ class AdvancedMLModels:
         X_scaled = self.scaler.fit_transform(X_selected)
 
         # Optimize and train ensemble model
-        optimization_results = self.optimize_hyperparameters(X_scaled, y_duration)
+        optimization_results = self.optimize_hyperparameters(
+            X_scaled, y_duration
+        )
         self.duration_model = optimization_results["best_model"]
 
         # Cross-validation scores
@@ -824,7 +862,9 @@ class AdvancedMLModels:
 
         # Train fuel consumption model separately
         if "fuel_used" in df_enhanced.columns:
-            y_fuel = df_enhanced["fuel_used"].fillna(df_enhanced["fuel_used"].mean())
+            y_fuel = df_enhanced["fuel_used"].fillna(
+                df_enhanced["fuel_used"].mean()
+            )
             self.fuel_model = GradientBoostingRegressor(
                 n_estimators=200, random_state=42
             )
@@ -916,7 +956,9 @@ class AdvancedMLModels:
         else:
             duration_pred = self.duration_model.predict(X_scaled)[0]
             # Use cross-validation std as uncertainty estimate
-            duration_std = self.model_metadata.get("cv_std_score", duration_pred * 0.1)
+            duration_std = self.model_metadata.get(
+                "cv_std_score", duration_pred * 0.1
+            )
             confidence_interval = (
                 duration_pred - 1.96 * duration_std,
                 duration_pred + 1.96 * duration_std,
@@ -943,17 +985,23 @@ class AdvancedMLModels:
 
         if self.duration_model:
             joblib.dump(
-                self.duration_model, os.path.join(model_dir, "duration_model.pkl")
+                self.duration_model,
+                os.path.join(model_dir, "duration_model.pkl"),
             )
         if self.fuel_model:
-            joblib.dump(self.fuel_model, os.path.join(model_dir, "fuel_model.pkl"))
+            joblib.dump(
+                self.fuel_model, os.path.join(model_dir, "fuel_model.pkl")
+            )
         if self.feature_selector:
             joblib.dump(
-                self.feature_selector, os.path.join(model_dir, "feature_selector.pkl")
+                self.feature_selector,
+                os.path.join(model_dir, "feature_selector.pkl"),
             )
 
         joblib.dump(self.scaler, os.path.join(model_dir, "scaler.pkl"))
-        joblib.dump(self.model_metadata, os.path.join(model_dir, "metadata.pkl"))
+        joblib.dump(
+            self.model_metadata, os.path.join(model_dir, "metadata.pkl")
+        )
 
         logger.info(f"Models saved to {model_dir}")
 
@@ -963,12 +1011,16 @@ class AdvancedMLModels:
             self.duration_model = joblib.load(
                 os.path.join(model_dir, "duration_model.pkl")
             )
-            self.fuel_model = joblib.load(os.path.join(model_dir, "fuel_model.pkl"))
+            self.fuel_model = joblib.load(
+                os.path.join(model_dir, "fuel_model.pkl")
+            )
             self.feature_selector = joblib.load(
                 os.path.join(model_dir, "feature_selector.pkl")
             )
             self.scaler = joblib.load(os.path.join(model_dir, "scaler.pkl"))
-            self.model_metadata = joblib.load(os.path.join(model_dir, "metadata.pkl"))
+            self.model_metadata = joblib.load(
+                os.path.join(model_dir, "metadata.pkl")
+            )
 
             logger.info(f"Models loaded from {model_dir}")
             return True
@@ -1003,18 +1055,29 @@ class AdvancedEnsembleEngine:
                 random_state=42,
             ),
             "extra_trees": ExtraTreesRegressor(
-                n_estimators=150, max_depth=12, min_samples_split=5, random_state=42
+                n_estimators=150,
+                max_depth=12,
+                min_samples_split=5,
+                random_state=42,
             ),
             "random_forest": RandomForestRegressor(
-                n_estimators=200, max_depth=10, min_samples_split=5, random_state=42
+                n_estimators=200,
+                max_depth=10,
+                min_samples_split=5,
+                random_state=42,
             ),
             "gradient_boost": GradientBoostingRegressor(
-                n_estimators=150, learning_rate=0.1, max_depth=8, random_state=42
+                n_estimators=150,
+                learning_rate=0.1,
+                max_depth=8,
+                random_state=42,
             ),
             "ada_boost": AdaBoostRegressor(
                 n_estimators=100, learning_rate=1.0, random_state=42
             ),
-            "elastic_net": ElasticNet(alpha=0.1, l1_ratio=0.5, random_state=42),
+            "elastic_net": ElasticNet(
+                alpha=0.1, l1_ratio=0.5, random_state=42
+            ),
             "huber": HuberRegressor(epsilon=1.35, max_iter=100),
             "svr": SVR(kernel="rbf", C=1.0, gamma="scale"),
         }
@@ -1171,12 +1234,18 @@ class AdvancedEnsembleEngine:
         aleatoric_uncertainty = np.zeros_like(ensemble_pred)
         if "residuals" in self.uncertainty_models:
             try:
-                aleatoric_uncertainty = self.uncertainty_models["residuals"].predict(X)
+                aleatoric_uncertainty = self.uncertainty_models[
+                    "residuals"
+                ].predict(X)
             except Exception as e:
-                logger.warning(f"Aleatoric uncertainty prediction failed: {str(e)}")
+                logger.warning(
+                    f"Aleatoric uncertainty prediction failed: {str(e)}"
+                )
 
         # Total uncertainty
-        total_uncertainty = np.sqrt(epistemic_uncertainty**2 + aleatoric_uncertainty**2)
+        total_uncertainty = np.sqrt(
+            epistemic_uncertainty**2 + aleatoric_uncertainty**2
+        )
 
         # Confidence intervals
         confidence_intervals = {}
@@ -1220,7 +1289,9 @@ class AdvancedEnsembleEngine:
                     avg_importance += importance
 
             avg_importance /= len(self.feature_importance)
-            explanation["feature_importance"] = dict(zip(feature_names, avg_importance))
+            explanation["feature_importance"] = dict(
+                zip(feature_names, avg_importance)
+            )
 
         # Model contributions
         for name, model_info in self.base_models.items():

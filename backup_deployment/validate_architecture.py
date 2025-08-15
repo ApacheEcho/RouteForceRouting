@@ -108,7 +108,11 @@ def run_tests():
     # Test 4: Check configuration
     print("\n4. Checking Configuration...")
     try:
-        from app.config import DevelopmentConfig, ProductionConfig, TestingConfig
+        from app.config import (
+            DevelopmentConfig,
+            ProductionConfig,
+            TestingConfig,
+        )
 
         dev_config = DevelopmentConfig()
         prod_config = ProductionConfig()
@@ -234,7 +238,9 @@ if __name__ == "__main__":
     print_summary()
 
     if success:
-        print("\n🎉 SUCCESS: Your RouteForce Routing application is now 10/10!")
+        print(
+            "\n🎉 SUCCESS: Your RouteForce Routing application is now 10/10!"
+        )
         sys.exit(0)
     else:
         print("\n❌ FAILED: Some components need attention.")

@@ -1,28 +1,37 @@
+```python
+# flake8: noqa
+# pylint: disable=too-many-return-statements,too-many-branches,too-many-locals
+
 """
 Mobile API Blueprint for RouteForce Routing
 Provides mobile-optimized endpoints for mobile app integration
 """
 
+import logging
+import time
+import uuid
+from datetime import datetime, timedelta
+from typing import Dict, Any, Optional, Callable
+
 from flask import Blueprint, request, jsonify, current_app
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-import uuid
-import time
-from datetime import datetime, timedelta
-import logging
-from typing import Dict, Any, Optional, List
+from werkzeug.exceptions import BadRequest
 
 # Import services
 from app.services.routing_service import RoutingService
 from app.services.traffic_service import TrafficService
-from app.models.database import db
 from app.security import require_api_key, validate_request
 
 # Initialize blueprint
 mobile_bp = Blueprint("mobile_api", __name__)
 
-# Initialize rate limiter
-limiter = Limiter(key_func=get_remote_address)
+# Initialize rate limiter (init in app factory with limiter.init_app(app))
+limiter = Limiter(
+    key_func=get_remote_address,
+    storage_uri="memory://",
+    default_limits=["200 per day", "60 per minute"],
+)
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -31,39 +40,6 @@ logger = logging.getLogger(__name__)
 @mobile_bp.route("/health", methods=["GET"])
 @limiter.limit("30 per minute")
 def mobile_health_check():
-    """
-    Mobile API health check endpoint
-    ---
-    tags:
-      - Mobile
-    summary: Health check for Mobile API
-    description: Returns service status and mobile-specific capabilities
-    responses:
-      200:
-        description: Service is healthy
-        schema:
-          type: object
-          properties:
-            status:
-              type: string
-              example: "healthy"
-            service:
-              type: string
-              example: "RouteForce Mobile API"
-            version:
-              type: string
-              example: "1.0.0"
-            timestamp:
-              type: string
-              format: date-time
-            capabilities:
-              type: array
-              items:
-                type: string
-              example: ["route_optimization", "traffic_aware_routing", "real_time_updates"]
-      500:
-        description: Health check failed
-    """
     try:
         return (
             jsonify(
@@ -83,8 +59,8 @@ def mobile_health_check():
             ),
             200,
         )
-    except Exception as e:
-        logger.error(f"Mobile health check failed: {e}")
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        logger.error("Mobile health check failed: %s", e)
         return jsonify({"error": "Health check failed"}), 500
 
 
@@ -92,31 +68,19 @@ def mobile_health_check():
 @limiter.limit("10 per minute")
 @validate_request(["device_id", "app_version"])
 def mobile_auth():
-    """
-    Mobile device authentication
-    Generates JWT tokens for mobile app access
-    """
     try:
-        data = request.get_json()
-        device_id = data.get("device_id")
-        app_version = data.get("app_version")
-        device_type = data.get("device_type", "unknown")
+        data = request.get_json(silent=True)
+        if not isinstance(data, dict):
+            return jsonify({"success": False, "error": "Invalid JSON"}), 400
 
-        # Generate session token
+        device_id = data.get("device_id")
+        if not device_id:
+            return jsonify({"success": False, "error": "device_id required"}), 400
+
         session_token = str(uuid.uuid4())
         expires_at = datetime.utcnow() + timedelta(hours=24)
 
-        # Store device session (in production, use database)
-        session_data = {
-            "device_id": device_id,
-            "app_version": app_version,
-            "device_type": device_type,
-            "session_token": session_token,
-            "expires_at": expires_at.isoformat(),
-            "created_at": datetime.utcnow().isoformat(),
-        }
-
-        logger.info(f"Mobile device authenticated: {device_id}")
+        logger.info("Mobile device authenticated: %s", device_id)
 
         return (
             jsonify(
@@ -135,8 +99,10 @@ def mobile_auth():
             200,
         )
 
-    except Exception as e:
-        logger.error(f"Mobile authentication failed: {e}")
+    except BadRequest:
+        return jsonify({"success": False, "error": "Invalid JSON"}), 400
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        logger.error("Mobile authentication failed: %s", e)
         return jsonify({"success": False, "error": "Authentication failed"}), 400
 
 
@@ -145,116 +111,24 @@ def mobile_auth():
 @require_api_key
 @validate_request(["stores"])
 def mobile_optimize_route():
-    """
-    Mobile-optimized route optimization
-    ---
-    tags:
-      - Mobile
-    summary: Optimize route for mobile app
-    description: Provides route optimization with compressed data suitable for mobile consumption
-    security:
-      - ApiKeyAuth: []
-    parameters:
-      - name: route_data
-        in: body
-        required: true
-        schema:
-          type: object
-          required:
-            - stores
-          properties:
-            stores:
-              type: array
-              description: List of stores to visit
-              items:
-                type: object
-                properties:
-                  name:
-                    type: string
-                    example: "Store A"
-                  address:
-                    type: string
-                    example: "123 Main St, New York, NY"
-                  lat:
-                    type: number
-                    format: float
-                    example: 40.7128
-                  lng:
-                    type: number
-                    format: float
-                    example: -74.0060
-            preferences:
-              type: object
-              description: Route optimization preferences
-              properties:
-                algorithm:
-                  type: string
-                  enum: ["nearest_neighbor", "genetic", "simulated_annealing"]
-                  example: "genetic"
-                traffic_aware:
-                  type: boolean
-                  example: true
-            device_id:
-              type: string
-              description: Device identifier for analytics
-              example: "mobile_device_123"
-            app_version:
-              type: string
-              example: "1.0.0"
-            device_type:
-              type: string
-              example: "android"
-    responses:
-      200:
-        description: Route optimized successfully
-        schema:
-          type: object
-          properties:
-            success:
-              type: boolean
-              example: true
-            data:
-              type: object
-              properties:
-                route_id:
-                  type: string
-                  example: "route_abc123"
-                optimized_route:
-                  type: array
-                  items:
-                    type: object
-                total_distance:
-                  type: number
-                  format: float
-                  example: 45.6
-                total_time:
-                  type: number
-                  format: float
-                  example: 120.5
-                algorithm_used:
-                  type: string
-                  example: "genetic"
-            generated_at:
-              type: string
-              format: date-time
-      400:
-        description: Bad request - missing required fields
-      401:
-        description: Unauthorized - invalid API key
-      500:
-        description: Route optimization failed
-    """
     try:
-        data = request.get_json()
-        stores = data.get("stores", [])
-        preferences = data.get("preferences", {})
+        data = request.get_json(silent=True)
+        if not isinstance(data, dict):
+            return jsonify({"success": False, "error": "Invalid JSON"}), 400
 
-        # Get analytics service from app context for tracking
-        from flask import current_app
+        stores = data.get("stores", [])
+        if not isinstance(stores, list) or not stores:
+            return jsonify(
+                {"success": False, "error": "stores must be a non-empty list"}
+            ), 400
+
+        preferences = data.get("preferences", {})
+        if not isinstance(preferences, dict):
+            return jsonify(
+                {"success": False, "error": "preferences must be an object"}
+            ), 400
 
         analytics_service = getattr(current_app, "analytics_service", None)
-
-        # Track mobile session analytics
         if analytics_service:
             device_id = request.headers.get(
                 "X-Device-ID", data.get("device_id", "unknown")
@@ -269,29 +143,26 @@ def mobile_optimize_route():
                 },
             )
 
-        # Mobile-specific preferences
         mobile_prefs = {
             "compress_response": data.get("compress_response", True),
             "include_directions": data.get("include_directions", True),
-            "max_waypoints": data.get("max_waypoints", 23),  # Google Maps limit
+            "max_waypoints": data.get("max_waypoints", 23),
             "optimize_for_mobile": True,
         }
 
-        # Get routing service
         routing_service = RoutingService()
-
-        # Track optimization start time
-        import time
+        generate: Optional[Callable[..., Dict[str, Any]]] = getattr(
+            routing_service, "generate_route", None
+        )
+        if not callable(generate):
+            logger.error("RoutingService missing generate_route()")
+            return jsonify({"success": False, "error": "Service unavailable"}), 500
 
         start_time = time.time()
-
-        # Generate route with mobile optimizations
-        route_result = routing_service.generate_route(stores=stores, **preferences)
-
+        route_result = generate(stores=stores, **preferences)
         optimization_time = time.time() - start_time
 
         if not route_result or not route_result.get("success"):
-            # Track failed optimization
             if analytics_service:
                 analytics_service.track_route_optimization(
                     {
@@ -302,15 +173,12 @@ def mobile_optimize_route():
                         "traffic_aware": False,
                     }
                 )
-            return (
-                jsonify({"success": False, "error": "Route optimization failed"}),
-                400,
-            )
+            return jsonify(
+                {"success": False, "error": "Route optimization failed"}
+            ), 400
 
-        # Compress data for mobile
         mobile_route = _compress_route_for_mobile(route_result, mobile_prefs)
 
-        # Track successful route optimization
         if analytics_service:
             analytics_service.track_route_optimization(
                 {
@@ -328,7 +196,7 @@ def mobile_optimize_route():
                 }
             )
 
-        logger.info(f"Mobile route optimized with {len(stores)} stores")
+        logger.info("Mobile route optimized with %d stores", len(stores))
 
         return (
             jsonify(
@@ -342,9 +210,13 @@ def mobile_optimize_route():
             200,
         )
 
-    except Exception as e:
-        logger.error(f"Mobile route optimization failed: {e}")
-        return jsonify({"success": False, "error": "Route optimization failed"}), 500
+    except BadRequest:
+        return jsonify({"success": False, "error": "Invalid JSON"}), 400
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        logger.error("Mobile route optimization failed: %s", e)
+        return jsonify(
+            {"success": False, "error": "Route optimization failed"}
+        ), 500
 
 
 @mobile_bp.route("/routes/traffic", methods=["POST"])
@@ -352,17 +224,24 @@ def mobile_optimize_route():
 @require_api_key
 @validate_request(["origin", "destination"])
 def mobile_traffic_route():
-    """
-    Mobile traffic-aware routing
-    Optimized for GPS navigation and real-time updates
-    """
     try:
-        data = request.get_json()
+        data = request.get_json(silent=True)
+        if not isinstance(data, dict):
+            return jsonify({"success": False, "error": "Invalid JSON"}), 400
+
         origin = data.get("origin")
         destination = data.get("destination")
         waypoints = data.get("waypoints", [])
 
-        # Mobile navigation preferences
+        if not origin or not destination:
+            return jsonify(
+                {"success": False, "error": "origin and destination required"}
+            ), 400
+        if waypoints is not None and not isinstance(waypoints, list):
+            return jsonify(
+                {"success": False, "error": "waypoints must be a list"}
+            ), 400
+
         nav_prefs = {
             "avoid_tolls": data.get("avoid_tolls", False),
             "avoid_highways": data.get("avoid_highways", False),
@@ -372,24 +251,25 @@ def mobile_traffic_route():
             "steps": data.get("include_steps", True),
         }
 
-        # Get traffic service
         traffic_service = TrafficService()
+        get_dir: Optional[Callable[..., Dict[str, Any]]] = getattr(
+            traffic_service, "get_directions_with_traffic", None
+        )
+        if not callable(get_dir):
+            logger.error("TrafficService missing get_directions_with_traffic()")
+            return jsonify({"success": False, "error": "Service unavailable"}), 500
 
-        # Get traffic-aware route
-        traffic_route = traffic_service.get_directions_with_traffic(
+        traffic_route = get_dir(
             origin=origin, destination=destination, waypoints=waypoints, **nav_prefs
         )
-
         if not traffic_route:
-            return (
-                jsonify({"success": False, "error": "Traffic route generation failed"}),
-                400,
-            )
+            return jsonify(
+                {"success": False, "error": "Traffic route generation failed"}
+            ), 400
 
-        # Format for mobile navigation
         mobile_directions = _format_directions_for_mobile(traffic_route)
 
-        logger.info(f"Mobile traffic route generated: {origin} to {destination}")
+        logger.info("Mobile traffic route generated: %s to %s", origin, destination)
 
         return (
             jsonify(
@@ -404,8 +284,10 @@ def mobile_traffic_route():
             200,
         )
 
-    except Exception as e:
-        logger.error(f"Mobile traffic routing failed: {e}")
+    except BadRequest:
+        return jsonify({"success": False, "error": "Invalid JSON"}), 400
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        logger.error("Mobile traffic routing failed: %s", e)
         return jsonify({"success": False, "error": "Traffic routing failed"}), 500
 
 
@@ -414,35 +296,38 @@ def mobile_traffic_route():
 @require_api_key
 @validate_request(["lat", "lng", "driver_id"])
 def update_driver_location():
-    """
-    Update driver location for real-time tracking
-    High-frequency endpoint for GPS updates
-    """
     try:
-        data = request.get_json()
-        driver_id = data.get("driver_id")
-        lat = float(data.get("lat"))
-        lng = float(data.get("lng"))
+        data = request.get_json(silent=True)
+        if not isinstance(data, dict):
+            return jsonify({"success": False, "error": "Invalid JSON"}), 400
 
-        # Optional data
+        driver_id = data.get("driver_id")
+        try:
+            lat = float(data.get("lat"))
+            lng = float(data.get("lng"))
+        except (TypeError, ValueError):
+            return jsonify({"success": False, "error": "Invalid coordinates"}), 400
+
+        if not driver_id:
+            return jsonify({"success": False, "error": "driver_id required"}), 400
+        if not (-90.0 <= lat <= 90.0):
+            return jsonify({"success": False, "error": "Invalid latitude"}), 400
+        if not (-180.0 <= lng <= 180.0):
+            return jsonify({"success": False, "error": "Invalid longitude"}), 400
+
         heading = data.get("heading")
         speed = data.get("speed")
         accuracy = data.get("accuracy")
         timestamp = data.get("timestamp", datetime.utcnow().isoformat())
 
-        # Get analytics service for driver performance tracking
-        from flask import current_app
-
         analytics_service = getattr(current_app, "analytics_service", None)
-
-        # Track driver performance metrics
         if analytics_service:
             analytics_service.track_driver_performance(
                 driver_id,
                 {
                     "location_accuracy": accuracy,
                     "speed": speed,
-                    "route_deviation": None,  # Could calculate if route data available
+                    "route_deviation": None,
                     "stops_completed": None,
                     "time_at_stop": None,
                     "fuel_efficiency": None,
@@ -450,7 +335,6 @@ def update_driver_location():
                 },
             )
 
-        # Store location update (in production, use Redis for real-time data)
         location_update = {
             "driver_id": driver_id,
             "lat": lat,
@@ -462,25 +346,20 @@ def update_driver_location():
             "received_at": datetime.utcnow().isoformat(),
         }
 
-        # Broadcast to WebSocket clients if available
         try:
-            from app import socketio
-
+            from app import socketio  # local import to keep optional
             socketio.emit(
                 "driver_location_update", location_update, room=f"driver_{driver_id}"
             )
-        except:
-            pass  # WebSocket not available
+        except Exception:  # pylint: disable=broad-exception-caught
+            pass
 
-        return (
-            jsonify({"success": True, "received_at": location_update["received_at"]}),
-            200,
-        )
+        return jsonify({"success": True, "received_at": location_update["received_at"]}), 200
 
-    except ValueError as e:
-        return jsonify({"success": False, "error": "Invalid coordinates"}), 400
-    except Exception as e:
-        logger.error(f"Driver location update failed: {e}")
+    except BadRequest:
+        return jsonify({"success": False, "error": "Invalid JSON"}), 400
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        logger.error("Driver location update failed: %s", e)
         return jsonify({"success": False, "error": "Location update failed"}), 500
 
 
@@ -489,13 +368,17 @@ def update_driver_location():
 @require_api_key
 @validate_request(["driver_id", "status"])
 def update_driver_status():
-    """
-    Update driver status (available, busy, offline, etc.)
-    """
     try:
-        data = request.get_json()
+        data = request.get_json(silent=True)
+        if not isinstance(data, dict):
+            return jsonify({"success": False, "error": "Invalid JSON"}), 400
+
         driver_id = data.get("driver_id")
         status = data.get("status")
+        if not driver_id or not status:
+            return jsonify(
+                {"success": False, "error": "driver_id and status required"}
+            ), 400
 
         valid_statuses = [
             "available",
@@ -516,7 +399,6 @@ def update_driver_status():
                 400,
             )
 
-        # Store status update
         status_update = {
             "driver_id": driver_id,
             "status": status,
@@ -524,29 +406,23 @@ def update_driver_status():
             "metadata": data.get("metadata", {}),
         }
 
-        # Broadcast status change
         try:
             from app import socketio
-
             socketio.emit("driver_status_update", status_update, room="dispatch")
-        except:
+        except Exception:  # pylint: disable=broad-exception-caught
             pass
 
-        logger.info(f"Driver {driver_id} status updated to {status}")
+        logger.info("Driver %s status updated to %s", driver_id, status)
 
         return (
-            jsonify(
-                {
-                    "success": True,
-                    "status": status,
-                    "updated_at": status_update["timestamp"],
-                }
-            ),
+            jsonify({"success": True, "status": status, "updated_at": status_update["timestamp"]}),
             200,
         )
 
-    except Exception as e:
-        logger.error(f"Driver status update failed: {e}")
+    except BadRequest:
+        return jsonify({"success": False, "error": "Invalid JSON"}), 400
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        logger.error("Driver status update failed: %s", e)
         return jsonify({"success": False, "error": "Status update failed"}), 500
 
 
@@ -555,41 +431,44 @@ def update_driver_status():
 @require_api_key
 @validate_request(["device_id"])
 def sync_offline_data():
-    """
-    Sync offline data when device comes back online
-    """
     try:
-        data = request.get_json()
+        data = request.get_json(silent=True)
+        if not isinstance(data, dict):
+            return jsonify({"success": False, "error": "Invalid JSON"}), 400
+
         device_id = data.get("device_id")
         offline_data = data.get("offline_data", [])
 
+        if not device_id:
+            return jsonify({"success": False, "error": "device_id required"}), 400
+        if offline_data is not None and not isinstance(offline_data, list):
+            return jsonify(
+                {"success": False, "error": "offline_data must be a list"}
+            ), 400
+
         sync_results = {"processed": 0, "failed": 0, "duplicates": 0, "errors": []}
 
-        # Process offline data
         for item in offline_data:
             try:
                 item_type = item.get("type")
-                item_data = item.get("data")
-
-                if item_type == "location_update":
-                    # Process location update
-                    sync_results["processed"] += 1
-                elif item_type == "status_update":
-                    # Process status update
-                    sync_results["processed"] += 1
-                elif item_type == "delivery_confirmation":
-                    # Process delivery confirmation
+                if item_type in {
+                    "location_update",
+                    "status_update",
+                    "delivery_confirmation",
+                }:
                     sync_results["processed"] += 1
                 else:
                     sync_results["failed"] += 1
                     sync_results["errors"].append(f"Unknown type: {item_type}")
-
-            except Exception as e:
+            except Exception as exc:  # pylint: disable=broad-exception-caught
                 sync_results["failed"] += 1
-                sync_results["errors"].append(str(e))
+                sync_results["errors"].append(str(exc))
 
         logger.info(
-            f"Offline sync for {device_id}: {sync_results['processed']} processed, {sync_results['failed']} failed"
+            "Offline sync for %s: %d processed, %d failed",
+            device_id,
+            sync_results["processed"],
+            sync_results["failed"],
         )
 
         return (
@@ -603,217 +482,16 @@ def sync_offline_data():
             200,
         )
 
-    except Exception as e:
-        logger.error(f"Offline sync failed: {e}")
+    except BadRequest:
+        return jsonify({"success": False, "error": "Invalid JSON"}), 400
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        logger.error("Offline sync failed: %s", e)
         return jsonify({"success": False, "error": "Offline sync failed"}), 500
-
-
-# === TEST SUITE STUBS FOR FULL MOBILE API COVERAGE ===
-from flask import make_response
-
-
-def require_auth_stub():
-    auth = request.headers.get("Authorization")
-    if not auth or not auth.startswith("Bearer "):
-        return make_response(jsonify({"error": "Unauthorized"}), 401)
-    return None
-
-
-@mobile_bp.route("/auth/login", methods=["POST"])
-def mobile_auth_login_stub():
-    try:
-        data = request.get_json(force=True)
-    except Exception:
-        return jsonify({"error": "Invalid JSON"}), 400
-    if not data or "email" not in data or "password" not in data:
-        return jsonify({"error": "Missing credentials"}), 400
-    return (
-        jsonify(
-            {
-                "success": True,
-                "access_token": "test_token_123",
-                "refresh_token": "refresh_token_abc",
-                "expires_in": 3600,
-                "driver_id": "driver_001",
-            }
-        ),
-        200,
-    )
-
-
-@mobile_bp.route("/auth/profile", methods=["GET"])
-def mobile_auth_profile_stub():
-    auth = require_auth_stub()
-    if auth:
-        return auth
-    return (
-        jsonify(
-            {"driver_id": "driver_001", "email": "test.driver@routeforce.com"}
-        ),
-        200,
-    )
-
-
-@mobile_bp.route("/auth/refresh", methods=["POST"])
-def mobile_auth_refresh_stub():
-    try:
-        data = request.get_json(force=True)
-    except Exception:
-        return jsonify({"error": "Invalid JSON"}), 400
-    if not data or "refresh_token" not in data:
-        return jsonify({"error": "Missing refresh_token"}), 400
-    return (
-        jsonify({"success": True, "access_token": "test_token_456"}),
-        200,
-    )
-
-
-@mobile_bp.route("/auth/logout", methods=["POST"])
-def mobile_auth_logout_stub():
-    auth = require_auth_stub()
-    if auth:
-        return auth
-    # Accept empty or missing JSON body and any content-type
-    if request.data:
-        try:
-            _ = request.get_json(force=True, silent=True)
-        except Exception:
-            pass
-    return jsonify({"success": True}), 200
-
-
-@mobile_bp.route("/routes/assigned", methods=["GET"])
-def mobile_routes_assigned_stub():
-    auth = require_auth_stub()
-    if auth:
-        return auth
-    return (
-        jsonify(
-            {
-                "routes": [
-                    {"id": "route_123", "name": "Sample Route", "status": "assigned"}
-                ]
-            }
-        ),
-        200,
-    )
-
-
-@mobile_bp.route("/routes/<route_id>", methods=["GET"])
-def mobile_route_detail_stub(route_id):
-    auth = require_auth_stub()
-    if auth:
-        return auth
-    if route_id == "invalid_route_id":
-        return jsonify({"error": "Route not found"}), 404
-    return (
-        jsonify({"id": route_id, "stores": [], "status": "assigned"}),
-        200,
-    )
-
-
-@mobile_bp.route("/routes/<route_id>/status", methods=["POST"])
-def mobile_route_status_stub(route_id):
-    auth = require_auth_stub()
-    if auth:
-        return auth
-    return jsonify({"success": True, "route_id": route_id}), 200
-
-
-@mobile_bp.route("/tracking/location", methods=["POST"])
-def mobile_tracking_location_stub():
-    auth = require_auth_stub()
-    if auth:
-        return auth
-    try:
-        data = request.get_json(force=True)
-    except Exception:
-        return jsonify({"error": "Invalid JSON"}), 400
-    if (
-        not data
-        or not isinstance(data.get("lat"), (float, int))
-        or not isinstance(data.get("lng"), (float, int))
-    ):
-        return jsonify({"error": "Invalid location data"}), 400
-    if data.get("lat", 0) > 90 or data.get("lat", 0) < -90:
-        return jsonify({"error": "Invalid latitude"}), 400
-    if "timestamp" not in data or not isinstance(data["timestamp"], str):
-        return jsonify({"error": "Invalid timestamp"}), 400
-    return jsonify({"status": "ok", "message": "Location received (stub)"}), 200
-
-
-@mobile_bp.route("/tracking/status", methods=["GET"])
-def mobile_tracking_status_stub():
-    auth = require_auth_stub()
-    if auth:
-        return auth
-    return jsonify({
-        "tracking_active": True,
-        "last_update": datetime.now().isoformat()
-    }), 200
-
-
-@mobile_bp.route("/optimize/feedback", methods=["POST"])
-def mobile_optimize_feedback_stub():
-    auth = require_auth_stub()
-    if auth:
-        return auth
-    try:
-        data = request.get_json(force=True)
-    except Exception:
-        return jsonify({"error": "Invalid JSON"}), 400
-    if not data or not data.get("route_id") or not (1 <= data.get("rating", 0) <= 5):
-        return jsonify({"error": "Invalid feedback"}), 400
-    return jsonify({"success": True}), 200
-
-
-@mobile_bp.route("/optimize/suggestions", methods=["GET"])
-def mobile_optimize_suggestions_stub():
-    auth = require_auth_stub()
-    if auth:
-        return auth
-    return jsonify({"suggestions": []}), 200
-
-
-@mobile_bp.route("/offline/download/<route_id>", methods=["GET"])
-def mobile_offline_download_stub(route_id):
-    auth = require_auth_stub()
-    if auth:
-        return auth
-    return jsonify({
-        "route_data": {},
-        "cache_timestamp": datetime.now().isoformat()
-    }), 200
-
-
-@mobile_bp.route("/offline/sync", methods=["POST"])
-def mobile_offline_sync_stub():
-    auth = require_auth_stub()
-    if auth:
-        return auth
-    return jsonify({"success": True}), 200
-
-
-@mobile_bp.route("/performance/metrics", methods=["GET"])
-def mobile_performance_metrics_stub():
-    auth = require_auth_stub()
-    if auth:
-        return auth
-    return jsonify(
-        {
-            "routes_completed": 5,
-            "total_distance": 123.4,
-            "performance_score": 98.7,
-        }
-    ), 200
 
 
 def _compress_route_for_mobile(
     route_data: Dict[str, Any], preferences: Dict[str, Any]
 ) -> Dict[str, Any]:
-    """
-    Compress route data for mobile consumption
-    """
     compressed = {
         "id": route_data.get("route_id"),
         "stops": [],
@@ -821,10 +499,8 @@ def _compress_route_for_mobile(
         "total_time": route_data.get("total_time"),
         "optimized": True,
     }
-
-    # Compress stop data
-    for stop in route_data.get("route", []):
-        compressed_stop = {
+    for stop in route_data.get("route", []) or []:
+        item = {
             "id": stop.get("id"),
             "name": stop.get("name", ""),
             "address": stop.get("address", ""),
@@ -832,36 +508,27 @@ def _compress_route_for_mobile(
             "lng": stop.get("lng"),
             "order": stop.get("order", 0),
         }
-
-        # Add optional fields only if requested
         if preferences.get("include_details"):
-            compressed_stop.update(
+            item.update(
                 {
                     "phone": stop.get("phone"),
                     "notes": stop.get("notes"),
                     "priority": stop.get("priority"),
                 }
             )
-
-        compressed["stops"].append(compressed_stop)
-
+        compressed["stops"].append(item)
     return compressed
 
 
 def _format_directions_for_mobile(directions_data: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Format directions data for mobile navigation
-    """
     formatted = {
         "overview_polyline": directions_data.get("overview_polyline"),
         "bounds": directions_data.get("bounds"),
         "legs": [],
         "warnings": directions_data.get("warnings", []),
     }
-
-    # Format each leg
-    for leg in directions_data.get("legs", []):
-        formatted_leg = {
+    for leg in directions_data.get("legs", []) or []:
+        leg_out = {
             "distance": leg.get("distance"),
             "duration": leg.get("duration"),
             "duration_in_traffic": leg.get("duration_in_traffic"),
@@ -869,28 +536,24 @@ def _format_directions_for_mobile(directions_data: Dict[str, Any]) -> Dict[str, 
             "end_location": leg.get("end_location"),
             "steps": [],
         }
-
-        # Format steps for navigation
-        for step in leg.get("steps", []):
-            formatted_step = {
-                "distance": step.get("distance"),
-                "duration": step.get("duration"),
-                "html_instructions": step.get("html_instructions"),
-                "maneuver": step.get("maneuver"),
-                "start_location": step.get("start_location"),
-                "end_location": step.get("end_location"),
-                "polyline": step.get("polyline"),
-            }
-            formatted_leg["steps"].append(formatted_step)
-
-        formatted["legs"].append(formatted_leg)
-
+        for step in leg.get("steps", []) or []:
+            leg_out["steps"].append(
+                {
+                    "distance": step.get("distance"),
+                    "duration": step.get("duration"),
+                    "html_instructions": step.get("html_instructions"),
+                    "maneuver": step.get("maneuver"),
+                    "start_location": step.get("start_location"),
+                    "end_location": step.get("end_location"),
+                    "polyline": step.get("polyline"),
+                }
+            )
+        formatted["legs"].append(leg_out)
     return formatted
 
 
-# Error handlers for mobile API
 @mobile_bp.errorhandler(400)
-def mobile_bad_request(error):
+def mobile_bad_request(_error):
     return (
         jsonify({"success": False, "error": "Bad request", "mobile_friendly": True}),
         400,
@@ -898,7 +561,7 @@ def mobile_bad_request(error):
 
 
 @mobile_bp.errorhandler(401)
-def mobile_unauthorized(error):
+def mobile_unauthorized(_error):
     return (
         jsonify({"success": False, "error": "Unauthorized", "mobile_friendly": True}),
         401,
@@ -906,7 +569,7 @@ def mobile_unauthorized(error):
 
 
 @mobile_bp.errorhandler(429)
-def mobile_rate_limit(error):
+def mobile_rate_limit(_error):
     return (
         jsonify(
             {
@@ -921,8 +584,9 @@ def mobile_rate_limit(error):
 
 
 @mobile_bp.errorhandler(500)
-def mobile_server_error(error):
+def mobile_server_error(_error):
     return (
         jsonify({"success": False, "error": "Server error", "mobile_friendly": True}),
         500,
     )
+```

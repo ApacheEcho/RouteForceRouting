@@ -10,7 +10,9 @@ class Config:
     """Base configuration class"""
 
     # Basic Flask configuration
-    SECRET_KEY = os.environ.get("SECRET_KEY") or "dev-secret-key-change-in-production"
+    SECRET_KEY = (
+        os.environ.get("SECRET_KEY") or "dev-secret-key-change-in-production"
+    )
 
     # Database configuration
     SQLALCHEMY_DATABASE_URI = (
@@ -27,7 +29,9 @@ class Config:
             "pool_size": int(os.environ.get("DB_POOL_SIZE", "20")),
             "max_overflow": int(os.environ.get("DB_MAX_OVERFLOW", "10")),
             "pool_timeout": int(os.environ.get("DB_POOL_TIMEOUT", "30")),
-            "pool_recycle": int(os.environ.get("DB_POOL_RECYCLE", "3600")),  # 1 hour
+            "pool_recycle": int(
+                os.environ.get("DB_POOL_RECYCLE", "3600")
+            ),  # 1 hour
             "pool_pre_ping": True,  # Validate connections before use
         }
     else:
@@ -37,7 +41,9 @@ class Config:
         }
 
     # File upload configuration
-    MAX_CONTENT_LENGTH = int(os.environ.get("MAX_CONTENT_LENGTH", "16777216"))  # 16MB
+    MAX_CONTENT_LENGTH = int(
+        os.environ.get("MAX_CONTENT_LENGTH", "16777216")
+    )  # 16MB
     UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER", "uploads")
     ALLOWED_EXTENSIONS = {"csv", "xlsx", "xls"}
 
@@ -46,7 +52,9 @@ class Config:
     CACHE_DEFAULT_TIMEOUT = int(os.environ.get("CACHE_DEFAULT_TIMEOUT", "300"))
 
     # Rate limiting configuration
-    RATELIMIT_STORAGE_URI = os.environ.get("RATELIMIT_STORAGE_URI", "memory://")
+    RATELIMIT_STORAGE_URI = os.environ.get(
+        "RATELIMIT_STORAGE_URI", "memory://"
+    )
     RATE_LIMITS = os.environ.get("RATE_LIMITS", "200/day;50/hour")
 
     # Routing configuration
@@ -72,9 +80,15 @@ class Config:
     )  # 1 hour
 
     # Auto-commit service configuration
-    AUTO_COMMIT_ENABLED = os.environ.get("AUTO_COMMIT_ENABLED", "true").lower() == "true"
-    AUTO_COMMIT_INTERVAL_MINUTES = int(os.environ.get("AUTO_COMMIT_INTERVAL_MINUTES", "10"))
-    AUTO_COMMIT_WIP_BRANCH = os.environ.get("AUTO_COMMIT_WIP_BRANCH", "auto-wip")
+    AUTO_COMMIT_ENABLED = (
+        os.environ.get("AUTO_COMMIT_ENABLED", "true").lower() == "true"
+    )
+    AUTO_COMMIT_INTERVAL_MINUTES = int(
+        os.environ.get("AUTO_COMMIT_INTERVAL_MINUTES", "10")
+    )
+    AUTO_COMMIT_WIP_BRANCH = os.environ.get(
+        "AUTO_COMMIT_WIP_BRANCH", "auto-wip"
+    )
 
     @staticmethod
     def init_app(app) -> None:
@@ -107,9 +121,12 @@ class ProductionConfig(Config):
     # Production-specific settings
     CACHE_TYPE = "flask_caching.backends.redis"
     CACHE_REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379")
-    RATELIMIT_STORAGE_URI = os.environ.get("REDIS_URL", "redis://localhost:6379")
+    RATELIMIT_STORAGE_URI = os.environ.get(
+        "REDIS_URL", "redis://localhost:6379"
+    )
     SQLALCHEMY_DATABASE_URI = (
-        os.environ.get("DATABASE_URL") or "postgresql://localhost/routeforce_prod"
+        os.environ.get("DATABASE_URL")
+        or "postgresql://localhost/routeforce_prod"
     )
 
     # Security settings
@@ -136,7 +153,10 @@ class ProductionConfig(Config):
                 fromaddr=app.config["MAIL_USERNAME"],
                 toaddrs=app.config["ADMINS"],
                 subject="RouteForce Routing Error",
-                credentials=(app.config["MAIL_USERNAME"], app.config["MAIL_PASSWORD"]),
+                credentials=(
+                    app.config["MAIL_USERNAME"],
+                    app.config["MAIL_PASSWORD"],
+                ),
             )
             mail_handler.setLevel(logging.ERROR)
             app.logger.addHandler(mail_handler)
@@ -150,7 +170,9 @@ class TestingConfig(Config):
     WTF_CSRF_ENABLED = False
     UPLOAD_FOLDER = "test_uploads"
     CACHE_TYPE = "flask_caching.backends.null"  # Disable cache for testing
-    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"  # In-memory database for testing
+    SQLALCHEMY_DATABASE_URI = (
+        "sqlite:///:memory:"  # In-memory database for testing
+    )
 
 
 # Configuration dictionary

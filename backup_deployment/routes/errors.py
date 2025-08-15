@@ -58,7 +58,9 @@ def file_too_large(error):
 @errors_bp.app_errorhandler(429)
 def ratelimit_handler(error):
     """Handle rate limit errors"""
-    logger.warning(f"429 error: Rate limit exceeded from {request.remote_addr}")
+    logger.warning(
+        f"429 error: Rate limit exceeded from {request.remote_addr}"
+    )
     return (
         jsonify(
             {

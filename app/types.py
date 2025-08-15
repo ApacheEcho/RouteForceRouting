@@ -100,7 +100,9 @@ class OptimizationAlgorithm(Protocol):
     """Protocol for optimization algorithms"""
 
     def optimize(
-        self, stores: List[StoreDict], constraints: Optional[RouteConstraints] = None
+        self,
+        stores: List[StoreDict],
+        constraints: Optional[RouteConstraints] = None,
     ) -> Tuple[List[StoreDict], AlgorithmMetrics]:
         """Optimize route for given stores and constraints"""
         ...

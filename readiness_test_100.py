@@ -25,7 +25,9 @@ class ReadinessTest100:
             "details": details,
         }
         self.test_results.append(result)
-        status_icon = "✅" if status == "PASS" else "❌" if status == "FAIL" else "⚠️"
+        status_icon = (
+            "✅" if status == "PASS" else "❌" if status == "FAIL" else "⚠️"
+        )
         print(f"{status_icon} {name}: {status}")
         if details:
             print(f"   Details: {details}")
@@ -56,10 +58,14 @@ class ReadinessTest100:
         try:
             response = requests.get(self.frontend_url, timeout=5)
             if response.status_code == 200:
-                self.log_test("Frontend Health", "PASS", "React app accessible")
+                self.log_test(
+                    "Frontend Health", "PASS", "React app accessible"
+                )
             else:
                 self.log_test(
-                    "Frontend Health", "FAIL", f"Status: {response.status_code}"
+                    "Frontend Health",
+                    "FAIL",
+                    f"Status: {response.status_code}",
                 )
         except Exception as e:
             self.log_test("Frontend Health", "FAIL", str(e))
@@ -73,7 +79,9 @@ class ReadinessTest100:
                 )
             else:
                 self.log_test(
-                    "Metrics Endpoint", "WARN", f"Status: {response.status_code}"
+                    "Metrics Endpoint",
+                    "WARN",
+                    f"Status: {response.status_code}",
                 )
         except Exception as e:
             self.log_test("Metrics Endpoint", "WARN", str(e))
@@ -98,10 +106,26 @@ class ReadinessTest100:
                 "name": "Medium 4-Stop Route",
                 "data": {
                     "stops": [
-                        {"lat": 37.7749, "lon": -122.4194, "name": "Warehouse"},
-                        {"lat": 37.7849, "lon": -122.4094, "name": "Customer A"},
-                        {"lat": 37.7649, "lon": -122.4294, "name": "Customer B"},
-                        {"lat": 37.7549, "lon": -122.4394, "name": "Customer C"},
+                        {
+                            "lat": 37.7749,
+                            "lon": -122.4194,
+                            "name": "Warehouse",
+                        },
+                        {
+                            "lat": 37.7849,
+                            "lon": -122.4094,
+                            "name": "Customer A",
+                        },
+                        {
+                            "lat": 37.7649,
+                            "lon": -122.4294,
+                            "name": "Customer B",
+                        },
+                        {
+                            "lat": 37.7549,
+                            "lon": -122.4394,
+                            "name": "Customer C",
+                        },
                     ],
                     "algorithm": "genetic",
                 },
@@ -143,11 +167,15 @@ class ReadinessTest100:
                 elif response.status_code == 429:
                     # Rate limiting is actually good - shows security is working
                     self.log_test(
-                        test_case["name"], "PASS", "Rate limited (security working)"
+                        test_case["name"],
+                        "PASS",
+                        "Rate limited (security working)",
                     )
                 else:
                     self.log_test(
-                        test_case["name"], "FAIL", f"Status: {response.status_code}"
+                        test_case["name"],
+                        "FAIL",
+                        f"Status: {response.status_code}",
                     )
 
             except Exception as e:
@@ -162,7 +190,11 @@ class ReadinessTest100:
             "stops": [
                 {"lat": 40.7128, "lon": -74.0060, "name": "NYC"},
                 {"lat": 40.7589, "lon": -73.9851, "name": "Times Square"},
-                {"lat": 40.6892, "lon": -74.0445, "name": "Financial District"},
+                {
+                    "lat": 40.6892,
+                    "lon": -74.0445,
+                    "name": "Financial District",
+                },
             ]
         }
 
@@ -191,7 +223,9 @@ class ReadinessTest100:
                     )
                 elif response.status_code == 429:
                     self.log_test(
-                        f"{algorithm.title()} Algorithm", "PASS", "Rate limited"
+                        f"{algorithm.title()} Algorithm",
+                        "PASS",
+                        "Rate limited",
                     )
                 else:
                     self.log_test(
@@ -212,7 +246,11 @@ class ReadinessTest100:
             {
                 "name": "Empty Request",
                 "data": {},
-                "expected": [400, 422, 429],  # 429 is acceptable (rate limiting)
+                "expected": [
+                    400,
+                    422,
+                    429,
+                ],  # 429 is acceptable (rate limiting)
             },
             {
                 "name": "Single Stop",
@@ -238,13 +276,17 @@ class ReadinessTest100:
                     time.sleep(1)
 
                 response = requests.post(
-                    f"{self.backend_url}/api/optimize", json=test["data"], timeout=10
+                    f"{self.backend_url}/api/optimize",
+                    json=test["data"],
+                    timeout=10,
                 )
 
                 if response.status_code in test["expected"]:
                     if response.status_code == 429:
                         self.log_test(
-                            test["name"], "PASS", "Rate limited (security active)"
+                            test["name"],
+                            "PASS",
+                            "Rate limited (security active)",
                         )
                     else:
                         self.log_test(
@@ -254,7 +296,9 @@ class ReadinessTest100:
                         )
                 else:
                     self.log_test(
-                        test["name"], "FAIL", f"Unexpected: {response.status_code}"
+                        test["name"],
+                        "FAIL",
+                        f"Unexpected: {response.status_code}",
                     )
 
             except Exception as e:
@@ -280,7 +324,9 @@ class ReadinessTest100:
                     break
 
             if 429 in responses or any(r in [400, 422] for r in responses):
-                self.log_test("Rate Limiting", "PASS", "Security protection active")
+                self.log_test(
+                    "Rate Limiting", "PASS", "Security protection active"
+                )
             else:
                 self.log_test(
                     "Rate Limiting", "WARN", "No clear rate limiting detected"
@@ -316,11 +362,17 @@ class ReadinessTest100:
         print("=" * 70)
 
         total_tests = len(self.test_results)
-        passed_tests = len([r for r in self.test_results if r["status"] == "PASS"])
-        failed_tests = len([r for r in self.test_results if r["status"] == "FAIL"])
+        passed_tests = len(
+            [r for r in self.test_results if r["status"] == "PASS"]
+        )
+        failed_tests = len(
+            [r for r in self.test_results if r["status"] == "FAIL"]
+        )
         warnings = len([r for r in self.test_results if r["status"] == "WARN"])
 
-        success_rate = (passed_tests / total_tests) * 100 if total_tests > 0 else 0
+        success_rate = (
+            (passed_tests / total_tests) * 100 if total_tests > 0 else 0
+        )
 
         print(f"📊 FINAL RESULTS:")
         print(f"   • Total Tests: {total_tests}")

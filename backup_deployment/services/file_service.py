@@ -38,7 +38,9 @@ class FileService:
             raise ValueError("No file provided")
 
         if not self._is_allowed_file(file.filename):
-            raise ValueError(f"Invalid file type. Allowed: {self.allowed_extensions}")
+            raise ValueError(
+                f"Invalid file type. Allowed: {self.allowed_extensions}"
+            )
 
         filename = secure_filename(file.filename)
 
@@ -95,7 +97,9 @@ class FileService:
                 raise ValueError(f"Unsupported file format: {file_path}")
 
         except Exception as e:
-            logger.error(f"Error loading stores from file {file_path}: {str(e)}")
+            logger.error(
+                f"Error loading stores from file {file_path}: {str(e)}"
+            )
             raise
 
     def load_playbook_from_file(self, file_path: str) -> Dict[str, Any]:
@@ -116,13 +120,17 @@ class FileService:
                 for row in reader:
                     chain = row.get("chain")
                     if chain:
-                        playbook[chain] = {k: v for k, v in row.items() if k != "chain"}
+                        playbook[chain] = {
+                            k: v for k, v in row.items() if k != "chain"
+                        }
 
             logger.info(f"Loaded playbook with {len(playbook)} chain rules")
             return playbook
 
         except Exception as e:
-            logger.error(f"Error loading playbook from file {file_path}: {str(e)}")
+            logger.error(
+                f"Error loading playbook from file {file_path}: {str(e)}"
+            )
             raise
 
     def validate_file_content(self, file_path: str) -> bool:
@@ -191,7 +199,9 @@ class FileService:
 
             output.seek(0)
 
-            logger.info(f"Exported route with {len(route) if route else 0} stops")
+            logger.info(
+                f"Exported route with {len(route) if route else 0} stops"
+            )
 
             return Response(
                 output.getvalue(),
@@ -269,7 +279,9 @@ class FileService:
 
         except ImportError:
             logger.error("pandas or openpyxl not installed for Excel support")
-            raise ValueError("Excel file support requires pandas and openpyxl packages")
+            raise ValueError(
+                "Excel file support requires pandas and openpyxl packages"
+            )
         except Exception as e:
             logger.error(f"Error reading Excel file: {str(e)}")
             raise

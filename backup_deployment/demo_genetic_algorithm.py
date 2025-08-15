@@ -11,23 +11,78 @@ BASE_URL = "http://localhost:5001"
 
 # Larger test dataset for better genetic algorithm demonstration
 DEMO_STORES = [
-    {"id": 1, "name": "Downtown Plaza", "latitude": 39.7817, "longitude": -89.6501},
-    {"id": 2, "name": "Westside Mall", "latitude": 39.7990, "longitude": -89.6441},
-    {"id": 3, "name": "Eastgate Center", "latitude": 39.7600, "longitude": -89.6550},
+    {
+        "id": 1,
+        "name": "Downtown Plaza",
+        "latitude": 39.7817,
+        "longitude": -89.6501,
+    },
+    {
+        "id": 2,
+        "name": "Westside Mall",
+        "latitude": 39.7990,
+        "longitude": -89.6441,
+    },
+    {
+        "id": 3,
+        "name": "Eastgate Center",
+        "latitude": 39.7600,
+        "longitude": -89.6550,
+    },
     {
         "id": 4,
         "name": "Northpoint Shopping",
         "latitude": 39.8200,
         "longitude": -89.6800,
     },
-    {"id": 5, "name": "Southpark Market", "latitude": 39.7400, "longitude": -89.6200},
-    {"id": 6, "name": "Riverside Commons", "latitude": 39.8000, "longitude": -89.6100},
-    {"id": 7, "name": "Hilltop Square", "latitude": 39.7750, "longitude": -89.6750},
-    {"id": 8, "name": "Valley View", "latitude": 39.7900, "longitude": -89.6300},
-    {"id": 9, "name": "Parkside Plaza", "latitude": 39.7650, "longitude": -89.6450},
-    {"id": 10, "name": "Midtown Market", "latitude": 39.7850, "longitude": -89.6600},
-    {"id": 11, "name": "Crossroads Center", "latitude": 39.7950, "longitude": -89.6350},
-    {"id": 12, "name": "Heritage Square", "latitude": 39.7550, "longitude": -89.6250},
+    {
+        "id": 5,
+        "name": "Southpark Market",
+        "latitude": 39.7400,
+        "longitude": -89.6200,
+    },
+    {
+        "id": 6,
+        "name": "Riverside Commons",
+        "latitude": 39.8000,
+        "longitude": -89.6100,
+    },
+    {
+        "id": 7,
+        "name": "Hilltop Square",
+        "latitude": 39.7750,
+        "longitude": -89.6750,
+    },
+    {
+        "id": 8,
+        "name": "Valley View",
+        "latitude": 39.7900,
+        "longitude": -89.6300,
+    },
+    {
+        "id": 9,
+        "name": "Parkside Plaza",
+        "latitude": 39.7650,
+        "longitude": -89.6450,
+    },
+    {
+        "id": 10,
+        "name": "Midtown Market",
+        "latitude": 39.7850,
+        "longitude": -89.6600,
+    },
+    {
+        "id": 11,
+        "name": "Crossroads Center",
+        "latitude": 39.7950,
+        "longitude": -89.6350,
+    },
+    {
+        "id": 12,
+        "name": "Heritage Square",
+        "latitude": 39.7550,
+        "longitude": -89.6250,
+    },
 ]
 
 
@@ -263,10 +318,14 @@ def main():
         # Test API health
         health_response = requests.get(f"{BASE_URL}/api/v1/health")
         if health_response.status_code != 200:
-            print("❌ API is not healthy. Please start the Flask application first.")
+            print(
+                "❌ API is not healthy. Please start the Flask application first."
+            )
             return
 
-        print("✅ API is healthy and ready for genetic algorithm demonstration\n")
+        print(
+            "✅ API is healthy and ready for genetic algorithm demonstration\n"
+        )
 
         # Run demonstrations
         default_data, genetic_data = test_algorithm_comparison()
@@ -291,7 +350,9 @@ def main():
 
     except Exception as e:
         print(f"❌ Demo failed: {e}")
-        print("Please ensure the Flask application is running on localhost:5001")
+        print(
+            "Please ensure the Flask application is running on localhost:5001"
+        )
 
 
 if __name__ == "__main__":

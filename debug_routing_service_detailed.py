@@ -38,7 +38,9 @@ try:
         if service.ml_predictor is None:
             print("⚠️  ml_predictor is None - check initialization error")
         else:
-            print(f"✓ ml_predictor is initialized: {type(service.ml_predictor)}")
+            print(
+                f"✓ ml_predictor is initialized: {type(service.ml_predictor)}"
+            )
     else:
         print("✗ ml_predictor attribute does not exist")
 

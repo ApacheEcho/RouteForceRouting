@@ -8,7 +8,11 @@ def sample_routes():
     route1 = {
         "distance_km": 10,
         "stops": ["A", "B", "C"],
-        "stores": [{"priority": "high"}, {"priority": "medium"}, {"priority": "low"}],
+        "stores": [
+            {"priority": "high"},
+            {"priority": "medium"},
+            {"priority": "low"},
+        ],
     }
     route2 = {
         "distance_km": 7,

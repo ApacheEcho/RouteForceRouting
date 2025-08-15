@@ -25,7 +25,9 @@ class ProductionReadyTest:
             "details": details,
         }
         self.test_results.append(result)
-        status_icon = "✅" if status == "PASS" else "❌" if status == "FAIL" else "⚠️"
+        status_icon = (
+            "✅" if status == "PASS" else "❌" if status == "FAIL" else "⚠️"
+        )
         print(f"{status_icon} {name}: {status}")
         if details:
             print(f"   Details: {details}")
@@ -47,7 +49,9 @@ class ProductionReadyTest:
                 )
             else:
                 self.log_test(
-                    "Backend Health", "FAIL", f"Status code: {response.status_code}"
+                    "Backend Health",
+                    "FAIL",
+                    f"Status code: {response.status_code}",
                 )
         except Exception as e:
             self.log_test("Backend Health", "FAIL", str(e))
@@ -56,10 +60,14 @@ class ProductionReadyTest:
         try:
             response = requests.get(self.frontend_url, timeout=5)
             if response.status_code == 200:
-                self.log_test("Frontend Accessibility", "PASS", "React app responding")
+                self.log_test(
+                    "Frontend Accessibility", "PASS", "React app responding"
+                )
             else:
                 self.log_test(
-                    "Frontend Accessibility", "FAIL", f"Status: {response.status_code}"
+                    "Frontend Accessibility",
+                    "FAIL",
+                    f"Status: {response.status_code}",
                 )
         except Exception as e:
             self.log_test("Frontend Accessibility", "FAIL", str(e))
@@ -94,7 +102,10 @@ class ProductionReadyTest:
                 start_time = time.time()
                 response = requests.post(
                     f"{self.backend_url}/api/optimize",
-                    json={"stops": route_test["stops"], "algorithm": "genetic"},
+                    json={
+                        "stops": route_test["stops"],
+                        "algorithm": "genetic",
+                    },
                     timeout=15,
                 )
                 processing_time = time.time() - start_time
@@ -109,11 +120,15 @@ class ProductionReadyTest:
                     )
                 elif response.status_code == 429:
                     self.log_test(
-                        route_test["name"], "PASS", "Rate limited (good security)"
+                        route_test["name"],
+                        "PASS",
+                        "Rate limited (good security)",
                     )
                 else:
                     self.log_test(
-                        route_test["name"], "FAIL", f"Status: {response.status_code}"
+                        route_test["name"],
+                        "FAIL",
+                        f"Status: {response.status_code}",
                     )
 
                 # Respectful delay between requests
@@ -131,7 +146,11 @@ class ProductionReadyTest:
             "stops": [
                 {"lat": 40.7128, "lon": -74.0060, "name": "NYC Center"},
                 {"lat": 40.7589, "lon": -73.9851, "name": "Times Square"},
-                {"lat": 40.6892, "lon": -74.0445, "name": "Financial District"},
+                {
+                    "lat": 40.6892,
+                    "lon": -74.0445,
+                    "name": "Financial District",
+                },
             ]
         }
 
@@ -156,7 +175,9 @@ class ProductionReadyTest:
                     )
                 elif response.status_code == 429:
                     self.log_test(
-                        f"{algorithm.title()} Algorithm", "PASS", "Rate limited"
+                        f"{algorithm.title()} Algorithm",
+                        "PASS",
+                        "Rate limited",
                     )
                 else:
                     self.log_test(
@@ -184,7 +205,9 @@ class ProductionReadyTest:
                 response = requests.post(
                     f"{self.backend_url}/api/optimize",
                     json={
-                        "stops": [{"lat": 37.7749, "lon": -122.4194, "name": "Test"}]
+                        "stops": [
+                            {"lat": 37.7749, "lon": -122.4194, "name": "Test"}
+                        ]
                     },
                     timeout=5,
                 )
@@ -194,17 +217,23 @@ class ProductionReadyTest:
 
             if 429 in responses:
                 self.log_test(
-                    "Rate Limiting", "PASS", "Successfully blocks rapid requests"
+                    "Rate Limiting",
+                    "PASS",
+                    "Successfully blocks rapid requests",
                 )
             else:
-                self.log_test("Rate Limiting", "WARN", "No rate limiting detected")
+                self.log_test(
+                    "Rate Limiting", "WARN", "No rate limiting detected"
+                )
         except Exception as e:
             self.log_test("Rate Limiting", "FAIL", str(e))
 
         # Test error handling
         try:
             response = requests.post(
-                f"{self.backend_url}/api/optimize", json={"invalid": "data"}, timeout=5
+                f"{self.backend_url}/api/optimize",
+                json={"invalid": "data"},
+                timeout=5,
             )
 
             if response.status_code in [400, 422, 429]:
@@ -232,7 +261,8 @@ class ProductionReadyTest:
             response = requests.get(f"{self.backend_url}/metrics", timeout=5)
             if (
                 response.status_code == 200
-                and "prometheus" in response.headers.get("content-type", "").lower()
+                and "prometheus"
+                in response.headers.get("content-type", "").lower()
             ):
                 self.log_test(
                     "Metrics Endpoint", "PASS", "Prometheus metrics available"
@@ -241,7 +271,9 @@ class ProductionReadyTest:
                 self.log_test("Metrics Endpoint", "PASS", "Metrics available")
             else:
                 self.log_test(
-                    "Metrics Endpoint", "WARN", f"Status: {response.status_code}"
+                    "Metrics Endpoint",
+                    "WARN",
+                    f"Status: {response.status_code}",
                 )
         except Exception as e:
             self.log_test("Metrics Endpoint", "WARN", str(e))
@@ -258,9 +290,13 @@ class ProductionReadyTest:
 
         for file_path in production_files:
             if os.path.exists(file_path):
-                self.log_test(f"Production Config: {file_path}", "PASS", "File exists")
+                self.log_test(
+                    f"Production Config: {file_path}", "PASS", "File exists"
+                )
             else:
-                self.log_test(f"Production Config: {file_path}", "FAIL", "Missing file")
+                self.log_test(
+                    f"Production Config: {file_path}", "FAIL", "Missing file"
+                )
 
     def generate_final_report(self):
         """Generate comprehensive readiness report"""
@@ -269,11 +305,17 @@ class ProductionReadyTest:
         print("=" * 70)
 
         total_tests = len(self.test_results)
-        passed_tests = len([r for r in self.test_results if r["status"] == "PASS"])
-        failed_tests = len([r for r in self.test_results if r["status"] == "FAIL"])
+        passed_tests = len(
+            [r for r in self.test_results if r["status"] == "PASS"]
+        )
+        failed_tests = len(
+            [r for r in self.test_results if r["status"] == "FAIL"]
+        )
         warnings = len([r for r in self.test_results if r["status"] == "WARN"])
 
-        success_rate = (passed_tests / total_tests) * 100 if total_tests > 0 else 0
+        success_rate = (
+            (passed_tests / total_tests) * 100 if total_tests > 0 else 0
+        )
 
         print(f"📊 TEST SUMMARY:")
         print(f"   • Total Tests: {total_tests}")
@@ -334,7 +376,9 @@ class ProductionReadyTest:
         with open("production_readiness_report.json", "w") as f:
             json.dump(report_data, f, indent=2)
 
-        print(f"\n📄 Detailed report saved to: production_readiness_report.json")
+        print(
+            f"\n📄 Detailed report saved to: production_readiness_report.json"
+        )
 
         return readiness_status == "READY"
 

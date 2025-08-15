@@ -221,7 +221,9 @@ def demo_simulated_annealing_integration():
         print(
             f"      Final distance: {algorithm_metrics.get('final_distance', 0):.2f} km"
         )
-        print(f"      Iterations: {algorithm_metrics.get('total_iterations', 0)}")
+        print(
+            f"      Iterations: {algorithm_metrics.get('total_iterations', 0)}"
+        )
         print(
             f"      Acceptance rate: {algorithm_metrics.get('acceptance_rate', 0):.2f}"
         )
@@ -252,7 +254,9 @@ def demo_simulated_annealing_integration():
     algorithm_metrics = metrics.algorithm_metrics or {}
 
     print(f"\n📊 Final Route Statistics:")
-    print(f"   Total distance: {algorithm_metrics.get('final_distance', 0):.2f} km")
+    print(
+        f"   Total distance: {algorithm_metrics.get('final_distance', 0):.2f} km"
+    )
     print(
         f"   Route improvement: {algorithm_metrics.get('improvement_percent', 0):.1f}%"
     )

@@ -608,6 +608,17 @@ def sync_offline_data():
         return jsonify({"success": False, "error": "Offline sync failed"}), 500
 
 
+@mobile_bp.route("/routes/assigned", methods=["GET"])
+@require_api_key
+def get_assigned_routes():
+    """
+    Get assigned routes for the authenticated mobile user.
+    Returns 401 if not authenticated.
+    """
+    # In a real implementation, fetch assigned routes for the user/device
+    return jsonify({"success": True, "routes": []}), 200
+
+
 def _compress_route_for_mobile(
     route_data: Dict[str, Any], preferences: Dict[str, Any]
 ) -> Dict[str, Any]:

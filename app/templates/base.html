@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="Route Force Pro — Intelligent route optimization for delivery operations." />
+  <title>Route Force Pro</title>
+  <link rel="icon" href="/static/favicon.ico" />
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
+    .nav-link-active { color: #4f46e5; border-bottom: 2px solid #4f46e5; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen text-gray-800 antialiased">
+  <header class="bg-white shadow-sm">
+    <div class="container flex items-center justify-between h-16">
+      <div class="flex items-center space-x-4">
+        <a href="/" class="flex items-center text-2xl font-bold text-indigo-600">
+          <i class="fas fa-route mr-2"></i>
+          <span>Route Force Pro</span>
+        </a>
+      </div>
+
+      <nav class="hidden md:flex items-center space-x-6">
+        <a href="/" class="text-gray-700 hover:text-indigo-600">Home</a>
+        <a href="/generate" class="text-gray-700 hover:text-indigo-600">Route Generator</a>
+        <a href="/dashboard" class="text-gray-700 hover:text-indigo-600">Dashboard</a>
+        <a href="/sales" class="text-gray-700 hover:text-indigo-600">Sales</a>
+      </nav>
+
+      <div class="hidden md:flex items-center space-x-4">
+        <a href="/auth/login" class="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700">Login</a>
+      </div>
+
+      <div class="md:hidden">
+        <button id="mobile-menu-button" aria-label="Open menu" class="text-gray-700 focus:outline-none">
+          <i class="fas fa-bars text-xl"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile menu -->
+    <div id="mobile-menu" class="hidden md:hidden border-t bg-white">
+      <div class="px-4 pt-4 pb-6 space-y-2">
+        <a href="/" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50">Home</a>
+        <a href="/generate" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50">Route Generator</a>
+        <a href="/dashboard" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50">Dashboard</a>
+        <a href="/sales" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50">Sales</a>
+        <a href="/auth/login" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50">Login</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container py-8">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="bg-white border-t mt-12">
+    <div class="container py-6 text-sm text-gray-600 flex items-center justify-between">
+      <div>© {{ current_year if 'current_year' in globals() else 'Route Force Pro' }}</div>
+      <div class="space-x-4">
+        <a href="/sitemap" class="text-gray-500 hover:text-gray-700">All Features</a>
+        <a href="/api/docs" class="text-gray-500 hover:text-gray-700">API Docs</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Mobile menu toggle
+    (function() {
+      const btn = document.getElementById('mobile-menu-button');
+      const menu = document.getElementById('mobile-menu');
+      if (!btn || !menu) return;
+      btn.addEventListener('click', () => {
+        if (menu.classList.contains('hidden')) {
+          menu.classList.remove('hidden');
+        } else {
+          menu.classList.add('hidden');
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

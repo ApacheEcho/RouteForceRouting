@@ -1,13 +1,19 @@
 """
-RouteForce Routing Application
-Modern Flask application with enterprise-grade architecture and real-time features
+RouteForce Routing Application (Backup Deployment)
+Standalone backup app for test and regression purposes.
 """
 
 import os
-from app import create_app, socketio
+from flask import Flask
+from flask_socketio import SocketIO
 
 # Create application instance
-app = create_app(os.getenv("FLASK_ENV", "development"))
+app = Flask(__name__)
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
+
+@app.route("/")
+def index():
+    return "Backup Deployment App Running"
 
 if __name__ == "__main__":
     # Development server with WebSocket support
@@ -15,5 +21,5 @@ if __name__ == "__main__":
         app,
         host="0.0.0.0",
         port=int(os.getenv("PORT", 8000)),
-        debug=app.config.get("DEBUG", False),
+        debug=True,
     )

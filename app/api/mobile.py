@@ -673,10 +673,10 @@ def mobile_auth_logout_stub():
     auth = require_auth_stub()
     if auth:
         return auth
-    # Accept empty or missing JSON body
-    if request.data and request.content_type == "application/json":
+    # Accept empty or missing JSON body and any content-type
+    if request.data:
         try:
-            _ = request.get_json(force=True)
+            _ = request.get_json(force=True, silent=True)
         except Exception:
             pass
     return jsonify({"success": True}), 200

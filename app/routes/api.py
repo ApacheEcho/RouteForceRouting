@@ -43,7 +43,8 @@ def create_route():
     tags:
       - Routes
     summary: Create optimized route
-    description: Create a new route with comprehensive optimization options and database persistence
+    description: Create a new route with comprehensive optimization options
+      and database persistence
     parameters:
       - name: route_request
         in: body

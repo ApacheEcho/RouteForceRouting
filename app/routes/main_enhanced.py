@@ -54,10 +54,10 @@ def dashboard_redirect():
     # Try different dashboard endpoints until we find one that works
     try:
         return redirect(url_for("enhanced_dashboard.realtime_dashboard"))
-    except Exception:
+    except (KeyError, AttributeError):
         try:
             return redirect(url_for("dashboard.dashboard"))
-        except Exception:
+        except (KeyError, AttributeError):
             # Fallback to a working dashboard route
             return redirect("/sitemap")
 
@@ -113,7 +113,10 @@ def sitemap():
 @main_bp.route("/generate", methods=["POST"])
 @limiter.limit("10 per minute")
 def generate_route():
-    """Generate route with comprehensive validation and error handling from form submission"""
+    """
+    Generate route with comprehensive validation and error handling from form
+    submission
+    """
     try:
         # Parse all form parameters
         file = request.files.get("file")

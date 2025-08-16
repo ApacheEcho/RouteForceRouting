@@ -14,6 +14,7 @@ if __name__ == "__main__":
     socketio.run(
         app,
         host="0.0.0.0",
-        port=int(os.getenv("PORT", 8000)),
+        port=int(os.getenv("PORT", 5000)),  # Use port 5000 to match Docker
         debug=app.config.get("DEBUG", False),
+        allow_unsafe_werkzeug=True,  # Allow Werkzeug in Docker/dev
     )

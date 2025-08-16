@@ -115,22 +115,30 @@ def sitemap():
 def generate_route():
     """
     Generate route with comprehensive validation and error handling from form
-    submission
+    submission or JSON payload
     """
     try:
-        # Parse all form parameters
-        file = request.files.get("file")
-        proximity = "proximity" in request.form
-        time_start = request.form.get("time_start")
-        time_end = request.form.get("time_end")
-        priority_only = "priority_only" in request.form
-        exclude_days = request.form.getlist("exclude_days")
-        max_stores_per_chain = request.form.get(
-            "max_stores_per_chain", type=int
-        )
-        min_sales_threshold = request.form.get(
-            "min_sales_threshold", type=float
-        )
+        if request.content_type and "application/json" in request.content_type:
+            data = request.get_json()
+            file = None  # File uploads not supported in JSON
+            proximity = data.get("proximity")
+            time_start = data.get("time_start")
+            time_end = data.get("time_end")
+            priority_only = data.get("priority_only")
+            exclude_days = data.get("exclude_days", [])
+            max_stores_per_chain = data.get("max_stores_per_chain")
+            min_sales_threshold = data.get("min_sales_threshold")
+        else:
+            file = request.files.get("file")
+            proximity = "proximity" in request.form
+            time_start = request.form.get("time_start")
+            time_end = request.form.get("time_end")
+            priority_only = "priority_only" in request.form
+            exclude_days = request.form.getlist("exclude_days")
+            max_stores_per_chain = request.form.get(
+                "max_stores_per_chain", type=int)
+            min_sales_threshold = request.form.get(
+                "min_sales_threshold", type=float)
 
         # Validate required file
         if not file or file.filename == "":
@@ -395,12 +403,25 @@ def generate_route_api():
 def export_route():
     """Export generated route to CSV format"""
     try:
-        # Get route data from request
-        data = request.get_json()
-        if not data or "route" not in data:
+        # Accept both JSON and form data
+        data = None
+        route = None
+        if request.is_json:
+            data = request.get_json()
+            route = data.get("route") if data else None
+        elif request.form:
+            # Accept route as JSON string in form data
+            route_str = request.form.get("route")
+            if route_str:
+                import json as _json
+                try:
+                    route = _json.loads(route_str)
+                except Exception as e:
+                    logger.error(f"Failed to parse route from form data: {e}")
+                    return jsonify({"error": "Invalid route data in form"}), 400
+        else:
             return jsonify({"error": "No route data provided"}), 400
 
-        route = data["route"]
         if not route:
             return jsonify({"error": "Empty route provided"}), 400
 

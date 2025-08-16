@@ -3,45 +3,45 @@ Type Definitions for RouteForce Routing System - AUTO-PILOT ENHANCEMENT
 Comprehensive type definitions for better code safety and IDE support
 """
 
-from typing import TypedDict, List, Dict, Any, Optional, Union, Tuple, Protocol
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any, Dict, List, Optional, Protocol, Tuple, TypedDict, Union
 
 
 # Core Data Types
 class StoreDict(TypedDict):
     """Type definition for store data"""
 
-    id: Union[int, str]
+    id: int | str
     name: str
     latitude: float
     longitude: float
-    address: Optional[str]
-    priority: Optional[int]
-    demand: Optional[float]
+    address: str | None
+    priority: int | None
+    demand: float | None
 
 
 class RouteConstraints(TypedDict, total=False):
     """Type definition for routing constraints"""
 
-    max_distance: Optional[float]
-    max_time: Optional[int]
-    avoid_tolls: Optional[bool]
-    avoid_highways: Optional[bool]
-    start_time: Optional[str]
-    end_time: Optional[str]
+    max_distance: float | None
+    max_time: int | None
+    avoid_tolls: bool | None
+    avoid_highways: bool | None
+    start_time: str | None
+    end_time: str | None
 
 
 class OptimizationOptions(TypedDict, total=False):
     """Type definition for optimization options"""
 
     algorithm: str
-    ga_population_size: Optional[int]
-    ga_generations: Optional[int]
-    ga_mutation_rate: Optional[float]
-    ga_crossover_rate: Optional[float]
-    sa_initial_temp: Optional[float]
-    sa_cooling_rate: Optional[float]
+    ga_population_size: int | None
+    ga_generations: int | None
+    ga_mutation_rate: float | None
+    ga_crossover_rate: float | None
+    sa_initial_temp: float | None
+    sa_cooling_rate: float | None
 
 
 class RouteMetadata(TypedDict):
@@ -51,21 +51,21 @@ class RouteMetadata(TypedDict):
     processing_time: float
     optimization_score: float
     route_stores: int
-    total_distance: Optional[float]
-    estimated_time: Optional[float]
+    total_distance: float | None
+    estimated_time: float | None
 
 
 class AlgorithmMetrics(TypedDict, total=False):
     """Type definition for algorithm-specific metrics"""
 
     algorithm: str
-    generations: Optional[int]
-    population_size: Optional[int]
-    improvement_percent: Optional[float]
-    initial_distance: Optional[float]
-    final_distance: Optional[float]
-    best_fitness: Optional[float]
-    convergence_rate: Optional[float]
+    generations: int | None
+    population_size: int | None
+    improvement_percent: float | None
+    initial_distance: float | None
+    final_distance: float | None
+    best_fitness: float | None
+    convergence_rate: float | None
 
 
 # Enums for better type safety
@@ -100,8 +100,8 @@ class OptimizationAlgorithm(Protocol):
     """Protocol for optimization algorithms"""
 
     def optimize(
-        self, stores: List[StoreDict], constraints: Optional[RouteConstraints] = None
-    ) -> Tuple[List[StoreDict], AlgorithmMetrics]:
+        self, stores: list[StoreDict], constraints: RouteConstraints | None = None
+    ) -> tuple[list[StoreDict], AlgorithmMetrics]:
         """Optimize route for given stores and constraints"""
         ...
 
@@ -109,11 +109,11 @@ class OptimizationAlgorithm(Protocol):
 class CacheBackend(Protocol):
     """Protocol for cache backends"""
 
-    def get(self, key: str) -> Optional[Any]:
+    def get(self, key: str) -> Any | None:
         """Get value from cache"""
         ...
 
-    def set(self, key: str, value: Any, ttl: Optional[int] = None) -> None:
+    def set(self, key: str, value: Any, ttl: int | None = None) -> None:
         """Set value in cache"""
         ...
 
@@ -127,32 +127,32 @@ class CacheBackend(Protocol):
 class RouteRequest:
     """Data class for route generation requests"""
 
-    stores: List[StoreDict]
-    constraints: Optional[RouteConstraints] = None
-    options: Optional[OptimizationOptions] = None
-    user_id: Optional[int] = None
-    session_id: Optional[str] = None
+    stores: list[StoreDict]
+    constraints: RouteConstraints | None = None
+    options: OptimizationOptions | None = None
+    user_id: int | None = None
+    session_id: str | None = None
 
 
 @dataclass
 class RouteResponse:
     """Data class for route generation responses"""
 
-    route: List[StoreDict]
+    route: list[StoreDict]
     metadata: RouteMetadata
-    algorithm_metrics: Optional[AlgorithmMetrics] = None
+    algorithm_metrics: AlgorithmMetrics | None = None
     success: bool = True
-    error: Optional[str] = None
+    error: str | None = None
 
 
 @dataclass
 class SecurityContext:
     """Data class for security context"""
 
-    user_id: Optional[int]
+    user_id: int | None
     ip_address: str
     user_agent: str
-    api_key: Optional[str] = None
+    api_key: str | None = None
     security_level: SecurityLevel = SecurityLevel.MEDIUM
 
 
@@ -165,28 +165,28 @@ class PerformanceMetrics:
     response_time: float
     request_count: int
     error_rate: float
-    cache_hit_rate: Optional[float] = None
+    cache_hit_rate: float | None = None
 
 
 # Type aliases for complex types
-StoreList = List[StoreDict]
-RouteData = List[StoreDict]
-MetricsData = Dict[str, Union[int, float, str, List[float]]]
-ConfigDict = Dict[str, Any]
-ErrorContext = Dict[str, Any]
+StoreList = list[StoreDict]
+RouteData = list[StoreDict]
+MetricsData = dict[str, Union[int, float, str, list[float]]]
+ConfigDict = dict[str, Any]
+ErrorContext = dict[str, Any]
 
 # Function type annotations
-from typing import Callable
+from collections.abc import Callable
 
 RouteOptimizer = Callable[
-    [StoreList, Optional[RouteConstraints]], Tuple[RouteData, AlgorithmMetrics]
+    [StoreList, Optional[RouteConstraints]], tuple[RouteData, AlgorithmMetrics]
 ]
-ValidationFunction = Callable[[Any], Tuple[bool, str]]
+ValidationFunction = Callable[[Any], tuple[bool, str]]
 CacheKeyGenerator = Callable[[str], str]
 ErrorHandler = Callable[[Exception, ErrorContext], None]
 
 # Generic types for extensibility
-from typing import TypeVar, Generic
+from typing import Generic, TypeVar
 
 T = TypeVar("T")
 K = TypeVar("K")
@@ -198,7 +198,7 @@ class CacheEntry(Generic[T]):
 
     value: T
     timestamp: float
-    ttl: Optional[int]
+    ttl: int | None
     access_count: int
 
 
@@ -206,8 +206,8 @@ class Result(Generic[T]):
     """Generic result type for operations that may fail"""
 
     success: bool
-    data: Optional[T]
-    error: Optional[str]
+    data: T | None
+    error: str | None
 
     @classmethod
     def ok(cls, data: T) -> "Result[T]":

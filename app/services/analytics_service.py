@@ -4,12 +4,12 @@ Provides comprehensive analytics and monitoring capabilities
 """
 
 import logging
-from datetime import datetime, timedelta
-from typing import Dict, Any, List, Optional
-import json
 import uuid
-from collections import defaultdict, Counter
+from collections import Counter, defaultdict
+from datetime import datetime, timedelta
 from statistics import mean, median
+from typing import Any, Dict, List
+
 import numpy as np
 
 logger = logging.getLogger(__name__)
@@ -31,7 +31,7 @@ class AnalyticsService:
         self.performance_data = defaultdict(list)
 
     def track_mobile_session(
-        self, device_id: str, session_data: Dict[str, Any]
+        self, device_id: str, session_data: dict[str, Any]
     ) -> None:
         """Track mobile app session analytics"""
         try:
@@ -86,7 +86,7 @@ class AnalyticsService:
         except Exception as e:
             logger.error(f"Failed to track API usage: {e}")
 
-    def track_driver_performance(self, driver_id: str, metrics: Dict[str, Any]) -> None:
+    def track_driver_performance(self, driver_id: str, metrics: dict[str, Any]) -> None:
         """Track driver performance metrics"""
         try:
             driver_record = {
@@ -107,7 +107,7 @@ class AnalyticsService:
         except Exception as e:
             logger.error(f"Failed to track driver performance: {e}")
 
-    def track_route_optimization(self, route_data: Dict[str, Any]) -> None:
+    def track_route_optimization(self, route_data: dict[str, Any]) -> None:
         """Track route optimization performance and results"""
         try:
             route_record = {
@@ -134,7 +134,7 @@ class AnalyticsService:
         except Exception as e:
             logger.error(f"Failed to track route optimization: {e}")
 
-    def track_system_event(self, event_type: str, event_data: Dict[str, Any]) -> None:
+    def track_system_event(self, event_type: str, event_data: dict[str, Any]) -> None:
         """Track system events for monitoring and debugging"""
         try:
             event_record = {
@@ -154,7 +154,7 @@ class AnalyticsService:
         except Exception as e:
             logger.error(f"Failed to track system event: {e}")
 
-    def get_mobile_analytics(self, timeframe: str = "24h") -> Dict[str, Any]:
+    def get_mobile_analytics(self, timeframe: str = "24h") -> dict[str, Any]:
         """Get mobile app usage analytics"""
         try:
             cutoff_time = self._get_cutoff_time(timeframe)
@@ -194,7 +194,7 @@ class AnalyticsService:
                 "timeframe": timeframe,
                 "total_sessions": total_sessions,
                 "unique_devices": len(
-                    set(session["device_id"] for session in recent_sessions)
+                    {session["device_id"] for session in recent_sessions}
                 ),
                 "device_types": dict(device_types),
                 "app_versions": dict(app_versions),
@@ -208,7 +208,7 @@ class AnalyticsService:
             logger.error(f"Failed to get mobile analytics: {e}")
             return self._empty_analytics_response()
 
-    def get_driver_analytics(self, timeframe: str = "24h") -> Dict[str, Any]:
+    def get_driver_analytics(self, timeframe: str = "24h") -> dict[str, Any]:
         """Get driver performance analytics"""
         try:
             cutoff_time = self._get_cutoff_time(timeframe)
@@ -237,7 +237,7 @@ class AnalyticsService:
 
             return {
                 "timeframe": timeframe,
-                "total_drivers": len(set(m["driver_id"] for m in recent_metrics)),
+                "total_drivers": len({m["driver_id"] for m in recent_metrics}),
                 "total_location_updates": len(recent_metrics),
                 "avg_location_accuracy": (
                     round(mean(location_accuracies), 2) if location_accuracies else 0
@@ -254,7 +254,7 @@ class AnalyticsService:
             logger.error(f"Failed to get driver analytics: {e}")
             return {"timeframe": timeframe, "error": str(e)}
 
-    def get_route_analytics(self, timeframe: str = "24h") -> Dict[str, Any]:
+    def get_route_analytics(self, timeframe: str = "24h") -> dict[str, Any]:
         """Get route optimization analytics"""
         try:
             cutoff_time = self._get_cutoff_time(timeframe)
@@ -322,7 +322,7 @@ class AnalyticsService:
             logger.error(f"Failed to get route analytics: {e}")
             return {"timeframe": timeframe, "error": str(e)}
 
-    def get_api_analytics(self, timeframe: str = "24h") -> Dict[str, Any]:
+    def get_api_analytics(self, timeframe: str = "24h") -> dict[str, Any]:
         """Get API usage and performance analytics"""
         try:
             cutoff_time = self._get_cutoff_time(timeframe)
@@ -388,7 +388,7 @@ class AnalyticsService:
             logger.error(f"Failed to get API analytics: {e}")
             return {"timeframe": timeframe, "error": str(e)}
 
-    def get_system_health(self) -> Dict[str, Any]:
+    def get_system_health(self) -> dict[str, Any]:
         """Get overall system health metrics"""
         try:
             # Recent performance data
@@ -433,7 +433,7 @@ class AnalyticsService:
             logger.error(f"Failed to get system health: {e}")
             return {"status": "error", "error": str(e)}
 
-    def generate_analytics_report(self, timeframe: str = "24h") -> Dict[str, Any]:
+    def generate_analytics_report(self, timeframe: str = "24h") -> dict[str, Any]:
         """Generate comprehensive analytics report"""
         try:
             return {
@@ -475,7 +475,7 @@ class AnalyticsService:
         mobile_indicators = ["mobile", "iphone", "android", "ios", "tablet", "ipad"]
         return any(indicator in user_agent.lower() for indicator in mobile_indicators)
 
-    def _empty_analytics_response(self) -> Dict[str, Any]:
+    def _empty_analytics_response(self) -> dict[str, Any]:
         """Return empty analytics response"""
         return {
             "total_sessions": 0,
@@ -488,7 +488,7 @@ class AnalyticsService:
             "most_used_features": [],
         }
 
-    def _get_top_performing_drivers(self, timeframe: str) -> List[Dict[str, Any]]:
+    def _get_top_performing_drivers(self, timeframe: str) -> list[dict[str, Any]]:
         """Get top performing drivers for timeframe"""
         try:
             cutoff_time = self._get_cutoff_time(timeframe)
@@ -525,13 +525,13 @@ class AnalyticsService:
             logger.error(f"Failed to get top performing drivers: {e}")
             return []
 
-    def _get_driver_performance_trends(self, timeframe: str) -> Dict[str, Any]:
+    def _get_driver_performance_trends(self, timeframe: str) -> dict[str, Any]:
         """Get driver performance trends"""
         # Simplified trend analysis
         return {"improving_drivers": 0, "declining_drivers": 0, "stable_drivers": 0}
 
     def _calculate_health_score(
-        self, response_times: List[float], error_events: List[Dict]
+        self, response_times: list[float], error_events: list[dict]
     ) -> int:
         """Calculate system health score (0-100)"""
         try:

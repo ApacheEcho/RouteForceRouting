@@ -358,6 +358,8 @@ def generate_route(
         time_windows = {}
         priority_weights = {}
         for chain, config in playbook.items():
+            if not isinstance(config, dict):
+                continue  # Skip non-dict values (e.g., max_route_stops)
             if "visit_hours" in config:
                 time_windows[chain] = config["visit_hours"]
             if "priority" in config:
@@ -387,6 +389,8 @@ def summarize_route(
         time_windows = {}
         priority_weights = {}
         for chain, config in playbook.items():
+            if not isinstance(config, dict):
+                continue  # Skip non-dict values (e.g., max_route_stops)
             if "visit_hours" in config:
                 time_windows[chain] = config["visit_hours"]
             if "priority" in config:

@@ -236,6 +236,27 @@ class FileService:
             logger.error(f"Error calculating file hash: {str(e)}")
             return ""
 
+    def process_stores_file(self, file: FileStorage) -> List[Dict[str, Any]]:
+        """
+        Process an uploaded file and return a list of stores.
+
+        Args:
+            file: Uploaded file object
+
+        Returns:
+            List of stores (dicts)
+
+        Raises:
+            Exception: If file processing fails
+        """
+        # Save the uploaded file temporarily
+        file_path = self.save_uploaded_file(file)
+        try:
+            stores = self.load_stores_from_file(file_path)
+        finally:
+            self.cleanup_file(file_path)
+        return stores
+
     def _is_allowed_file(self, filename: str) -> bool:
         """Check if file extension is allowed"""
         return (

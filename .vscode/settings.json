@@ -146,7 +146,7 @@
     "python.analysis.inlayHints.functionReturnTypes": false,
     "python.analysis.inlayHints.callArgumentNames": "off",
     "python.analysis.inlayHints.pytestParameters": false,
-    "python.languageServer": "Pylance",
+    "python.languageServer": "None",
     "python.formatting.provider": "black",
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": false,

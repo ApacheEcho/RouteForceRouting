@@ -16,6 +16,27 @@ class RouteForceSystemTest:
         self.backend_url = "http://localhost:8000"
         self.frontend_url = "http://localhost:3000"
         self.test_results = []
+        self.jwt_token = None
+        self.login_and_store_token()
+
+    def login_and_store_token(self):
+        """Authenticate and store JWT token for protected endpoints"""
+        login_url = f"{self.backend_url}/auth/login"
+        credentials = {"email": "admin@routeforce.com", "password": "admin123"}
+        try:
+            resp = requests.post(login_url, json=credentials, timeout=5)
+            if resp.status_code == 200 and resp.json().get("access_token"):
+                self.jwt_token = resp.json()["access_token"]
+                print("[AUTH] Successfully obtained JWT token.")
+            else:
+                print(f"[AUTH] Failed to obtain JWT token: {resp.text}")
+        except Exception as e:
+            print(f"[AUTH] Exception during login: {e}")
+
+    def get_auth_headers(self):
+        if self.jwt_token:
+            return {"Authorization": f"Bearer {self.jwt_token}"}
+        return {}
 
     def log_test(self, test_name, success, message=""):
         """Log test results"""
@@ -92,6 +113,7 @@ class RouteForceSystemTest:
         success_count = 0
         for endpoint in endpoints:
             try:
+                headers = self.get_auth_headers()
                 if endpoint == "/api/optimize":
                     # POST request for optimization
                     test_data = {
@@ -119,12 +141,13 @@ class RouteForceSystemTest:
                     response = requests.post(
                         f"{self.backend_url}{endpoint}",
                         json=test_data,
+                        headers=headers,
                         timeout=10,
                     )
                 else:
                     # GET request for other endpoints
                     response = requests.get(
-                        f"{self.backend_url}{endpoint}", timeout=5
+                        f"{self.backend_url}{endpoint}", headers=headers, timeout=5
                     )
 
                 if response.status_code in [200, 201]:
@@ -172,7 +195,7 @@ class RouteForceSystemTest:
         """Test ML model integration"""
         try:
             response = requests.get(
-                f"{self.backend_url}/advanced/api/ml-insights", timeout=10
+                f"{self.backend_url}/advanced/api/ml-insights", headers=self.get_auth_headers(), timeout=10
             )
             if response.status_code == 200:
                 data = response.json()
@@ -204,6 +227,7 @@ class RouteForceSystemTest:
         try:
             response = requests.get(
                 f"{self.backend_url}/advanced/api/performance-trends",
+                headers=self.get_auth_headers(),
                 timeout=5,
             )
             if response.status_code == 200:
@@ -266,6 +290,7 @@ class RouteForceSystemTest:
                 response = requests.post(
                     f"{self.backend_url}/api/optimize",
                     json=test_data,
+                    headers=self.get_auth_headers(),
                     timeout=15,
                 )
                 if response.status_code == 200:

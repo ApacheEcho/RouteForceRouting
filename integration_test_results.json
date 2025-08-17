@@ -1,101 +1,101 @@
 {
-  "timestamp": "2025-08-16T20:43:55.609819",
+  "timestamp": "2025-08-16T20:48:49.102267",
   "summary": {
     "total_tests": 15,
-    "passed_tests": 3,
-    "failed_tests": 12,
-    "success_rate": 20.0
+    "passed_tests": 4,
+    "failed_tests": 11,
+    "success_rate": 26.666666666666668
   },
   "test_results": [
     {
       "test": "Backend Health",
       "success": true,
       "message": "Status: healthy",
-      "timestamp": "2025-08-16T20:43:00.546565"
+      "timestamp": "2025-08-16T20:47:54.020439"
     },
     {
       "test": "Frontend Accessibility",
-      "success": false,
-      "message": "Connection error: HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x1032db770>: Failed to establish a new connection: [Errno 61] Connection refused'))",
-      "timestamp": "2025-08-16T20:43:00.548700"
+      "success": true,
+      "message": "Frontend is serving content",
+      "timestamp": "2025-08-16T20:47:54.053349"
     },
     {
       "test": "API /api/optimize",
       "success": false,
       "message": "Error: HTTPConnectionPool(host='localhost', port=8000): Read timed out. (read timeout=10)",
-      "timestamp": "2025-08-16T20:43:10.551932"
+      "timestamp": "2025-08-16T20:48:04.056031"
     },
     {
       "test": "API /api/analytics",
       "success": true,
       "message": "HTTP 200",
-      "timestamp": "2025-08-16T20:43:10.562147"
+      "timestamp": "2025-08-16T20:48:04.061082"
     },
     {
       "test": "API /advanced/api/ml-insights",
       "success": false,
       "message": "HTTP 401",
-      "timestamp": "2025-08-16T20:43:10.567137"
+      "timestamp": "2025-08-16T20:48:04.064780"
     },
     {
       "test": "API /advanced/api/performance-trends",
       "success": false,
       "message": "HTTP 401",
-      "timestamp": "2025-08-16T20:43:10.571870"
+      "timestamp": "2025-08-16T20:48:04.067841"
     },
     {
       "test": "API /advanced/api/predictive-analytics",
       "success": false,
       "message": "HTTP 401",
-      "timestamp": "2025-08-16T20:43:10.576450"
+      "timestamp": "2025-08-16T20:48:04.070814"
     },
     {
       "test": "API /advanced/api/real-time-alerts",
       "success": false,
       "message": "HTTP 401",
-      "timestamp": "2025-08-16T20:43:10.580915"
+      "timestamp": "2025-08-16T20:48:04.073475"
     },
     {
       "test": "API /advanced/api/optimization-insights",
       "success": false,
       "message": "HTTP 401",
-      "timestamp": "2025-08-16T20:43:10.584883"
+      "timestamp": "2025-08-16T20:48:04.077093"
     },
     {
       "test": "Database Integration",
       "success": true,
       "message": "Analytics data retrieved",
-      "timestamp": "2025-08-16T20:43:10.589137"
+      "timestamp": "2025-08-16T20:48:04.080861"
     },
     {
       "test": "ML Integration",
       "success": false,
       "message": "HTTP 401",
-      "timestamp": "2025-08-16T20:43:10.593155"
+      "timestamp": "2025-08-16T20:48:04.084115"
     },
     {
       "test": "Performance Monitoring",
       "success": false,
       "message": "HTTP 401",
-      "timestamp": "2025-08-16T20:43:10.596044"
+      "timestamp": "2025-08-16T20:48:04.086835"
     },
     {
       "test": "Algorithm genetic",
       "success": false,
       "message": "Error: HTTPConnectionPool(host='localhost', port=8000): Read timed out. (read timeout=15)",
-      "timestamp": "2025-08-16T20:43:25.597805"
+      "timestamp": "2025-08-16T20:48:19.089096"
     },
     {
       "test": "Algorithm simulated_annealing",
       "success": false,
       "message": "Error: HTTPConnectionPool(host='localhost', port=8000): Read timed out. (read timeout=15)",
-      "timestamp": "2025-08-16T20:43:40.603057"
+      "timestamp": "2025-08-16T20:48:34.094760"
     },
     {
       "test": "Algorithm multi_objective",
       "success": false,
       "message": "Error: HTTPConnectionPool(host='localhost', port=8000): Read timed out. (read timeout=15)",
-      "timestamp": "2025-08-16T20:43:55.607100"
+      "timestamp": "2025-08-16T20:48:49.101212"
     }
   ]
 }

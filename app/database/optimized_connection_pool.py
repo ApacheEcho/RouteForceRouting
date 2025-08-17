@@ -387,11 +387,7 @@ class OptimizedDatabase:
                 "application_name": "RouteForce_Optimized",
             },
         }
-        # Only call db.init_app(app) if not already done
-        if not hasattr(app, '_db_initialized'):
-            self.db.init_app(app)
-            app._db_initialized = True
-
+        # Do NOT call db.init_app(app) here; it is handled in the main app factory
         logger.info("🚀 Optimized database initialized")
 
     def get_connection(self):

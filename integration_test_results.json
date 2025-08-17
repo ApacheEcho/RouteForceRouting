@@ -1,101 +1,101 @@
 {
-  "timestamp": "2025-08-16T20:48:49.102267",
+  "timestamp": "2025-08-16T20:51:56.914865",
   "summary": {
     "total_tests": 15,
-    "passed_tests": 4,
-    "failed_tests": 11,
-    "success_rate": 26.666666666666668
+    "passed_tests": 11,
+    "failed_tests": 4,
+    "success_rate": 73.33333333333333
   },
   "test_results": [
     {
       "test": "Backend Health",
       "success": true,
       "message": "Status: healthy",
-      "timestamp": "2025-08-16T20:47:54.020439"
+      "timestamp": "2025-08-16T20:51:01.841191"
     },
     {
       "test": "Frontend Accessibility",
       "success": true,
       "message": "Frontend is serving content",
-      "timestamp": "2025-08-16T20:47:54.053349"
+      "timestamp": "2025-08-16T20:51:01.855458"
     },
     {
       "test": "API /api/optimize",
       "success": false,
       "message": "Error: HTTPConnectionPool(host='localhost', port=8000): Read timed out. (read timeout=10)",
-      "timestamp": "2025-08-16T20:48:04.056031"
+      "timestamp": "2025-08-16T20:51:11.858696"
     },
     {
       "test": "API /api/analytics",
       "success": true,
       "message": "HTTP 200",
-      "timestamp": "2025-08-16T20:48:04.061082"
+      "timestamp": "2025-08-16T20:51:11.865431"
     },
     {
       "test": "API /advanced/api/ml-insights",
-      "success": false,
-      "message": "HTTP 401",
-      "timestamp": "2025-08-16T20:48:04.064780"
+      "success": true,
+      "message": "HTTP 200",
+      "timestamp": "2025-08-16T20:51:11.870801"
     },
     {
       "test": "API /advanced/api/performance-trends",
-      "success": false,
-      "message": "HTTP 401",
-      "timestamp": "2025-08-16T20:48:04.067841"
+      "success": true,
+      "message": "HTTP 200",
+      "timestamp": "2025-08-16T20:51:11.875238"
     },
     {
       "test": "API /advanced/api/predictive-analytics",
-      "success": false,
-      "message": "HTTP 401",
-      "timestamp": "2025-08-16T20:48:04.070814"
+      "success": true,
+      "message": "HTTP 200",
+      "timestamp": "2025-08-16T20:51:11.879676"
     },
     {
       "test": "API /advanced/api/real-time-alerts",
-      "success": false,
-      "message": "HTTP 401",
-      "timestamp": "2025-08-16T20:48:04.073475"
+      "success": true,
+      "message": "HTTP 200",
+      "timestamp": "2025-08-16T20:51:11.883813"
     },
     {
       "test": "API /advanced/api/optimization-insights",
-      "success": false,
-      "message": "HTTP 401",
-      "timestamp": "2025-08-16T20:48:04.077093"
+      "success": true,
+      "message": "HTTP 200",
+      "timestamp": "2025-08-16T20:51:11.889217"
     },
     {
       "test": "Database Integration",
       "success": true,
       "message": "Analytics data retrieved",
-      "timestamp": "2025-08-16T20:48:04.080861"
+      "timestamp": "2025-08-16T20:51:11.893530"
     },
     {
       "test": "ML Integration",
-      "success": false,
-      "message": "HTTP 401",
-      "timestamp": "2025-08-16T20:48:04.084115"
+      "success": true,
+      "message": "ML insights retrieved successfully",
+      "timestamp": "2025-08-16T20:51:11.897313"
     },
     {
       "test": "Performance Monitoring",
-      "success": false,
-      "message": "HTTP 401",
-      "timestamp": "2025-08-16T20:48:04.086835"
+      "success": true,
+      "message": "Performance data available",
+      "timestamp": "2025-08-16T20:51:11.901350"
     },
     {
       "test": "Algorithm genetic",
       "success": false,
       "message": "Error: HTTPConnectionPool(host='localhost', port=8000): Read timed out. (read timeout=15)",
-      "timestamp": "2025-08-16T20:48:19.089096"
+      "timestamp": "2025-08-16T20:51:26.903963"
     },
     {
       "test": "Algorithm simulated_annealing",
       "success": false,
       "message": "Error: HTTPConnectionPool(host='localhost', port=8000): Read timed out. (read timeout=15)",
-      "timestamp": "2025-08-16T20:48:34.094760"
+      "timestamp": "2025-08-16T20:51:41.907646"
     },
     {
       "test": "Algorithm multi_objective",
       "success": false,
       "message": "Error: HTTPConnectionPool(host='localhost', port=8000): Read timed out. (read timeout=15)",
-      "timestamp": "2025-08-16T20:48:49.101212"
+      "timestamp": "2025-08-16T20:51:56.913383"
     }
   ]
 }

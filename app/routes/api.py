@@ -3,7 +3,7 @@ API Blueprint - RESTful API endpoints with database integration
 Enhanced with comprehensive validation and error handling
 """
 
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, jsonify, request, session, current_app
 import timeout_decorator
 import logging
 from datetime import datetime

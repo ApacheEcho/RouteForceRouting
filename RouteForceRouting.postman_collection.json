@@ -1,0 +1,270 @@
+{
+  "info": {
+    "_postman_id": "routeforce-routing-automation",
+    "name": "RouteForceRouting API Automation",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "function loginAndSetToken() {",
+          "    pm.sendRequest({",
+          "        url: pm.variables.replaceIn('{{base_url}}/auth/login'),",
+          "        method: 'POST',",
+          "        header: { 'Content-Type': 'application/json' },",
+          "        body: {",
+          "            mode: 'raw',",
+          "            raw: JSON.stringify({ email: 'testuser@example.com', password: 'testpassword' })",
+          "        }",
+          "    }, function (err, res) {",
+          "        if (!err && res.code === 200 && res.json().access_token) {",
+          "            pm.collectionVariables.set('access_token', res.json().access_token);",
+          "        } else if (res && res.code === 401) {",
+          "            // Register the user, then retry login",
+          "            pm.sendRequest({",
+          "                url: pm.variables.replaceIn('{{base_url}}/auth/register'),",
+          "                method: 'POST',",
+          "                header: { 'Content-Type': 'application/json' },",
+          "                body: {",
+          "                    mode: 'raw',",
+          "                    raw: JSON.stringify({ email: 'testuser@example.com', password: 'testpassword', name: 'Test User' })",
+          "                }",
+          "            }, function (err2, res2) {",
+          "                // Retry login after registration",
+          "                pm.sendRequest({",
+          "                    url: pm.variables.replaceIn('{{base_url}}/auth/login'),",
+          "                    method: 'POST',",
+          "                    header: { 'Content-Type': 'application/json' },",
+          "                    body: {",
+          "                        mode: 'raw',",
+          "                        raw: JSON.stringify({ email: 'testuser@example.com', password: 'testpassword' })",
+          "                    }",
+          "                }, function (err3, res3) {",
+          "                    if (!err3 && res3.code === 200 && res3.json().access_token) {",
+          "                        pm.collectionVariables.set('access_token', res3.json().access_token);",
+          "                    }",
+          "                });",
+          "            });",
+          "        }",
+          "    });",
+          "}",
+          "if (!pm.collectionVariables.get('access_token')) {",
+          "    loginAndSetToken();",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Optimize Endpoint",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/optimize",
+          "host": [ "{{base_url}}" ],
+          "path": [ "api", "optimize" ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"param1\": \"value1\",\n  \"param2\": \"value2\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test(\"Response has expected property\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('result');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Scoring Endpoint",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/route/score",
+          "host": [ "{{base_url}}" ],
+          "path": [ "api", "route", "score" ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test(\"Response is JSON\", function () {",
+              "    pm.response.to.be.json;",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "API v1 Routes (POST)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/routes",
+          "host": [ "{{base_url}}" ],
+          "path": [ "api", "v1", "routes" ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"param1\": \"value1\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 or 201\", function () {",
+              "    pm.expect([200,201]).to.include(pm.response.code);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "API v1 Routes (GET)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/routes",
+          "host": [ "{{base_url}}" ],
+          "path": [ "api", "v1", "routes" ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test(\"Response is JSON\", function () {",
+              "    pm.response.to.be.json;",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "API v1 Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/health",
+          "host": [ "{{base_url}}" ],
+          "path": [ "api", "v1", "health" ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "API v1 Metrics",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/metrics",
+          "host": [ "{{base_url}}" ],
+          "path": [ "api", "v1", "metrics" ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "API v1 ML Predict",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/ml/predict",
+          "host": [ "{{base_url}}" ],
+          "path": [ "api", "v1", "ml", "predict" ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"input\": \"test\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    }
+  ]
+}

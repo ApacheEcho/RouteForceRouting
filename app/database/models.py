@@ -50,7 +50,6 @@ class Route(Base):
     avg_stop_distance = Column(Float)
 
     # Relationships
-    insights = relationship("RouteInsightDB", back_populates="route")
     predictions = relationship("RoutePredictionDB", back_populates="route")
 
 

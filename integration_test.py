@@ -9,6 +9,7 @@ import json
 import time
 import sys
 from datetime import datetime
+import pytest
 
 
 class RouteForceSystemTest:
@@ -255,6 +256,7 @@ class RouteForceSystemTest:
             self.log_test("Performance Monitoring", False, f"Error: {str(e)}")
             return False
 
+    @pytest.mark.timeout(60)
     def test_optimization_algorithms(self):
         """Test optimization algorithms"""
         algorithms = ["genetic", "simulated_annealing", "multi_objective"]

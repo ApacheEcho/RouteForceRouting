@@ -3,7 +3,8 @@ API Blueprint - RESTful API endpoints with database integration
 Enhanced with comprehensive validation and error handling
 """
 
-from flask import Blueprint, jsonify, request, current_app, session
+from flask import Blueprint, jsonify, request, session
+import timeout_decorator
 import logging
 from datetime import datetime
 
@@ -1200,6 +1201,7 @@ def generate_route_with_ml():
 
 @api_bp.route("/optimize", methods=["POST"])
 @limiter.limit("100 per minute")  # Increased for testing and production load
+@timeout_decorator.timeout(30, timeout_exception=TimeoutError)
 def optimize_route():
     """
     Simple route optimization endpoint for testing and integration
@@ -1217,17 +1219,21 @@ def optimize_route():
     import cProfile
     import pstats
     import io
-
+    logger = logging.getLogger(__name__)
+    logger.debug("/optimize endpoint called")
     pr = cProfile.Profile()
     pr.enable()
     try:
         data = request.get_json()
+        logger.debug(f"Parsed JSON: {data}")
         if not data:
+            logger.warning("No JSON data provided")
             return jsonify({"error": "No JSON data provided"}), 400
 
         stops = data.get("stops", [])
         algorithm = data.get("algorithm", "genetic")
         depot = data.get("depot", {})
+        logger.debug(f"Algorithm: {algorithm}, Stops: {len(stops)}, Depot: {depot}")
 
         # Validate algorithm
         valid_algorithms = [
@@ -1236,6 +1242,7 @@ def optimize_route():
             "multi_objective",
         ]
         if algorithm not in valid_algorithms:
+            logger.warning(f"Invalid algorithm: {algorithm}")
             return (
                 jsonify(
                     {
@@ -1247,16 +1254,10 @@ def optimize_route():
             )
 
         if not stops:
+            logger.warning("No stops provided")
             return jsonify({"error": "No stops provided"}), 400
 
-        if len(stops) < 2:
-            return (
-                jsonify(
-                    {"error": "At least 2 stops required for optimization"}
-                ),
-                400,
-            )
-
+        logger.debug("About to call routing_service.generate_route_from_stores")
         # Convert stops to stores format
         stores = []
         for i, stop in enumerate(stops):
@@ -1356,6 +1357,9 @@ def optimize_route():
         ps.print_stats(20)  # Print top 20 functions
         print("[PROFILE] /optimize endpoint profile:\n" + s.getvalue())
         return response
+    except TimeoutError:
+        logger.error("/optimize endpoint timed out after 30 seconds")
+        return jsonify({"error": "Optimization timed out"}), 504
     except Exception as e:
         pr.disable()
         s = io.StringIO()

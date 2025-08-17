@@ -16,6 +16,7 @@ from sqlalchemy.pool import QueuePool
 from app.models.database import db
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 @dataclass
@@ -104,79 +105,66 @@ class DatabaseConnectionPool:
             with self._lock:
                 self.connection_stats["created"] += 1
                 self.metrics.total_connections += 1
+            logger.debug(f"DB connection created. Total: {self.metrics.total_connections}")
 
         @event.listens_for(self.engine, "close")
         def receive_close(dbapi_connection, connection_record):
             with self._lock:
                 self.connection_stats["closed"] += 1
+            logger.debug(f"DB connection closed. Total closed: {self.connection_stats['closed']}")
 
         @event.listens_for(self.engine, "before_cursor_execute")
-        def receive_before_cursor_execute(
-            conn, cursor, statement, parameters, context, executemany
-        ):
+        def receive_before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
             context._query_start_time = time.time()
+            logger.debug(f"Executing query: {statement[:100]}... Params: {parameters}")
 
         @event.listens_for(self.engine, "after_cursor_execute")
-        def receive_after_cursor_execute(
-            conn, cursor, statement, parameters, context, executemany
-        ):
+        def receive_after_cursor_execute(conn, cursor, statement, parameters, context, executemany):
             query_time = time.time() - context._query_start_time
-
-            # Track query performance
             if not self.query_times.full():
                 self.query_times.put(query_time)
-
-            # Track slow queries
             if query_time > self.slow_query_threshold:
                 with self._lock:
                     self.metrics.slow_queries += 1
-                logger.warning(
-                    f"🐌 Slow query detected: {query_time:.3f}s - {query_time[:100]}..."
-                )
+                logger.warning(f"🐌 Slow query detected: {query_time:.3f}s - {statement[:100]}...")
+            logger.debug(f"Query executed in {query_time:.4f}s")
 
     @contextmanager
     def get_connection(self):
         """Get database connection with automatic monitoring"""
         connection = None
-
+        logger.debug("Acquiring DB connection from pool...")
         try:
             connection = self.engine.connect()
             with self._lock:
                 self.metrics.active_connections += 1
                 self.active_connections.add(connection)
-
+            logger.debug(f"DB connection acquired. Active: {self.metrics.active_connections}")
             yield connection
-
         except Exception as e:
             with self._lock:
                 self.connection_stats["errors"] += 1
                 self.metrics.connection_errors += 1
             logger.error(f"Database connection error: {e}")
             raise
-
         finally:
             if connection:
                 try:
                     connection.close()
                     with self._lock:
-                        self.metrics.active_connections = max(
-                            0, self.metrics.active_connections - 1
-                        )
+                        self.metrics.active_connections = max(0, self.metrics.active_connections - 1)
                         if connection in self.active_connections:
                             self.active_connections.remove(connection)
+                    logger.debug(f"DB connection released. Active: {self.metrics.active_connections}")
                 except Exception as e:
                     logger.error(f"Error closing connection: {e}")
-
-            # Auto-optimization check
-            if (
-                self.auto_optimize
-                and time.time() - self.last_optimization
-                > self.optimization_interval
-            ):
+            if self.auto_optimize and time.time() - self.last_optimization > self.optimization_interval:
+                logger.debug("Auto-optimization triggered.")
                 self._auto_optimize()
 
     def _auto_optimize(self) -> None:
         """Automatic database connection optimization"""
+        logger.debug("Running auto-optimization...")
         try:
             self.last_optimization = time.time()
 
@@ -187,14 +175,10 @@ class DatabaseConnectionPool:
 
             # Pool size optimization
             if self.metrics.pool_overflow > 5:
-                new_pool_size = min(
-                    self.pool_size + 2, 50
-                )  # Increase pool size
+                new_pool_size = min(self.pool_size + 2, 50)
                 if new_pool_size != self.pool_size:
                     self.pool_size = new_pool_size
-                    optimizations_applied.append(
-                        f"increased_pool_size_to_{new_pool_size}"
-                    )
+                    optimizations_applied.append(f"increased_pool_size_to_{new_pool_size}")
 
             # High error rate optimization
             if self.metrics.connection_errors > 10:
@@ -212,12 +196,13 @@ class DatabaseConnectionPool:
                 logger.info(
                     f"🔧 Database auto-optimization applied: {', '.join(optimizations_applied)}"
                 )
-
+            logger.debug(f"Auto-optimization complete. Metrics: {self.metrics}")
         except Exception as e:
             logger.error(f"Database auto-optimization failed: {e}")
 
     def _update_metrics(self) -> None:
         """Update connection pool metrics"""
+        logger.debug("Updating connection pool metrics...")
         with self._lock:
             # Calculate average query time
             query_times_list = []
@@ -228,9 +213,7 @@ class DatabaseConnectionPool:
                     break
 
             if query_times_list:
-                self.metrics.avg_query_time = sum(query_times_list) / len(
-                    query_times_list
-                )
+                self.metrics.avg_query_time = sum(query_times_list) / len(query_times_list)
 
             # Pool status - track active connections
             self.metrics.active_connections = len(self.active_connections)
@@ -238,13 +221,14 @@ class DatabaseConnectionPool:
             # Reset some counters periodically
             if self.metrics.slow_queries > 100:
                 self.metrics.slow_queries = 0
+            logger.debug(f"Metrics updated: {self.metrics}")
 
     def get_pool_status(self) -> Dict[str, Any]:
         """Get current pool status and metrics"""
+        logger.debug("Fetching pool status...")
         with self._lock:
             pool = self.engine.pool
-
-            return {
+            status = {
                 "pool_size": self.pool_size,
                 "max_overflow": self.max_overflow,
                 "active_connections": self.metrics.active_connections,
@@ -257,17 +241,13 @@ class DatabaseConnectionPool:
                 "connections_errored": self.connection_stats["errors"],
                 "pool_status": {
                     "size": pool.size() if hasattr(pool, "size") else 0,
-                    "checked_in": (
-                        pool.checkedin() if hasattr(pool, "checkedin") else 0
-                    ),
-                    "checked_out": (
-                        pool.checkedout() if hasattr(pool, "checkedout") else 0
-                    ),
-                    "overflow": (
-                        pool.overflow() if hasattr(pool, "overflow") else 0
-                    ),
+                    "checked_in": pool.checkedin() if hasattr(pool, "checkedin") else 0,
+                    "checked_out": pool.checkedout() if hasattr(pool, "checkedout") else 0,
+                    "overflow": pool.overflow() if hasattr(pool, "overflow") else 0,
                 },
             }
+            logger.debug(f"Pool status: {status}")
+            return status
 
     def optimize_pool_configuration(self) -> Dict[str, Any]:
         """Optimize pool configuration based on current usage patterns"""

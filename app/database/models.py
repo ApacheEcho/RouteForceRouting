@@ -69,9 +69,6 @@ class RouteInsightDB(Base):
     metrics = Column(JSON)  # Store metrics as JSON
     timestamp = Column(DateTime, default=datetime.utcnow, index=True)
 
-    # Relationship
-    route = relationship("Route", back_populates="insights")
-
 
 class RoutePredictionDB(Base):
     """Route predictions model"""

@@ -3,10 +3,11 @@ Enhanced Geocoding Cache Service - AUTO-PILOT PERFORMANCE OPTIMIZATION
 Implements Redis-based caching with file fallback for maximum performance
 """
 
-import redis
 import json
 import logging
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
+
+import redis
 from flask import current_app
 
 logger = logging.getLogger(__name__)
@@ -39,7 +40,7 @@ class GeocodingCache:
             self.redis_available = False
             logger.warning(f"⚠️ Redis unavailable, using file cache: {e}")
 
-    def get(self, address: str) -> Optional[Dict[str, float]]:
+    def get(self, address: str) -> dict[str, float] | None:
         """Get coordinates from cache with Redis priority"""
         cache_key = self._normalize_address(address)
 
@@ -61,7 +62,7 @@ class GeocodingCache:
 
         return result
 
-    def set(self, address: str, coordinates: Dict[str, float]) -> None:
+    def set(self, address: str, coordinates: dict[str, float]) -> None:
         """Store coordinates in both Redis and file cache"""
         cache_key = self._normalize_address(address)
 
@@ -90,7 +91,7 @@ class GeocodingCache:
     def _load_file_cache(self) -> None:
         """Load file-based cache as fallback"""
         try:
-            with open(self.cache_file, "r") as f:
+            with open(self.cache_file) as f:
                 self.file_cache = json.load(f)
             logger.info(f"📁 Loaded {len(self.file_cache)} entries from file cache")
         except FileNotFoundError:
@@ -108,7 +109,7 @@ class GeocodingCache:
         except Exception as e:
             logger.error(f"Error saving file cache: {e}")
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get cache statistics"""
         redis_keys = 0
         if self.redis_available:

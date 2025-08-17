@@ -1214,6 +1214,12 @@ def optimize_route():
         "depot": {"lat": 37.7649, "lng": -122.4294, "name": "Depot"}
     }
     """
+    import cProfile
+    import pstats
+    import io
+
+    pr = cProfile.Profile()
+    pr.enable()
     try:
         data = request.get_json()
         if not data:
@@ -1343,9 +1349,19 @@ def optimize_route():
         if metrics and metrics.route_id:
             response_data["route_id"] = metrics.route_id
 
-        return jsonify(response_data), 200
-
+        response = jsonify(response_data), 200
+        pr.disable()
+        s = io.StringIO()
+        ps = pstats.Stats(pr, stream=s).sort_stats("cumulative")
+        ps.print_stats(20)  # Print top 20 functions
+        print("[PROFILE] /optimize endpoint profile:\n" + s.getvalue())
+        return response
     except Exception as e:
+        pr.disable()
+        s = io.StringIO()
+        ps = pstats.Stats(pr, stream=s).sort_stats("cumulative")
+        ps.print_stats(20)
+        print("[PROFILE] /optimize endpoint profile (error):\n" + s.getvalue())
         logger.error(f"API error optimizing route: {str(e)}")
         return (
             jsonify(

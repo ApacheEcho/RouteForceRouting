@@ -168,5 +168,6 @@
     // Security/Trust
     "security.workspace.trust.untrustedFiles": "open",
     "security.workspace.trust.startupPrompt": "never",
-    "codeQL.createQuery.qlPackLocation": "/Users/frank/RouteForceRouting"
+    "codeQL.createQuery.qlPackLocation": "/Users/frank/RouteForceRouting",
+    "postman.settings.dotenv-detection-notification-visibility": false
 }

@@ -1215,13 +1215,8 @@ def optimize_route():
         "depot": {"lat": 37.7649, "lng": -122.4294, "name": "Depot"}
     }
     """
-    import cProfile
-    import pstats
-    import io
     logger = logging.getLogger(__name__)
     logger.debug("/optimize endpoint called")
-    pr = cProfile.Profile()
-    pr.enable()
     try:
         data = request.get_json()
         logger.debug(f"Parsed JSON: {data}")

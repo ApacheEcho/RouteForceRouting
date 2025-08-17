@@ -1,101 +1,101 @@
 {
-  "timestamp": "2025-07-20T18:49:45.082225",
+  "timestamp": "2025-08-16T20:43:55.609819",
   "summary": {
     "total_tests": 15,
-    "passed_tests": 7,
-    "failed_tests": 8,
-    "success_rate": 46.666666666666664
+    "passed_tests": 3,
+    "failed_tests": 12,
+    "success_rate": 20.0
   },
   "test_results": [
     {
       "test": "Backend Health",
       "success": true,
       "message": "Status: healthy",
-      "timestamp": "2025-07-20T18:49:45.027188"
+      "timestamp": "2025-08-16T20:43:00.546565"
     },
     {
       "test": "Frontend Accessibility",
       "success": false,
-      "message": "HTTP 404",
-      "timestamp": "2025-07-20T18:49:45.034306"
+      "message": "Connection error: HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x1032db770>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "timestamp": "2025-08-16T20:43:00.548700"
     },
     {
       "test": "API /api/optimize",
-      "success": true,
-      "message": "HTTP 200",
-      "timestamp": "2025-07-20T18:49:45.044274"
+      "success": false,
+      "message": "Error: HTTPConnectionPool(host='localhost', port=8000): Read timed out. (read timeout=10)",
+      "timestamp": "2025-08-16T20:43:10.551932"
     },
     {
       "test": "API /api/analytics",
       "success": true,
       "message": "HTTP 200",
-      "timestamp": "2025-07-20T18:49:45.048021"
+      "timestamp": "2025-08-16T20:43:10.562147"
     },
     {
       "test": "API /advanced/api/ml-insights",
       "success": false,
       "message": "HTTP 401",
-      "timestamp": "2025-07-20T18:49:45.052006"
+      "timestamp": "2025-08-16T20:43:10.567137"
     },
     {
       "test": "API /advanced/api/performance-trends",
       "success": false,
       "message": "HTTP 401",
-      "timestamp": "2025-07-20T18:49:45.055172"
+      "timestamp": "2025-08-16T20:43:10.571870"
     },
     {
       "test": "API /advanced/api/predictive-analytics",
       "success": false,
       "message": "HTTP 401",
-      "timestamp": "2025-07-20T18:49:45.058374"
+      "timestamp": "2025-08-16T20:43:10.576450"
     },
     {
       "test": "API /advanced/api/real-time-alerts",
       "success": false,
       "message": "HTTP 401",
-      "timestamp": "2025-07-20T18:49:45.061029"
+      "timestamp": "2025-08-16T20:43:10.580915"
     },
     {
       "test": "API /advanced/api/optimization-insights",
       "success": false,
       "message": "HTTP 401",
-      "timestamp": "2025-07-20T18:49:45.064268"
+      "timestamp": "2025-08-16T20:43:10.584883"
     },
     {
       "test": "Database Integration",
       "success": true,
       "message": "Analytics data retrieved",
-      "timestamp": "2025-07-20T18:49:45.067573"
+      "timestamp": "2025-08-16T20:43:10.589137"
     },
     {
       "test": "ML Integration",
       "success": false,
       "message": "HTTP 401",
-      "timestamp": "2025-07-20T18:49:45.070244"
+      "timestamp": "2025-08-16T20:43:10.593155"
     },
     {
       "test": "Performance Monitoring",
       "success": false,
       "message": "HTTP 401",
-      "timestamp": "2025-07-20T18:49:45.073514"
+      "timestamp": "2025-08-16T20:43:10.596044"
     },
     {
       "test": "Algorithm genetic",
-      "success": true,
-      "message": "Optimized route with 4 stops",
-      "timestamp": "2025-07-20T18:49:45.076055"
+      "success": false,
+      "message": "Error: HTTPConnectionPool(host='localhost', port=8000): Read timed out. (read timeout=15)",
+      "timestamp": "2025-08-16T20:43:25.597805"
     },
     {
       "test": "Algorithm simulated_annealing",
-      "success": true,
-      "message": "Optimized route with 4 stops",
-      "timestamp": "2025-07-20T18:49:45.079111"
+      "success": false,
+      "message": "Error: HTTPConnectionPool(host='localhost', port=8000): Read timed out. (read timeout=15)",
+      "timestamp": "2025-08-16T20:43:40.603057"
     },
     {
       "test": "Algorithm multi_objective",
-      "success": true,
-      "message": "Optimized route with 4 stops",
-      "timestamp": "2025-07-20T18:49:45.081971"
+      "success": false,
+      "message": "Error: HTTPConnectionPool(host='localhost', port=8000): Read timed out. (read timeout=15)",
+      "timestamp": "2025-08-16T20:43:55.607100"
     }
   ]
 }

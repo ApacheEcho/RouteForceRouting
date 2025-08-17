@@ -131,7 +131,7 @@ class DatabaseConnectionPool:
                 with self._lock:
                     self.metrics.slow_queries += 1
                 logger.warning(
-                    f"🐌 Slow query detected: {query_time:.3f}s - {statement[:100]}..."
+                    f"🐌 Slow query detected: {query_time:.3f}s - {query_time[:100]}..."
                 )
 
     @contextmanager
@@ -372,9 +372,22 @@ class OptimizedDatabase:
         )
 
         # Setup Flask-SQLAlchemy with optimized engine
-        self.db = SQLAlchemy()
-        self.db.engine = self.connection_pool.engine
-        self.db.init_app(app)
+        app.config['SQLALCHEMY_DATABASE_URI'] = self.database_url
+        app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+            "poolclass": QueuePool,
+            "pool_size": pool_size,
+            "max_overflow": max_overflow,
+            "pool_pre_ping": True,
+            "pool_recycle": 3600,
+            "pool_timeout": 30,
+            "echo": False,
+            "future": True,
+            "connect_args": {
+                "connect_timeout": 10,
+                "application_name": "RouteForce_Optimized",
+            },
+        }
+        self.db = SQLAlchemy(app)
 
         logger.info("🚀 Optimized database initialized")
 

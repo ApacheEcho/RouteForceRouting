@@ -13,7 +13,7 @@ from queue import Queue, Empty
 import weakref
 from sqlalchemy import create_engine, event
 from sqlalchemy.pool import QueuePool
-from flask_sqlalchemy import SQLAlchemy
+from app.models.database import db
 
 logger = logging.getLogger(__name__)
 
@@ -344,7 +344,7 @@ class OptimizedDatabase:
         self.app = app
         self.database_url = database_url
         self.connection_pool = None
-
+        self.db = db
         if app:
             self.init_app(app)
 
@@ -387,7 +387,10 @@ class OptimizedDatabase:
                 "application_name": "RouteForce_Optimized",
             },
         }
-        self.db = SQLAlchemy(app)
+        # Only call db.init_app(app) if not already done
+        if not hasattr(app, '_db_initialized'):
+            self.db.init_app(app)
+            app._db_initialized = True
 
         logger.info("🚀 Optimized database initialized")
 

@@ -1201,7 +1201,6 @@ def generate_route_with_ml():
 
 @api_bp.route("/optimize", methods=["POST"])
 @limiter.limit("100 per minute")  # Increased for testing and production load
-@timeout_decorator.timeout(30, timeout_exception=TimeoutError)
 def optimize_route():
     """
     Simple route optimization endpoint for testing and integration

@@ -30,12 +30,23 @@ logger = logging.getLogger(__name__)
 api_bp = Blueprint("api", __name__)
 
 
+from app.auth_decorators import auth_required
+from flask_jwt_extended import get_jwt_identity
+
 def get_current_user_id():
-    """Get current user ID from session (placeholder for authentication)"""
-    return session.get("user_id")  # Will be updated when auth is implemented
+    """Get current user ID from JWT or session (for backward compatibility)"""
+    user_id = None
+    try:
+        user_id = get_jwt_identity()
+    except Exception:
+        pass
+    if not user_id:
+        user_id = session.get("user_id")
+    return user_id
 
 
 @api_bp.route("/v1/routes", methods=["POST"])
+@auth_required()
 @api_error_handler
 def create_route():
     """
@@ -272,6 +283,7 @@ def create_route():
 
 
 @api_bp.route("/v1/routes/<int:route_id>", methods=["GET"])
+@auth_required()
 @api_error_handler
 def get_route(route_id: int):
     """Get route by ID from database"""
@@ -297,6 +309,7 @@ def get_route(route_id: int):
 
 
 @api_bp.route("/v1/routes", methods=["GET"])
+@auth_required()
 @api_error_handler
 def get_routes():
     """Get route history for current user with pagination"""
@@ -330,6 +343,7 @@ def get_routes():
 
 
 @api_bp.route("/v1/stores", methods=["GET"])
+@auth_required()
 @api_error_handler
 def get_stores():
     """Get stores for current user with pagination"""
@@ -359,6 +373,7 @@ def get_stores():
 
 
 @api_bp.route("/v1/stores/<int:store_id>", methods=["GET"])
+@auth_required()
 @api_error_handler
 def get_store(store_id: int):
     """Get specific store by ID"""
@@ -383,6 +398,7 @@ def get_store(store_id: int):
 
 
 @api_bp.route("/v1/routes/generate", methods=["POST"])
+@auth_required()
 @limiter.limit("10 per minute")
 def generate_route_from_stores():
     """Generate route from database stores"""

@@ -3,12 +3,13 @@ API validation utilities for RouteForce
 Enhanced input validation, error handling, and request/response management
 """
 
-from typing import Dict, Any, List, Tuple
-from flask import jsonify, request
-from functools import wraps
 import logging
-from datetime import datetime
 import traceback
+from datetime import datetime
+from functools import wraps
+from typing import Any, Dict, List, Tuple
+
+from flask import jsonify, request
 
 logger = logging.getLogger(__name__)
 
@@ -34,8 +35,8 @@ class APIError(Exception):
 
 
 def validate_json_request(
-    required_fields: List[str] = None, optional_fields: List[str] = None
-) -> Dict[str, Any]:
+    required_fields: list[str] = None, optional_fields: list[str] = None
+) -> dict[str, Any]:
     """
     Validate JSON request with required and optional fields
 
@@ -72,7 +73,7 @@ def validate_json_request(
     return data
 
 
-def validate_stores_data(stores: List[Dict]) -> List[Dict]:
+def validate_stores_data(stores: list[dict]) -> list[dict]:
     """
     Validate stores data structure
 
@@ -157,7 +158,7 @@ def validate_stores_data(stores: List[Dict]) -> List[Dict]:
     return validated_stores
 
 
-def validate_algorithm_options(options: Dict) -> Dict:
+def validate_algorithm_options(options: dict) -> dict:
     """
     Validate algorithm options
 
@@ -291,8 +292,8 @@ def api_error_handler(f):
 
 
 def create_success_response(
-    data: Any, status_code: int = 200, message: str = None, metadata: Dict = None
-) -> Tuple[Dict, int]:
+    data: Any, status_code: int = 200, message: str = None, metadata: dict = None
+) -> tuple[dict, int]:
     """
     Create standardized success response
 
@@ -321,8 +322,8 @@ def create_success_response(
 
 
 def paginate_response(
-    items: List, page: int = 1, per_page: int = 10, max_per_page: int = 100
-) -> Dict:
+    items: list, page: int = 1, per_page: int = 10, max_per_page: int = 100
+) -> dict:
     """
     Create paginated response
 

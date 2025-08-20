@@ -2,13 +2,14 @@
 Multi-tenant Organization Management System
 """
 
-from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
-from datetime import datetime
-import uuid
-from typing import Dict, List, Optional
-from dataclasses import dataclass, asdict
 import logging
+import uuid
+from dataclasses import asdict, dataclass
+from datetime import datetime
+from typing import Dict, List, Optional
+
+from flask import Blueprint, jsonify, request
+from flask_jwt_extended import jwt_required
 
 # Initialize blueprint
 organizations_bp = Blueprint("organizations", __name__, url_prefix="/api/organizations")
@@ -27,7 +28,7 @@ class Organization:
     max_routes: int = 1000
     is_active: bool = True
     created_at: str = None
-    settings: Dict = None
+    settings: dict = None
 
     def __post_init__(self):
         if self.created_at is None:
@@ -55,7 +56,7 @@ class User:
     last_name: str
     role: str = "user"  # user, admin, org_admin, super_admin
     is_active: bool = True
-    permissions: List[str] = None
+    permissions: list[str] = None
     last_login: str = None
     created_at: str = None
 
@@ -65,7 +66,7 @@ class User:
         if self.permissions is None:
             self.permissions = self._get_default_permissions()
 
-    def _get_default_permissions(self) -> List[str]:
+    def _get_default_permissions(self) -> list[str]:
         """Get default permissions based on role"""
         role_permissions = {
             "user": ["view_routes", "create_routes", "optimize_routes"],
@@ -122,7 +123,7 @@ class OrganizationManager:
         for org in demo_orgs:
             self.organizations[org.id] = org
 
-    def create_organization(self, data: Dict) -> Organization:
+    def create_organization(self, data: dict) -> Organization:
         """Create new organization"""
         org_id = str(uuid.uuid4())
         org = Organization(
@@ -138,22 +139,22 @@ class OrganizationManager:
         logger.info(f"Created organization: {org.name} ({org.subdomain})")
         return org
 
-    def get_organization(self, org_id: str) -> Optional[Organization]:
+    def get_organization(self, org_id: str) -> Organization | None:
         """Get organization by ID"""
         return self.organizations.get(org_id)
 
-    def get_organization_by_subdomain(self, subdomain: str) -> Optional[Organization]:
+    def get_organization_by_subdomain(self, subdomain: str) -> Organization | None:
         """Get organization by subdomain"""
         for org in self.organizations.values():
             if org.subdomain == subdomain:
                 return org
         return None
 
-    def list_organizations(self) -> List[Organization]:
+    def list_organizations(self) -> list[Organization]:
         """List all organizations"""
         return list(self.organizations.values())
 
-    def update_organization(self, org_id: str, data: Dict) -> Optional[Organization]:
+    def update_organization(self, org_id: str, data: dict) -> Organization | None:
         """Update organization"""
         org = self.organizations.get(org_id)
         if not org:
@@ -175,7 +176,7 @@ class OrganizationManager:
             return True
         return False
 
-    def get_organization_stats(self, org_id: str) -> Dict:
+    def get_organization_stats(self, org_id: str) -> dict:
         """Get organization usage statistics"""
         org = self.organizations.get(org_id)
         if not org:

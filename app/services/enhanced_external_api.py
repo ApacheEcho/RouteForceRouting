@@ -3,25 +3,18 @@ Enhanced External API Service for RouteForce Analytics
 Integrates external data sources with analytics and real-time decision making
 """
 
-import requests
 import json
-import os
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Tuple
-import asyncio
-import aiohttp
 import logging
-from dataclasses import dataclass, asdict
-import time
-import redis
+import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import asdict, dataclass
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Tuple
 
-from app.external_apis import (
-    GoogleMapsIntegration,
-    WeatherIntegration,
-    TrafficInfo,
-    WeatherInfo,
-)
+import redis
+
+from app.external_apis import (GoogleMapsIntegration, TrafficInfo, WeatherInfo,
+                               WeatherIntegration)
 from app.services.database_integration import database_service
 
 logger = logging.getLogger(__name__)
@@ -35,11 +28,11 @@ class ContextualRouteData:
     distance: float
     duration: float
     traffic_info: TrafficInfo
-    weather_info: List[WeatherInfo]
+    weather_info: list[WeatherInfo]
     fuel_impact_factor: float
     delay_probability: float
     risk_score: float
-    optimization_opportunities: List[str]
+    optimization_opportunities: list[str]
 
 
 class EnhancedExternalAPIService:
@@ -55,17 +48,19 @@ class EnhancedExternalAPIService:
         """Initialize Redis cache for API responses"""
         try:
             # Try to connect to Redis with environment configuration
-            redis_url = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+            redis_url = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
             cache = redis.from_url(redis_url, decode_responses=True)
             cache.ping()
             logger.info("✅ Redis cache connected successfully")
             return cache
         except Exception as e:
-            logger.info("ℹ️ Redis not available, using in-memory cache (normal for basic deployments)")
+            logger.info(
+                "ℹ️ Redis not available, using in-memory cache (normal for basic deployments)"
+            )
             return {}
 
     def get_enhanced_route_data(
-        self, origin: str, destination: str, waypoints: List[str] = None
+        self, origin: str, destination: str, waypoints: list[str] = None
     ) -> ContextualRouteData:
         """
         Get comprehensive route data with traffic, weather, and analytics context
@@ -156,8 +151,8 @@ class EnhancedExternalAPIService:
             )
 
     def get_real_time_updates(
-        self, route_id: str, current_location: Tuple[float, float]
-    ) -> Dict[str, Any]:
+        self, route_id: str, current_location: tuple[float, float]
+    ) -> dict[str, Any]:
         """
         Get real-time updates for an active route
 
@@ -248,8 +243,8 @@ class EnhancedExternalAPIService:
             }
 
     def optimize_route_with_context(
-        self, route_request: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, route_request: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Optimize route considering external factors and analytics insights
 
@@ -341,7 +336,7 @@ class EnhancedExternalAPIService:
             }
 
     def _calculate_fuel_impact(
-        self, weather_data: List[WeatherInfo], traffic_info: TrafficInfo
+        self, weather_data: list[WeatherInfo], traffic_info: TrafficInfo
     ) -> float:
         """Calculate fuel consumption impact factor"""
         try:
@@ -369,7 +364,7 @@ class EnhancedExternalAPIService:
             return 1.0
 
     def _calculate_delay_probability(
-        self, traffic_info: TrafficInfo, weather_data: List[WeatherInfo]
+        self, traffic_info: TrafficInfo, weather_data: list[WeatherInfo]
     ) -> float:
         """Calculate probability of delays"""
         try:
@@ -395,7 +390,7 @@ class EnhancedExternalAPIService:
             return 0.1
 
     def _calculate_risk_score(
-        self, weather_data: List[WeatherInfo], traffic_info: TrafficInfo
+        self, weather_data: list[WeatherInfo], traffic_info: TrafficInfo
     ) -> float:
         """Calculate overall route risk score"""
         try:
@@ -420,10 +415,10 @@ class EnhancedExternalAPIService:
 
     def _identify_optimization_opportunities(
         self,
-        route_data: Dict,
+        route_data: dict,
         traffic_info: TrafficInfo,
-        weather_data: List[WeatherInfo],
-    ) -> List[str]:
+        weather_data: list[WeatherInfo],
+    ) -> list[str]:
         """Identify route optimization opportunities"""
         opportunities = []
 
@@ -467,7 +462,7 @@ class EnhancedExternalAPIService:
             return ["Unable to analyze optimization opportunities"]
 
     def _score_route_option(
-        self, route_data: ContextualRouteData, preferences: Dict[str, Any]
+        self, route_data: ContextualRouteData, preferences: dict[str, Any]
     ) -> float:
         """Score a route option based on preferences and external factors"""
         try:
@@ -498,7 +493,7 @@ class EnhancedExternalAPIService:
 
     def _generate_route_summary(
         self, route_data: ContextualRouteData
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Generate a summary of route characteristics"""
         return {
             "distance_km": round(route_data.distance, 1),
@@ -515,7 +510,7 @@ class EnhancedExternalAPIService:
             "key_recommendations": route_data.optimization_opportunities[:3],
         }
 
-    def _get_from_cache(self, key: str) -> Optional[Dict[str, Any]]:
+    def _get_from_cache(self, key: str) -> dict[str, Any] | None:
         """Get data from cache"""
         try:
             if isinstance(self.cache, dict):
@@ -527,7 +522,7 @@ class EnhancedExternalAPIService:
             logger.error(f"Cache read error: {e}")
             return None
 
-    def _store_in_cache(self, key: str, data: Dict[str, Any], ttl: int = 300):
+    def _store_in_cache(self, key: str, data: dict[str, Any], ttl: int = 300):
         """Store data in cache"""
         try:
             if isinstance(self.cache, dict):

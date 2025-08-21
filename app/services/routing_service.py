@@ -4,29 +4,16 @@ This is the primary entry point for all routing functionality
 """
 
 import logging
-import time
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 from geopy.distance import geodesic
 
 # Import optimization algorithms
-from app.optimization.genetic_algorithm import GeneticAlgorithm, GeneticConfig
-from app.optimization.multi_objective import (
-    MultiObjectiveConfig,
-    MultiObjectiveOptimizer,
-)
-from app.optimization.simulated_annealing import (
-    SimulatedAnnealingConfig,
-    SimulatedAnnealingOptimizer,
-)
-
 # Import the unified routing service
 from app.services.routing_service_unified import (
-    UnifiedRoutingMetrics,
-    UnifiedRoutingService,
-    create_unified_routing_service,
-)
+    UnifiedRoutingMetrics, UnifiedRoutingService,
+    create_unified_routing_service)
 
 # Import Flask for current_app
 try:
@@ -57,8 +44,8 @@ def create_routing_service(user_id=None):
 
 
 def cluster_by_proximity(
-    stores: List[Dict], radius_km: float = 2.0
-) -> List[List[Dict]]:
+    stores: list[dict], radius_km: float = 2.0
+) -> list[list[dict]]:
     """
     Cluster stores by proximity to optimize routing
 
@@ -82,7 +69,7 @@ def cluster_by_proximity(
     return clusters
 
 
-def is_within_radius(store1: Dict, store2: Dict, radius_km: float) -> bool:
+def is_within_radius(store1: dict, store2: dict, radius_km: float) -> bool:
     """
     Check if two stores are within the specified radius
 
@@ -109,11 +96,11 @@ class LegacyRoutingMetrics:
     total_stores: int
     filtered_stores: int
     optimization_score: float
-    route_id: Optional[int] = None
+    route_id: int | None = None
     clusters_used: int = 0
     distance_saved: float = 0.0
     algorithm_used: str = "default"
-    algorithm_metrics: Optional[Dict[str, Any]] = None
+    algorithm_metrics: dict[str, Any] | None = None
 
 
 # Create aliases for backward compatibility

@@ -3,11 +3,12 @@ Real-time Analytics WebSocket Events
 Extends the existing WebSocket system with AI analytics events
 """
 
-from flask_socketio import emit
-from flask import request
 from datetime import datetime
+
+from flask import request
+from flask_socketio import emit
+
 from app.analytics_ai import get_analytics_engine
-import json
 
 
 def init_analytics_websocket_events(websocket_manager):

@@ -1,0 +1,223 @@
+{
+	"info": {
+		"_postman_id": "a8a1b8c3-3e2e-4f1c-8a7b-9d6e5f4d1c2b",
+		"name": "RouteForce Auth Flow",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Login and Get Tokens",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200 OK\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response contains access and refresh tokens\", function () {",
+							"    const responseData = pm.response.json();",
+							"    pm.expect(responseData.access_token).to.be.a('string');",
+							"    pm.expect(responseData.refresh_token).to.be.a('string');",
+							"});",
+							"",
+							"// Set tokens as collection variables for chaining requests",
+							"const responseData = pm.response.json();",
+							"if (responseData.access_token) {",
+							"    pm.collectionVariables.set(\"accessToken\", responseData.access_token);",
+							"}",
+							"if (responseData.refresh_token) {",
+							"    pm.collectionVariables.set(\"refreshToken\", responseData.refresh_token);",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"yourpassword\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/login",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"login"
+					]
+				},
+				"description": "Authenticates the user and retrieves an access_token and refresh_token."
+			},
+			"response": []
+		},
+		{
+			"name": "2. Access Protected Route",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200 OK for protected route\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/v1/routes",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"routes"
+					]
+				},
+				"description": "Accesses a protected endpoint using the access_token obtained from login."
+			},
+			"response": []
+		},
+		{
+			"name": "3. Refresh Access Token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200 OK\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response contains a new access token\", function () {",
+							"    const responseData = pm.response.json();",
+							"    pm.expect(responseData.access_token).to.be.a('string');",
+							"});",
+							"",
+							"// Update the accessToken variable with the new token",
+							"const responseData = pm.response.json();",
+							"if (responseData.access_token) {",
+							"    pm.collectionVariables.set(\"accessToken\", responseData.access_token);",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{refreshToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/refresh",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"refresh"
+					]
+				},
+				"description": "Uses the refresh_token to obtain a new access_token."
+			},
+			"response": []
+		},
+		{
+			"name": "4. Logout",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200 OK\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"// Clear variables on logout",
+							"pm.collectionVariables.unset(\"accessToken\");",
+							"pm.collectionVariables.unset(\"refreshToken\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/logout",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"logout"
+					]
+				},
+				"description": "Logs the user out, invalidating the current token."
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:5000",
+			"type": "string"
+		},
+		{
+			"key": "accessToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refreshToken",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

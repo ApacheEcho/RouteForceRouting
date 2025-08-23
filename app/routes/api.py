@@ -1,18 +1,37 @@
+
+# --- Blueprint and Core Imports (must be first for route decorators) ---
+from flask import Blueprint, jsonify, request, session, current_app
+import logging
+from datetime import datetime
+from flask_jwt_extended import get_jwt_identity, create_access_token, create_refresh_token, jwt_required, get_jwt
+from app.jwt_blocklist import add_token_to_blocklist
+from app.models.database import db, User
+from app.auth_decorators import auth_required
+from app.extensions import limiter
+
+api_bp = Blueprint("api", __name__)
+logger = logging.getLogger(__name__)
+
+# --- End Blueprint and Core Imports ---
+
+# Logout endpoint to revoke JWTs
+@api_bp.route("/api/logout", methods=["POST"])
+@jwt_required()
+def logout():
+    jti = get_jwt()["jti"]
+    exp = get_jwt()["exp"]
+    add_token_to_blocklist(jti, exp)
+    return jsonify({"msg": "Token revoked. Successfully logged out."}), 200
+
 """
 API Blueprint - RESTful API endpoints with database integration
 Enhanced with comprehensive validation and error handling
 """
 
-from flask import Blueprint, jsonify, request, session, current_app
 import timeout_decorator
-import logging
-from datetime import datetime
-
 from app.services.routing_service import RoutingService
 from app.services.database_service import DatabaseService
 from app.monitoring import metrics_collector
-from app.extensions import limiter
-
 # AUTO-PILOT: Enhanced validation and error handling
 from app.utils.validation import (
     validate_json_request,
@@ -25,13 +44,50 @@ from app.utils.validation import (
     APIError,
 )
 
-logger = logging.getLogger(__name__)
+@api_bp.route("/api/login", methods=["POST"])
+@limiter.limit("10 per minute;5 per minute per user")
+@api_error_handler
+def api_login():
+    data = request.get_json()
+    if not data or "email" not in data or "password" not in data:
+        return jsonify({"success": False, "error": "Email and password required"}), 400
 
-api_bp = Blueprint("api", __name__)
+    user = User.query.filter_by(email=data["email"]).first()
+    if not user or not user.check_password(data["password"]):
+        return jsonify({"success": False, "error": "Invalid credentials"}), 401
+    if not user.is_active:
+        return jsonify({"success": False, "error": "User account is inactive"}), 403
 
+    from datetime import timedelta
+    access_token = create_access_token(identity=user.id, expires_delta=timedelta(minutes=15))
+    refresh_token = create_refresh_token(identity=user.id)
+    user.last_login = datetime.utcnow()
+    db.session.commit()
 
-from app.auth_decorators import auth_required
-from flask_jwt_extended import get_jwt_identity
+    # Set refresh token as secure, HTTP-only cookie
+    response = jsonify({
+        "success": True,
+        "access_token": access_token,
+        "user": user.to_dict(),
+    })
+    response.set_cookie(
+        "refresh_token",
+        refresh_token,
+        httponly=True,
+        secure=True,
+        samesite="Strict",
+        max_age=60*60*24*7  # 7 days
+    )
+    return response, 200
+
+# Refresh token endpoint
+@api_bp.route("/api/refresh", methods=["POST"])
+@jwt_required(refresh=True)
+def refresh_access_token():
+    user_id = get_jwt_identity()
+    from datetime import timedelta
+    access_token = create_access_token(identity=user_id, expires_delta=timedelta(minutes=15))
+    return jsonify({"access_token": access_token}), 200
 
 def get_current_user_id():
     """Get current user ID from JWT or session (for backward compatibility)"""

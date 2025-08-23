@@ -53,7 +53,7 @@ class User(db.Model):
         return check_password_hash(self.password_hash, password)
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert user to dictionary"""
+        """Convert user to dictionary (public fields only, no sensitive data)"""
         return {
             "id": self.id,
             "username": self.username,
@@ -68,6 +68,7 @@ class User(db.Model):
             "last_login": (
                 self.last_login.isoformat() if self.last_login else None
             ),
+            # Never include password_hash, tokens, or other sensitive fields
         }
 
 

@@ -387,7 +387,7 @@ def login():
 
         # Create JWT token
         access_token = create_access_token(
-            identity=user["id"], expires_delta=timedelta(hours=24)
+            identity=user["id"], expires_delta=timedelta(minutes=15)
         )
 
         return (

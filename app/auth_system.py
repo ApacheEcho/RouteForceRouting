@@ -26,6 +26,11 @@ jwt = JWTManager()
 
 
 def init_jwt(app):
+    # JWT Blocklist integration
+    from app.jwt_blocklist import is_token_revoked
+    @jwt.token_in_blocklist_loader
+    def check_if_token_revoked(jwt_header, jwt_payload):
+        return is_token_revoked(jwt_header, jwt_payload)
     """Initialize JWT with app"""
     jwt.init_app(app)
 
@@ -33,8 +38,12 @@ def init_jwt(app):
     app.config["JWT_SECRET_KEY"] = app.config.get(
         "JWT_SECRET_KEY", secrets.token_hex(32)
     )
-    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=24)
-    app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(days=30)
+    # Enforce JWT algorithm verification
+    app.config["JWT_ALGORITHM"] = os.environ.get("JWT_ALGORITHM", "HS256")
+    app.config["JWT_DECODE_ALGORITHMS"] = [os.environ.get("JWT_ALGORITHM", "HS256")]
+    # Short-lived access token (15 minutes), refresh token (7 days)
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=15)
+    app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(days=7)
 
     # JWT error handlers
     @jwt.expired_token_loader

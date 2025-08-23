@@ -58,6 +58,17 @@ swagger = Swagger()
 
 
 def create_app(config_name: str = "development") -> Flask:
+    # Enforce HTTPS in production
+    if app.config.get("PREFERRED_URL_SCHEME", "http") == "https":
+        @app.before_request
+        def enforce_https():
+            if not request.is_secure and not app.config.get("DEBUG", False):
+                return (
+                    jsonify({
+                        "error": "HTTPS is required. Please use https:// for all requests."
+                    }),
+                    403,
+                )
     """
     Application factory pattern for creating Flask app instances
 
@@ -114,22 +125,27 @@ def create_app(config_name: str = "development") -> Flask:
             except Exception:
                 abort(400, description="Invalid JSON payload")
 
-    # Initialize extensions
-    # Compute CORS origins from env (comma-separated) or use safe defaults
+    # Hardened CORS configuration: in production, require CORS_ORIGINS env var
     cors_env = os.getenv("CORS_ORIGINS", "")
-    cors_origins = [
-        o.strip()
-        for o in (
-            cors_env.split(",")
-            if cors_env
-            else [
-                "http://localhost:3000",
-                "https://app.routeforcepro.com",
-                "https://routeforcepro.netlify.app",
-            ]
-        )
-        if o.strip()
-    ]
+    if app.config.get("ENV", "development") == "production":
+        if not cors_env:
+            raise RuntimeError("CORS_ORIGINS environment variable must be set in production!")
+        cors_origins = [o.strip() for o in cors_env.split(",") if o.strip()]
+    else:
+        cors_origins = [
+            o.strip()
+            for o in (
+                cors_env.split(",")
+                if cors_env
+                else [
+                    "http://localhost:3000",
+                    "https://app.routeforcepro.com",
+                    "https://routeforcepro.netlify.app",
+                ]
+            )
+            if o.strip()
+        ]
+    # Document: set CORS_ORIGINS env var to a comma-separated list of allowed origins
     CORS(
         app,
         origins=cors_origins,

@@ -2,17 +2,17 @@
 Enterprise Security Middleware for RouteForce Routing
 """
 
-from functools import wraps
-from flask import request, jsonify, current_app, g
 import hashlib
 import hmac
-import time
 import logging
-from typing import Optional, Dict, Any
 import re
-import bleach
-from werkzeug.security import check_password_hash, generate_password_hash
 import secrets
+import time
+from functools import wraps
+from typing import Any, Dict
+
+import bleach
+from flask import current_app, g, jsonify, request
 
 logger = logging.getLogger(__name__)
 
@@ -231,7 +231,7 @@ def _validate_token(token: str) -> bool:
         # Simple validation - in production use JWT or similar
         secret_key = current_app.config.get("SECRET_KEY", "")
         expected_hash = hmac.new(
-            secret_key.encode(), "valid_user".encode(), hashlib.sha256
+            secret_key.encode(), b"valid_user", hashlib.sha256
         ).hexdigest()
 
         return secrets.compare_digest(token, expected_hash)
@@ -445,7 +445,7 @@ class AdaptiveRateLimiter:
 
     def analyze_user_pattern(
         self, user_id: str, endpoint: str, timestamp: float
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Analyze user behavior pattern for adaptive rate limiting"""
         if user_id not in self.user_patterns:
             self.user_patterns[user_id] = {
@@ -466,8 +466,8 @@ class AdaptiveRateLimiter:
         return self._calculate_risk_score(user_id, pattern, timestamp)
 
     def _calculate_risk_score(
-        self, user_id: str, pattern: Dict[str, Any], timestamp: float
-    ) -> Dict[str, Any]:
+        self, user_id: str, pattern: dict[str, Any], timestamp: float
+    ) -> dict[str, Any]:
         """Calculate user risk score based on behavior patterns"""
         score = 0
 
@@ -519,7 +519,7 @@ class AdaptiveRateLimiter:
 
     def check_rate_limit(
         self, user_id: str, endpoint: str
-    ) -> tuple[bool, Dict[str, Any]]:
+    ) -> tuple[bool, dict[str, Any]]:
         """Check if request should be allowed based on adaptive rate limiting"""
         timestamp = time.time()
         pattern_analysis = self.analyze_user_pattern(user_id, endpoint, timestamp)
@@ -591,7 +591,7 @@ class APIKeyManager:
 
         return api_key
 
-    def validate_key(self, api_key: str) -> tuple[bool, Dict[str, Any]]:
+    def validate_key(self, api_key: str) -> tuple[bool, dict[str, Any]]:
         """Validate API key and update usage statistics"""
         if api_key not in self.key_usage:
             return False, {"error": "Invalid API key"}

@@ -2,27 +2,25 @@
 Routing Service - Business logic for route generation with database integration
 """
 
-import time
 import logging
-from typing import List, Dict, Any, Optional
+import time
 from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
 
-from routing.core import generate_route as core_generate_route
 from geopy.distance import geodesic
 
 # Import optimization algorithms
 from app.optimization.genetic_algorithm import GeneticAlgorithm, GeneticConfig
-from app.optimization.simulated_annealing import (
-    SimulatedAnnealingOptimizer,
-    SimulatedAnnealingConfig,
-)
+from app.optimization.simulated_annealing import (SimulatedAnnealingConfig,
+                                                  SimulatedAnnealingOptimizer)
+from routing.core import generate_route as core_generate_route
 
 logger = logging.getLogger(__name__)
 
 
 def cluster_by_proximity(
-    stores: List[Dict], radius_km: float = 2.0
-) -> List[List[Dict]]:
+    stores: list[dict], radius_km: float = 2.0
+) -> list[list[dict]]:
     """
     Cluster stores by proximity to optimize routing
 
@@ -46,7 +44,7 @@ def cluster_by_proximity(
     return clusters
 
 
-def is_within_radius(store1: Dict, store2: Dict, radius_km: float) -> bool:
+def is_within_radius(store1: dict, store2: dict, radius_km: float) -> bool:
     """
     Check if two stores are within the specified radius
 
@@ -73,17 +71,17 @@ class RoutingMetrics:
     total_stores: int
     filtered_stores: int
     optimization_score: float
-    route_id: Optional[int] = None
+    route_id: int | None = None
     clusters_used: int = 0
     distance_saved: float = 0.0
     algorithm_used: str = "default"
-    algorithm_metrics: Dict[str, Any] = None
+    algorithm_metrics: dict[str, Any] = None
 
 
 class RoutingService:
     """Service for handling route generation and optimization with database integration"""
 
-    def __init__(self, user_id: Optional[int] = None):
+    def __init__(self, user_id: int | None = None):
         self.user_id = user_id
         self.last_processing_time = 0.0
         self.metrics = None
@@ -100,8 +98,8 @@ class RoutingService:
             )
 
     def generate_route_with_filters(
-        self, file_path: str, filters: Dict[str, Any], save_to_db: bool = True
-    ) -> List[Dict[str, Any]]:
+        self, file_path: str, filters: dict[str, Any], save_to_db: bool = True
+    ) -> list[dict[str, Any]]:
         """
         Generate route with comprehensive filtering and optimization
 
@@ -191,12 +189,12 @@ class RoutingService:
 
     def generate_route_from_stores(
         self,
-        stores: List[Dict[str, Any]],
-        constraints: Optional[Dict[str, Any]] = None,
+        stores: list[dict[str, Any]],
+        constraints: dict[str, Any] | None = None,
         save_to_db: bool = True,
         algorithm: str = "default",
-        algorithm_params: Optional[Dict[str, Any]] = None,
-    ) -> List[Dict[str, Any]]:
+        algorithm_params: dict[str, Any] | None = None,
+    ) -> list[dict[str, Any]]:
         """
         Generate route directly from store data (for API usage)
 
@@ -273,10 +271,10 @@ class RoutingService:
 
     def _generate_route_with_algorithm(
         self,
-        stores: List[Dict[str, Any]],
-        constraints: Dict[str, Any],
-        filters: Dict[str, Any],
-    ) -> tuple[List[Dict[str, Any]], Dict[str, Any]]:
+        stores: list[dict[str, Any]],
+        constraints: dict[str, Any],
+        filters: dict[str, Any],
+    ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
         """
         Generate route using the specified algorithm
 
@@ -303,10 +301,10 @@ class RoutingService:
 
     def _generate_route_genetic(
         self,
-        stores: List[Dict[str, Any]],
-        constraints: Dict[str, Any],
-        filters: Dict[str, Any],
-    ) -> tuple[List[Dict[str, Any]], Dict[str, Any]]:
+        stores: list[dict[str, Any]],
+        constraints: dict[str, Any],
+        filters: dict[str, Any],
+    ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
         """
         Generate route using genetic algorithm
 
@@ -340,10 +338,10 @@ class RoutingService:
 
     def _generate_route_simulated_annealing(
         self,
-        stores: List[Dict[str, Any]],
-        constraints: Dict[str, Any],
-        filters: Dict[str, Any],
-    ) -> tuple[List[Dict[str, Any]], Dict[str, Any]]:
+        stores: list[dict[str, Any]],
+        constraints: dict[str, Any],
+        filters: dict[str, Any],
+    ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
         """
         Generate route using simulated annealing algorithm
 
@@ -378,7 +376,7 @@ class RoutingService:
 
         return optimized_route, metrics
 
-    def get_user_stores(self) -> List[Dict[str, Any]]:
+    def get_user_stores(self) -> list[dict[str, Any]]:
         """
         Get stores for the current user
 
@@ -395,7 +393,7 @@ class RoutingService:
             logger.error(f"Error retrieving user stores: {str(e)}")
             return []
 
-    def get_route_history(self, limit: int = 10) -> List[Dict[str, Any]]:
+    def get_route_history(self, limit: int = 10) -> list[dict[str, Any]]:
         """
         Get route history for the current user
 
@@ -415,7 +413,7 @@ class RoutingService:
             logger.error(f"Error retrieving route history: {str(e)}")
             return []
 
-    def get_route_by_id(self, route_id: int) -> Optional[Dict[str, Any]]:
+    def get_route_by_id(self, route_id: int) -> dict[str, Any] | None:
         """
         Get a specific route by ID
 
@@ -437,7 +435,7 @@ class RoutingService:
             logger.error(f"Error retrieving route {route_id}: {str(e)}")
             return None
 
-    def _save_stores_to_db(self, stores: List[Dict[str, Any]]) -> None:
+    def _save_stores_to_db(self, stores: list[dict[str, Any]]) -> None:
         """Save stores to database if they don't already exist"""
         if not self.database_service:
             return
@@ -470,10 +468,10 @@ class RoutingService:
 
     def _save_route_to_db(
         self,
-        route: List[Dict[str, Any]],
-        filters: Dict[str, Any],
+        route: list[dict[str, Any]],
+        filters: dict[str, Any],
         metrics: RoutingMetrics,
-    ) -> Optional[object]:
+    ) -> object | None:
         """Save route to database"""
         if not self.database_service:
             return None
@@ -515,7 +513,7 @@ class RoutingService:
             logger.error(f"Error saving route to database: {str(e)}")
             return None
 
-    def _calculate_total_distance(self, route: List[Dict[str, Any]]) -> float:
+    def _calculate_total_distance(self, route: list[dict[str, Any]]) -> float:
         """Calculate total distance of the route"""
         if not route or len(route) < 2:
             return 0.0
@@ -530,7 +528,7 @@ class RoutingService:
 
         return total_distance
 
-    def _build_constraints(self, filters: Dict[str, Any]) -> Dict[str, Any]:
+    def _build_constraints(self, filters: dict[str, Any]) -> dict[str, Any]:
         """Build routing constraints from filters"""
         constraints = {}
 
@@ -549,7 +547,7 @@ class RoutingService:
 
         return constraints
 
-    def _apply_filters(self, stores: List[Dict], filters: Dict[str, Any]) -> List[Dict]:
+    def _apply_filters(self, stores: list[dict], filters: dict[str, Any]) -> list[dict]:
         """Apply filtering logic to stores"""
         filtered_stores = stores.copy()
 
@@ -587,7 +585,7 @@ class RoutingService:
 
         return filtered_stores
 
-    def _is_within_bounds(self, store: Dict, bounds: Dict) -> bool:
+    def _is_within_bounds(self, store: dict, bounds: dict) -> bool:
         """Check if store is within geographic bounds"""
         lat = store.get("lat")
         lon = store.get("lon")
@@ -599,7 +597,7 @@ class RoutingService:
             "north", 90
         ) and bounds.get("west", -180) <= lon <= bounds.get("east", 180)
 
-    def _calculate_optimization_score(self, route: List[Dict]) -> float:
+    def _calculate_optimization_score(self, route: list[dict]) -> float:
         """
         Calculate optimization score for the route
 
@@ -630,16 +628,16 @@ class RoutingService:
         """Get the last processing time"""
         return self.last_processing_time
 
-    def get_metrics(self) -> Optional[RoutingMetrics]:
+    def get_metrics(self) -> RoutingMetrics | None:
         """Get the last routing metrics"""
         return self.metrics
 
     def generate_route(
         self,
-        stores: List[Dict],
-        constraints: Dict[str, Any],
+        stores: list[dict],
+        constraints: dict[str, Any],
         algorithm: str = "default",
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Generate route from stores with constraints
 

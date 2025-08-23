@@ -3,18 +3,20 @@ Advanced Performance Optimization Engine - AUTO-PILOT ENHANCEMENT
 Comprehensive performance monitoring and optimization system
 """
 
-import time
-import psutil
-import threading
-import logging
-from typing import Dict, Any, List, Optional, Callable
-from dataclasses import dataclass, field
-from collections import deque, defaultdict
-from contextlib import contextmanager
-from functools import wraps
-import weakref
 import gc
+import logging
+import threading
+import time
+import weakref
+from collections import defaultdict, deque
+from contextlib import contextmanager
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from functools import wraps
+from typing import Any, Dict, List, Optional
+from collections.abc import Callable
+
+import psutil
 
 logger = logging.getLogger(__name__)
 
@@ -40,8 +42,8 @@ class PerformanceMetric:
     metric_type: str
     value: float
     unit: str
-    threshold_warning: Optional[float] = None
-    threshold_critical: Optional[float] = None
+    threshold_warning: float | None = None
+    threshold_critical: float | None = None
     status: str = "normal"  # normal, warning, critical
 
 
@@ -68,8 +70,8 @@ class OptimizationResult:
     improvement_percentage: float
     performance_before: PerformanceMetrics
     performance_after: PerformanceMetrics
-    optimizations_applied: List[str]
-    recommendations: List[str]
+    optimizations_applied: list[str]
+    recommendations: list[str]
 
 
 class PerformanceMonitor:
@@ -236,12 +238,12 @@ class PerformanceMonitor:
         """Record cache miss for metrics"""
         self.cache_stats["misses"] += 1
 
-    def get_current_metrics(self) -> Optional[PerformanceMetrics]:
+    def get_current_metrics(self) -> PerformanceMetrics | None:
         """Get latest performance metrics"""
         with self._lock:
             return self.metrics_history[-1] if self.metrics_history else None
 
-    def get_metrics_history(self, last_n: int = 100) -> List[PerformanceMetrics]:
+    def get_metrics_history(self, last_n: int = 100) -> list[PerformanceMetrics]:
         """Get performance metrics history"""
         with self._lock:
             return list(self.metrics_history)[-last_n:]
@@ -343,7 +345,7 @@ class PerformanceOptimizer:
         self.optimization_history.append(result)
         return result
 
-    def get_optimization_report(self) -> Dict[str, Any]:
+    def get_optimization_report(self) -> dict[str, Any]:
         """Generate comprehensive optimization report"""
         current_metrics = self.monitor.get_current_metrics()
         metrics_history = self.monitor.get_metrics_history(last_n=100)
@@ -394,7 +396,7 @@ class PerformanceOptimizer:
             "monitoring_active": self.monitor.monitoring_active,
         }
 
-    def track_optimization_start(self, data: Dict[str, Any]) -> None:
+    def track_optimization_start(self, data: dict[str, Any]) -> None:
         """Track the start of a route optimization"""
         try:
             metric = PerformanceMetric(
@@ -412,7 +414,7 @@ class PerformanceOptimizer:
         except Exception as e:
             logger.error(f"Error tracking optimization start: {e}")
 
-    def track_optimization_completion(self, data: Dict[str, Any]) -> None:
+    def track_optimization_completion(self, data: dict[str, Any]) -> None:
         """Track the completion of a route optimization"""
         try:
             # Track processing time
@@ -458,7 +460,7 @@ class PerformanceOptimizer:
         except Exception as e:
             logger.error(f"Error tracking optimization completion: {e}")
 
-    def track_optimization_failure(self, data: Dict[str, Any]) -> None:
+    def track_optimization_failure(self, data: dict[str, Any]) -> None:
         """Track a failed route optimization"""
         try:
             failure_metric = PerformanceMetric(
@@ -490,7 +492,7 @@ class PerformanceOptimizer:
         except Exception as e:
             logger.error(f"Error tracking optimization failure: {e}")
 
-    def get_optimization_insights(self) -> Dict[str, Any]:
+    def get_optimization_insights(self) -> dict[str, Any]:
         """Get insights about route optimization performance"""
         try:
             insights = {
@@ -504,7 +506,7 @@ class PerformanceOptimizer:
             logger.error(f"Error generating optimization insights: {e}")
             return {}
 
-    def _get_optimization_summary(self) -> Dict[str, Any]:
+    def _get_optimization_summary(self) -> dict[str, Any]:
         """Get summary of optimization performance"""
         try:
             # Get recent optimization metrics
@@ -537,7 +539,7 @@ class PerformanceOptimizer:
             logger.error(f"Error getting optimization summary: {e}")
             return {}
 
-    def _get_performance_trends(self) -> Dict[str, Any]:
+    def _get_performance_trends(self) -> dict[str, Any]:
         """Get performance trend analysis"""
         try:
             # Analyze trends over different time periods
@@ -570,7 +572,7 @@ class PerformanceOptimizer:
             logger.error(f"Error getting performance trends: {e}")
             return {}
 
-    def _get_algorithm_comparison(self) -> Dict[str, Any]:
+    def _get_algorithm_comparison(self) -> dict[str, Any]:
         """Get comparison of different algorithms"""
         # This would require storing algorithm-specific metrics
         # For now, return placeholder data
@@ -580,7 +582,7 @@ class PerformanceOptimizer:
             "default": {"avg_time": 0.8, "avg_improvement": 5.1},
         }
 
-    def _get_optimization_recommendations(self) -> List[str]:
+    def _get_optimization_recommendations(self) -> list[str]:
         """Get recommendations for optimization improvements"""
         recommendations = []
 
@@ -618,7 +620,7 @@ class PerformanceOptimizer:
 
     def _get_recent_metrics(
         self, category: str, metric_type: str, hours: int = 24
-    ) -> List[float]:
+    ) -> list[float]:
         """Get recent metrics of a specific type"""
         try:
             if category not in self.metrics_history:

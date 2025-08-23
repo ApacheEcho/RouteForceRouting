@@ -2,15 +2,16 @@
 File Service - Handle file operations and validation
 """
 
-import os
 import csv
-import io
 import hashlib
+import io
 import logging
-from typing import List, Dict, Any, Optional
-from werkzeug.utils import secure_filename
-from werkzeug.datastructures import FileStorage
+import os
+from typing import Any, Dict, List
+
 from flask import Response, current_app
+from werkzeug.datastructures import FileStorage
+from werkzeug.utils import secure_filename
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +77,7 @@ class FileService:
         except Exception as e:
             logger.warning(f"Failed to cleanup file {file_path}: {str(e)}")
 
-    def load_stores_from_file(self, file_path: str) -> List[Dict[str, Any]]:
+    def load_stores_from_file(self, file_path: str) -> list[dict[str, Any]]:
         """
         Load stores from CSV or Excel file
 
@@ -98,7 +99,7 @@ class FileService:
             logger.error(f"Error loading stores from file {file_path}: {str(e)}")
             raise
 
-    def load_playbook_from_file(self, file_path: str) -> Dict[str, Any]:
+    def load_playbook_from_file(self, file_path: str) -> dict[str, Any]:
         """
         Load playbook from CSV file
 
@@ -111,7 +112,7 @@ class FileService:
         try:
             playbook = {}
 
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     chain = row.get("chain")
@@ -162,7 +163,7 @@ class FileService:
             logger.error(f"Error validating file content: {str(e)}")
             return False
 
-    def export_route_to_csv(self, route: List[Dict[str, Any]]) -> Response:
+    def export_route_to_csv(self, route: list[dict[str, Any]]) -> Response:
         """
         Export route to CSV format
 
@@ -233,10 +234,10 @@ class FileService:
             and filename.rsplit(".", 1)[1].lower() in self.allowed_extensions
         )
 
-    def _load_csv_file(self, file_path: str) -> List[Dict[str, Any]]:
+    def _load_csv_file(self, file_path: str) -> list[dict[str, Any]]:
         """Load data from CSV file"""
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 reader = csv.DictReader(f)
                 stores = list(reader)
 
@@ -247,7 +248,7 @@ class FileService:
             logger.error(f"Error reading CSV file: {str(e)}")
             raise
 
-    def _load_excel_file(self, file_path: str) -> List[Dict[str, Any]]:
+    def _load_excel_file(self, file_path: str) -> list[dict[str, Any]]:
         """Load data from Excel file"""
         try:
             import pandas as pd

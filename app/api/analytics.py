@@ -3,16 +3,15 @@ Analytics API Blueprint for RouteForce Routing
 Provides analytics endpoints for monitoring and business intelligence
 """
 
-from flask import Blueprint, request, jsonify, current_app
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
 import logging
 from datetime import datetime
-from typing import Dict, Any
 
-# Import services
-from app.services.analytics_service import AnalyticsService
+from flask import Blueprint, current_app, jsonify, request
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
 from app.security import require_api_key
+# Import services
 
 # Initialize blueprint
 analytics_bp = Blueprint("analytics_api", __name__)

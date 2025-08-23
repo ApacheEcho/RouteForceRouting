@@ -3,20 +3,20 @@ RouteForce Routing Application Factory
 """
 
 import logging
+import os
 import time
+import uuid
 import warnings
 from datetime import datetime
-import os
-import uuid
 
 import psutil
-from flask import Flask, jsonify, request, abort, g
+from flasgger import Swagger
+from flask import Flask, abort, g, jsonify, request
 from flask_caching import Cache
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_socketio import SocketIO
-from flasgger import Swagger
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 # Initialize extensions
@@ -25,7 +25,9 @@ limiter = Limiter(
     key_func=get_remote_address,
     default_limits=os.getenv("RATE_LIMITS", "200/day;50/hour").split(";"),
 )
-socketio = SocketIO(cors_allowed_origins="*", logger=True, engineio_logger=True, async_mode="threading")
+socketio = SocketIO(
+    cors_allowed_origins="*", logger=True, engineio_logger=True, async_mode="threading"
+)
 PROCESS_START_TIME = psutil.Process().create_time()
 
 
@@ -62,7 +64,9 @@ def create_app(config_name: str = "development") -> Flask:
     # Request ID correlation
     @app.before_request
     def _assign_request_id():
-        g.request_id = request.headers.get(app.config.get("REQUEST_ID_HEADER", "X-Request-ID")) or str(uuid.uuid4())
+        g.request_id = request.headers.get(
+            app.config.get("REQUEST_ID_HEADER", "X-Request-ID")
+        ) or str(uuid.uuid4())
 
     @app.after_request
     def _add_request_id(resp):
@@ -74,7 +78,11 @@ def create_app(config_name: str = "development") -> Flask:
     @app.before_request
     def _validate_request():
         # Only apply to API routes
-        if request.path.startswith("/api") and request.method in {"POST", "PUT", "PATCH"}:
+        if request.path.startswith("/api") and request.method in {
+            "POST",
+            "PUT",
+            "PATCH",
+        }:
             if not request.is_json:
                 abort(415, description="Content-Type must be application/json")
             # Attempt to parse JSON early to return a clear error
@@ -88,11 +96,15 @@ def create_app(config_name: str = "development") -> Flask:
     cors_env = os.getenv("CORS_ORIGINS", "")
     cors_origins = [
         o.strip()
-        for o in (cors_env.split(",") if cors_env else [
-            "http://localhost:3000",
-            "https://app.routeforcepro.com",
-            "https://routeforcepro.netlify.app",
-        ])
+        for o in (
+            cors_env.split(",")
+            if cors_env
+            else [
+                "http://localhost:3000",
+                "https://app.routeforcepro.com",
+                "https://routeforcepro.netlify.app",
+            ]
+        )
         if o.strip()
     ]
     CORS(
@@ -155,7 +167,7 @@ def create_app(config_name: str = "development") -> Flask:
 
     # Initialize Sentry monitoring
     from app.monitoring import setup_monitoring
-    
+
     setup_monitoring(app)
 
     # Security headers
@@ -183,6 +195,7 @@ def create_app(config_name: str = "development") -> Flask:
             db_status = "healthy"
             try:
                 from sqlalchemy import text
+
                 db.session.execute(text("SELECT 1"))
             except Exception as e:
                 db_status = f"unhealthy: {str(e)}"
@@ -302,7 +315,9 @@ def create_app(config_name: str = "development") -> Flask:
     app.analytics_service = analytics_service
 
     # Configure limiter with storage URI
-    storage_uri = app.config.get("RATELIMIT_STORAGE_URI") or app.config.get("RATELIMIT_STORAGE_URL")
+    storage_uri = app.config.get("RATELIMIT_STORAGE_URI") or app.config.get(
+        "RATELIMIT_STORAGE_URL"
+    )
     if storage_uri:
         limiter.storage_uri = storage_uri
     limiter.init_app(app)
@@ -320,7 +335,6 @@ def create_app(config_name: str = "development") -> Flask:
     from app.performance_monitor import get_performance_monitor
 
     # from app.performance.optimization_engine import PerformanceOptimizationEngine
-
     # Start legacy performance monitor
     monitor = get_performance_monitor()
     monitor.start_monitoring()
@@ -358,7 +372,9 @@ def configure_logging(app: Flask) -> None:
             "ignore", message="Using the in-memory storage.*not recommended"
         )
 
-    log_level = getattr(logging, str(app.config.get("LOG_LEVEL", "INFO")).upper(), logging.INFO)
+    log_level = getattr(
+        logging, str(app.config.get("LOG_LEVEL", "INFO")).upper(), logging.INFO
+    )
     root_logger = logging.getLogger()
     root_logger.handlers.clear()
     root_logger.setLevel(log_level)
@@ -399,7 +415,9 @@ def configure_logging(app: Flask) -> None:
                     "method": request.method,
                     "path": request.path,
                     "status": resp.status_code,
-                    "remote_addr": request.headers.get("X-Forwarded-For", request.remote_addr),
+                    "remote_addr": request.headers.get(
+                        "X-Forwarded-For", request.remote_addr
+                    ),
                     "request_id": getattr(g, "request_id", None),
                 }
                 if app.config.get("LOG_JSON", False)
@@ -428,7 +446,8 @@ def register_blueprints(app: Flask) -> None:
     from app.routes.main_enhanced import main_bp  # Use enhanced main blueprint
     from app.routes.metrics import metrics_bp
     from app.routes.scoring import scoring_bp
-    from app.routes.voice_dashboard import voice_dashboard_bp  # Voice dashboard route
+    from app.routes.voice_dashboard import \
+        voice_dashboard_bp  # Voice dashboard route
 
     app.register_blueprint(main_bp)
     app.register_blueprint(api_bp, url_prefix="/api")

@@ -3,33 +3,25 @@ RouteForce Advanced Analytics & AI Insights Module
 Provides predictive analytics, route intelligence, and business insights
 """
 
-import numpy as np
-import pandas as pd
-from datetime import datetime, timedelta
-from typing import Dict, List, Tuple, Optional, Any
-import json
 import logging
-from dataclasses import dataclass, asdict
-from sklearn.ensemble import (
-    RandomForestRegressor,
-    IsolationForest,
-    GradientBoostingRegressor,
-    VotingRegressor,
-)
-from sklearn.model_selection import (
-    train_test_split,
-    cross_val_score,
-    GridSearchCV,
-    cross_validate,
-    TimeSeriesSplit,
-)
-from sklearn.preprocessing import StandardScaler, RobustScaler
-from sklearn.metrics import mean_absolute_error, r2_score, mean_squared_error
-from sklearn.neural_network import MLPRegressor
-from sklearn.feature_selection import SelectKBest, f_regression
-import joblib
 import os
 import warnings
+from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Tuple
+
+import joblib
+import numpy as np
+import pandas as pd
+from sklearn.ensemble import (GradientBoostingRegressor, IsolationForest,
+                              RandomForestRegressor, VotingRegressor)
+from sklearn.feature_selection import SelectKBest, f_regression
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.model_selection import (GridSearchCV, TimeSeriesSplit,
+                                     cross_val_score, cross_validate,
+                                     train_test_split)
+from sklearn.neural_network import MLPRegressor
+from sklearn.preprocessing import RobustScaler, StandardScaler
 
 warnings.filterwarnings("ignore")
 
@@ -38,16 +30,13 @@ from app.services.database_integration import database_service
 
 logger = logging.getLogger(__name__)
 
-# Add advanced ML imports for enhanced capabilities
-from sklearn.ensemble import ExtraTreesRegressor, AdaBoostRegressor
-from sklearn.linear_model import ElasticNet, HuberRegressor
-from sklearn.svm import SVR
-from sklearn.cluster import DBSCAN, KMeans
+
 import xgboost as xgb
 from scipy import stats
-from scipy.optimize import minimize
-import pickle
-from typing import Union
+# Add advanced ML imports for enhanced capabilities
+from sklearn.ensemble import AdaBoostRegressor, ExtraTreesRegressor
+from sklearn.linear_model import ElasticNet, HuberRegressor
+from sklearn.svm import SVR
 
 
 @dataclass
@@ -60,8 +49,8 @@ class RouteInsight:
     description: str
     impact_score: float  # 0-100
     confidence: float  # 0-1
-    recommendations: List[str]
-    metrics: Dict[str, Any]
+    recommendations: list[str]
+    metrics: dict[str, Any]
     timestamp: str
 
 
@@ -72,9 +61,9 @@ class PredictionResult:
     route_id: str
     predicted_duration: float
     predicted_fuel_cost: float
-    confidence_interval: Tuple[float, float]
-    risk_factors: List[str]
-    optimization_suggestions: List[str]
+    confidence_interval: tuple[float, float]
+    risk_factors: list[str]
+    optimization_suggestions: list[str]
 
 
 @dataclass
@@ -95,8 +84,8 @@ class UncertaintyQuantification:
 
     mean_prediction: float
     std_prediction: float
-    confidence_interval_95: Tuple[float, float]
-    prediction_intervals: Dict[str, Tuple[float, float]]
+    confidence_interval_95: tuple[float, float]
+    prediction_intervals: dict[str, tuple[float, float]]
     model_confidence: float
     epistemic_uncertainty: float  # Model uncertainty
     aleatoric_uncertainty: float  # Data uncertainty
@@ -110,10 +99,10 @@ class AdvancedPredictionResult:
     predicted_duration: float
     predicted_fuel_cost: float
     uncertainty: UncertaintyQuantification
-    risk_factors: List[str]
-    optimization_suggestions: List[str]
-    feature_importance: Dict[str, float]
-    model_explainability: Dict[str, Any]
+    risk_factors: list[str]
+    optimization_suggestions: list[str]
+    feature_importance: dict[str, float]
+    model_explainability: dict[str, Any]
 
 
 class AdvancedAnalytics:
@@ -132,7 +121,7 @@ class AdvancedAnalytics:
         self.ensemble_engine = None  # Will be initialized later
         self.advanced_models_trained = False
 
-    def add_route_data(self, route_data: Dict[str, Any]) -> None:
+    def add_route_data(self, route_data: dict[str, Any]) -> None:
         """Add route performance data for analysis and store in database"""
         enriched_data = self._enrich_route_data(route_data)
         self.historical_data.append(enriched_data)
@@ -176,8 +165,8 @@ class AdvancedAnalytics:
             logger.error(f"Failed to load historical data: {str(e)}")
 
     def get_insights_from_database(
-        self, route_id: Optional[str] = None, days_back: int = 30
-    ) -> List[Dict[str, Any]]:
+        self, route_id: str | None = None, days_back: int = 30
+    ) -> list[dict[str, Any]]:
         """Retrieve insights from database"""
         try:
             return self.db_service.get_route_insights(
@@ -189,7 +178,7 @@ class AdvancedAnalytics:
 
     def get_performance_metrics_from_database(
         self, days_back: int = 30
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get performance metrics from database"""
         try:
             return self.db_service.get_performance_metrics(days_back=days_back)
@@ -197,7 +186,7 @@ class AdvancedAnalytics:
             logger.error(f"Failed to retrieve performance metrics: {str(e)}")
             return {}
 
-    def _enrich_route_data(self, route_data: Dict[str, Any]) -> Dict[str, Any]:
+    def _enrich_route_data(self, route_data: dict[str, Any]) -> dict[str, Any]:
         """Enrich route data with calculated features"""
         enriched = route_data.copy()
 
@@ -340,7 +329,7 @@ class AdvancedAnalytics:
             logger.error(f"Failed to train advanced ensemble: {str(e)}")
 
     def predict_route_performance(
-        self, route_features: Dict[str, Any]
+        self, route_features: dict[str, Any]
     ) -> PredictionResult:
         """Predict route performance metrics"""
         if not self.route_predictor or not hasattr(self, "feature_columns"):
@@ -427,7 +416,7 @@ class AdvancedAnalytics:
         )
 
     def analyze_route_efficiency(
-        self, route_id: str, route_data: Dict[str, Any]
+        self, route_id: str, route_data: dict[str, Any]
     ) -> RouteInsight:
         """Analyze route efficiency and generate insights"""
 
@@ -518,7 +507,7 @@ class AdvancedAnalytics:
 
     def detect_performance_trends(
         self, timeframe_days: int = 30
-    ) -> List[PerformanceTrend]:
+    ) -> list[PerformanceTrend]:
         """Detect performance trends over time"""
         if len(self.historical_data) < 10:
             return []
@@ -583,7 +572,7 @@ class AdvancedAnalytics:
 
         return trends
 
-    def get_fleet_insights(self) -> Dict[str, Any]:
+    def get_fleet_insights(self) -> dict[str, Any]:
         """Generate comprehensive fleet insights"""
         if len(self.historical_data) < 5:
             return {
@@ -670,7 +659,7 @@ class AdvancedMLModels:
 
         return ensemble
 
-    def optimize_hyperparameters(self, X: np.ndarray, y: np.ndarray) -> Dict[str, Any]:
+    def optimize_hyperparameters(self, X: np.ndarray, y: np.ndarray) -> dict[str, Any]:
         """Optimize model hyperparameters using grid search"""
 
         param_grid = {
@@ -753,8 +742,8 @@ class AdvancedMLModels:
         return enhanced_df
 
     def train_advanced_models(
-        self, historical_data: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+        self, historical_data: list[dict[str, Any]]
+    ) -> dict[str, Any]:
         """Train advanced ML models with enhanced features"""
 
         if len(historical_data) < 50:
@@ -854,8 +843,8 @@ class AdvancedMLModels:
         }
 
     def predict_with_uncertainty(
-        self, route_features: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, route_features: dict[str, Any]
+    ) -> dict[str, Any]:
         """Make predictions with uncertainty quantification"""
 
         if not self.duration_model:
@@ -989,7 +978,7 @@ class AdvancedEnsembleEngine:
         self.feature_selector = None
         self.model_metadata = {}
 
-    def create_advanced_ensemble(self) -> Dict[str, Any]:
+    def create_advanced_ensemble(self) -> dict[str, Any]:
         """Create advanced ensemble with diverse base learners"""
 
         # Diverse base models for ensemble
@@ -1023,7 +1012,7 @@ class AdvancedEnsembleEngine:
 
     def train_ensemble_with_uncertainty(
         self, X: np.ndarray, y: np.ndarray
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Train ensemble models with uncertainty quantification"""
 
         # Create and train base models
@@ -1107,7 +1096,7 @@ class AdvancedEnsembleEngine:
         }
 
     def _train_uncertainty_models(
-        self, X: np.ndarray, y: np.ndarray, predictions: List[np.ndarray]
+        self, X: np.ndarray, y: np.ndarray, predictions: list[np.ndarray]
     ):
         """Train models for uncertainty quantification"""
 
@@ -1133,7 +1122,7 @@ class AdvancedEnsembleEngine:
         )
         self.uncertainty_models["residuals"].fit(X, residuals)
 
-    def predict_with_uncertainty(self, X: np.ndarray) -> Dict[str, Any]:
+    def predict_with_uncertainty(self, X: np.ndarray) -> dict[str, Any]:
         """Make predictions with comprehensive uncertainty quantification"""
 
         if not self.base_models:
@@ -1202,8 +1191,8 @@ class AdvancedEnsembleEngine:
         }
 
     def explain_prediction(
-        self, X: np.ndarray, feature_names: List[str]
-    ) -> Dict[str, Any]:
+        self, X: np.ndarray, feature_names: list[str]
+    ) -> dict[str, Any]:
         """Provide model explainability for predictions"""
 
         explanation = {

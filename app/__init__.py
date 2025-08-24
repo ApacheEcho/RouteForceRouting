@@ -526,7 +526,8 @@ def configure_logging(app: Flask) -> None:
 def register_blueprints(app: Flask) -> None:
     """Register application blueprints"""
     app.register_blueprint(main_bp)
-    app.register_blueprint(api_bp, url_prefix="/api")
+    # Register api_bp at root so /api/v1/* endpoints are accessible as /api/v1/*
+    app.register_blueprint(api_bp)
     app.register_blueprint(scoring_bp, url_prefix="/api/route")
     app.register_blueprint(metrics_bp)
     app.register_blueprint(auth_bp)

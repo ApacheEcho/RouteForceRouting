@@ -62,13 +62,25 @@ def user_factory(app: Flask) -> Callable[..., User]:
         if not username:
             username = f"testuser_{unique}"
         with app.app_context():
-            u = User(email=email, username=username, is_active=is_active, **extra)
-            if hasattr(u, "set_password"):
-                u.set_password(password)  # type: ignore[attr-defined]
+            u = User.query.filter_by(email=email).first()
+            if u:
+                # Update password and activation for existing user
+                if hasattr(u, "set_password"):
+                    u.set_password(password)
+                else:
+                    from werkzeug.security import generate_password_hash
+                    u.password_hash = generate_password_hash(password)
+                u.is_active = is_active
+                for k, v in extra.items():
+                    setattr(u, k, v)
             else:
-                from werkzeug.security import generate_password_hash
-                u.password_hash = generate_password_hash(password)  # type: ignore[attr-defined]
-            db.session.add(u)
+                u = User(email=email, username=username, is_active=is_active, **extra)
+                if hasattr(u, "set_password"):
+                    u.set_password(password)
+                else:
+                    from werkzeug.security import generate_password_hash
+                    u.password_hash = generate_password_hash(password)
+                db.session.add(u)
             db.session.commit()
             return u
     return _mk

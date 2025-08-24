@@ -3,17 +3,18 @@ Advanced Database Connection Pool with Auto-Optimization - AUTO-PILOT ENHANCEMEN
 High-performance database connection management with automatic optimization
 """
 
-import time
-import threading
 import logging
-from typing import Dict, Any
-from dataclasses import dataclass, field
-from contextlib import contextmanager
-from queue import Queue, Empty
+import threading
+import time
 import weakref
+from contextlib import contextmanager
+from dataclasses import dataclass, field
+from queue import Empty, Queue
+from typing import Any, Dict
+
+from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine, event
 from sqlalchemy.pool import QueuePool
-from flask_sqlalchemy import SQLAlchemy
 
 logger = logging.getLogger(__name__)
 
@@ -232,7 +233,7 @@ class DatabaseConnectionPool:
             if self.metrics.slow_queries > 100:
                 self.metrics.slow_queries = 0
 
-    def get_pool_status(self) -> Dict[str, Any]:
+    def get_pool_status(self) -> dict[str, Any]:
         """Get current pool status and metrics"""
         with self._lock:
             pool = self.engine.pool
@@ -258,7 +259,7 @@ class DatabaseConnectionPool:
                 },
             }
 
-    def optimize_pool_configuration(self) -> Dict[str, Any]:
+    def optimize_pool_configuration(self) -> dict[str, Any]:
         """Optimize pool configuration based on current usage patterns"""
         status = self.get_pool_status()
         recommendations = []
@@ -303,7 +304,7 @@ class DatabaseConnectionPool:
             "optimization_score": self._calculate_optimization_score(status),
         }
 
-    def _calculate_optimization_score(self, status: Dict[str, Any]) -> float:
+    def _calculate_optimization_score(self, status: dict[str, Any]) -> float:
         """Calculate optimization score (0-100)"""
         score = 100.0
 
@@ -367,14 +368,14 @@ class OptimizedDatabase:
         """Get database connection"""
         return self.connection_pool.get_connection()
 
-    def get_performance_report(self) -> Dict[str, Any]:
+    def get_performance_report(self) -> dict[str, Any]:
         """Get database performance report"""
         if not self.connection_pool:
             return {"status": "not_initialized"}
 
         return self.connection_pool.optimize_pool_configuration()
 
-    def execute_query(self, query: str, params: Dict[str, Any] = None) -> Any:
+    def execute_query(self, query: str, params: dict[str, Any] = None) -> Any:
         """Execute optimized database query"""
         with self.get_connection() as conn:
             return conn.execute(query, params or {})

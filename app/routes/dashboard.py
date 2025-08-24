@@ -3,13 +3,13 @@ Enhanced Dashboard for RouteForce Routing
 Advanced analytics and algorithm comparison dashboard
 """
 
-import json
+import logging
 import time
 from datetime import datetime
-from flask import Blueprint, render_template, request, jsonify, session
+
+from flask import Blueprint, jsonify, render_template, request, session
+
 from app.services.routing_service import RoutingService
-from app.services.database_service import DatabaseService
-import logging
 
 logger = logging.getLogger(__name__)
 

@@ -2,10 +2,11 @@
 Analytics middleware for automatic tracking of API usage and performance
 """
 
-import time
 import logging
-from flask import request, g
-from typing import Optional
+import time
+
+from flask import g, request
+
 from app.services.analytics_service import AnalyticsService
 
 logger = logging.getLogger(__name__)

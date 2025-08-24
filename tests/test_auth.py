@@ -31,9 +31,9 @@ def new_user():
     user = User(
         username=f"testuser_{unique}",
         email=f"test_{unique}@example.com",
-        password_hash=generate_password_hash("password123"),
         is_active=True,
     )
+    user.set_password("password123")
     db.session.add(user)
     db.session.commit()
     yield user

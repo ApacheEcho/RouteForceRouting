@@ -8,106 +8,98 @@ from flask import request, jsonify, current_app, g
 from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity, get_jwt
 import logging
 from typing import List, Optional, Callable, Any
-
 from app.auth_system import users_db, ROLES
+from sqlalchemy import select
+from sqlalchemy.exc import SQLAlchemyError
+from app.extensions import db
+from app.models.database import User
 
 logger = logging.getLogger(__name__)
 
-
 def auth_required(
-    roles: Optional[List[str]] = None, permissions: Optional[List[str]] = None
-):
+    roles: Optional[List[str]] = None,
+    permissions: Optional[List[str]] = None,
+) -> Callable:
     """
-    Decorator for requiring authentication and authorization
+    Decorator for requiring authentication and authorization.
 
     Args:
         roles: List of allowed roles
         permissions: List of required permissions
     """
-
     def decorator(f: Callable) -> Callable:
         @wraps(f)
         def decorated_function(*args, **kwargs):
             try:
-                # Verify JWT token
+                # 1) Verify JWT and extract identity (email or user_id you used when creating the token)
                 verify_jwt_in_request()
                 current_user_email = get_jwt_identity()
-
                 if not current_user_email:
-                    return (
-                        jsonify(
-                            {
-                                "error": "Authentication required",
-                                "message": "Valid JWT token required",
-                            }
-                        ),
-                        401,
-                    )
+                    return jsonify({
+                        "error": "Authentication required",
+                        "message": "Valid JWT token required",
+                    }), 401
 
+                # 2) Load user from SQLAlchemy (Flask-SQLAlchemy session)
+                try:
+                    user = db.session.execute(
+                        select(User).where(User.email == current_user_email)
+                    ).scalar_one_or_none()
+                except SQLAlchemyError as e:
+                    logger.exception("DB error during user lookup")
+                    return jsonify({
+                        "error": "Database error",
+                        "message": "Unable to verify user at this time",
+                    }), 500
 
-                # Use the real User model from the database
-                from app.models.database import User
-                from flask import current_app
-                user = User.query.filter_by(email=current_user_email).first()
-                print(f"[DEBUG] JWT identity: {current_user_email}")
-                print(f"[DEBUG] User lookup result: {user}")
-                if not user:
-                    print("[DEBUG] User not found in DB for protected endpoint!")
-                    return (
-                        jsonify(
-                            {
-                                "error": "User not found",
-                                "message": "User account not found",
-                            }
-                        ),
-                        401,
-                    )
+                if user is None:
+                    return jsonify({
+                        "error": "User not found",
+                        "message": "User account not found",
+                    }), 401
 
-                # Store user in request context
+                # 3) Stash user on the request context
                 g.current_user = user
 
-                # Check role-based access (if roles are specified)
-                if roles and (not hasattr(user, 'role') or user.role not in roles):
-                    return (
-                        jsonify(
-                            {
+                # 4) Role check
+                if roles and getattr(user, "role", None) not in roles:
+                    return jsonify({
+                        "error": "Insufficient permissions",
+                        "message": f"Role {getattr(user,'role',None)} not authorized for this endpoint",
+                        "required_roles": roles,
+                    }), 403
+
+                # 5) Permission check
+                if permissions:
+                    user_role = getattr(user, "role", None)
+                    user_permissions = ROLES.get(user_role, {}).get("permissions", [])
+                    if "all" not in user_permissions:
+                        missing = [p for p in permissions if p not in user_permissions]
+                        if missing:
+                            return jsonify({
                                 "error": "Insufficient permissions",
-                                "message": f'Role {getattr(user, "role", None)} not authorized for this endpoint',
-                                "required_roles": roles,
-                            }
-                        ),
-                        403,
-                    )
+                                "message": f"Missing required permissions: {missing}",
+                                "user_permissions": user_permissions,
+                                "required_permissions": permissions,
+                            }), 403
 
-                # Permission-based access (if permissions are specified)
-                # (Optional: implement if your User model supports permissions)
-
-                # Log access
                 logger.info(
-                    f"Authenticated access: {user.email} ({getattr(user, 'role', None)}) to {request.endpoint}"
+                    "Authenticated access: %s (%s) to %s",
+                    getattr(user, "email", None),
+                    getattr(user, "role", None),
+                    request.endpoint,
                 )
-
                 return f(*args, **kwargs)
 
             except Exception as e:
-                logger.error(f"Authentication error: {str(e)}")
-                return (
-                    jsonify(
-                        {"error": "Authentication failed", "message": str(e)}
-                    ),
-                    401,
-                )
+                logger.exception("Authentication error")
+                return jsonify({
+                    "error": "Authentication failed",
+                    "message": str(e),
+                }), 401
 
         return decorated_function
-
     return decorator
-
-
-def require_auth(f: Callable) -> Callable:
-    """Simple authentication requirement decorator (alias for auth_required)"""
-    return auth_required()(f)
-
-
 def admin_required(f: Callable) -> Callable:
     """Decorator for admin-only endpoints"""
     return auth_required(roles=["admin"])(f)
@@ -332,3 +324,6 @@ def get_user_role() -> Optional[str]:
     """Get current user's role"""
     user = get_current_user()
     return user.get("role") if user else None
+
+
+require_auth = auth_required()

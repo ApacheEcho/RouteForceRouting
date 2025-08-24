@@ -145,18 +145,20 @@ def create_store():
 @auth_required()
 @api_error_handler
 def create_route():
-    """
-    Create a new route via API with database persistence
-    ---
-    tags:
-      - Routes
-    summary: Create optimized route
-    description: Create a new route with comprehensive optimization options
-      and database persistence
-    parameters:
-      - name: route_request
-        in: body
-        required: true
+
+        """
+        Create a new route via API with database persistence
+        ---
+        tags:
+            - Routes
+        summary: Create optimized route
+        description: Create a new route with comprehensive optimization options
+            and database persistence
+        parameters:
+            - name: route_request
+                in: body
+                required: true
+        """
 
 # Add the /logout endpoint after the /refresh endpoint
 
@@ -182,76 +184,6 @@ def api_logout():
         max_age=0
     )
     return response, 200
-                  type: string
-                  enum: ["time", "distance", "fuel"]
-                  example: "time"
-    responses:
-      200:
-        description: Route created successfully
-        schema:
-          type: object
-          properties:
-            success:
-              type: boolean
-              example: true
-            data:
-              type: object
-              properties:
-                route_id:
-                  type: string
-                  example: "route_123abc"
-                optimized_route:
-                  type: array
-                  items:
-                    type: object
-                metrics:
-                  type: object
-                  properties:
-                    total_distance:
-                      type: number
-                      example: 45.6
-                    total_time:
-                      type: number
-                      example: 120.5
-                    algorithm_used:
-                      type: string
-                      example: "genetic"
-            timestamp:
-              type: string
-              format: date-time
-      400:
-        description: Bad request - validation failed
-        schema:
-          type: object
-          properties:
-            success:
-              type: boolean
-              example: false
-            error:
-              type: string
-              example: "Invalid stores data"
-      500:
-        description: Internal server error
-    """
-    # AUTO-PILOT: Enhanced validation and error handling
-    data = validate_json_request(required_fields=["stores"])
-
-    # Validate stores data
-    stores = validate_stores_data(data["stores"])
-
-    # Validate constraints (optional)
-    constraints = data.get("constraints", {})
-    if not isinstance(constraints, dict):
-        raise ValidationError(
-            "Constraints must be an object", field="constraints"
-        )
-
-    # Validate options (optional)
-    options = data.get("options", {})
-    options = validate_algorithm_options(options)
-
-    # Get user ID (will be from authentication system later)
-    user_id = get_current_user_id()
 
     # Generate route with database integration
     routing_service = RoutingService(user_id=user_id)

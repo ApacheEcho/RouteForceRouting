@@ -49,7 +49,10 @@ def auth_required(
                 from app.models.database import User
                 from flask import current_app
                 user = User.query.filter_by(email=current_user_email).first()
+                print(f"[DEBUG] JWT identity: {current_user_email}")
+                print(f"[DEBUG] User lookup result: {user}")
                 if not user:
+                    print("[DEBUG] User not found in DB for protected endpoint!")
                     return (
                         jsonify(
                             {

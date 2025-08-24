@@ -79,7 +79,8 @@ def api_login():
 @jwt_required(refresh=True)
 @api_error_handler
 def refresh_access_token():
-    # Accept requests without requiring JSON body or content type
+    # Accept requests with or without JSON body or content type
+    # This allows clients to POST with no body and no Content-Type
     user_id = get_jwt_identity()
     from datetime import timedelta
     access_token = create_access_token(identity=user_id, expires_delta=timedelta(minutes=15))
@@ -163,7 +164,8 @@ def create_route():
 @jwt_required()
 @api_error_handler
 def api_logout():
-    # Accept requests with only Authorization header, no body required
+    # Accept requests with only Authorization header, no body or content-type required
+    # This allows clients to POST with no body and no Content-Type
     jti = get_jwt()["jti"]
     add_token_to_blocklist(jti)
     response = jsonify({

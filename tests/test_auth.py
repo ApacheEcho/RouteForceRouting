@@ -25,20 +25,24 @@ def test_client():
     ctx.pop()
 
 @pytest.fixture(scope="function")
-def new_user():
+def new_user(test_client):
     """Setup: create a user before each test; Teardown: delete after test."""
-    unique = str(uuid.uuid4())[:8]
-    user = User(
-        username=f"testuser_{unique}",
-        email=f"test_{unique}@example.com",
-        is_active=True,
-    )
-    user.set_password("password123")
-    db.session.add(user)
-    db.session.commit()
-    yield user
-    db.session.delete(user)
-    db.session.commit()
+    from app import db
+    from app.models.database import User
+    with test_client.application.app_context():
+        user = User.query.filter_by(email="test@example.com").first()
+        if not user:
+            user = User(
+                username="testuser",
+                email="test@example.com",
+                is_active=True,
+            )
+            user.set_password("password123")
+            db.session.add(user)
+            db.session.commit()
+        yield user
+        db.session.delete(user)
+        db.session.commit()
 
 def login(client, email, password):
     return client.post("/api/v1/login", json={"email": email, "password": password})

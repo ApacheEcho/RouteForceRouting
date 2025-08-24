@@ -56,16 +56,15 @@ def api_login():
     db.session.commit()
 
     # Set refresh token as secure, HTTP-only cookie
-    resp_obj, status_code = create_success_response(
-        data={
-            "access_token": access_token,
-            "refresh_token": refresh_token,
-            "user": user.to_dict(),
-        },
-        status_code=200,
-        message="Login successful"
-    )
-    resp_obj.set_cookie(
+    # Return tokens and user info as top-level keys (not nested under 'data')
+    response = jsonify({
+        "success": True,
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "user": user.to_dict(),
+        "message": "Login successful"
+    })
+    response.set_cookie(
         "refresh_token",
         refresh_token,
         httponly=True,
@@ -73,7 +72,7 @@ def api_login():
         samesite="Strict",
         max_age=60*60*24*7  # 7 days
     )
-    return resp_obj, status_code
+    return response, 200
 
 # Refresh token endpoint
 @api_bp.route("/refresh", methods=["POST"])
@@ -82,7 +81,22 @@ def refresh_access_token():
     user_id = get_jwt_identity()
     from datetime import timedelta
     access_token = create_access_token(identity=user_id, expires_delta=timedelta(minutes=15))
-    return jsonify({"access_token": access_token}), 200
+    refresh_token = create_refresh_token(identity=user_id)
+    response = jsonify({
+        "success": True,
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "message": "Token refreshed"
+    })
+    response.set_cookie(
+        "refresh_token",
+        refresh_token,
+        httponly=True,
+        secure=True,
+        samesite="Strict",
+        max_age=60*60*24*7  # 7 days
+    )
+    return response, 200
 
 def get_current_user_id():
     """Get current user ID from JWT or session (for backward compatibility)"""

@@ -22,6 +22,7 @@ def auth_required(
 ) -> Callable:
     """
     Decorator for requiring authentication and authorization.
+    Supports JWT identity as either user.id (int) or user.email (str).
 
     Args:
         roles: List of allowed roles
@@ -31,10 +32,11 @@ def auth_required(
         @wraps(f)
         def decorated_function(*args, **kwargs):
             try:
+
                 # 1) Verify JWT and extract identity (email or user_id you used when creating the token)
                 verify_jwt_in_request()
-                current_user_email = get_jwt_identity()
-                if not current_user_email:
+                identity = get_jwt_identity()
+                if not identity:
                     return jsonify({
                         "error": "Authentication required",
                         "message": "Valid JWT token required",
@@ -42,9 +44,17 @@ def auth_required(
 
                 # 2) Load user from SQLAlchemy (Flask-SQLAlchemy session)
                 try:
-                    user = db.session.execute(
-                        select(User).where(User.email == current_user_email)
-                    ).scalar_one_or_none()
+                    # Support both user.id (int) and user.email (str) as JWT identity
+                    if isinstance(identity, int):
+                        user = db.session.execute(
+                            select(User).where(User.id == identity)
+                        ).scalar_one_or_none()
+                    elif isinstance(identity, str):
+                        user = db.session.execute(
+                            select(User).where(User.email == identity)
+                        ).scalar_one_or_none()
+                    else:
+                        user = None
                 except SQLAlchemyError as e:
                     logger.exception("DB error during user lookup")
                     return jsonify({

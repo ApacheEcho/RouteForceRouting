@@ -1,3 +1,4 @@
+import uuid
 import os
 import time
 import pytest
@@ -18,9 +19,9 @@ PROTECTED_PATH = os.getenv("RFP_PROTECTED_PATH", "/v1/routes")
 def app() -> Flask:
     """
     Create the Flask app in testing mode.
-    Your factory should accept testing=True or config name 'testing'.
+    Ensures DB is clean before and after session.
     """
-    app = create_app(testing=True)  # or create_app("testing")
+    app = create_app(testing=True)
     app.config.update(
         TESTING=True,
         SQLALCHEMY_DATABASE_URI=os.getenv("TEST_DATABASE_URI", "sqlite:///:memory:"),
@@ -28,6 +29,7 @@ def app() -> Flask:
         SERVER_NAME="localhost",
     )
     with app.app_context():
+        db.drop_all()
         db.create_all()
     yield app
     with app.app_context():
@@ -44,14 +46,20 @@ def client(app: Flask) -> FlaskClient:
 def user_factory(app: Flask) -> Callable[..., User]:
     """
     Persist a test user; supports set_password on the model.
+    Uses unique username/email per call.
     """
     def _mk(
-        email: str = "user@example.com",
+        email: str = None,
         password: str = "Secret123!",
-        username: str = "testuser",
+        username: str = None,
         is_active: bool = True,
         **extra: Any,
     ) -> User:
+        unique = str(uuid.uuid4())[:8]
+        if not username:
+            username = f"testuser_{unique}"
+        if not email:
+            email = f"user_{unique}@example.com"
         with app.app_context():
             u = User(email=email, username=username, is_active=is_active, **extra)
             if hasattr(u, "set_password"):

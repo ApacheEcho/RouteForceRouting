@@ -1,3 +1,4 @@
+import uuid
 import pytest
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
@@ -13,16 +14,23 @@ def test_client():
     ctx = app.app_context()
     ctx.push()
 
+    # Ensure a clean DB for each test module
+    db.drop_all()
+    db.create_all()
+
     yield testing_client
 
+    db.session.remove()
+    db.drop_all()
     ctx.pop()
 
 @pytest.fixture(scope="function")
 def new_user():
     """Setup: create a user before each test; Teardown: delete after test."""
+    unique = str(uuid.uuid4())[:8]
     user = User(
-        username="testuser",
-        email="test@example.com",
+        username=f"testuser_{unique}",
+        email=f"test_{unique}@example.com",
         password_hash=generate_password_hash("password123"),
         is_active=True,
     )

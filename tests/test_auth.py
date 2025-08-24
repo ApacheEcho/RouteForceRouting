@@ -41,7 +41,7 @@ def new_user():
     db.session.commit()
 
 def login(client, email, password):
-    return client.post("/api/login", json={"email": email, "password": password})
+    return client.post("/api/v1/login", json={"email": email, "password": password})
 
 def test_login_success(test_client, new_user):
     response = login(test_client, "test@example.com", "password123")
@@ -55,18 +55,18 @@ def test_login_invalid_credentials(test_client):
     assert response.get_json()["error"] == "Invalid credentials"
 
 def test_login_missing_fields(test_client):
-    response = test_client.post("/api/login", json={"email": "test@example.com"})
+    response = test_client.post("/api/v1/login", json={"email": "test@example.com"})
     assert response.status_code == 400
 
 def test_protected_endpoint_requires_token(test_client):
-    response = test_client.get("/v1/routes")
+    response = test_client.get("/api/v1/routes")
     assert response.status_code == 401  # Unauthorized
 
 def test_protected_endpoint_with_token(test_client, new_user):
     login_resp = login(test_client, "test@example.com", "password123")
     token = login_resp.get_json()["access_token"]
     response = test_client.get(
-        "/v1/routes", headers={"Authorization": f"Bearer {token}"}
+        "/api/v1/routes", headers={"Authorization": f"Bearer {token}"}
     )
     assert response.status_code in [200, 404]  # 404 if no routes exist
 
@@ -76,7 +76,7 @@ def test_refresh_token_flow(test_client, new_user):
     assert refresh_token
 
     response = test_client.post(
-        "/api/refresh", headers={"Authorization": f"Bearer {refresh_token}"}
+        "/api/v1/refresh", headers={"Authorization": f"Bearer {refresh_token}"}
     )
     assert response.status_code == 200
     assert "access_token" in response.get_json()
@@ -86,12 +86,12 @@ def test_logout_revokes_token(test_client, new_user):
     token = login_resp.get_json()["access_token"]
 
     response = test_client.post(
-        "/api/logout", headers={"Authorization": f"Bearer {token}"}
+        "/api/v1/logout", headers={"Authorization": f"Bearer {token}"}
     )
     assert response.status_code == 200
 
     # Token should now be invalid
     protected_resp = test_client.get(
-        "/v1/routes", headers={"Authorization": f"Bearer {token}"}
+        "/api/v1/routes", headers={"Authorization": f"Bearer {token}"}
     )
     assert protected_resp.status_code == 401

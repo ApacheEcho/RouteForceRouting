@@ -11,7 +11,7 @@ from app import create_app, db  # type: ignore
 from app.models.database import User  # type: ignore
 
 # Config
-PROTECTED_PATH = os.getenv("RFP_PROTECTED_PATH", "/v1/routes")
+PROTECTED_PATH = os.getenv("RFP_PROTECTED_PATH", "/api/v1/routes")
 
 # ---------- App/Client Fixtures ----------
 
@@ -78,7 +78,7 @@ def user_factory(app: Flask) -> Callable[..., User]:
 
 def login(client: FlaskClient, email: str, password: str):
     return client.post(
-        "/api/login",
+        "/api/v1/login",
         json={"email": email, "password": password},
         headers={"Content-Type": "application/json"},
     )
@@ -108,7 +108,7 @@ def test_login_invalid_credentials(client: FlaskClient, user_factory):
     assert "Invalid" in j["error"]
 
 def test_login_missing_fields(client: FlaskClient):
-    r = client.post("/api/login", json={"email": "only@email.com"})
+    r = client.post("/api/v1/login", json={"email": "only@email.com"})
     assert r.status_code == 400
     assert "Email and password required" in r.get_json().get("error", "")
 
@@ -141,14 +141,14 @@ def test_refresh_success_issues_new_access_token(client: FlaskClient, user_facto
     assert r.status_code == 200
     refresh = r.get_json()["refresh_token"]
 
-    r2 = client.post("/api/refresh", headers=auth_hdr(refresh))
+    r2 = client.post("/api/v1/refresh", headers=auth_hdr(refresh))
     assert r2.status_code == 200
     j = r2.get_json()
     assert isinstance(j.get("access_token"), str) and j["access_token"]
 
 def test_refresh_with_invalid_refresh_token(client: FlaskClient):
     bad = "Bearer x.y.z.corrupted"
-    r = client.post("/api/refresh", headers={"Authorization": bad})
+    r = client.post("/api/v1/refresh", headers={"Authorization": bad})
     assert r.status_code in (401, 422)
 
 # Note: For 'expired' refresh token, configure a very short TTL in test settings or
@@ -163,7 +163,7 @@ def test_logout_revokes_access_token_and_blocks_future_calls(client: FlaskClient
     assert r.status_code == 200
     access = r.get_json()["access_token"]
 
-    r2 = client.post("/api/logout", headers=auth_hdr(access))
+    r2 = client.post("/api/v1/logout", headers=auth_hdr(access))
     assert r2.status_code == 200
     # Follow-up with same token should fail if blocklist is active
     r3 = client.get(PROTECTED_PATH, headers=auth_hdr(access))
@@ -191,14 +191,14 @@ def test_full_chain_login_refresh_access_protected_logout(client: FlaskClient, u
     r2 = client.get(PROTECTED_PATH, headers=auth_hdr(access))
     assert r2.status_code in (200, 204) or (r2.status_code == 200 and r2.is_json)
 
-    r3 = client.post("/api/refresh", headers=auth_hdr(refresh))
+    r3 = client.post("/api/v1/refresh", headers=auth_hdr(refresh))
     assert r3.status_code == 200
     new_access = r3.get_json()["access_token"]
 
     r4 = client.get(PROTECTED_PATH, headers=auth_hdr(new_access))
     assert r4.status_code in (200, 204) or (r4.status_code == 200 and r4.is_json)
 
-    r5 = client.post("/api/logout", headers=auth_hdr(new_access))
+    r5 = client.post("/api/v1/logout", headers=auth_hdr(new_access))
     assert r5.status_code == 200
 
     r6 = client.get(PROTECTED_PATH, headers=auth_hdr(new_access))

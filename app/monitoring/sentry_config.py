@@ -8,7 +8,12 @@ import os
 from sentry_sdk.integrations.flask import FlaskIntegration
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 from sentry_sdk.integrations.redis import RedisIntegration
-from sentry_sdk.integrations.celery import CeleryIntegration
+try:
+    from sentry_sdk.integrations.celery import CeleryIntegration
+    _celery_available = True
+except Exception:  # pragma: no cover - Celery not installed in test env
+    CeleryIntegration = None
+    _celery_available = False
 from sentry_sdk.integrations.logging import LoggingIntegration
 from sentry_sdk.integrations.wsgi import SentryWsgiMiddleware
 from flask import Flask, g, request
@@ -60,7 +65,7 @@ def init_sentry(app: Flask = None):
                 ),
                 SqlalchemyIntegration(),
                 RedisIntegration(),
-                CeleryIntegration(),
+                *( [CeleryIntegration()] if _celery_available else [] ),
                 logging_integration,
             ],
             

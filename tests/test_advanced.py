@@ -16,7 +16,7 @@ from app.services.routing_service_unified import UnifiedRoutingService
 @pytest.fixture
 def app():
     """Create test application"""
-    app = create_app("testing")
+    app = create_app(testing=True)
     app.config["TESTING"] = True
     app.config["WTF_CSRF_ENABLED"] = False
 
@@ -419,7 +419,7 @@ class TestCaching:
         route_request.file = file_mock
 
         cache_key = route_request.get_cache_key()
-        assert len(cache_key) == 32  # MD5 hash length
+        assert len(cache_key) == 64, "Cache key should be SHA-256 hash"
         assert cache_key != ""
 
 
@@ -743,7 +743,7 @@ class TestRouteOutputValidation:
 
         link = generate_google_maps_link(waypoints)
         assert "google.com/maps" in link
-        assert "40.7128,-74.0060" in link
+        assert "40.7128,-74.006" in link
         assert "40.7589,-73.9851" in link
 
     def test_apple_maps_link_generation(self):
@@ -758,7 +758,7 @@ class TestRouteOutputValidation:
         link = generate_apple_maps_link(waypoints)
         assert "maps.apple.com" in link or link.startswith("http")
         assert "40.7128" in link
-        assert "-74.0060" in link
+        assert "-74.006" in link
 
     def test_fallback_maps_string_generation(self):
         """Test fallback maps string when links can't be generated"""

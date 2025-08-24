@@ -29,12 +29,14 @@ socketio = SocketIO(cors_allowed_origins="*", logger=True, engineio_logger=True,
 PROCESS_START_TIME = psutil.Process().create_time()
 
 
-def create_app(config_name: str = "development") -> Flask:
-    """
-    Application factory pattern for creating Flask app instances
+def create_app(config_name: str = "development", testing: bool = False) -> Flask:
+    """Application factory for creating Flask app instances.
 
     Args:
-        config_name: Configuration environment name
+        config_name: Configuration environment name used when ``testing`` is
+            ``False``. Defaults to ``development``.
+        testing: If ``True``, load the testing configuration regardless of
+            ``config_name``.
 
     Returns:
         Configured Flask application instance
@@ -45,9 +47,12 @@ def create_app(config_name: str = "development") -> Flask:
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 
     # Load configuration
-    from app.config import config
+    from app.config import config as config_dict
 
-    app.config.from_object(config[config_name])
+    if testing:
+        app.config.from_object(config_dict["testing"])
+    else:
+        app.config.from_object(config_dict.get(config_name, config_dict["default"]))
 
     # Ensure SECRET_KEY is picked up from environment for Flask sessions/signing
     if os.getenv("SECRET_KEY"):
@@ -322,9 +327,10 @@ def create_app(config_name: str = "development") -> Flask:
     # from app.performance.optimization_engine import PerformanceOptimizationEngine
 
     # Start legacy performance monitor
-    monitor = get_performance_monitor()
-    monitor.start_monitoring()
-    logging.info("Performance monitoring started")
+    if not app.config.get("TESTING"):
+        monitor = get_performance_monitor()
+        monitor.start_monitoring()
+        logging.info("Performance monitoring started")
 
     # Initialize and start advanced optimization engine
     # optimization_engine = PerformanceOptimizationEngine()

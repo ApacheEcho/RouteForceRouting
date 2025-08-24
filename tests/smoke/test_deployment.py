@@ -8,7 +8,7 @@ def test_health_includes_request_id(monkeypatch):
     # Import create_app from app package
     from app.__init__ import create_app
 
-    app = create_app("testing")
+    app = create_app(testing=True)
     client = app.test_client()
 
     resp = client.get("/health")

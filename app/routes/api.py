@@ -56,15 +56,16 @@ def api_login():
     db.session.commit()
 
     # Set refresh token as secure, HTTP-only cookie
-    response = create_success_response(
+    resp_obj, status_code = create_success_response(
         data={
             "access_token": access_token,
+            "refresh_token": refresh_token,
             "user": user.to_dict(),
         },
         status_code=200,
         message="Login successful"
     )
-    response.set_cookie(
+    resp_obj.set_cookie(
         "refresh_token",
         refresh_token,
         httponly=True,
@@ -72,7 +73,7 @@ def api_login():
         samesite="Strict",
         max_age=60*60*24*7  # 7 days
     )
-    return response
+    return resp_obj, status_code
 
 # Refresh token endpoint
 @api_bp.route("/refresh", methods=["POST"])

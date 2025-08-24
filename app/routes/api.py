@@ -79,7 +79,7 @@ def api_login():
 @jwt_required(refresh=True)
 @api_error_handler
 def refresh_access_token():
-    # Do not require JSON body; just use the Authorization header
+    # Accept requests without requiring JSON body or content type
     user_id = get_jwt_identity()
     from datetime import timedelta
     access_token = create_access_token(identity=user_id, expires_delta=timedelta(minutes=15))

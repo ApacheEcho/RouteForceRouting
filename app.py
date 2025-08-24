@@ -5,9 +5,17 @@ Modern Flask application with enterprise-grade architecture and real-time featur
 
 import os
 from app import create_app, socketio
+from flask import send_file
 
 # Create application instance
 app = create_app(os.getenv("FLASK_ENV", "development"))
+
+# Serve openapi.json at /openapi.json if it exists
+def _openapi_json_route():
+    if os.path.exists("openapi.json"):
+        return send_file("openapi.json", mimetype="application/json")
+    return ("OpenAPI spec not found", 404)
+app.add_url_rule("/openapi.json", "openapi_json", _openapi_json_route)
 
 if __name__ == "__main__":
     # Development server with WebSocket support

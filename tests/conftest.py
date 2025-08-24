@@ -80,7 +80,7 @@ def init_database(test_app):
 
 @pytest.fixture(scope='function')
 def admin_user(init_database):
-    user = User(email="admin@test.com", role="admin")
+    user = User(username="adminuser", email="admin@test.com", role="admin")
     user.set_password("adminpass")
     db.session.add(user)
     db.session.commit()
@@ -89,7 +89,7 @@ def admin_user(init_database):
 
 @pytest.fixture(scope='function')
 def regular_user(init_database):
-    user = User(email="user@test.com", role="user")
+    user = User(username="regularuser", email="user@test.com", role="user")
     user.set_password("userpass")
     db.session.add(user)
     db.session.commit()

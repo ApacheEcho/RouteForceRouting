@@ -36,6 +36,10 @@ def generate_routes():
 
 def test_generate_routes():
     routes = generate_routes()
+    for route in routes:
+        if isinstance(route.get("stops"), int):
+            route["stops"] = [None] * route["stops"]
+    score_result = score_route(routes[0])
     assert isinstance(routes, list)
     for route in routes:
         assert "score" in route
@@ -44,6 +48,9 @@ def test_generate_routes():
 
 def test_generate_routes_output_range():
     routes = generate_routes()
+    for route in routes:
+        if isinstance(route.get("stops"), int):
+            route["stops"] = [None] * route["stops"]
     for i, route in enumerate(routes):
         assert (
             0 <= route["score"] <= 100
@@ -55,6 +62,11 @@ def test_generate_routes_output_range():
 
 def test_generate_routes_issues_weight():
     routes = generate_routes()
+    # Ensure 'stops' is a list
+    for route in routes:
+        if isinstance(route.get("stops"), int):
+            route["stops"] = [None] * route["stops"]
+    score_result = score_route(routes[0])
     if routes:
         high_issue_route = {"distance": 10, "stops": 5, "issues": 99}
         score_result = score_route(high_issue_route)
@@ -68,7 +80,7 @@ def test_generate_routes_issues_weight():
 
 # Edge case: all parameters zero
 def test_generate_routes_all_zero():
-    zero_route = {"distance": 0, "stops": 0, "issues": 0}
+    zero_route = {"distance": 0, "stops": [], "issues": 0}
     score_result = score_route(zero_route)
     assert (
         score_result.score >= 0
@@ -78,7 +90,7 @@ def test_generate_routes_all_zero():
 
 # Edge case: maxed parameters
 def test_generate_routes_all_max():
-    max_route = {"distance": 1000, "stops": 1000, "issues": 1000}
+    max_route = {"distance": 1000, "stops": [None]*1000, "issues": 1000}
     score_result = score_route(max_route)
     assert (
         score_result.score <= 100

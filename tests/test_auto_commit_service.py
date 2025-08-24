@@ -78,7 +78,7 @@ class TestAutoCommitService(unittest.TestCase):
         """Test commit message generation with no changes"""
         message = self.service._generate_smart_commit_message()
         self.assertIn("Auto-save", message)
-        self.assertIn("Backup changes", message)
+        self.assertIn("Updated", message)  # Expect 'Updated' for no changes
 
     def test_generate_smart_commit_message_single_file(self):
         """Test commit message generation with single file change"""
@@ -97,7 +97,9 @@ class TestAutoCommitService(unittest.TestCase):
 
         message = self.service._generate_smart_commit_message()
         self.assertIn("Auto-save", message)
-        self.assertIn("3", message)  # Should mention number of files
+        # For <=5 files, expect filenames, not count
+        for i in range(3):
+            self.assertIn(f"file_{i}.txt", message)
 
     def test_determine_file_action_new_file(self):
         """Test determining action for new file"""

@@ -75,7 +75,7 @@ def api_login():
     return response, 200
 
 # Refresh token endpoint
-@api_bp.route("/refresh", methods=["POST"])
+@api_bp.route("/refresh", methods=["POST"], strict_slashes=False)
 @jwt_required(refresh=True)
 @api_error_handler
 def refresh_access_token():
@@ -160,7 +160,7 @@ def create_route():
 
 # Add the /logout endpoint after the /refresh endpoint
 
-@api_bp.route("/logout", methods=["POST"])
+@api_bp.route("/logout", methods=["POST"], strict_slashes=False)
 @jwt_required()
 @api_error_handler
 def api_logout():

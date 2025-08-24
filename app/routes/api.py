@@ -156,29 +156,30 @@ def create_route():
       - name: route_request
         in: body
         required: true
-        schema:
-          type: object
-          required:
-            - stores
-          properties:
-            stores:
-              type: array
-              description: List of stores/locations to visit
-              items:
-                type: object
-                required:
-                  - name
-                  - address
-                properties:
-                  name:
-                    type: string
-                    example: "Store A"
-                  address:
-                    type: string
-                    example: "123 Main St, New York, NY 10001"
-                  priority:
-                    type: integer
-                    example: 1
+
+# Add the /logout endpoint after the /refresh endpoint
+
+@api_bp.route("/logout", methods=["POST"])
+@jwt_required()
+@api_error_handler
+def api_logout():
+    # Accept requests with only Authorization header, no body required
+    jti = get_jwt()["jti"]
+    add_token_to_blocklist(jti)
+    response = jsonify({
+        "success": True,
+        "message": "Successfully logged out. Token revoked."
+    })
+    # Optionally clear the refresh_token cookie
+    response.set_cookie(
+        "refresh_token",
+        "",
+        httponly=True,
+        secure=True,
+        samesite="Strict",
+        max_age=0
+    )
+    return response, 200
                   time_window:
                     type: object
                     properties:

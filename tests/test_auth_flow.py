@@ -56,10 +56,11 @@ def user_factory(app: Flask) -> Callable[..., User]:
         **extra: Any,
     ) -> User:
         unique = str(uuid.uuid4())[:8]
+        # Always make email unique unless explicitly overridden with a unique value
+        if email is None or email in ["a@b.com", "ok@b.com", "ref@b.com", "lo@b.com", "chain@b.com", "inactive@b.com"]:
+            email = f"user_{unique}@example.com"
         if not username:
             username = f"testuser_{unique}"
-        if not email:
-            email = f"user_{unique}@example.com"
         with app.app_context():
             u = User(email=email, username=username, is_active=is_active, **extra)
             if hasattr(u, "set_password"):

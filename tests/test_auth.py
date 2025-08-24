@@ -80,7 +80,7 @@ def test_refresh_token_flow(test_client, new_user):
     assert refresh_token
 
     response = test_client.post(
-        "/api/v1/refresh", headers={"Authorization": f"Bearer {refresh_token}"}
+        "/api/v1/refresh", headers={"Authorization": f"Bearer {refresh_token}"}, json={}
     )
     assert response.status_code == 200
     assert "access_token" in response.get_json()
@@ -90,7 +90,7 @@ def test_logout_revokes_token(test_client, new_user):
     token = login_resp.get_json()["access_token"]
 
     response = test_client.post(
-        "/api/v1/logout", headers={"Authorization": f"Bearer {token}"}
+        "/api/v1/logout", headers={"Authorization": f"Bearer {token}"}, json={}
     )
     assert response.status_code == 200
 

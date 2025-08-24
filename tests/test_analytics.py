@@ -12,15 +12,15 @@ def app():
     with app.app_context():
         db.create_all()
         # Create admin user
-        admin = User(id=1, email='admin@example.com', role='admin')
+        admin = User(id=1, username='admin', email='admin@example.com', role='admin')
         admin.set_password('adminpass')
         db.session.add(admin)
         # Create regular user
-        user = User(id=2, email='user@example.com', role='user')
+        user = User(id=2, username='user', email='user@example.com', role='user')
         user.set_password('userpass')
         db.session.add(user)
         db.session.commit()
-    yield app
+        yield app
 
 @pytest.fixture
 def client(app):

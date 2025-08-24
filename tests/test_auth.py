@@ -52,11 +52,26 @@ def new_user(test_client):
 def login(client, email, password):
     return client.post("/api/v1/login", json={"email": email, "password": password})
 
-def test_login_success(test_client, new_user):
-    response = login(test_client, "test@example.com", "password123")
-    data = response.get_json()
-    assert response.status_code == 200
-    assert "access_token" in data
+def test_login_success(client, regular_user):
+    res = client.post(
+        "/login", json={"email": "user@test.com", "password": "userpass"}
+    )
+    assert res.status_code == 200
+    assert "access_token" in res.get_json()
+
+def test_login_wrong_password(client, regular_user):
+    res = client.post(
+        "/login", json={"email": "user@test.com", "password": "wrongpassword"}
+    )
+    assert res.status_code == 401
+    assert "Invalid credentials" in res.get_json()["message"]
+
+def test_login_user_not_found(client, init_database):
+    res = client.post(
+        "/login", json={"email": "nouser@test.com", "password": "apassword"}
+    )
+    assert res.status_code == 401
+    assert "Invalid credentials" in res.get_json()["message"]
 
 def test_login_invalid_credentials(test_client):
     response = login(test_client, "wrong@example.com", "wrongpass")

@@ -11,6 +11,9 @@ import sys
 import tempfile
 import shutil
 from pathlib import Path
+from app import create_app, db
+from app.models.database import User
+from flask_jwt_extended import create_access_token
 
 # Add the app directory to Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "app"))
@@ -54,24 +57,53 @@ def sample_distance_matrix():
     ]
 
 
-@pytest.fixture
-def mock_flask_app():
-    """Fixture providing a mock Flask application for API tests."""
-    try:
-        from flask import Flask
-
-        app = Flask(__name__)
-        app.config["TESTING"] = True
-        app.config["SECRET_KEY"] = "test-secret-key"
-        return app
-    except ImportError:
-        pytest.skip("Flask not available for testing")
+@pytest.fixture(scope='module')
+def test_app():
+    app = create_app(config_name="testing")
+    with app.app_context():
+        yield app
 
 
-@pytest.fixture
-def api_client(mock_flask_app):
-    """Fixture providing a test client for API testing."""
-    return mock_flask_app.test_client()
+@pytest.fixture(scope='module')
+def client(test_app):
+    return test_app.test_client()
+
+
+@pytest.fixture(scope='function')
+def init_database(test_app):
+    with test_app.app_context():
+        db.create_all()
+        yield db
+        db.session.remove()
+        db.drop_all()
+
+
+@pytest.fixture(scope='function')
+def admin_user(init_database):
+    user = User(email="admin@test.com", role="admin")
+    user.set_password("adminpass")
+    db.session.add(user)
+    db.session.commit()
+    return user
+
+
+@pytest.fixture(scope='function')
+def regular_user(init_database):
+    user = User(email="user@test.com", role="user")
+    user.set_password("userpass")
+    db.session.add(user)
+    db.session.commit()
+    return user
+
+
+@pytest.fixture(scope='function')
+def admin_token(admin_user):
+    return create_access_token(identity=admin_user.email)
+
+
+@pytest.fixture(scope='function')
+def user_token(regular_user):
+    return create_access_token(identity=regular_user.email)
 
 
 # Performance test fixtures

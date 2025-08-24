@@ -182,42 +182,6 @@ def api_logout():
         max_age=0
     )
     return response, 200
-                  time_window:
-                    type: object
-                    properties:
-                      start:
-                        type: string
-                        format: time
-                        example: "09:00"
-                      end:
-                        type: string
-                        format: time
-                        example: "17:00"
-            constraints:
-              type: object
-              description: Route constraints and preferences
-              properties:
-                max_distance:
-                  type: number
-                  example: 100.0
-                max_time:
-                  type: number
-                  example: 480
-                vehicle_capacity:
-                  type: number
-                  example: 1000
-            options:
-              type: object
-              description: Optimization options
-              properties:
-                algorithm:
-                  type: string
-                  enum: ["nearest_neighbor", "genetic", "simulated_annealing", "multi_objective"]
-                  example: "genetic"
-                traffic_aware:
-                  type: boolean
-                  example: true
-                optimize_for:
                   type: string
                   enum: ["time", "distance", "fuel"]
                   example: "time"

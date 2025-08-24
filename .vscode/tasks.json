@@ -1,147 +1,183 @@
 {
 	"version": "2.0.0",
 	"tasks": [
-        {
-            "type": "shell",
-            "label": "Run scoring API tests (all endpoints)",
-            "command": "pytest -v app/routes/scoring.py",
-            "group": "test",
-            "isBackground": false
-        },
-        {
-            "label": "🚀 Start Flask App (Codespaces)",
-            "type": "shell", 
-            "command": "python",
-            "args": ["app.py"],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "new"
-            },
-            "options": {
-                "env": {
-                    "FLASK_APP": "app.py",
-                    "FLASK_ENV": "development", 
-                    "FLASK_DEBUG": "1",
-                    "DATABASE_URL": "postgresql://routeforce:password@postgres:5432/routeforce_dev",
-                    "REDIS_URL": "redis://redis:6379/0"
-                }
-            },
-            "isBackground": true,
-            "problemMatcher": {
-                "pattern": {
-                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
-                    "file": 1,
-                    "line": 2,
-                    "column": 3,
-                    "severity": 4,
-                    "message": 5
-                }
-            }
-        },
-        {
-            "label": "🧪 Run Tests (Codespaces)",
-            "type": "shell",
-            "command": "python", 
-            "args": ["-m", "pytest", "-v", "--tb=short"],
-            "group": "test",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": true,
-                "panel": "shared"
-            },
-            "options": {
-                "env": {
-                    "PYTHONPATH": "${workspaceFolder}",
-                    "FLASK_ENV": "testing",
-                    "DATABASE_URL": "postgresql://routeforce:password@postgres:5432/routeforce_test"
-                }
-            },
-            "problemMatcher": "$python"
-        },
-        {
-            "label": "🔧 Install Dependencies (Codespaces)",
-            "type": "shell",
-            "command": "pip",
-            "args": ["install", "-r", "requirements.txt", "-r", "requirements-dev.txt"],
-            "group": "build",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared"
-            }
-        },
-        {
-            "label": "🔍 Check Service Health (Codespaces)",
-            "type": "shell",
-            "command": "sh",
-            "args": ["-c", "pg_isready -h postgres -p 5432 -U routeforce && redis-cli -h redis ping"],
-            "group": "test",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": true,
-                "panel": "shared"
-            }
-        },
-        {
-            "label": "🤖 ChatGPT: Analyze Code Quality",
-            "type": "shell",
-            "command": "echo",
-            "args": ["'Use Ctrl+Shift+F to analyze code quality with ChatGPT'"],
-            "group": "test",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": true,
-                "panel": "shared"
-            }
-        },
-        {
-            "label": "🤖 ChatGPT: Generate Tests",
-            "type": "shell", 
-            "command": "echo",
-            "args": ["'Select code and use Ctrl+Shift+T to generate tests with ChatGPT'"],
-            "group": "test",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": true,
-                "panel": "shared"
-            }
-        },
-        {
-            "label": "🤖 ChatGPT: Add Documentation",
-            "type": "shell",
-            "command": "echo", 
-            "args": ["'Select code and use Ctrl+Shift+D to add documentation with ChatGPT'"],
-            "group": "build",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": true,
-                "panel": "shared"
-            }
-        },
-        {
-            "label": "🤖 ChatGPT: Refactor Code",
-            "type": "shell",
-            "command": "echo",
-            "args": ["'Select code and use Ctrl+Shift+R to refactor with ChatGPT'"],
-            "group": "build",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": true,
-                "panel": "shared"
-            }
-        }
-    ]
+		{
+			"type": "shell",
+			"label": "Run scoring API tests (all endpoints)",
+			"command": "pytest -v app/routes/scoring.py",
+			"group": "test",
+			"isBackground": false
+		},
+		{
+			"label": "🚀 Start Flask App (Codespaces)",
+			"type": "shell",
+			"command": "python3",
+			"args": [
+				"app.py"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "new"
+			},
+			"options": {
+				"env": {
+					"FLASK_APP": "app.py",
+					"FLASK_ENV": "development",
+					"FLASK_DEBUG": "1",
+					"DATABASE_URL": "postgresql://routeforce:password@postgres:5432/routeforce_dev",
+					"REDIS_URL": "redis://redis:6379/0"
+				}
+			},
+			"isBackground": true,
+			"problemMatcher": {
+				"pattern": {
+					"regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+					"file": 1,
+					"line": 2,
+					"column": 3,
+					"severity": 4,
+					"message": 5
+				}
+			}
+		},
+		{
+			"label": "🧪 Run Tests (Codespaces)",
+			"type": "shell",
+			"command": "python3",
+			"args": [
+				"-m",
+				"pytest",
+				"-v",
+				"--tb=short"
+			],
+			"group": "test",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared"
+			},
+			"options": {
+				"env": {
+					"PYTHONPATH": "${workspaceFolder}",
+					"FLASK_ENV": "testing",
+					"DATABASE_URL": "postgresql://routeforce:password@postgres:5432/routeforce_test"
+				}
+			},
+			"problemMatcher": "$python"
+		},
+		{
+			"label": "🔧 Install Dependencies (Codespaces)",
+			"type": "shell",
+			"command": "pip",
+			"args": [
+				"install",
+				"-r",
+				"requirements.txt",
+				"-r",
+				"requirements-dev.txt"
+			],
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			}
+		},
+		{
+			"label": "🔍 Check Service Health (Codespaces)",
+			"type": "shell",
+			"command": "sh",
+			"args": [
+				"-c",
+				"pg_isready -h postgres -p 5432 -U routeforce && redis-cli -h redis ping"
+			],
+			"group": "test",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared"
+			}
+		},
+		{
+			"label": "🤖 ChatGPT: Analyze Code Quality",
+			"type": "shell",
+			"command": "echo",
+			"args": [
+				"'Use Ctrl+Shift+F to analyze code quality with ChatGPT'"
+			],
+			"group": "test",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared"
+			}
+		},
+		{
+			"label": "🤖 ChatGPT: Generate Tests",
+			"type": "shell",
+			"command": "echo",
+			"args": [
+				"'Select code and use Ctrl+Shift+T to generate tests with ChatGPT'"
+			],
+			"group": "test",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared"
+			}
+		},
+		{
+			"label": "🤖 ChatGPT: Add Documentation",
+			"type": "shell",
+			"command": "echo",
+			"args": [
+				"'Select code and use Ctrl+Shift+D to add documentation with ChatGPT'"
+			],
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared"
+			}
+		},
+		{
+			"label": "🤖 ChatGPT: Refactor Code",
+			"type": "shell",
+			"command": "echo",
+			"args": [
+				"'Select code and use Ctrl+Shift+R to refactor with ChatGPT'"
+			],
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared"
+			}
+		},
+		{
+			"label": "🧪 Run Tests (Codespaces)",
+			"type": "shell",
+			"command": "python3",
+			"args": [
+				"-m",
+				"pytest",
+				"-v",
+				"--tb=short"
+			],
+			"group": "test"
+		}
+	]
 }

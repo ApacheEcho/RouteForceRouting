@@ -4,6 +4,7 @@ JWT-based authentication with role-based access control
 """
 
 from flask import Blueprint, request, jsonify, current_app, session
+import os
 from flask_jwt_extended import (
     JWTManager,
     create_access_token,

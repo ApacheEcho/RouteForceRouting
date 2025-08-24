@@ -9,26 +9,16 @@ from app.models.database import db, User
 from app.auth_decorators import auth_required
 from app.extensions import limiter
 
-api_bp = Blueprint("api", __name__)
+api_bp = Blueprint("api", __name__, url_prefix="/api/v1")
 logger = logging.getLogger(__name__)
 
 # --- End Blueprint and Core Imports ---
-
-# Logout endpoint to revoke JWTs
-@api_bp.route("/api/logout", methods=["POST"])
-@jwt_required()
-def logout():
-    jti = get_jwt()["jti"]
-    exp = get_jwt()["exp"]
-    add_token_to_blocklist(jti, exp)
-    return jsonify({"msg": "Token revoked. Successfully logged out."}), 200
 
 """
 API Blueprint - RESTful API endpoints with database integration
 Enhanced with comprehensive validation and error handling
 """
 
-import timeout_decorator
 from app.services.routing_service import RoutingService
 from app.services.database_service import DatabaseService
 from app.monitoring import metrics_collector
@@ -44,19 +34,20 @@ from app.utils.validation import (
     APIError,
 )
 
-@api_bp.route("/api/login", methods=["POST"])
+
+@api_bp.route("/login", methods=["POST"])
 @limiter.limit("10 per minute;5 per minute per user")
 @api_error_handler
 def api_login():
     data = request.get_json()
     if not data or "email" not in data or "password" not in data:
-        return jsonify({"success": False, "error": "Email and password required"}), 400
+        raise ValidationError("Email and password required")
 
     user = User.query.filter_by(email=data["email"]).first()
     if not user or not user.check_password(data["password"]):
-        return jsonify({"success": False, "error": "Invalid credentials"}), 401
+        raise APIError("Invalid credentials", status_code=401, code="INVALID_CREDENTIALS")
     if not user.is_active:
-        return jsonify({"success": False, "error": "User account is inactive"}), 403
+        raise APIError("User account is inactive", status_code=403, code="USER_INACTIVE")
 
     from datetime import timedelta
     access_token = create_access_token(identity=user.id, expires_delta=timedelta(minutes=15))
@@ -65,11 +56,14 @@ def api_login():
     db.session.commit()
 
     # Set refresh token as secure, HTTP-only cookie
-    response = jsonify({
-        "success": True,
-        "access_token": access_token,
-        "user": user.to_dict(),
-    })
+    response = create_success_response(
+        data={
+            "access_token": access_token,
+            "user": user.to_dict(),
+        },
+        status_code=200,
+        message="Login successful"
+    )
     response.set_cookie(
         "refresh_token",
         refresh_token,
@@ -78,10 +72,10 @@ def api_login():
         samesite="Strict",
         max_age=60*60*24*7  # 7 days
     )
-    return response, 200
+    return response
 
 # Refresh token endpoint
-@api_bp.route("/api/refresh", methods=["POST"])
+@api_bp.route("/refresh", methods=["POST"])
 @jwt_required(refresh=True)
 def refresh_access_token():
     user_id = get_jwt_identity()
@@ -101,7 +95,35 @@ def get_current_user_id():
     return user_id
 
 
-@api_bp.route("/v1/routes", methods=["POST"])
+@api_bp.route("/stores", methods=["POST"])
+@auth_required()
+@api_error_handler
+def create_store():
+    """Create a new store for the current user"""
+    data = request.get_json()
+    if not data:
+        raise ValidationError("No JSON data provided")
+
+    name = data.get("name")
+    address = data.get("address")
+    if not name or not address:
+        raise ValidationError("Missing name or address", field="name/address")
+
+    user_id = get_current_user_id()
+    if not user_id:
+        raise APIError("Authentication required", status_code=401, code="AUTH_REQUIRED")
+
+    store_service = DatabaseService()
+    store_id = store_service.create_store(user_id=user_id, name=name, address=address)
+
+    return create_success_response(
+        data={"store_id": store_id},
+        status_code=201,
+        message="Store created successfully"
+    )
+
+
+@api_bp.route("/routes", methods=["POST"])
 @auth_required()
 @api_error_handler
 def create_route():
@@ -338,7 +360,7 @@ def create_route():
     )
 
 
-@api_bp.route("/v1/routes/<int:route_id>", methods=["GET"])
+@api_bp.route("/routes/<int:route_id>", methods=["GET"])
 @auth_required()
 @api_error_handler
 def get_route(route_id: int):
@@ -364,7 +386,7 @@ def get_route(route_id: int):
     )
 
 
-@api_bp.route("/v1/routes", methods=["GET"])
+@api_bp.route("/routes", methods=["GET"])
 @auth_required()
 @api_error_handler
 def get_routes():
@@ -398,7 +420,7 @@ def get_routes():
     )
 
 
-@api_bp.route("/v1/stores", methods=["GET"])
+@api_bp.route("/stores", methods=["GET"])
 @auth_required()
 @api_error_handler
 def get_stores():
@@ -428,85 +450,72 @@ def get_stores():
     )
 
 
-@api_bp.route("/v1/stores/<int:store_id>", methods=["GET"])
+@api_bp.route("/stores/<int:store_id>", methods=["GET"])
 @auth_required()
 @api_error_handler
 def get_store(store_id: int):
     """Get specific store by ID"""
-    try:
-        user_id = get_current_user_id()
-        database_service = DatabaseService()
+    user_id = get_current_user_id()
+    database_service = DatabaseService()
 
-        store = database_service.get_store_by_id(store_id)
+    store = database_service.get_store_by_id(store_id)
 
-        if not store:
-            return jsonify({"error": "Store not found"}), 404
+    if not store:
+        raise APIError("Store not found", status_code=404, code="STORE_NOT_FOUND")
 
-        # Check if user has access to this store
-        if user_id and store.user_id != user_id:
-            return jsonify({"error": "Access denied"}), 403
+    # Check if user has access to this store
+    if user_id and store.user_id != user_id:
+        raise APIError("Access denied", status_code=403, code="ACCESS_DENIED")
 
-        return jsonify(store.to_dict()), 200
-
-    except Exception as e:
-        logger.error(f"API error getting store {store_id}: {str(e)}")
-        return jsonify({"error": "Internal server error"}), 500
+    return create_success_response(data=store.to_dict(), message="Store retrieved successfully")
 
 
-@api_bp.route("/v1/routes/generate", methods=["POST"])
+@api_bp.route("/routes/generate", methods=["POST"])
 @auth_required()
 @limiter.limit("10 per minute")
+@api_error_handler
 def generate_route_from_stores():
     """Generate route from database stores"""
-    try:
-        data = request.get_json()
+    data = request.get_json()
 
-        if not data:
-            return jsonify({"error": "No JSON data provided"}), 400
+    if not data:
+        raise ValidationError("No JSON data provided")
 
-        store_ids = data.get("store_ids", [])
-        filters = data.get("filters", {})
+    store_ids = data.get("store_ids", [])
+    filters = data.get("filters", {})
 
-        if not store_ids:
-            return jsonify({"error": "No store IDs provided"}), 400
+    if not store_ids:
+        raise ValidationError("No store IDs provided", field="store_ids")
 
-        user_id = get_current_user_id()
-        if not user_id:
-            return jsonify({"error": "Authentication required"}), 401
+    user_id = get_current_user_id()
+    if not user_id:
+        raise APIError("Authentication required", status_code=401, code="AUTH_REQUIRED")
 
-        routing_service = RoutingService(user_id=user_id)
-        route = routing_service.generate_route_from_db_stores(
-            store_ids, filters
-        )
+    routing_service = RoutingService(user_id=user_id)
+    route = routing_service.generate_route_from_db_stores(store_ids, filters)
 
-        if not route:
-            return jsonify({"error": "Failed to generate route"}), 500
+    if not route:
+        raise APIError("Failed to generate route", status_code=500, code="ROUTE_GENERATION_FAILED")
 
-        metrics = routing_service.get_metrics()
+    metrics = routing_service.get_metrics()
 
-        response_data = {
-            "route": route,
-            "metadata": {
-                "total_stores": len(store_ids),
-                "route_stores": len(route),
-                "processing_time": routing_service.get_last_processing_time(),
-                "optimization_score": (
-                    metrics.optimization_score if metrics else 0
-                ),
-            },
-        }
+    response_data = {
+        "route": route,
+        "metadata": {
+            "total_stores": len(store_ids),
+            "route_stores": len(route),
+            "processing_time": routing_service.get_last_processing_time(),
+            "optimization_score": (metrics.optimization_score if metrics else 0),
+        },
+    }
 
-        if metrics and metrics.route_id:
-            response_data["route_id"] = metrics.route_id
+    if metrics and metrics.route_id:
+        response_data["route_id"] = metrics.route_id
 
-        return jsonify(response_data), 201
-
-    except Exception as e:
-        logger.error(f"API error generating route from stores: {str(e)}")
-        return jsonify({"error": "Internal server error"}), 500
+    return create_success_response(data=response_data, status_code=201, message="Route generated successfully")
 
 
-@api_bp.route("/v1/health", methods=["GET"])
+@api_bp.route("/health", methods=["GET"])
 def api_health():
     """API health check"""
     return jsonify(
@@ -545,8 +554,9 @@ def api_health():
     )
 
 
-@api_bp.route("/v1/clusters", methods=["POST"])
+@api_bp.route("/clusters", methods=["POST"])
 @limiter.limit("10 per minute")
+@api_error_handler
 def create_clusters():
     """
     Create proximity clusters from stores
@@ -557,54 +567,38 @@ def create_clusters():
         "radius_km": 2.0
     }
     """
-    try:
-        data = request.get_json()
+    data = request.get_json()
+    if not data or "stores" not in data:
+        raise ValidationError("Missing stores data", field="stores")
 
-        if not data or "stores" not in data:
-            return jsonify({"error": "Missing stores data"}), 400
+    stores = data["stores"]
+    radius_km = data.get("radius_km", 2.0)
 
-        stores = data["stores"]
-        radius_km = data.get("radius_km", 2.0)
+    # Validate radius
+    if not isinstance(radius_km, (int, float)) or radius_km <= 0:
+        raise ValidationError("Invalid radius_km value", field="radius_km")
 
-        # Validate radius
-        if not isinstance(radius_km, (int, float)) or radius_km <= 0:
-            return jsonify({"error": "Invalid radius_km value"}), 400
+    # Validate stores have coordinates
+    for store in stores:
+        if "latitude" not in store or "longitude" not in store:
+            raise ValidationError("All stores must have latitude and longitude", field="stores")
 
-        # Validate stores have coordinates
-        for store in stores:
-            if "latitude" not in store or "longitude" not in store:
-                return (
-                    jsonify(
-                        {
-                            "error": "All stores must have latitude and longitude"
-                        }
-                    ),
-                    400,
-                )
+    routing_service = RoutingService()
+    clusters = routing_service.cluster_stores_by_proximity(stores, radius_km)
 
-        routing_service = RoutingService()
-        clusters = routing_service.cluster_stores_by_proximity(
-            stores, radius_km
-        )
-
-        return (
-            jsonify(
-                {
-                    "clusters": clusters,
-                    "cluster_count": len(clusters),
-                    "total_stores": len(stores),
-                    "radius_km": radius_km,
-                }
-            ),
-            200,
-        )
-
-    except Exception as e:
-        logger.error(f"Error creating clusters: {str(e)}")
-        return jsonify({"error": "Internal server error"}), 500
+    return create_success_response(
+        data={
+            "clusters": clusters,
+            "cluster_count": len(clusters),
+            "total_stores": len(stores),
+            "radius_km": radius_km,
+        },
+        status_code=200,
+        message="Clusters created successfully"
+    )
 
 
-@api_bp.route("/v1/metrics", methods=["GET"])
+@api_bp.route("/metrics", methods=["GET"])
 @limiter.limit("100 per minute")
 def get_live_metrics():
     """
@@ -673,8 +667,9 @@ def get_live_metrics():
         )
 
 
-@api_bp.route("/v1/routes/optimize/genetic", methods=["POST"])
+@api_bp.route("/routes/optimize/genetic", methods=["POST"])
 @limiter.limit("100 per minute")
+@api_error_handler
 def optimize_route_genetic():
     """
     Optimize route using genetic algorithm
@@ -693,88 +688,64 @@ def optimize_route_genetic():
         }
     }
     """
-    try:
-        data = request.get_json()
+    data = request.get_json()
+    if not data:
+        raise ValidationError("No JSON data provided")
 
-        if not data:
-            return jsonify({"error": "No JSON data provided"}), 400
+    stores = data.get("stores", [])
+    constraints = data.get("constraints", {})
+    genetic_config = data.get("genetic_config", {})
 
-        stores = data.get("stores", [])
-        constraints = data.get("constraints", {})
-        genetic_config = data.get("genetic_config", {})
+    if not stores:
+        raise ValidationError("No stores provided", field="stores")
+    if len(stores) < 2:
+        raise ValidationError("At least 2 stores required for genetic optimization", field="stores")
 
-        if not stores:
-            return jsonify({"error": "No stores provided"}), 400
+    user_id = get_current_user_id()
+    routing_service = RoutingService(user_id=user_id)
 
-        if len(stores) < 2:
-            return (
-                jsonify(
-                    {
-                        "error": "At least 2 stores required for genetic optimization"
-                    }
-                ),
-                400,
-            )
+    filters = {
+        "algorithm": "genetic",
+        "ga_population_size": genetic_config.get("population_size", 100),
+        "ga_generations": genetic_config.get("generations", 500),
+        "ga_mutation_rate": genetic_config.get("mutation_rate", 0.02),
+        "ga_crossover_rate": genetic_config.get("crossover_rate", 0.8),
+        "ga_elite_size": genetic_config.get("elite_size", 20),
+        "ga_tournament_size": genetic_config.get("tournament_size", 3),
+    }
 
-        # Get user ID (will be from authentication system later)
-        user_id = get_current_user_id()
+    route = routing_service.generate_route_from_stores(
+        stores, constraints, save_to_db=True, algorithm="genetic"
+    )
 
-        # Generate route with genetic algorithm
-        routing_service = RoutingService(user_id=user_id)
+    metrics = routing_service.get_metrics()
 
-        # Prepare genetic algorithm filters
-        filters = {
-            "algorithm": "genetic",
-            "ga_population_size": genetic_config.get("population_size", 100),
-            "ga_generations": genetic_config.get("generations", 500),
-            "ga_mutation_rate": genetic_config.get("mutation_rate", 0.02),
-            "ga_crossover_rate": genetic_config.get("crossover_rate", 0.8),
-            "ga_elite_size": genetic_config.get("elite_size", 20),
-            "ga_tournament_size": genetic_config.get("tournament_size", 3),
-        }
+    response_data = {
+        "route": route,
+        "metadata": {
+            "total_stores": len(stores),
+            "route_stores": len(route) if route else 0,
+            "processing_time": routing_service.get_last_processing_time(),
+            "optimization_score": (metrics.optimization_score if metrics else 0),
+            "algorithm_used": "genetic",
+        },
+    }
+    if metrics and metrics.algorithm_metrics:
+        response_data["genetic_metrics"] = metrics.algorithm_metrics
+    if metrics and metrics.route_id:
+        response_data["route_id"] = metrics.route_id
+        response_data["metadata"]["route_id"] = metrics.route_id
 
-        # Generate optimized route
-        route = routing_service.generate_route_from_stores(
-            stores, constraints, save_to_db=True, algorithm="genetic"
-        )
-
-        # Get metrics
-        metrics = routing_service.get_metrics()
-
-        # Build response
-        response_data = {
-            "route": route,
-            "metadata": {
-                "total_stores": len(stores),
-                "route_stores": len(route) if route else 0,
-                "processing_time": routing_service.get_last_processing_time(),
-                "optimization_score": (
-                    metrics.optimization_score if metrics else 0
-                ),
-                "algorithm_used": "genetic",
-            },
-        }
-
-        # Include genetic algorithm specific metrics
-        if metrics and metrics.algorithm_metrics:
-            response_data["genetic_metrics"] = metrics.algorithm_metrics
-
-        # Include route ID if saved to database
-        if metrics and metrics.route_id:
-            response_data["route_id"] = metrics.route_id
-            response_data["metadata"]["route_id"] = metrics.route_id
-
-        return jsonify(response_data), 201
-
-    except Exception as e:
-        logger.error(
-            f"API error optimizing route with genetic algorithm: {str(e)}"
-        )
-        return jsonify({"error": "Internal server error"}), 500
+    return create_success_response(
+        data=response_data,
+        status_code=201,
+        message="Route optimized with genetic algorithm"
+    )
 
 
-@api_bp.route("/v1/routes/optimize/simulated_annealing", methods=["POST"])
+@api_bp.route("/routes/optimize/simulated_annealing", methods=["POST"])
 @limiter.limit("100 per minute")
+@api_error_handler
 def optimize_route_simulated_annealing():
     """
     Optimize route using simulated annealing algorithm
@@ -793,99 +764,66 @@ def optimize_route_simulated_annealing():
         }
     }
     """
-    try:
-        data = request.get_json()
+    data = request.get_json()
+    if not data:
+        raise ValidationError("No JSON data provided")
 
-        if not data:
-            return jsonify({"error": "No JSON data provided"}), 400
+    stores = data.get("stores", [])
+    constraints = data.get("constraints", {})
+    sa_config = data.get("sa_config", {})
 
-        stores = data.get("stores", [])
-        constraints = data.get("constraints", {})
-        sa_config = data.get("sa_config", {})
+    if not stores:
+        raise ValidationError("No stores provided", field="stores")
+    if len(stores) < 2:
+        raise ValidationError("At least 2 stores required for simulated annealing optimization", field="stores")
 
-        if not stores:
-            return jsonify({"error": "No stores provided"}), 400
+    user_id = get_current_user_id()
+    routing_service = RoutingService(user_id=user_id)
 
-        if len(stores) < 2:
-            return (
-                jsonify(
-                    {
-                        "error": "At least 2 stores required for simulated annealing optimization"
-                    }
-                ),
-                400,
-            )
+    algorithm_params = {
+        "sa_initial_temperature": sa_config.get("initial_temperature", 1000.0),
+        "sa_final_temperature": sa_config.get("final_temperature", 0.1),
+        "sa_cooling_rate": sa_config.get("cooling_rate", 0.99),
+        "sa_max_iterations": sa_config.get("max_iterations", 10000),
+        "sa_iterations_per_temp": sa_config.get("iterations_per_temp", 100),
+        "sa_reheat_threshold": sa_config.get("reheat_threshold", 1000),
+        "sa_min_improvement_threshold": sa_config.get("min_improvement_threshold", 0.001),
+    }
 
-        # Get user ID (will be from authentication system later)
-        user_id = get_current_user_id()
+    route = routing_service.generate_route_from_stores(
+        stores,
+        constraints,
+        save_to_db=True,
+        algorithm="simulated_annealing",
+        algorithm_params=algorithm_params,
+    )
 
-        # Generate route with simulated annealing algorithm
-        routing_service = RoutingService(user_id=user_id)
+    metrics = routing_service.get_metrics()
 
-        # Prepare simulated annealing algorithm parameters
-        algorithm_params = {
-            "sa_initial_temperature": sa_config.get(
-                "initial_temperature", 1000.0
-            ),
-            "sa_final_temperature": sa_config.get("final_temperature", 0.1),
-            "sa_cooling_rate": sa_config.get("cooling_rate", 0.99),
-            "sa_max_iterations": sa_config.get("max_iterations", 10000),
-            "sa_iterations_per_temp": sa_config.get(
-                "iterations_per_temp", 100
-            ),
-            "sa_reheat_threshold": sa_config.get("reheat_threshold", 1000),
-            "sa_min_improvement_threshold": sa_config.get(
-                "min_improvement_threshold", 0.001
-            ),
-        }
+    response_data = {
+        "route": route,
+        "metadata": {
+            "total_stores": len(stores),
+            "route_stores": len(route) if route else 0,
+            "processing_time": routing_service.get_last_processing_time(),
+            "optimization_score": (metrics.optimization_score if metrics else 0),
+            "algorithm_used": "simulated_annealing",
+        },
+    }
+    if metrics and metrics.algorithm_metrics:
+        response_data["simulated_annealing_metrics"] = metrics.algorithm_metrics
+    if metrics and metrics.route_id:
+        response_data["route_id"] = metrics.route_id
+        response_data["metadata"]["route_id"] = metrics.route_id
 
-        # Generate optimized route
-        route = routing_service.generate_route_from_stores(
-            stores,
-            constraints,
-            save_to_db=True,
-            algorithm="simulated_annealing",
-            algorithm_params=algorithm_params,
-        )
-
-        # Get metrics
-        metrics = routing_service.get_metrics()
-
-        # Build response
-        response_data = {
-            "route": route,
-            "metadata": {
-                "total_stores": len(stores),
-                "route_stores": len(route) if route else 0,
-                "processing_time": routing_service.get_last_processing_time(),
-                "optimization_score": (
-                    metrics.optimization_score if metrics else 0
-                ),
-                "algorithm_used": "simulated_annealing",
-            },
-        }
-
-        # Include simulated annealing specific metrics
-        if metrics and metrics.algorithm_metrics:
-            response_data["simulated_annealing_metrics"] = (
-                metrics.algorithm_metrics
-            )
-
-        # Include route ID if saved to database
-        if metrics and metrics.route_id:
-            response_data["route_id"] = metrics.route_id
-            response_data["metadata"]["route_id"] = metrics.route_id
-
-        return jsonify(response_data), 201
-
-    except Exception as e:
-        logger.error(
-            f"API error optimizing route with simulated annealing: {str(e)}"
-        )
-        return jsonify({"error": "Internal server error"}), 500
+    return create_success_response(
+        data=response_data,
+        status_code=201,
+        message="Route optimized with simulated annealing"
+    )
 
 
-@api_bp.route("/v1/routes/algorithms", methods=["GET"])
+@api_bp.route("/routes/algorithms", methods=["GET"])
 @limiter.limit("100 per minute")
 def get_available_algorithms():
     """Get available optimization algorithms"""
@@ -1054,8 +992,9 @@ def get_available_algorithms():
         return jsonify({"error": "Internal server error"}), 500
 
 
-@api_bp.route("/v1/ml/predict", methods=["POST"])
+@api_bp.route("/ml/predict", methods=["POST"])
 @limiter.limit("10 per minute")
+@api_error_handler
 def predict_route_performance():
     """
     Predict route optimization performance using ML
@@ -1079,35 +1018,35 @@ def predict_route_performance():
         }
     }
     """
-    try:
-        data = request.get_json()
-        if not data or "stores" not in data:
-            return jsonify({"error": "Missing stores data"}), 400
+    data = request.get_json()
+    if not data or "stores" not in data:
+        raise ValidationError("Missing stores data", field="stores")
 
-        stores = data["stores"]
-        context = data.get("context")
+    stores = data["stores"]
+    context = data.get("context")
 
-        if not stores:
-            return jsonify({"error": "No stores provided"}), 400
+    if not stores:
+        raise ValidationError("No stores provided", field="stores")
 
-        # Get current user (if authenticated)
-        user_id = session.get("user_id")
+    # Get current user (if authenticated)
+    user_id = session.get("user_id")
 
-        # Initialize routing service
-        routing_service = RoutingService(user_id=user_id)
+    # Initialize routing service
+    routing_service = RoutingService(user_id=user_id)
 
-        # Get ML prediction
-        result = routing_service.predict_route_performance(stores, context)
+    # Get ML prediction
+    result = routing_service.predict_route_performance(stores, context)
 
-        return jsonify(result), 200
+    return create_success_response(
+        data=result,
+        status_code=200,
+        message="Prediction successful"
+    )
 
-    except Exception as e:
-        logger.error(f"API error predicting route performance: {str(e)}")
-        return jsonify({"error": "Internal server error"}), 500
 
-
-@api_bp.route("/v1/ml/recommend", methods=["POST"])
+@api_bp.route("/ml/recommend", methods=["POST"])
 @limiter.limit("10 per minute")
+@api_error_handler
 def recommend_algorithm():
     """
     Recommend best algorithm for given stores using ML
@@ -1131,35 +1070,35 @@ def recommend_algorithm():
         }
     }
     """
-    try:
-        data = request.get_json()
-        if not data or "stores" not in data:
-            return jsonify({"error": "Missing stores data"}), 400
+    data = request.get_json()
+    if not data or "stores" not in data:
+        raise ValidationError("Missing stores data", field="stores")
 
-        stores = data["stores"]
-        context = data.get("context")
+    stores = data["stores"]
+    context = data.get("context")
 
-        if not stores:
-            return jsonify({"error": "No stores provided"}), 400
+    if not stores:
+        raise ValidationError("No stores provided", field="stores")
 
-        # Get current user (if authenticated)
-        user_id = session.get("user_id")
+    # Get current user (if authenticated)
+    user_id = session.get("user_id")
 
-        # Initialize routing service
-        routing_service = RoutingService(user_id=user_id)
+    # Initialize routing service
+    routing_service = RoutingService(user_id=user_id)
 
-        # Get ML recommendation
-        result = routing_service.recommend_algorithm(stores, context)
+    # Get ML recommendation
+    result = routing_service.recommend_algorithm(stores, context)
 
-        return jsonify(result), 200
+    return create_success_response(
+        data=result,
+        status_code=200,
+        message="Recommendation successful"
+    )
 
-    except Exception as e:
-        logger.error(f"API error recommending algorithm: {str(e)}")
-        return jsonify({"error": "Internal server error"}), 500
 
-
-@api_bp.route("/v1/ml/train", methods=["POST"])
+@api_bp.route("/ml/train", methods=["POST"])
 @limiter.limit("1 per minute")
+@api_error_handler
 def train_ml_models():
     """
     Train ML models on collected data
@@ -1169,50 +1108,50 @@ def train_ml_models():
         "force_retrain": false
     }
     """
-    try:
-        data = request.get_json() or {}
+    data = request.get_json() or {}
 
-        # Get current user (if authenticated)
-        user_id = session.get("user_id")
+    # Get current user (if authenticated)
+    user_id = session.get("user_id")
 
-        # Initialize routing service
-        routing_service = RoutingService(user_id=user_id)
+    # Initialize routing service
+    routing_service = RoutingService(user_id=user_id)
 
-        # Train ML models
-        result = routing_service.train_ml_models()
+    # Train ML models
+    result = routing_service.train_ml_models()
 
-        return jsonify(result), 200
+    return create_success_response(
+        data=result,
+        status_code=200,
+        message="ML model training successful"
+    )
 
-    except Exception as e:
-        logger.error(f"API error training ML models: {str(e)}")
-        return jsonify({"error": "Internal server error"}), 500
 
-
-@api_bp.route("/v1/ml/model-info", methods=["GET"])
+@api_bp.route("/ml/model-info", methods=["GET"])
 @limiter.limit("30 per minute")
+@api_error_handler
 def get_ml_model_info():
     """
     Get information about the ML model
     """
-    try:
-        # Get current user (if authenticated)
-        user_id = session.get("user_id")
+    # Get current user (if authenticated)
+    user_id = session.get("user_id")
 
-        # Initialize routing service
-        routing_service = RoutingService(user_id=user_id)
+    # Initialize routing service
+    routing_service = RoutingService(user_id=user_id)
 
-        # Get ML model info
-        result = routing_service.get_ml_model_info()
+    # Get ML model info
+    result = routing_service.get_ml_model_info()
 
-        return jsonify(result), 200
+    return create_success_response(
+        data=result,
+        status_code=200,
+        message="ML model info retrieved successfully"
+    )
 
-    except Exception as e:
-        logger.error(f"API error getting ML model info: {str(e)}")
-        return jsonify({"error": "Internal server error"}), 500
 
-
-@api_bp.route("/v1/routes/generate/ml", methods=["POST"])
+@api_bp.route("/routes/generate/ml", methods=["POST"])
 @limiter.limit("10 per minute")
+@api_error_handler
 def generate_route_with_ml():
     """
     Generate route using ML-recommended algorithm
@@ -1241,34 +1180,33 @@ def generate_route_with_ml():
         }
     }
     """
-    try:
-        data = request.get_json()
-        if not data or "stores" not in data:
-            return jsonify({"error": "Missing stores data"}), 400
+    data = request.get_json()
+    if not data or "stores" not in data:
+        raise ValidationError("Missing stores data", field="stores")
 
-        stores = data["stores"]
-        constraints = data.get("constraints", {})
-        context = data.get("context")
+    stores = data["stores"]
+    constraints = data.get("constraints", {})
+    context = data.get("context")
 
-        if not stores:
-            return jsonify({"error": "No stores provided"}), 400
+    if not stores:
+        raise ValidationError("No stores provided", field="stores")
 
-        # Get current user (if authenticated)
-        user_id = session.get("user_id")
+    # Get current user (if authenticated)
+    user_id = session.get("user_id")
 
-        # Initialize routing service
-        routing_service = RoutingService(user_id=user_id)
+    # Initialize routing service
+    routing_service = RoutingService(user_id=user_id)
 
-        # Generate route with ML recommendation
-        result = routing_service.generate_route_with_ml_recommendation(
-            stores, constraints, context
-        )
+    # Generate route with ML recommendation
+    result = routing_service.generate_route_with_ml_recommendation(
+        stores, constraints, context
+    )
 
-        return jsonify(result), 200
-
-    except Exception as e:
-        logger.error(f"API error generating route with ML: {str(e)}")
-        return jsonify({"error": "Internal server error"}), 500
+    return create_success_response(
+        data=result,
+        status_code=200,
+        message="Route generated with ML recommendation"
+    )
 
 
 @api_bp.route("/optimize", methods=["POST"])
@@ -1287,158 +1225,122 @@ def optimize_route():
         "depot": {"lat": 37.7649, "lng": -122.4294, "name": "Depot"}
     }
     """
-    logger = logging.getLogger(__name__)
-    logger.debug("/optimize endpoint called")
-    try:
-        data = request.get_json()
-        logger.debug(f"Parsed JSON: {data}")
-        if not data:
-            logger.warning("No JSON data provided")
-            return jsonify({"error": "No JSON data provided"}), 400
+    data = request.get_json()
+    if not data:
+        raise ValidationError("No JSON data provided")
 
-        stops = data.get("stops", [])
-        algorithm = data.get("algorithm", "genetic")
-        depot = data.get("depot", {})
-        logger.debug(f"Algorithm: {algorithm}, Stops: {len(stops)}, Depot: {depot}")
+    stops = data.get("stops", [])
+    algorithm = data.get("algorithm", "genetic")
+    depot = data.get("depot", {})
 
-        # Validate algorithm
-        valid_algorithms = [
-            "genetic",
-            "simulated_annealing",
-            "multi_objective",
-        ]
-        if algorithm not in valid_algorithms:
-            logger.warning(f"Invalid algorithm: {algorithm}")
-            return (
-                jsonify(
-                    {
-                        "error": f"Invalid algorithm: {algorithm}",
-                        "valid_algorithms": valid_algorithms,
-                    }
-                ),
-                400,
+    # Validate algorithm
+    valid_algorithms = [
+        "genetic",
+        "simulated_annealing",
+        "multi_objective",
+    ]
+    if algorithm not in valid_algorithms:
+        raise ValidationError(f"Invalid algorithm: {algorithm}", field="algorithm")
+
+    if not stops:
+        raise ValidationError("No stops provided", field="stops")
+
+    # Convert stops to stores format
+    stores = []
+    for i, stop in enumerate(stops):
+        store = {
+            "id": stop.get("id", f"stop_{i}"),
+            "name": stop.get("name", f"Stop {i+1}"),
+            "latitude": stop.get("lat", 0),
+            "longitude": stop.get("lng", 0),
+            "priority": stop.get("priority", 1),
+            "demand": stop.get("demand", 1),
+        }
+        stores.append(store)
+
+    # Add depot as starting point if provided
+    if depot:
+        depot_store = {
+            "id": "depot",
+            "name": depot.get("name", "Depot"),
+            "latitude": depot.get("lat", 0),
+            "longitude": depot.get("lng", 0),
+            "priority": 0,
+            "demand": 0,
+        }
+        stores.insert(0, depot_store)
+
+    user_id = get_current_user_id()
+    routing_service = RoutingService(user_id=user_id)
+
+    # Generate optimized route
+    route = routing_service.generate_route_from_stores(
+        stores, filters={"algorithm": algorithm}
+    )
+
+    # Get metrics
+    metrics = routing_service.get_metrics()
+
+    # Convert route back to simple format
+    optimized_route = []
+    if route:
+        for stop in route:
+            optimized_route.append(
+                {
+                    "id": stop.get("id"),
+                    "name": stop.get("name"),
+                    "lat": stop.get("latitude"),
+                    "lng": stop.get("longitude"),
+                    "order": len(optimized_route),
+                }
             )
 
-        if not stops:
-            logger.warning("No stops provided")
-            return jsonify({"error": "No stops provided"}), 400
+    # Calculate basic metrics
+    total_distance = 0
+    if len(optimized_route) > 1:
+        from math import radians, cos, sin, asin, sqrt
 
-        logger.debug("About to call routing_service.generate_route_from_stores")
-        # Convert stops to stores format
-        stores = []
-        for i, stop in enumerate(stops):
-            store = {
-                "id": stop.get("id", f"stop_{i}"),
-                "name": stop.get("name", f"Stop {i+1}"),
-                "latitude": stop.get("lat", 0),
-                "longitude": stop.get("lng", 0),
-                "priority": stop.get("priority", 1),
-                "demand": stop.get("demand", 1),
-            }
-            stores.append(store)
+        def haversine(lon1, lat1, lon2, lat2):
+            """Calculate the great circle distance between two points on earth"""
+            lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+            dlon = lon2 - lon1
+            dlat = lat2 - lat1
+            a = (
+                sin(dlat / 2) ** 2
+                + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
+            )
+            c = 2 * asin(sqrt(a))
+            r = 6371  # Radius of earth in kilometers
+            return c * r
 
-        # Add depot as starting point if provided
-        if depot:
-            depot_store = {
-                "id": "depot",
-                "name": depot.get("name", "Depot"),
-                "latitude": depot.get("lat", 0),
-                "longitude": depot.get("lng", 0),
-                "priority": 0,
-                "demand": 0,
-            }
-            stores.insert(0, depot_store)
+        for i in range(len(optimized_route) - 1):
+            curr = optimized_route[i]
+            next_stop = optimized_route[i + 1]
+            distance = haversine(
+                curr["lng"],
+                curr["lat"],
+                next_stop["lng"],
+                next_stop["lat"],
+            )
+            total_distance += distance
 
-        user_id = get_current_user_id()
-        routing_service = RoutingService(user_id=user_id)
+    response_data = {
+        "optimized_route": optimized_route,
+        "algorithm_used": algorithm,
+        "total_distance_km": round(total_distance, 2),
+        "total_stops": len(optimized_route),
+        "processing_time": routing_service.get_last_processing_time(),
+        "optimization_score": metrics.optimization_score if metrics else 0,
+    }
 
-        # Generate optimized route
-        route = routing_service.generate_route_from_stores(
-            stores, filters={"algorithm": algorithm}
-        )
+    if metrics and metrics.route_id:
+        response_data["route_id"] = metrics.route_id
 
-        # Get metrics
-        metrics = routing_service.get_metrics()
-
-        # Convert route back to simple format
-        optimized_route = []
-        if route:
-            for stop in route:
-                optimized_route.append(
-                    {
-                        "id": stop.get("id"),
-                        "name": stop.get("name"),
-                        "lat": stop.get("latitude"),
-                        "lng": stop.get("longitude"),
-                        "order": len(optimized_route),
-                    }
-                )
-
-        # Calculate basic metrics
-        total_distance = 0
-        if len(optimized_route) > 1:
-            from math import radians, cos, sin, asin, sqrt
-
-            def haversine(lon1, lat1, lon2, lat2):
-                """Calculate the great circle distance between two points on earth"""
-                lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
-                dlon = lon2 - lon1
-                dlat = lat2 - lat1
-                a = (
-                    sin(dlat / 2) ** 2
-                    + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
-                )
-                c = 2 * asin(sqrt(a))
-                r = 6371  # Radius of earth in kilometers
-                return c * r
-
-            for i in range(len(optimized_route) - 1):
-                curr = optimized_route[i]
-                next_stop = optimized_route[i + 1]
-                distance = haversine(
-                    curr["lng"],
-                    curr["lat"],
-                    next_stop["lng"],
-                    next_stop["lat"],
-                )
-                total_distance += distance
-
-        response_data = {
-            "success": True,
-            "optimized_route": optimized_route,
-            "algorithm_used": algorithm,
-            "total_distance_km": round(total_distance, 2),
-            "total_stops": len(optimized_route),
-            "processing_time": routing_service.get_last_processing_time(),
-            "optimization_score": metrics.optimization_score if metrics else 0,
-        }
-
-        if metrics and metrics.route_id:
-            response_data["route_id"] = metrics.route_id
-
-        response = jsonify(response_data), 200
-        pr.disable()
-        s = io.StringIO()
-        ps = pstats.Stats(pr, stream=s).sort_stats("cumulative")
-        ps.print_stats(20)  # Print top 20 functions
-        print("[PROFILE] /optimize endpoint profile:\n" + s.getvalue())
-        return response
-    except TimeoutError:
-        logger.error("/optimize endpoint timed out after 30 seconds")
-        return jsonify({"error": "Optimization timed out"}), 504
-    except Exception as e:
-        pr.disable()
-        s = io.StringIO()
-        ps = pstats.Stats(pr, stream=s).sort_stats("cumulative")
-        ps.print_stats(20)
-        print("[PROFILE] /optimize endpoint profile (error):\n" + s.getvalue())
-        logger.error(f"API error optimizing route: {str(e)}")
-        return (
-            jsonify(
-                {"success": False, "error": f"Optimization failed: {str(e)}"}
-            ),
-            500,
-        )
+    return create_success_response(
+        data=response_data,
+        status_code=200,
+        message="Route optimized successfully"
+    )
 
 
 @api_bp.route("/analytics", methods=["GET"])
@@ -1450,6 +1352,7 @@ def get_analytics():
     try:
         user_id = get_current_user_id()
         routing_service = RoutingService(user_id=user_id)
+
 
         # Get basic analytics
         analytics = {
@@ -1465,23 +1368,18 @@ def get_analytics():
             "recent_routes": [],
         }
 
-        try:
-            routes = routing_service.get_route_history(limit=10)
-            analytics["total_routes"] = len(routes)
-            analytics["recent_routes"] = routes
+        routes = routing_service.get_route_history(limit=10)
+        analytics["total_routes"] = len(routes)
+        analytics["recent_routes"] = routes
 
-            if routes:
-                scores = [
-                    r.get("optimization_score", 0)
-                    for r in routes
-                    if r.get("optimization_score")
-                ]
-                if scores:
-                    analytics["avg_optimization_score"] = sum(scores) / len(
-                        scores
-                    )
-        except:
-            pass  # Continue with default values
+        if routes:
+            scores = [
+                r.get("optimization_score", 0)
+                for r in routes
+                if r.get("optimization_score")
+            ]
+            if scores:
+                analytics["avg_optimization_score"] = sum(scores) / len(scores)
 
         return (
             jsonify(

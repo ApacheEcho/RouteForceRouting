@@ -28,7 +28,7 @@
     "remote.autoForwardPortsSource": "hybrid", 
     "remote.forwardOnOpen": true,
     "remote.restoreForwardedPorts": true,
-    "workbench.colorTheme": "GitHub Dark Default",
+    "workbench.colorTheme": "Default Light+",
     
     // Terminal and Git for Codespaces
     "terminal.integrated.defaultProfile.linux": "bash",

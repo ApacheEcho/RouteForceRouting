@@ -57,7 +57,25 @@ socketio = SocketIO(
 swagger = Swagger()
 
 
-def create_app(config_name: str = "development") -> Flask:
+def create_app(config_name: str = "development", testing: bool = False) -> Flask:
+    """
+    Application factory pattern for creating Flask app instances
+
+    Args:
+        config_name: Configuration environment name
+        testing: If True, use the 'testing' config
+
+    Returns:
+        Configured Flask application instance
+    """
+    app = Flask(__name__)
+
+    # Load configuration
+    if testing:
+        app.config.from_object(config["testing"])
+    else:
+        app.config.from_object(config[config_name])
+
     # Enforce HTTPS in production
     if app.config.get("PREFERRED_URL_SCHEME", "http") == "https":
         @app.before_request
@@ -69,16 +87,6 @@ def create_app(config_name: str = "development") -> Flask:
                     }),
                     403,
                 )
-    """
-    Application factory pattern for creating Flask app instances
-
-    Args:
-        config_name: Configuration environment name
-
-    Returns:
-        Configured Flask application instance
-    """
-    app = Flask(__name__)
 
     # Respect X-Forwarded-* headers from upstream proxy (Nginx/Render)
     app.wsgi_app = ProxyFix(

@@ -8,7 +8,12 @@ from werkzeug.security import generate_password_hash
 
 @pytest.fixture(scope="module")
 def test_client():
+
     app = create_app("testing")
+    # Print all registered routes for debugging
+    print("\nRegistered routes:")
+    for rule in app.url_map.iter_rules():
+        print(f"{rule}")
     testing_client = app.test_client()
 
     ctx = app.app_context()

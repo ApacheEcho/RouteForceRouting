@@ -36,7 +36,7 @@ from app.utils.validation import (
 
 
 @api_bp.route("/login", methods=["POST"])
-@limiter.limit("10 per minute;5 per minute per user")
+@limiter.limit("10 per minute")
 @api_error_handler
 def api_login():
     data = request.get_json()
@@ -77,7 +77,9 @@ def api_login():
 # Refresh token endpoint
 @api_bp.route("/refresh", methods=["POST"])
 @jwt_required(refresh=True)
+@api_error_handler
 def refresh_access_token():
+    # Do not require JSON body; just use the Authorization header
     user_id = get_jwt_identity()
     from datetime import timedelta
     access_token = create_access_token(identity=user_id, expires_delta=timedelta(minutes=15))

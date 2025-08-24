@@ -275,6 +275,7 @@ def api_error_handler(f):
             return (
                 jsonify(
                     {
+                        "success": False,
                         "error": e.message,
                         "code": e.code,
                         "field": e.field,
@@ -289,6 +290,7 @@ def api_error_handler(f):
             return (
                 jsonify(
                     {
+                        "success": False,
                         "error": e.message,
                         "code": e.code,
                         "timestamp": datetime.utcnow().isoformat(),
@@ -306,6 +308,7 @@ def api_error_handler(f):
             return (
                 jsonify(
                     {
+                        "success": False,
                         "error": "An unexpected error occurred",
                         "code": "INTERNAL_ERROR",
                         "timestamp": datetime.utcnow().isoformat(),

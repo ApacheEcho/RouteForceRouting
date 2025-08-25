@@ -16,17 +16,23 @@ def test_genetic_algorithm_population_one():
     
     tester = TestRouteForceSystemTest()
     test_data = {
-        "stops": [
+        "stores": [
             {"id": "1", "lat": 37.7749, "lng": -122.4194, "name": "Stop 1"},
             {"id": "2", "lat": 37.7849, "lng": -122.4094, "name": "Stop 2"},
         ],
-        "depot": {"lat": 37.7549, "lng": -122.4494, "name": "Depot"},
-        "algorithm": "genetic",
-        "population_size": 1,
+        "constraints": {},
+        "genetic_config": {
+            "population_size": 1,
+            "generations": 50,  # Reduced for faster testing
+            "mutation_rate": 0.02,
+            "crossover_rate": 0.8,
+            "elite_size": 1,
+            "tournament_size": 1,
+        }
     }
     headers = tester.get_auth_headers()
     resp = requests.post(
-        f"{tester.backend_url}/api/v1/optimize",
+        f"{tester.backend_url}/api/v1/routes/optimize/genetic",
         json=test_data,
         headers=headers,
         timeout=15,

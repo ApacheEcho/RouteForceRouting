@@ -1,12 +1,15 @@
 
-import requests
 import pytest
+import requests
 from integration_test import RouteForceSystemTest
+
 
 @pytest.mark.timeout(30)
 def test_genetic_algorithm_population_one():
     """Edge case: Genetic algorithm with population size 1 should not fail."""
+    # Use port 5001 instead of 8000 to avoid macOS system conflicts
     tester = RouteForceSystemTest()
+    tester.backend_url = "http://localhost:5001"
     test_data = {
         "stops": [
             {"id": "1", "lat": 37.7749, "lng": -122.4194, "name": "Stop 1"},

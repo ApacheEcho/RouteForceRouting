@@ -2,7 +2,9 @@
 Celery application and Sentry integration for background workers.
 Start worker with: celery -A app.celery worker --loglevel=info
 """
+
 import os
+
 from celery import Celery
 
 # Create Celery instance

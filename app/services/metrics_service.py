@@ -8,7 +8,8 @@ import time
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from threading import Lock
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict, List, Optional
+from collections.abc import Callable
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,7 @@ class MetricPoint:
 
     name: str
     value: float
-    labels: Dict[str, str] = field(default_factory=dict)
+    labels: dict[str, str] = field(default_factory=dict)
     timestamp: float = field(default_factory=time.time)
     metric_type: str = "gauge"  # gauge, counter, histogram, summary
 
@@ -41,21 +42,21 @@ class MetricsCollector:
     """Central metrics collection system with Prometheus compatibility"""
 
     def __init__(self, max_metrics: int = 10000):
-        self.metrics: Dict[str, MetricPoint] = {}
-        self.service_metrics: Dict[str, ServiceMetrics] = {}
-        self.request_durations: Dict[str, deque] = defaultdict(
+        self.metrics: dict[str, MetricPoint] = {}
+        self.service_metrics: dict[str, ServiceMetrics] = {}
+        self.request_durations: dict[str, deque] = defaultdict(
             lambda: deque(maxlen=1000)
         )
-        self.counters: Dict[str, float] = defaultdict(float)
-        self.gauges: Dict[str, float] = defaultdict(float)
-        self.histograms: Dict[str, List[float]] = defaultdict(list)
+        self.counters: dict[str, float] = defaultdict(float)
+        self.gauges: dict[str, float] = defaultdict(float)
+        self.histograms: dict[str, list[float]] = defaultdict(list)
         self.max_metrics = max_metrics
         self._lock = Lock()
 
         logger.info("Metrics collector initialized")
 
     def increment_counter(
-        self, name: str, value: float = 1.0, labels: Optional[Dict[str, str]] = None
+        self, name: str, value: float = 1.0, labels: dict[str, str] | None = None
     ):
         """Increment a counter metric"""
         with self._lock:
@@ -71,7 +72,7 @@ class MetricsCollector:
             )
 
     def set_gauge(
-        self, name: str, value: float, labels: Optional[Dict[str, str]] = None
+        self, name: str, value: float, labels: dict[str, str] | None = None
     ):
         """Set a gauge metric value"""
         with self._lock:
@@ -83,7 +84,7 @@ class MetricsCollector:
             )
 
     def observe_histogram(
-        self, name: str, value: float, labels: Optional[Dict[str, str]] = None
+        self, name: str, value: float, labels: dict[str, str] | None = None
     ):
         """Add observation to histogram metric"""
         with self._lock:
@@ -160,7 +161,7 @@ class MetricsCollector:
 
             return "\n".join(lines)
 
-    def get_metrics_summary(self) -> Dict[str, Any]:
+    def get_metrics_summary(self) -> dict[str, Any]:
         """Get summarized metrics for monitoring dashboards"""
         with self._lock:
             summary = {
@@ -180,7 +181,7 @@ class MetricsCollector:
 
             return summary
 
-    def _create_metric_key(self, name: str, labels: Dict[str, str]) -> str:
+    def _create_metric_key(self, name: str, labels: dict[str, str]) -> str:
         """Create unique key for metric with labels"""
         if not labels:
             return name

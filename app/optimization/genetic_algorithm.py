@@ -255,8 +255,10 @@ class GeneticAlgorithm:
 
     def _tournament_selection(self) -> Individual:
         """Select individual using tournament selection"""
+        # Handle edge case where population size is smaller than tournament size
+        tournament_size = min(self.config.tournament_size, len(self.population))
         tournament = random.sample(
-            self.population, self.config.tournament_size
+            self.population, tournament_size
         )
         return min(tournament)  # Best fitness (lowest distance)
 

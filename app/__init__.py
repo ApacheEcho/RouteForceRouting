@@ -285,6 +285,7 @@ def create_app(config_name: str = "development", testing: bool = False) -> Flask
             return jsonify(
                 {
                     "status": status,
+                    "service": "RouteForce Routing",
                     "timestamp": datetime.utcnow().isoformat(),
                     "version": "1.0.0",
                     "services": {"database": db_status, "cache": cache_status},

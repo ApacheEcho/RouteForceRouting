@@ -7,14 +7,16 @@ from integration_test import RouteForceSystemTest
 @pytest.mark.timeout(30)
 def test_genetic_algorithm_population_one():
     """Edge case: Genetic algorithm with population size 1 should not fail."""
-    # Create test instance without triggering automatic login
+    # Create test instance without calling parent constructor
     class TestRouteForceSystemTest(RouteForceSystemTest):
         def __init__(self):
-            self.backend_url = "http://localhost:5001"  # Set port first
+            # Initialize attributes directly without calling super().__init__()
+            self.backend_url = "http://localhost:5001"  # Use correct port
             self.frontend_url = "http://localhost:3000"
             self.test_results = []
             self.jwt_token = None
-            self.login_and_store_token()  # Now login with correct port
+            # Now authenticate with the correct port
+            self.login_and_store_token()
     
     tester = TestRouteForceSystemTest()
     test_data = {

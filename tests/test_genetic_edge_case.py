@@ -17,8 +17,8 @@ def test_genetic_algorithm_population_one():
     tester = TestRouteForceSystemTest()
     test_data = {
         "stores": [
-            {"id": "1", "lat": 37.7749, "lng": -122.4194, "name": "Stop 1"},
-            {"id": "2", "lat": 37.7849, "lng": -122.4094, "name": "Stop 2"},
+            {"id": "1", "lat": 37.7749, "lon": -122.4194, "name": "Stop 1"},
+            {"id": "2", "lat": 37.7849, "lon": -122.4094, "name": "Stop 2"},
         ],
         "constraints": {},
         "genetic_config": {

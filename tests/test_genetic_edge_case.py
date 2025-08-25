@@ -10,13 +10,9 @@ def test_genetic_algorithm_population_one():
     # Create test instance without calling parent constructor
     class TestRouteForceSystemTest(RouteForceSystemTest):
         def __init__(self):
-            # Initialize attributes directly without calling super().__init__()
-            self.backend_url = "http://localhost:5001"  # Use correct port
-            self.frontend_url = "http://localhost:3000"
-            self.test_results = []
-            self.jwt_token = None
-            # Now authenticate with the correct port
-            self.login_and_store_token()
+        """Custom initialization to avoid parent constructor timing issues"""
+        self.backend_url = "http://localhost:5000"
+        self.login_and_store_token()
     
     tester = TestRouteForceSystemTest()
     test_data = {

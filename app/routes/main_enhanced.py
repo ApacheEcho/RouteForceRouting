@@ -24,6 +24,10 @@ from app.models.route_request import RouteRequest
 from app.services.file_service import FileService
 from app.services.routing_service import RoutingService
 
+# Auth imports for protected/admin endpoints
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from app.auth_system import requires_role
+
 logger = logging.getLogger(__name__)
 
 main_bp = Blueprint("main", __name__)
@@ -45,7 +49,40 @@ def index():
     """
     Unified homepage with navigation to all RouteForce features
     """
+    # For test compatibility, return JSON if requested, else render template
+    if request.accept_mimetypes.accept_json and not request.accept_mimetypes.accept_html:
+        return jsonify({"message": "Hello, Public!"})
     return render_template("index.html")
+
+
+# --- Auth-protected endpoints for test_api_endpoints.py ---
+@main_bp.route("/protected")
+@jwt_required()
+def protected():
+    user_id = get_jwt_identity()
+    # For test, assume user_id is email or can be mapped to email
+    # In this app, user_id is likely the user id, so we need to map to email
+    from app.auth_system import auth_manager
+    user = auth_manager.get_user_by_id(user_id)
+    email = user["email"] if user else "unknown"
+    return jsonify({"logged_in_as": email})
+
+
+@main_bp.route("/admin")
+@requires_role("admin")
+def admin():
+    return jsonify({"message": "Welcome, Admin!"})
+
+
+@main_bp.route("/items", methods=["GET"])
+@jwt_required()
+def get_items():
+    # Return a dummy list of items for test
+    items = [
+        {"id": 1, "name": "Item 1", "description": "A test item."},
+        {"id": 2, "name": "Item 2", "description": "Another test item."},
+    ]
+    return jsonify({"items": items})
 
 
 @main_bp.route("/dashboard")

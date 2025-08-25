@@ -26,7 +26,7 @@ def test_genetic_algorithm_population_one():
     }
     headers = tester.get_auth_headers()
     resp = requests.post(
-        f"{tester.backend_url}/api/optimize",
+        f"{tester.backend_url}/api/v1/optimize",
         json=test_data,
         headers=headers,
         timeout=15,

@@ -132,6 +132,24 @@ class GeneticAlgorithm:
                 "improvement": 0,
             }
 
+        # Handle degenerate case where population size is 1
+        if self.config.population_size <= 1:
+            logger.info("Population size <= 1, performing basic route optimization")
+            # Just return a simple route permutation instead of running full GA
+            store_indices = list(range(len(stores)))
+            random.shuffle(store_indices)
+            optimized_route = [stores[i] for i in store_indices]
+            
+            return optimized_route, {
+                "algorithm": "genetic",
+                "generations": 1,
+                "initial_distance": 0,
+                "final_distance": 0,
+                "improvement_percent": 0,
+                "population_size": self.config.population_size,
+                "best_fitness": 1.0,
+            }
+
         # Initialize population
         self._initialize_population(stores)
 

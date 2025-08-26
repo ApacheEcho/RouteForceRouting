@@ -167,6 +167,31 @@ def refresh_access_token():
     )
     return response, 200
 
+# Logout endpoint
+@api_bp.route("/logout", methods=["POST"], strict_slashes=False)
+@jwt_required()
+@api_error_handler
+def api_logout():
+    """Logout user and revoke JWT token"""
+    jwt_data = get_jwt()
+    jti = jwt_data["jti"]
+    exp = jwt_data["exp"]
+    add_token_to_blocklist(jti, exp)
+    response = jsonify({
+        "success": True,
+        "message": "Successfully logged out. Token revoked."
+    })
+    # Clear the refresh_token cookie
+    response.set_cookie(
+        "refresh_token",
+        "",
+        httponly=True,
+        secure=True,
+        samesite="Strict",
+        max_age=0
+    )
+    return response, 200
+
 def get_current_user_id():
     """Get current user ID from JWT or session (for backward compatibility)"""
     user_id = None

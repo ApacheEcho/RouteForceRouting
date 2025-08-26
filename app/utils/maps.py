@@ -2,11 +2,10 @@
 Maps link generation utilities
 """
 
-import urllib.parse
 from typing import Any, Dict, List
 
 
-def generate_google_maps_link(waypoints: List[Dict[str, Any]]) -> str:
+def generate_google_maps_link(waypoints: list[dict[str, Any]]) -> str:
     """
     Generate Google Maps link for a list of waypoints
 
@@ -58,7 +57,7 @@ def generate_google_maps_link(waypoints: List[Dict[str, Any]]) -> str:
         return f"https://www.google.com/maps/dir/?api=1&origin={origin_str}&destination={dest_str}"
 
 
-def generate_apple_maps_link(waypoints: List[Dict[str, Any]]) -> str:
+def generate_apple_maps_link(waypoints: list[dict[str, Any]]) -> str:
     """
     Generate Apple Maps link for a list of waypoints
 
@@ -102,7 +101,7 @@ def generate_apple_maps_link(waypoints: List[Dict[str, Any]]) -> str:
     return f"http://maps.apple.com/?saddr={origin_str}&daddr={dest_str}"
 
 
-def generate_fallback_directions_text(waypoints: List[Dict[str, Any]]) -> str:
+def generate_fallback_directions_text(waypoints: list[dict[str, Any]]) -> str:
     """
     Generate fallback text directions when maps links can't be created
 

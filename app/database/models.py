@@ -3,23 +3,14 @@ Database Models for RouteForce Analytics
 Provides persistent storage for route data, analytics, and insights
 """
 
-from sqlalchemy import (
-    create_engine,
-    Column,
-    Integer,
-    String,
-    Float,
-    DateTime,
-    Text,
-    Boolean,
-    JSON,
-)
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
-from sqlalchemy.dialects.postgresql import UUID
-from datetime import datetime
 import uuid
-import json
+from datetime import datetime
+
+from sqlalchemy import (JSON, Boolean, Column, DateTime, Float, Integer,
+                        String, Text, create_engine)
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship, sessionmaker
 
 Base = declarative_base()
 

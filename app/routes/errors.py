@@ -2,8 +2,9 @@
 Error handling blueprint
 """
 
-from flask import Blueprint, jsonify, request
 import logging
+
+from flask import Blueprint, jsonify, request
 
 logger = logging.getLogger(__name__)
 

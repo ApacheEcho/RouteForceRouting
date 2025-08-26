@@ -8,36 +8,27 @@ import time
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
-from app.services.distance_service import (
-    RouteDistanceCalculator,
-    create_distance_calculator,
-)
-
+from app.services.distance_service import (RouteDistanceCalculator,
+                                           create_distance_calculator)
 # Import modern service modules
-from app.services.geocoding_service import (
-    ModernGeocodingService,
-    create_geocoding_service,
-)
+from app.services.geocoding_service import (ModernGeocodingService,
+                                            create_geocoding_service)
 from app.services.metrics_service import track_route_generation
-from app.services.route_core import (
-    ModernRouteGenerator,
-    RouteConstraints,
-    create_route_generator,
-)
+from app.services.route_core import (ModernRouteGenerator, RouteConstraints,
+                                     create_route_generator)
 from app.services.route_scoring_service import RouteScorer
 
 # Import optimization algorithms (with fallback)
 try:
-    from app.optimization.genetic_algorithm import GeneticAlgorithm, GeneticConfig
+    from app.optimization.genetic_algorithm import (GeneticAlgorithm,
+                                                    GeneticConfig)
 except ImportError:
     GeneticAlgorithm = None
     GeneticConfig = None
 
 try:
     from app.optimization.simulated_annealing import (
-        SimulatedAnnealingConfig,
-        SimulatedAnnealingOptimizer,
-    )
+        SimulatedAnnealingConfig, SimulatedAnnealingOptimizer)
 except ImportError:
     SimulatedAnnealingOptimizer = None
     SimulatedAnnealingConfig = None
@@ -55,10 +46,10 @@ class UnifiedRoutingMetrics:
     optimization_score: float
     total_distance: float
     algorithm_used: str
-    route_id: Optional[int] = None
+    route_id: int | None = None
     clusters_used: int = 0
     distance_saved: float = 0.0
-    algorithm_metrics: Optional[Dict[str, Any]] = None
+    algorithm_metrics: dict[str, Any] | None = None
 
 
 class UnifiedRoutingService:
@@ -69,11 +60,11 @@ class UnifiedRoutingService:
 
     def __init__(
         self,
-        user_id: Optional[int] = None,
-        geocoding_service: Optional[ModernGeocodingService] = None,
-        distance_calculator: Optional[RouteDistanceCalculator] = None,
-        route_generator: Optional[ModernRouteGenerator] = None,
-        route_scorer: Optional[RouteScorer] = None,
+        user_id: int | None = None,
+        geocoding_service: ModernGeocodingService | None = None,
+        distance_calculator: RouteDistanceCalculator | None = None,
+        route_generator: ModernRouteGenerator | None = None,
+        route_scorer: RouteScorer | None = None,
     ):
         """
         Initialize with dependency injection for testability
@@ -87,7 +78,7 @@ class UnifiedRoutingService:
         """
         self.user_id = user_id
         self.last_processing_time = 0.0
-        self.metrics: Optional[UnifiedRoutingMetrics] = None
+        self.metrics: UnifiedRoutingMetrics | None = None
 
         # Initialize services with defaults if not provided
         self.geocoding_service = geocoding_service or create_geocoding_service()
@@ -133,7 +124,7 @@ class UnifiedRoutingService:
             self.sa_config = None
             logger.warning("Simulated annealing not available")
 
-    def ensure_coordinates(self, stores: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def ensure_coordinates(self, stores: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """
         Ensure all stores have coordinates, geocoding addresses if needed
 
@@ -174,12 +165,12 @@ class UnifiedRoutingService:
     @track_route_generation
     def generate_route_from_stores(
         self,
-        stores: List[Dict[str, Any]],
-        constraints: Optional[Dict[str, Any]] = None,
+        stores: list[dict[str, Any]],
+        constraints: dict[str, Any] | None = None,
         save_to_db: bool = True,
         algorithm: str = "nearest_neighbor",
-        algorithm_params: Optional[Dict[str, Any]] = None,
-    ) -> List[Dict[str, Any]]:
+        algorithm_params: dict[str, Any] | None = None,
+    ) -> list[dict[str, Any]]:
         """
         Generate optimized route from stores list
 
@@ -266,7 +257,7 @@ class UnifiedRoutingService:
             raise
 
     def _convert_constraints(
-        self, constraints: Optional[Dict[str, Any]]
+        self, constraints: dict[str, Any] | None
     ) -> RouteConstraints:
         """Convert legacy constraints format to RouteConstraints"""
         if not constraints:
@@ -282,10 +273,10 @@ class UnifiedRoutingService:
 
     def _generate_route_genetic(
         self,
-        stores: List[Dict[str, Any]],
+        stores: list[dict[str, Any]],
         constraints: RouteConstraints,
-        algorithm_params: Optional[Dict[str, Any]],
-    ) -> List[Dict[str, Any]]:
+        algorithm_params: dict[str, Any] | None,
+    ) -> list[dict[str, Any]]:
         """Generate route using genetic algorithm"""
         if not GeneticAlgorithm:
             logger.warning(
@@ -321,10 +312,10 @@ class UnifiedRoutingService:
 
     def _generate_route_simulated_annealing(
         self,
-        stores: List[Dict[str, Any]],
+        stores: list[dict[str, Any]],
         constraints: RouteConstraints,
-        algorithm_params: Optional[Dict[str, Any]],
-    ) -> List[Dict[str, Any]]:
+        algorithm_params: dict[str, Any] | None,
+    ) -> list[dict[str, Any]]:
         """Generate route using simulated annealing"""
         if not SimulatedAnnealingOptimizer:
             logger.warning(
@@ -359,8 +350,8 @@ class UnifiedRoutingService:
 
     def _save_route_to_db(
         self,
-        route: List[Dict[str, Any]],
-        constraints: Dict[str, Any],
+        route: list[dict[str, Any]],
+        constraints: dict[str, Any],
         metrics: UnifiedRoutingMetrics,
     ):
         """Save route to database"""
@@ -387,7 +378,7 @@ class UnifiedRoutingService:
             return None
 
     def score_route(
-        self, route: List[Dict[str, Any]], context: Optional[Dict[str, Any]] = None
+        self, route: list[dict[str, Any]], context: dict[str, Any] | None = None
     ):
         """
         Score a route using the integrated route scoring service
@@ -415,8 +406,8 @@ class UnifiedRoutingService:
 
     def score_and_compare_routes(
         self,
-        routes: List[List[Dict[str, Any]]],
-        context: Optional[Dict[str, Any]] = None,
+        routes: list[list[dict[str, Any]]],
+        context: dict[str, Any] | None = None,
     ):
         """
         Score multiple routes and return them ranked by score
@@ -441,7 +432,7 @@ class UnifiedRoutingService:
             logger.error(f"Route comparison failed: {e}")
             return []
 
-    def get_metrics(self) -> Optional[UnifiedRoutingMetrics]:
+    def get_metrics(self) -> UnifiedRoutingMetrics | None:
         """Get the last generation metrics"""
         return self.metrics
 
@@ -453,14 +444,14 @@ class UnifiedRoutingService:
         """Clear the geocoding cache"""
         self.geocoding_service.clear_cache()
 
-    def get_cache_stats(self) -> Dict[str, int]:
+    def get_cache_stats(self) -> dict[str, int]:
         """Get cache statistics"""
         return {"geocoding_cache_size": self.geocoding_service.get_cache_size()}
 
     # ===== BACKWARD COMPATIBILITY METHODS =====
     # These methods maintain compatibility with existing tests and legacy code
 
-    def geocode_stores(self, stores: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def geocode_stores(self, stores: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """
         Geocode stores list - backward compatibility method
 
@@ -497,8 +488,8 @@ class UnifiedRoutingService:
         return geocoded_stores
 
     def cluster_stores_by_proximity(
-        self, stores: List[Dict[str, Any]], radius_km: float = 2.0
-    ) -> List[List[Dict[str, Any]]]:
+        self, stores: list[dict[str, Any]], radius_km: float = 2.0
+    ) -> list[list[dict[str, Any]]]:
         """
         Cluster stores by proximity - backward compatibility method
 
@@ -522,8 +513,8 @@ class UnifiedRoutingService:
             return self._simple_proximity_clustering(stores, radius_km)
 
     def _simple_proximity_clustering(
-        self, stores: List[Dict[str, Any]], radius_km: float
-    ) -> List[List[Dict[str, Any]]]:
+        self, stores: list[dict[str, Any]], radius_km: float
+    ) -> list[list[dict[str, Any]]]:
         """Simple fallback clustering implementation"""
         clusters = []
         unprocessed = stores.copy()
@@ -547,7 +538,7 @@ class UnifiedRoutingService:
         return clusters
 
     def _stores_within_radius(
-        self, store1: Dict[str, Any], store2: Dict[str, Any], radius_km: float
+        self, store1: dict[str, Any], store2: dict[str, Any], radius_km: float
     ) -> bool:
         """Check if two stores are within specified radius"""
         lat1 = store1.get("lat") or store1.get("latitude", 0)
@@ -572,7 +563,7 @@ class UnifiedRoutingService:
             distance = math.sqrt(lat_diff**2 + lon_diff**2) * 111  # Rough km per degree
             return distance <= radius_km
 
-    def _calculate_total_distance(self, route: List[Dict[str, Any]]) -> float:
+    def _calculate_total_distance(self, route: list[dict[str, Any]]) -> float:
         """
         Calculate total distance of route - backward compatibility method
 
@@ -584,7 +575,7 @@ class UnifiedRoutingService:
         """
         return self.distance_calculator.calculate_route_distance(route)
 
-    def _calculate_optimization_score(self, route: List[Dict[str, Any]]) -> float:
+    def _calculate_optimization_score(self, route: list[dict[str, Any]]) -> float:
         """
         Calculate optimization score for route - backward compatibility method
 
@@ -620,7 +611,7 @@ class UnifiedRoutingService:
 
 # Factory function for easy setup
 def create_unified_routing_service(
-    user_id: Optional[int] = None,
+    user_id: int | None = None,
 ) -> UnifiedRoutingService:
     """Create a fully configured unified routing service"""
     return UnifiedRoutingService(user_id=user_id)

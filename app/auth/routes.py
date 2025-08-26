@@ -24,6 +24,48 @@ logger = logging.getLogger(__name__)
 def login():
     """User login"""
     if request.method == "POST":
+        # Check if this is a JSON API request
+        if request.is_json:
+            data = request.get_json()
+            email = data.get("email")
+            password = data.get("password")
+            
+            if not email or not password:
+                return jsonify({"error": "Email and password are required"}), 400
+            
+            try:
+                # Get user from database
+                db_service = DatabaseService()
+                user = db_service.get_user_by_email(email)
+                
+                if user and user.check_password(password):
+                    # Login successful - return user data and token
+                    session["user_id"] = user.id
+                    session["username"] = user.username
+                    session["role"] = user.role
+                    
+                    # Update last login
+                    user.last_login = db.func.now()
+                    db.session.commit()
+                    
+                    return jsonify({
+                        "success": True,
+                        "user": {
+                            "id": str(user.id),
+                            "email": user.email,
+                            "name": f"{user.first_name} {user.last_name}".strip() or user.username,
+                            "role": user.role
+                        },
+                        "token": f"session_{user.id}"  # Simple session-based token
+                    }), 200
+                else:
+                    return jsonify({"error": "Invalid credentials"}), 401
+                    
+            except Exception as e:
+                logger.error(f"Login error: {e}")
+                return jsonify({"error": "Login failed"}), 500
+        
+        # Form-based login (existing functionality)
         username = request.form.get("username")
         password = request.form.get("password")
 

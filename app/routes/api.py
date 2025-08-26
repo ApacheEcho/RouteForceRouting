@@ -259,8 +259,6 @@ def api_logout():
     )
     return response, 200
 
-    # Generate route with database integration
-    routing_service = RoutingService(user_id=user_id)
 
     # Extract algorithm from options
     algorithm = options.get("algorithm", "default")

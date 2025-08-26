@@ -23,9 +23,12 @@ logger = logging.getLogger(__name__)
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     """User login"""
+    print(f"DEBUG: Login route hit - method: {request.method}, is_json: {request.is_json}")
+    
     if request.method == "POST":
         # Check if this is a JSON API request
         if request.is_json:
+            print("DEBUG: Processing JSON login request")
             data = request.get_json()
             email = data.get("email")
             password = data.get("password")

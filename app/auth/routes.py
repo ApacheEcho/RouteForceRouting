@@ -37,13 +37,13 @@ def login():
                 # Get user from database directly
                 from app.models.database import User
                 user = User.query.filter_by(email=email).first()
-                logger.info(f"Login attempt for email: {email}")
-                logger.info(f"User found: {user is not None}")
+                print(f"DEBUG: Login attempt for email: {email}")
+                print(f"DEBUG: User found: {user is not None}")
                 
                 if user:
-                    logger.info(f"User email: {user.email}")
+                    print(f"DEBUG: User email: {user.email}")
                     password_ok = user.check_password(password)
-                    logger.info(f"Password check result: {password_ok}")
+                    print(f"DEBUG: Password check result: {password_ok}")
                     
                     if password_ok:
                         # Login successful - return user data and token

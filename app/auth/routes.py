@@ -34,9 +34,9 @@ def login():
                 return jsonify({"error": "Email and password are required"}), 400
             
             try:
-                # Get user from database
-                db_service = DatabaseService()
-                user = db_service.get_user_by_email(email)
+                # Get user from database directly
+                from app.models.database import User
+                user = User.query.filter_by(email=email).first()
                 logger.info(f"Login attempt for email: {email}")
                 logger.info(f"User found: {user is not None}")
                 

@@ -531,7 +531,7 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(api_bp)
     app.register_blueprint(scoring_bp, url_prefix="/api/route")
     app.register_blueprint(metrics_bp)
-    app.register_blueprint(auth_bp, url_prefix="/api")
+    app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(docs_bp)
     app.register_blueprint(enhanced_dashboard_bp)

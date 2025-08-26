@@ -37,28 +37,40 @@ def login():
                 # Get user from database
                 db_service = DatabaseService()
                 user = db_service.get_user_by_email(email)
+                logger.info(f"Login attempt for email: {email}")
+                logger.info(f"User found: {user is not None}")
                 
-                if user and user.check_password(password):
-                    # Login successful - return user data and token
-                    session["user_id"] = user.id
-                    session["username"] = user.username
-                    session["role"] = user.role
+                if user:
+                    logger.info(f"User email: {user.email}")
+                    password_ok = user.check_password(password)
+                    logger.info(f"Password check result: {password_ok}")
                     
-                    # Update last login
-                    user.last_login = db.func.now()
-                    db.session.commit()
-                    
-                    return jsonify({
-                        "success": True,
-                        "user": {
-                            "id": str(user.id),
-                            "email": user.email,
-                            "name": f"{user.first_name} {user.last_name}".strip() or user.username,
-                            "role": user.role
-                        },
-                        "token": f"session_{user.id}"  # Simple session-based token
-                    }), 200
+                    if password_ok:
+                        # Login successful - return user data and token
+                        session["user_id"] = user.id
+                        session["username"] = user.username
+                        session["role"] = user.role
+                        
+                        # Update last login
+                        user.last_login = db.func.now()
+                        db.session.commit()
+                        
+                        logger.info(f"Login successful for user: {user.email}")
+                        return jsonify({
+                            "success": True,
+                            "user": {
+                                "id": str(user.id),
+                                "email": user.email,
+                                "name": f"{user.first_name} {user.last_name}".strip() or user.username,
+                                "role": user.role
+                            },
+                            "token": f"session_{user.id}"  # Simple session-based token
+                        }), 200
+                    else:
+                        logger.warning(f"Password check failed for user: {user.email}")
+                        return jsonify({"error": "Invalid credentials"}), 401
                 else:
+                    logger.warning(f"User not found for email: {email}")
                     return jsonify({"error": "Invalid credentials"}), 401
                     
             except Exception as e:

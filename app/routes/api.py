@@ -234,32 +234,6 @@ def create_route():
     # Generate route with database integration
     routing_service = RoutingService(user_id=user_id)
 
-@api_bp.route("/logout", methods=["POST"], strict_slashes=False)
-@jwt_required()
-@api_error_handler
-def api_logout():
-    # Accept requests with only Authorization header, no body or content-type required
-    # This allows clients to POST with no body and no Content-Type
-    jwt_data = get_jwt()
-    jti = jwt_data["jti"]
-    exp = jwt_data["exp"]
-    add_token_to_blocklist(jti, exp)
-    response = jsonify({
-        "success": True,
-        "message": "Successfully logged out. Token revoked."
-    })
-    # Optionally clear the refresh_token cookie
-    response.set_cookie(
-        "refresh_token",
-        "",
-        httponly=True,
-        secure=True,
-        samesite="Strict",
-        max_age=0
-    )
-    return response, 200
-
-
     # Extract algorithm from options
     algorithm = options.get("algorithm", "default")
 

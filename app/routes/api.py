@@ -74,6 +74,72 @@ def api_login():
     )
     return response, 200
 
+# User registration endpoint
+@api_bp.route("/register", methods=["POST"])
+@limiter.limit("5 per minute")
+@api_error_handler
+def api_register():
+    data = request.get_json()
+    if not data:
+        raise ValidationError("Request body required")
+    
+    required_fields = ["email", "password", "username"]
+    for field in required_fields:
+        if field not in data or not data[field]:
+            raise ValidationError(f"{field.capitalize()} is required")
+    
+    email = data["email"].lower().strip()
+    username = data["username"].strip()
+    password = data["password"]
+    
+    # Check if user already exists
+    if User.query.filter_by(email=email).first():
+        raise APIError("User with this email already exists", status_code=409, code="USER_EXISTS")
+    
+    if User.query.filter_by(username=username).first():
+        raise APIError("Username already taken", status_code=409, code="USERNAME_TAKEN")
+    
+    try:
+        # Create new user
+        user = User(
+            username=username,
+            email=email,
+            first_name=data.get("first_name", ""),
+            last_name=data.get("last_name", ""),
+            role=data.get("role", "user")
+        )
+        user.set_password(password)
+        
+        db.session.add(user)
+        db.session.commit()
+        
+        # Create tokens for immediate login
+        from datetime import timedelta
+        access_token = create_access_token(identity=user.id, expires_delta=timedelta(minutes=15))
+        refresh_token = create_refresh_token(identity=user.id)
+        
+        response = jsonify({
+            "success": True,
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "user": user.to_dict(),
+            "message": "Registration successful"
+        })
+        response.set_cookie(
+            "refresh_token",
+            refresh_token,
+            httponly=True,
+            secure=True,
+            samesite="Strict",
+            max_age=60*60*24*7  # 7 days
+        )
+        return response, 201
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Registration error: {e}")
+        raise APIError("Registration failed", status_code=500, code="REGISTRATION_ERROR")
+
 # Refresh token endpoint
 @api_bp.route("/refresh", methods=["POST"], strict_slashes=False)
 @jwt_required(refresh=True)

@@ -211,22 +211,28 @@ def create_store():
 @auth_required()
 @api_error_handler
 def create_route():
+    """Create a new route via API with database persistence"""
+    
+    data = request.get_json()
+    if not data:
+        raise ValidationError("Request body required")
+    
+    # Get user ID
+    user_id = get_current_user_id()
+    if not user_id:
+        raise APIError("Authentication required", status_code=401, code="AUTH_REQUIRED")
+    
+    # Validate required fields
+    stores = data.get("stores", [])
+    if not stores:
+        raise ValidationError("Stores are required")
+    
+    algorithm = data.get("algorithm", "greedy")
+    constraints = data.get("constraints", {})
+    options = data.get("options", {})
 
-        """
-        Create a new route via API with database persistence
-        ---
-        tags:
-            - Routes
-        summary: Create optimized route
-        description: Create a new route with comprehensive optimization options
-            and database persistence
-        parameters:
-            - name: route_request
-                in: body
-                required: true
-        """
-
-# Add the /logout endpoint after the /refresh endpoint
+    # Generate route with database integration
+    routing_service = RoutingService(user_id=user_id)
 
 @api_bp.route("/logout", methods=["POST"], strict_slashes=False)
 @jwt_required()

@@ -327,7 +327,14 @@ def require_api_key(f):
 
     @wraps(f)
     def decorated(*args, **kwargs):
+        # Check for API key in X-API-Key header
         api_key = request.headers.get("X-API-Key")
+        
+        # Also check for Bearer token in Authorization header
+        if not api_key:
+            auth_header = request.headers.get("Authorization")
+            if auth_header and auth_header.startswith("Bearer "):
+                api_key = auth_header.split(" ", 1)[1]
 
         if not api_key:
             return (

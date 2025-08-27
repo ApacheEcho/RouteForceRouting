@@ -710,17 +710,14 @@ def get_route_details(route_id):
             "id": route_id,
             "title": f"Route {route_id}",
             "status": "active",
-            "stops": [
+            "stores": [
                 {"address": "123 Main St", "status": "pending"},
                 {"address": "456 Oak Ave", "status": "pending"}
             ],
             "estimated_duration": "1h 45m"
         }
         
-        return jsonify({
-            "success": True,
-            "route": route_details
-        }), 200
+        return jsonify(route_details), 200
         
     except Exception as e:
         logger.error(f"Error getting route details: {str(e)}")
@@ -730,7 +727,7 @@ def get_route_details(route_id):
         }), 500
 
 
-@mobile_bp.route("/routes/<route_id>/status", methods=["PUT"])
+@mobile_bp.route("/routes/<route_id>/status", methods=["PUT", "POST"])
 @require_api_key
 @limiter.limit("50 per hour")
 def update_route_status(route_id):

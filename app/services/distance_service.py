@@ -28,7 +28,7 @@ class Coordinates:
         if not (-180 <= self.longitude <= 180):
             raise ValueError(f"Invalid longitude: {self.longitude}")
 
-    def to_tuple(self) -> Tuple[float, float]:
+    def to_tuple(self) -> tuple[float, float]:
         """Convert to (lat, lon) tuple"""
         return (self.latitude, self.longitude)
 
@@ -107,7 +107,7 @@ class CoordinateExtractor:
     """Extract coordinates from various store data formats"""
 
     @staticmethod
-    def extract_coordinates(store: Dict[str, Any]) -> Optional[Coordinates]:
+    def extract_coordinates(store: dict[str, Any]) -> Coordinates | None:
         """
         Extract coordinates from store dictionary with multiple format support
 
@@ -167,7 +167,7 @@ class RouteDistanceCalculator:
             return self._calculator.geodesic_distance(coord1, coord2)
 
     def calculate_store_distance(
-        self, store1: Dict[str, Any], store2: Dict[str, Any]
+        self, store1: dict[str, Any], store2: dict[str, Any]
     ) -> float:
         """
         Calculate distance between two stores
@@ -190,7 +190,7 @@ class RouteDistanceCalculator:
 
         return self._calculate_distance(coord1, coord2)
 
-    def calculate_route_distance(self, route: List[Dict[str, Any]]) -> float:
+    def calculate_route_distance(self, route: list[dict[str, Any]]) -> float:
         """
         Calculate total distance for a route
 
@@ -214,8 +214,8 @@ class RouteDistanceCalculator:
         return total_distance
 
     def calculate_distance_matrix(
-        self, stores: List[Dict[str, Any]]
-    ) -> List[List[float]]:
+        self, stores: list[dict[str, Any]]
+    ) -> list[list[float]]:
         """
         Calculate distance matrix for all store pairs
 
@@ -244,8 +244,8 @@ class ProximityClusterer:
         self.distance_calculator = distance_calculator
 
     def cluster_by_radius(
-        self, stores: List[Dict[str, Any]], radius_km: float = 2.0
-    ) -> List[List[Dict[str, Any]]]:
+        self, stores: list[dict[str, Any]], radius_km: float = 2.0
+    ) -> list[list[dict[str, Any]]]:
         """
         Cluster stores within a specified radius
 
@@ -300,13 +300,13 @@ def create_proximity_clusterer(method: str = "geodesic") -> ProximityClusterer:
 
 
 # Legacy compatibility functions
-def calculate_distance(store_a: Dict[str, Any], store_b: Dict[str, Any]) -> float:
+def calculate_distance(store_a: dict[str, Any], store_b: dict[str, Any]) -> float:
     """Legacy compatibility function"""
     calculator = create_distance_calculator()
     return calculator.calculate_store_distance(store_a, store_b)
 
 
-def calculate_route_distance(route: List[Dict[str, Any]]) -> float:
+def calculate_route_distance(route: list[dict[str, Any]]) -> float:
     """Legacy compatibility function"""
     calculator = create_distance_calculator()
     return calculator.calculate_route_distance(route)

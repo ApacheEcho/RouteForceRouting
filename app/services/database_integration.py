@@ -3,20 +3,13 @@ Database Integration Service for RouteForce Analytics
 Connects analytics engine with persistent database storage
 """
 
-from typing import Dict, List, Optional, Any
-from datetime import datetime, timedelta
 import logging
-import json
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import and_, or_, desc, func
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
 
-from app.database.models import (
-    Route,
-    RouteInsightDB,
-    RoutePredictionDB,
-    PerformanceTrendDB,
-    Base,
-)
+from sqlalchemy import desc, func
+
+from app.database.models import (Route, RouteInsightDB, RoutePredictionDB)
 from app.models.database import db
 
 logger = logging.getLogger(__name__)
@@ -28,7 +21,7 @@ class DatabaseIntegrationService:
     def __init__(self):
         self.logger = logger
 
-    def store_route_data(self, route_data: Dict[str, Any]) -> str:
+    def store_route_data(self, route_data: dict[str, Any]) -> str:
         """
         Store route data in database
 
@@ -73,8 +66,8 @@ class DatabaseIntegrationService:
             raise
 
     def store_route_insights(
-        self, route_id: str, insights: List[Dict[str, Any]]
-    ) -> List[str]:
+        self, route_id: str, insights: list[dict[str, Any]]
+    ) -> list[str]:
         """
         Store route insights in database
 
@@ -116,7 +109,7 @@ class DatabaseIntegrationService:
             db.session.rollback()
             raise
 
-    def store_predictions(self, route_id: str, predictions: Dict[str, Any]) -> str:
+    def store_predictions(self, route_id: str, predictions: dict[str, Any]) -> str:
         """
         Store route predictions in database
 
@@ -155,10 +148,10 @@ class DatabaseIntegrationService:
 
     def get_historical_routes(
         self,
-        driver_id: Optional[str] = None,
+        driver_id: str | None = None,
         days_back: int = 30,
-        limit: Optional[int] = None,
-    ) -> List[Dict[str, Any]]:
+        limit: int | None = None,
+    ) -> list[dict[str, Any]]:
         """
         Retrieve historical route data
 
@@ -222,10 +215,10 @@ class DatabaseIntegrationService:
 
     def get_route_insights(
         self,
-        route_id: Optional[str] = None,
-        insight_type: Optional[str] = None,
+        route_id: str | None = None,
+        insight_type: str | None = None,
         days_back: int = 30,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Retrieve route insights from database
 
@@ -283,7 +276,7 @@ class DatabaseIntegrationService:
             self.logger.error(f"Error retrieving insights: {str(e)}")
             raise
 
-    def get_performance_metrics(self, days_back: int = 30) -> Dict[str, Any]:
+    def get_performance_metrics(self, days_back: int = 30) -> dict[str, Any]:
         """
         Get aggregated performance metrics
 
@@ -376,7 +369,7 @@ class DatabaseIntegrationService:
         hour = datetime.now().hour
         return (7 <= hour <= 9) or (17 <= hour <= 19)
 
-    def cleanup_old_data(self, days_to_keep: int = 90) -> Dict[str, int]:
+    def cleanup_old_data(self, days_to_keep: int = 90) -> dict[str, int]:
         """
         Clean up old data from database
 

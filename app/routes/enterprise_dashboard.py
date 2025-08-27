@@ -3,18 +3,14 @@ Enterprise Dashboard API
 Provides comprehensive data for the enhanced dashboard interface
 """
 
-from flask import Blueprint, request, jsonify, render_template, current_app
-from datetime import datetime, timedelta
-import json
-from typing import Dict, Any, List
+from datetime import datetime
+from typing import Any, Dict, List
 
-from app.auth_decorators import (
-    analytics_access_required,
-    admin_required,
-    dispatcher_required,
-    audit_log,
-)
+from flask import Blueprint, current_app, jsonify, render_template, request
+
 from app.analytics_ai import get_analytics_engine
+from app.auth_decorators import (admin_required, analytics_access_required,
+                                 audit_log)
 from app.services.database_integration import database_service
 from app.services.enhanced_external_api import enhanced_api_service
 
@@ -365,7 +361,7 @@ def export_dashboard_data():
 
 
 # Utility functions
-def calculate_cost_savings(performance_metrics: Dict[str, Any]) -> float:
+def calculate_cost_savings(performance_metrics: dict[str, Any]) -> float:
     """Calculate estimated cost savings based on efficiency improvements"""
     try:
         total_distance = performance_metrics.get("total_distance", 0)
@@ -422,7 +418,7 @@ def check_websocket_status() -> str:
     return "online"
 
 
-def generate_mock_active_routes() -> List[Dict[str, Any]]:
+def generate_mock_active_routes() -> list[dict[str, Any]]:
     """Generate mock active routes for demonstration"""
     import random
 
@@ -465,8 +461,8 @@ def generate_mock_active_routes() -> List[Dict[str, Any]]:
 
 
 def generate_contextual_recommendations(
-    fleet_insights: Dict, performance_metrics: Dict, focus_area: str
-) -> List[Dict[str, Any]]:
+    fleet_insights: dict, performance_metrics: dict, focus_area: str
+) -> list[dict[str, Any]]:
     """Generate contextual recommendations based on data analysis"""
     recommendations = []
 

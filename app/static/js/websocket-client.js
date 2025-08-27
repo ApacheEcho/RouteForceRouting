@@ -14,6 +14,14 @@ class RouteForceWebSocket {
         this.reconnectDelay = 1000;
         this.reconnectionTimer = null;  // AUTO-PILOT: Prevent race conditions
         
+        // Enhanced race condition protection
+        this.pendingOperations = new Map();
+        this.operationQueue = [];
+        this.debounceTimers = new Map();
+        this.messageSequence = 0;
+        this.lastProcessedSequence = -1;
+        this.processingLock = false;
+        
         this.init();
     }
     
@@ -135,37 +143,47 @@ class RouteForceWebSocket {
         });
     }
     
-    // Public API methods
+    // Public API methods with race condition protection
     joinRoute(routeId) {
         if (this.isConnected && routeId) {
-            this.currentRouteId = routeId;
-            this.socket.emit('join_route', { route_id: routeId });
-            console.log(`Joining route ${routeId} for real-time updates`);
+            // Debounce rapid join requests
+            this.debounceOperation(`join_route_${routeId}`, () => {
+                this.currentRouteId = routeId;
+                this.sendWithSequence('join_route', { route_id: routeId });
+                console.log(`Joining route ${routeId} for real-time updates`);
+            }, 500);
         }
     }
     
     leaveRoute(routeId) {
         if (this.isConnected && routeId) {
-            this.socket.emit('leave_route', { route_id: routeId });
-            if (this.currentRouteId === routeId) {
-                this.currentRouteId = null;
-            }
-            console.log(`Left route ${routeId}`);
+            this.debounceOperation(`leave_route_${routeId}`, () => {
+                this.sendWithSequence('leave_route', { route_id: routeId });
+                if (this.currentRouteId === routeId) {
+                    this.currentRouteId = null;
+                }
+                console.log(`Left route ${routeId}`);
+            }, 300);
         }
     }
     
     updateRouteProgress(routeId, progress) {
         if (this.isConnected) {
-            this.socket.emit('route_progress_update', {
-                route_id: routeId,
-                progress: progress
-            });
+            // Debounce progress updates to prevent flooding
+            this.debounceOperation(`progress_${routeId}`, () => {
+                this.sendWithSequence('route_progress_update', {
+                    route_id: routeId,
+                    progress: progress
+                });
+            }, 1000);
         }
     }
     
     requestRouteStatus(routeId) {
         if (this.isConnected) {
-            this.socket.emit('request_route_status', { route_id: routeId });
+            this.debounceOperation(`status_${routeId}`, () => {
+                this.sendWithSequence('request_route_status', { route_id: routeId });
+            }, 200);
         }
     }
     
@@ -198,7 +216,65 @@ class RouteForceWebSocket {
         }
     }
     
-    // Internal methods
+    // Enhanced internal methods with race condition protection
+    debounceOperation(key, operation, delay = 300) {
+        // Clear existing timer for this operation
+        if (this.debounceTimers.has(key)) {
+            clearTimeout(this.debounceTimers.get(key));
+        }
+        
+        // Set new timer
+        const timer = setTimeout(() => {
+            operation();
+            this.debounceTimers.delete(key);
+        }, delay);
+        
+        this.debounceTimers.set(key, timer);
+    }
+    
+    sendWithSequence(event, data) {
+        if (!this.isConnected) return;
+        
+        const message = {
+            ...data,
+            sequence: this.messageSequence++,
+            timestamp: Date.now()
+        };
+        
+        this.socket.emit(event, message);
+    }
+    
+    processMessageSequentially(handler, data) {
+        // Add to queue if processing
+        if (this.processingLock) {
+            this.operationQueue.push(() => handler(data));
+            return;
+        }
+        
+        this.processingLock = true;
+        
+        try {
+            // Check sequence order
+            if (data.sequence !== undefined) {
+                if (data.sequence <= this.lastProcessedSequence) {
+                    console.warn(`Ignoring out-of-order message: ${data.sequence} <= ${this.lastProcessedSequence}`);
+                    return;
+                }
+                this.lastProcessedSequence = data.sequence;
+            }
+            
+            handler(data);
+        } finally {
+            this.processingLock = false;
+            
+            // Process queued operations
+            if (this.operationQueue.length > 0) {
+                const nextOperation = this.operationQueue.shift();
+                setTimeout(nextOperation, 0);
+            }
+        }
+    }
+    
     attemptReconnection() {
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
             this.reconnectAttempts++;
@@ -222,34 +298,36 @@ class RouteForceWebSocket {
     }
     
     handleRouteUpdate(data) {
-        const status = data.status;
-        const routeData = data.data;
-        
-        switch (status) {
-            case 'generation_started':
-                this.showRouteProgress('Route generation started...', 0);
-                this.updateRouteStatus('Generating route...', 'info');
-                break;
-                
-            case 'generation_completed':
-                this.showRouteProgress('Route generation completed!', 100);
-                this.updateRouteStatus('Route ready', 'success');
-                this.displayRoute(routeData.route);
-                this.updateMetrics(routeData);
-                break;
-                
-            case 'generation_failed':
-                this.showRouteProgress('Route generation failed', 0);
-                this.updateRouteStatus('Generation failed', 'error');
-                break;
-                
-            case 'generation_error':
-                this.showRouteProgress('Error occurred', 0);
-                this.updateRouteStatus(`Error: ${routeData.error}`, 'error');
-                break;
-        }
-        
-        this.trigger('route_update', data);
+        this.processMessageSequentially((data) => {
+            const status = data.status;
+            const routeData = data.data;
+            
+            switch (status) {
+                case 'generation_started':
+                    this.showRouteProgress('Route generation started...', 0);
+                    this.updateRouteStatus('Generating route...', 'info');
+                    break;
+                    
+                case 'generation_completed':
+                    this.showRouteProgress('Route generation completed!', 100);
+                    this.updateRouteStatus('Route ready', 'success');
+                    this.displayRoute(routeData.route);
+                    this.updateMetrics(routeData);
+                    break;
+                    
+                case 'generation_failed':
+                    this.showRouteProgress('Route generation failed', 0);
+                    this.updateRouteStatus('Generation failed', 'error');
+                    break;
+                    
+                case 'generation_error':
+                    this.showRouteProgress('Error occurred', 0);
+                    this.updateRouteStatus(`Error: ${routeData.error}`, 'error');
+                    break;
+            }
+            
+            this.trigger('route_update', data);
+        }, data);
     }
     
     handleOptimizationProgress(data) {

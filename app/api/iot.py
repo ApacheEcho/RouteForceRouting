@@ -8,9 +8,35 @@ import uuid
 
 # In-memory device registry for demo (replace with DB in production)
 IOT_DEVICES = {}
+
 IOT_TELEMETRY = []
 
+
 iot_api = Blueprint('iot_api', __name__, url_prefix='/api/iot')
+
+# Simple push notification abstraction (stub for APNs/FCM)
+def send_push_notification(device_id, title, body, data=None):
+    # In production, integrate with FCM (Android) or APNs (iOS)
+    # Here, just log and simulate success
+    if device_id not in IOT_DEVICES:
+        return False, "Device not registered"
+    # Simulate sending
+    print(f"[Push] To: {device_id} | Title: {title} | Body: {body} | Data: {data}")
+    return True, None
+
+@iot_api.route('/notify', methods=['POST'])
+def push_notification():
+    data = request.get_json()
+    device_id = data.get('device_id')
+    title = data.get('title')
+    body = data.get('body')
+    extra = data.get('data', {})
+    if not device_id or not title or not body:
+        return jsonify({'success': False, 'error': 'device_id, title, and body required'}), 400
+    ok, err = send_push_notification(device_id, title, body, extra)
+    if not ok:
+        return jsonify({'success': False, 'error': err or 'Notification failed'}), 400
+    return jsonify({'success': True, 'message': 'Notification sent'}), 200
 
 @iot_api.route('/register', methods=['POST'])
 def register_device():

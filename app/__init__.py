@@ -44,6 +44,7 @@ from app.routes.scoring import scoring_bp
 from app.routes.voice_dashboard import voice_dashboard_bp
 from app.enterprise.organizations import organizations_bp
 from app.enterprise.users import users_bp
+from app.claude_api import claude_bp
 from app.extensions import cache, limiter
 
 
@@ -541,6 +542,7 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(mobile_bp, url_prefix="/api/mobile")
     app.register_blueprint(analytics_bp, url_prefix="/api/analytics")
     app.register_blueprint(analytics_ai_bp, url_prefix="/api/ai")
+    app.register_blueprint(claude_bp)  # Claude Opus 4.1 AI endpoints
     app.register_blueprint(
         voice_bp, url_prefix="/api/voice"
     )  # Voice-to-code API

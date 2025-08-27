@@ -32,7 +32,20 @@ update_api_key() {
 echo "🔑 API Key Setup Guide:"
 echo ""
 
-echo "1. CONTEXT7 API KEY (Recommended - Higher rate limits)"
+echo "1. ANTHROPIC API KEY (For Claude Opus 4.1 Integration)"
+echo "   • Visit: https://console.anthropic.com/"
+echo "   • Create account and get your API key"
+read -p "   • Enter your Anthropic API key (or press Enter to skip): " ANTHROPIC_KEY
+
+if [[ ! -z "$ANTHROPIC_KEY" ]]; then
+    update_api_key "YOUR_ANTHROPIC_API_KEY" "$ANTHROPIC_KEY"
+    echo "   ✅ Anthropic API key configured for Claude Opus 4.1"
+else
+    echo "   ⏭️  Skipped - Claude Opus 4.1 will not be available"
+fi
+
+echo ""
+echo "2. CONTEXT7 API KEY (Recommended - Higher rate limits)"
 echo "   • Visit: https://context7.com/dashboard"
 echo "   • Create account and get your API key"
 read -p "   • Enter your Context7 API key (or press Enter to skip): " CONTEXT7_KEY
@@ -44,7 +57,7 @@ else
 fi
 
 echo ""
-echo "2. GITHUB PERSONAL ACCESS TOKEN (For repository access)"
+echo "3. GITHUB PERSONAL ACCESS TOKEN (For repository access)"
 echo "   • Visit: https://github.com/settings/tokens"
 echo "   • Create token with 'repo' and 'read:org' permissions"
 read -p "   • Enter your GitHub token (or press Enter to skip): " GITHUB_TOKEN
@@ -56,7 +69,7 @@ else
 fi
 
 echo ""
-echo "3. BRAVE SEARCH API KEY (Optional - For web search)"
+echo "4. BRAVE SEARCH API KEY (Optional - For web search)"
 echo "   • Visit: https://api.search.brave.com/"
 echo "   • Sign up for free API access"
 read -p "   • Enter your Brave API key (or press Enter to skip): " BRAVE_KEY

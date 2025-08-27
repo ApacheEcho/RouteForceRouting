@@ -46,6 +46,8 @@ from app.enterprise.organizations import organizations_bp
 from app.enterprise.users import users_bp
 from app.claude_api import claude_bp
 from app.extensions import cache, limiter
+from app.api.iot import iot_api
+from app.routes.errors import errors_bp
 
 
 # Initialize extensions
@@ -554,10 +556,9 @@ def register_blueprints(app: Flask) -> None:
     # Register enterprise blueprints
     app.register_blueprint(organizations_bp)
     app.register_blueprint(users_bp)
+    app.register_blueprint(iot_api, url_prefix="/api/iot")  # Register IoT API
 
 
-def register_error_handlers(app: Flask) -> None:
-    """Register application error handlers"""
-    from app.routes.errors import errors_bp
-
+def register_error_handlers(app):
+    """Register error handlers"""
     app.register_blueprint(errors_bp)

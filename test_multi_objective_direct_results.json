@@ -2,22 +2,22 @@
   {
     "test_case": "Distance + Time",
     "success": true,
-    "processing_time": 0.001522064208984375,
+    "processing_time": 0.0008139610290527344,
     "metrics": {
       "algorithm": "multi_objective",
       "error": "list assignment index out of range",
-      "processing_time": 0.0014998912811279297
+      "processing_time": 0.0008029937744140625
     },
     "route_length": 8
   },
   {
     "test_case": "Distance + Priority",
     "success": true,
-    "processing_time": 0.10318279266357422,
+    "processing_time": 0.09160995483398438,
     "metrics": {
       "algorithm": "multi_objective",
       "pareto_front_size": 45,
-      "processing_time": 0.10308504104614258,
+      "processing_time": 0.09140706062316895,
       "total_generations": 100,
       "objectives_optimized": [
         "distance",
@@ -36,11 +36,11 @@
   {
     "test_case": "Distance + Time + Priority",
     "success": true,
-    "processing_time": 0.1747887134552002,
+    "processing_time": 0.1756422519683838,
     "metrics": {
       "algorithm": "multi_objective",
-      "pareto_front_size": 56,
-      "processing_time": 0.17466425895690918,
+      "pareto_front_size": 54,
+      "processing_time": 0.17548108100891113,
       "total_generations": 120,
       "objectives_optimized": [
         "distance",
@@ -54,18 +54,18 @@
           "priority": -81.0
         }
       },
-      "hypervolume": -1013.5703989994405
+      "hypervolume": -977.371456178032
     },
     "route_length": 8
   },
   {
     "test_case": "All Objectives",
     "success": true,
-    "processing_time": 0.41973400115966797,
+    "processing_time": 0.4261741638183594,
     "metrics": {
       "algorithm": "multi_objective",
-      "pareto_front_size": 76,
-      "processing_time": 0.41959095001220703,
+      "pareto_front_size": 70,
+      "processing_time": 0.42598819732666016,
       "total_generations": 150,
       "objectives_optimized": [
         "distance",
@@ -81,7 +81,7 @@
           "fuel_cost": 5.460933260206084
         }
       },
-      "hypervolume": -751.1840411833683
+      "hypervolume": -691.88003793205
     },
     "route_length": 8
   }

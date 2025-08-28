@@ -77,9 +77,9 @@ export async function fetchAPIAnalytics(timeframe = '24h'): Promise<APIAnalytics
 // --- Offline Support & Background Sync ---
 // Utility to queue failed requests in IndexedDB for later sync
 export async function queueOfflineRequest(type: string, data: any, url: string, method: string) {
-  if (!('serviceWorker' in navigator)) return;
+  if (!navigator.serviceWorker || !('ready' in navigator.serviceWorker)) return;
   const registration = await navigator.serviceWorker.ready;
-  registration.active?.postMessage({
+  registration?.active?.postMessage({
     type: 'QUEUE_OFFLINE_REQUEST',
     data: { type, data, url, method }
   });

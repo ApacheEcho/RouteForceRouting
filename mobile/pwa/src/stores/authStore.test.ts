@@ -25,7 +25,11 @@ describe('authStore', () => {
   it('sets error on failed login', async () => {
     global.fetch = vi.fn().mockResolvedValue({ ok: false });
     await act(async () => {
-      await useAuthStore.getState().login('bad@example.com', 'wrong');
+      try {
+        await useAuthStore.getState().login('bad@example.com', 'wrong');
+      } catch (e) {
+        // error is expected, do nothing
+      }
     });
     const state = useAuthStore.getState();
     expect(state.isAuthenticated).toBe(false);

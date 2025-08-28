@@ -1,28 +1,29 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+
+import { renderHook, act } from '@testing-library/react';
 import { useAuth } from './useAuth';
 import { useAuthStore } from '../stores/authStore';
 
 // Mock zustand store
-jest.mock('../stores/authStore');
+vi.mock('../stores/authStore');
 
 const mockUser = { id: '1', email: 'test@example.com', name: 'Test User', role: 'user' };
 
 describe('useAuth', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('returns default auth state', () => {
-    (useAuthStore as jest.Mock).mockReturnValue({
+    (useAuthStore as unknown as { mockReturnValue: Function }).mockReturnValue({
       user: null,
       token: null,
       isAuthenticated: false,
       isLoading: false,
       error: null,
-      login: jest.fn(),
-      logout: jest.fn(),
-      checkAuth: jest.fn(),
-      clearError: jest.fn(),
+      login: vi.fn(),
+      logout: vi.fn(),
+      checkAuth: vi.fn(),
+      clearError: vi.fn(),
     });
     const { result } = renderHook(() => useAuth());
     expect(result.current.user).toBeNull();
@@ -32,16 +33,16 @@ describe('useAuth', () => {
   });
 
   it('returns authenticated state', () => {
-    (useAuthStore as jest.Mock).mockReturnValue({
+    (useAuthStore as unknown as { mockReturnValue: Function }).mockReturnValue({
       user: mockUser,
       token: 'token123',
       isAuthenticated: true,
       isLoading: false,
       error: null,
-      login: jest.fn(),
-      logout: jest.fn(),
-      checkAuth: jest.fn(),
-      clearError: jest.fn(),
+      login: vi.fn(),
+      logout: vi.fn(),
+      checkAuth: vi.fn(),
+      clearError: vi.fn(),
     });
     const { result } = renderHook(() => useAuth());
     expect(result.current.user).toEqual(mockUser);
@@ -50,9 +51,9 @@ describe('useAuth', () => {
   });
 
   it('calls login and logout', () => {
-    const login = jest.fn();
-    const logout = jest.fn();
-    (useAuthStore as jest.Mock).mockReturnValue({
+    const login = vi.fn();
+    const logout = vi.fn();
+    (useAuthStore as unknown as { mockReturnValue: Function }).mockReturnValue({
       user: null,
       token: null,
       isAuthenticated: false,
@@ -60,8 +61,8 @@ describe('useAuth', () => {
       error: null,
       login,
       logout,
-      checkAuth: jest.fn(),
-      clearError: jest.fn(),
+      checkAuth: vi.fn(),
+      clearError: vi.fn(),
     });
     const { result } = renderHook(() => useAuth());
     act(() => {
@@ -73,16 +74,16 @@ describe('useAuth', () => {
   });
 
   it('calls clearError', () => {
-    const clearError = jest.fn();
-    (useAuthStore as jest.Mock).mockReturnValue({
+    const clearError = vi.fn();
+    (useAuthStore as unknown as { mockReturnValue: Function }).mockReturnValue({
       user: null,
       token: null,
       isAuthenticated: false,
       isLoading: false,
       error: 'Some error',
-      login: jest.fn(),
-      logout: jest.fn(),
-      checkAuth: jest.fn(),
+      login: vi.fn(),
+      logout: vi.fn(),
+      checkAuth: vi.fn(),
       clearError,
     });
     const { result } = renderHook(() => useAuth());

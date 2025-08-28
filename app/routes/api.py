@@ -1,7 +1,9 @@
 
 # --- Blueprint and Core Imports (must be first for route decorators) ---
 from flask import Blueprint, jsonify, request, session, current_app
+api_bp = Blueprint("api", __name__, url_prefix="/api/v1")
 import logging
+logger = logging.getLogger(__name__)
 from datetime import datetime
 from flask_jwt_extended import get_jwt_identity, create_access_token, create_refresh_token, jwt_required, get_jwt
 from app.jwt_blocklist import add_token_to_blocklist
@@ -9,20 +11,9 @@ from app.models.database import db, User
 from app.auth_decorators import auth_required
 from app.extensions import limiter
 
-api_bp = Blueprint("api", __name__, url_prefix="/api/v1")
-logger = logging.getLogger(__name__)
-
 # --- End Blueprint and Core Imports ---
 
-"""
-API Blueprint - RESTful API endpoints with database integration
-Enhanced with comprehensive validation and error handling
-"""
-
-from app.services.routing_service import RoutingService
-from app.services.database_service import DatabaseService
-from app.monitoring import metrics_collector
-# AUTO-PILOT: Enhanced validation and error handling
+# --- Validation and Utility Imports (must be before route decorators) ---
 from app.utils.validation import (
     validate_json_request,
     validate_stores_data,
@@ -33,6 +24,31 @@ from app.utils.validation import (
     ValidationError,
     APIError,
 )
+# --- End Validation and Utility Imports ---
+
+@api_bp.route("/auth/validate", methods=["POST"])
+@api_error_handler
+def validate_token():
+    """Validate JWT access token for frontend session check"""
+    from flask_jwt_extended import verify_jwt_in_request, get_jwt
+    try:
+        verify_jwt_in_request()
+        jwt_data = get_jwt()
+        # Optionally, check for blocklist or other custom logic here
+        return jsonify({"valid": True}), 200
+    except Exception as e:
+        logger.warning(f"Token validation failed: {e}")
+        return jsonify({"valid": False}), 200
+
+"""
+API Blueprint - RESTful API endpoints with database integration
+Enhanced with comprehensive validation and error handling
+"""
+
+from app.services.routing_service import RoutingService
+from app.services.database_service import DatabaseService
+from app.monitoring import metrics_collector
+# AUTO-PILOT: Enhanced validation and error handling
 
 
 @api_bp.route("/login", methods=["POST"])

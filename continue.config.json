@@ -1,0 +1,12 @@
+{
+  "providers": [
+    {
+      "title": "Qwen3 Coder (LM Studio)",
+      "id": "openai",
+      "apiBase": "http://localhost:1234/v1",
+      "apiKey": "",
+      "model": "Qwen/Qwen1.5-110B-Chat-AWQ"
+    }
+  ],
+  "defaultProvider": "Qwen3 Coder (LM Studio)"
+}

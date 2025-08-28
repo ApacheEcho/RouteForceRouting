@@ -20,7 +20,7 @@ interface AuthState {
   error: string | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
-  checkAuth: () => void;
+  checkAuth: () => Promise<void>;
   clearError: () => void;
 }
 
@@ -35,9 +35,9 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
       error: null,
 
+
       login: async (email: string, password: string) => {
         set({ isLoading: true, error: null });
-        
         try {
           const response = await fetch(`${API_BASE_URL}/auth/login`, {
             method: 'POST',
@@ -46,13 +46,10 @@ export const useAuthStore = create<AuthState>()(
             },
             body: JSON.stringify({ email, password }),
           });
-
           if (!response.ok) {
             throw new Error('Invalid credentials');
           }
-
           const data = await response.json();
-          
           set({
             user: data.user,
             token: data.token,
@@ -69,6 +66,25 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
+      // Validate token with backend
+      validateToken: async (token: string | null) => {
+        if (!token) return false;
+        try {
+          const response = await fetch(`${API_BASE_URL}/auth/validate`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+          if (!response.ok) return false;
+          const data = await response.json();
+          return data.valid === true;
+        } catch {
+          return false;
+        }
+      },
+
       logout: () => {
         set({
           user: null,
@@ -78,11 +94,20 @@ export const useAuthStore = create<AuthState>()(
         });
       },
 
-      checkAuth: () => {
-        const { token } = get();
-        if (token) {
-          // In a real app, you would validate the token with the server
-          set({ isAuthenticated: true });
+
+      checkAuth: async () => {
+        const { token, logout } = get();
+        if (!token) {
+          set({ isAuthenticated: false });
+          return;
+        }
+        set({ isLoading: true });
+        const valid = await get().validateToken(token);
+        if (valid) {
+          set({ isAuthenticated: true, isLoading: false });
+        } else {
+          set({ isAuthenticated: false, isLoading: false, user: null, token: null });
+          logout();
         }
       },
 

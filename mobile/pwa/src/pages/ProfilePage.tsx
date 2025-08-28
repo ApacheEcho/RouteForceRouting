@@ -47,21 +47,21 @@ const ProfilePage: React.FC = () => {
   const { user } = useAuth();
 
   return (
-    <div className="px-4 py-6 sm:px-6 lg:px-8">
+    <div className="px-4 py-6 sm:px-6 lg:px-8" role="main" aria-labelledby="profile-title">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Profile</h1>
+        <h1 className="text-2xl font-bold text-gray-900" id="profile-title">Profile</h1>
         <p className="mt-1 text-sm text-gray-600">
           Manage your account information and view your performance
         </p>
       </div>
 
       {/* Profile Header */}
-      <div className="bg-white shadow rounded-lg mb-6">
+      <div className="bg-white shadow rounded-lg mb-6" role="region" aria-label="Profile header">
         <div className="px-6 py-8">
           <div className="flex items-center space-x-6">
             <div className="flex-shrink-0">
               <div className="h-24 w-24 rounded-full bg-indigo-100 flex items-center justify-center">
-                <UserIcon className="h-12 w-12 text-indigo-600" />
+                <UserIcon className="h-12 w-12 text-indigo-600" aria-hidden="true" />
               </div>
             </div>
             <div className="flex-1">
@@ -72,8 +72,8 @@ const ProfilePage: React.FC = () => {
                   </h2>
                   <p className="text-lg text-gray-600">{user?.role || 'Route Manager'}</p>
                 </div>
-                <button className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-indigo-700 transition-colors">
-                  <PencilIcon className="h-4 w-4" />
+                <button className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" aria-label="Edit profile" tabIndex={0}>
+                  <PencilIcon className="h-4 w-4" aria-hidden="true" />
                   <span>Edit</span>
                 </button>
               </div>
@@ -83,28 +83,28 @@ const ProfilePage: React.FC = () => {
       </div>
 
       {/* Contact Information */}
-      <div className="bg-white shadow rounded-lg mb-6">
+      <div className="bg-white shadow rounded-lg mb-6" role="region" aria-label="Contact information">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">Contact Information</h3>
+          <h2 className="text-lg font-medium text-gray-900">Contact Information</h2>
         </div>
         <div className="px-6 py-4">
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
-              <EnvelopeIcon className="h-5 w-5 text-gray-400" />
+              <EnvelopeIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
               <div>
                 <p className="text-sm font-medium text-gray-900">Email</p>
                 <p className="text-sm text-gray-600">{user?.email || 'john.doe@routeforce.com'}</p>
               </div>
             </div>
             <div className="flex items-center space-x-3">
-              <PhoneIcon className="h-5 w-5 text-gray-400" />
+              <PhoneIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
               <div>
                 <p className="text-sm font-medium text-gray-900">Phone</p>
                 <p className="text-sm text-gray-600">+1 (555) 123-4567</p>
               </div>
             </div>
             <div className="flex items-center space-x-3">
-              <MapPinIcon className="h-5 w-5 text-gray-400" />
+              <MapPinIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
               <div>
                 <p className="text-sm font-medium text-gray-900">Location</p>
                 <p className="text-sm text-gray-600">Portland, Oregon, USA</p>
@@ -115,15 +115,15 @@ const ProfilePage: React.FC = () => {
       </div>
 
       {/* Performance Stats */}
-      <div className="bg-white shadow rounded-lg mb-6">
+      <div className="bg-white shadow rounded-lg mb-6" role="region" aria-label="Performance stats">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">Performance Stats</h3>
+          <h2 className="text-lg font-medium text-gray-900">Performance Stats</h2>
         </div>
         <div className="px-6 py-4">
           <div className="grid grid-cols-2 gap-4">
             {profileStats.map((stat, index) => (
-              <div key={index} className="text-center p-4 bg-gray-50 rounded-lg">
-                <stat.icon className="h-6 w-6 text-indigo-600 mx-auto mb-2" />
+              <div key={index} className="text-center p-4 bg-gray-50 rounded-lg" aria-label={stat.label}>
+                <stat.icon className="h-6 w-6 text-indigo-600 mx-auto mb-2" aria-hidden="true" />
                 <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
                 <p className="text-sm text-gray-600">{stat.label}</p>
               </div>
@@ -133,16 +133,16 @@ const ProfilePage: React.FC = () => {
       </div>
 
       {/* Recent Activity */}
-      <div className="bg-white shadow rounded-lg">
+      <div className="bg-white shadow rounded-lg" role="region" aria-label="Recent activity">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">Recent Activity</h3>
+          <h2 className="text-lg font-medium text-gray-900">Recent Activity</h2>
         </div>
         <div className="px-6 py-4">
           <div className="space-y-4">
             <div className="flex items-start space-x-3">
               <div className="flex-shrink-0">
                 <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
-                  <MapPinIcon className="h-4 w-4 text-green-600" />
+                  <MapPinIcon className="h-4 w-4 text-green-600" aria-hidden="true" />
                 </div>
               </div>
               <div className="flex-1">
@@ -155,7 +155,7 @@ const ProfilePage: React.FC = () => {
             <div className="flex items-start space-x-3">
               <div className="flex-shrink-0">
                 <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                  <BriefcaseIcon className="h-4 w-4 text-blue-600" />
+                  <BriefcaseIcon className="h-4 w-4 text-blue-600" aria-hidden="true" />
                 </div>
               </div>
               <div className="flex-1">
@@ -168,7 +168,7 @@ const ProfilePage: React.FC = () => {
             <div className="flex items-start space-x-3">
               <div className="flex-shrink-0">
                 <div className="h-8 w-8 rounded-full bg-yellow-100 flex items-center justify-center">
-                  <CalendarIcon className="h-4 w-4 text-yellow-600" />
+                  <CalendarIcon className="h-4 w-4 text-yellow-600" aria-hidden="true" />
                 </div>
               </div>
               <div className="flex-1">

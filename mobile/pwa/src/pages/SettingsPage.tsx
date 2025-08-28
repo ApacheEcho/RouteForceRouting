@@ -46,48 +46,50 @@ const SettingsPage: React.FC = () => {
       id: 'notifications',
       title: 'Notifications',
       description: 'Manage your notification preferences',
-      icon: BellIcon,
-      type: 'toggle',
-    },
-    {
-      id: 'appearance',
-      title: 'Appearance',
-      description: 'Customize the app appearance',
-      icon: darkMode ? MoonIcon : SunIcon,
-      type: 'toggle',
-    },
-    {
-      id: 'language',
-      title: 'Language',
-      description: 'Choose your preferred language',
-      icon: GlobeAltIcon,
-      type: 'select',
-      value: language,
-      options: [
-        { label: 'English', value: 'en' },
-        { label: 'Spanish', value: 'es' },
-        { label: 'French', value: 'fr' },
-        { label: 'German', value: 'de' },
-      ],
-    },
-    {
-      id: 'units',
-      title: 'Units',
-      description: 'Distance and measurement units',
-      icon: MapIcon,
-      type: 'select',
-      value: units,
-      options: [
-        { label: 'Metric (km)', value: 'metric' },
-        { label: 'Imperial (miles)', value: 'imperial' },
-      ],
-    },
-    {
-      id: 'account',
-      title: 'Account Settings',
-      description: 'Manage your account information',
-      icon: UserIcon,
-      type: 'action',
+      return (
+        <div className="px-4 py-6 sm:px-6 lg:px-8" role="main" aria-labelledby="settings-title">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-900" id="settings-title">Settings</h1>
+            <p className="mt-1 text-sm text-gray-600">
+              Customize your RouteForce experience
+            </p>
+          </div>
+
+          {/* Settings List */}
+          <div className="bg-white shadow rounded-lg mb-6" role="region" aria-label="Settings list">
+            <div className="divide-y divide-gray-200">
+              {settings.map((setting) => (
+                <div key={setting.id} className="px-6 py-4" aria-label={setting.title}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className="flex-shrink-0">
+                        <setting.icon className="h-6 w-6 text-gray-400" aria-hidden="true" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{setting.title}</p>
+                        <p className="text-xs text-gray-500">{setting.description}</p>
+                      </div>
+                    </div>
+                    <div>{renderSettingControl(setting)}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Logout */}
+          <div className="flex justify-end">
+            <button
+              onClick={handleLogout}
+              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+              aria-label="Logout"
+              tabIndex={0}
+            >
+              <ArrowRightOnRectangleIcon className="h-5 w-5 inline-block mr-2" aria-hidden="true" />
+              Logout
+            </button>
+          </div>
+        </div>
       action: () => toast('Account settings coming soon'),
     },
     {

@@ -3,6 +3,8 @@
  */
 
 import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { fetchStops, fetchVehicles, Stop, Vehicle } from '../api';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import L from 'leaflet';
 import {
@@ -20,70 +22,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-interface Stop {
-  id: string;
-  name: string;
-  address: string;
-  lat: number;
-  lng: number;
-  status: 'pending' | 'completed' | 'current';
-  estimatedTime: string;
-}
 
-interface Vehicle {
-  id: string;
-  name: string;
-  lat: number;
-  lng: number;
-  status: 'active' | 'idle' | 'maintenance';
-}
-
-const mockStops: Stop[] = [
-  {
-    id: '1',
-    name: 'Downtown Store',
-    address: '123 Main St',
-    lat: 45.5152,
-    lng: -122.6784,
-    status: 'completed',
-    estimatedTime: '09:00',
-  },
-  {
-    id: '2',
-    name: 'City Center Mall',
-    address: '456 Center Ave',
-    lat: 45.5200,
-    lng: -122.6750,
-    status: 'current',
-    estimatedTime: '10:30',
-  },
-  {
-    id: '3',
-    name: 'Suburban Plaza',
-    address: '789 Suburb Rd',
-    lat: 45.5100,
-    lng: -122.6900,
-    status: 'pending',
-    estimatedTime: '12:00',
-  },
-];
-
-const mockVehicles: Vehicle[] = [
-  {
-    id: '1',
-    name: 'Truck A',
-    lat: 45.5200,
-    lng: -122.6750,
-    status: 'active',
-  },
-  {
-    id: '2',
-    name: 'Van B',
-    lat: 45.5050,
-    lng: -122.6850,
-    status: 'idle',
-  },
-];
 
 const routeCoordinates: [number, number][] = [
   [45.5152, -122.6784],
@@ -91,12 +30,26 @@ const routeCoordinates: [number, number][] = [
   [45.5100, -122.6900],
 ];
 
+
 const MapPage: React.FC = () => {
   const [showStops, setShowStops] = useState(true);
   const [showVehicles, setShowVehicles] = useState(true);
   const [showRoute, setShowRoute] = useState(true);
 
   const center: [number, number] = [45.5152, -122.6784]; // Portland, OR
+
+  // Fetch stops and vehicles from backend
+  const {
+    data: stops,
+    isLoading: stopsLoading,
+    error: stopsError
+  } = useQuery({ queryKey: ['stops'], queryFn: fetchStops });
+
+  const {
+    data: vehicles,
+    isLoading: vehiclesLoading,
+    error: vehiclesError
+  } = useQuery({ queryKey: ['vehicles'], queryFn: fetchVehicles });
 
   const getStopIcon = (status: Stop['status']) => {
     const color = status === 'completed' ? 'green' : status === 'current' ? 'blue' : 'red';
@@ -123,24 +76,24 @@ const MapPage: React.FC = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-screen flex flex-col" role="main" aria-labelledby="map-title">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200 px-4 py-3">
+      <div className="bg-white shadow-sm border-b border-gray-200 px-4 py-3" role="banner">
         <div className="flex items-center justify-between">
-          <h1 className="text-lg font-semibold text-gray-900">Map View</h1>
+          <h1 className="text-lg font-semibold text-gray-900" id="map-title">Map View</h1>
           <div className="flex items-center space-x-2">
-            <button className="p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-100 rounded-md">
-              <MagnifyingGlassIcon className="h-5 w-5" />
+            <button className="p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" aria-label="Search" tabIndex={0}>
+              <MagnifyingGlassIcon className="h-5 w-5" aria-hidden="true" />
             </button>
-            <button className="p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-100 rounded-md">
-              <AdjustmentsHorizontalIcon className="h-5 w-5" />
+            <button className="p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" aria-label="Filter" tabIndex={0}>
+              <AdjustmentsHorizontalIcon className="h-5 w-5" aria-hidden="true" />
             </button>
           </div>
         </div>
       </div>
 
       {/* Map Controls */}
-      <div className="bg-white border-b border-gray-200 px-4 py-2">
+      <div className="bg-white border-b border-gray-200 px-4 py-2" role="region" aria-label="Map controls">
         <div className="flex items-center space-x-4 text-sm">
           <label className="flex items-center space-x-2">
             <input
@@ -148,6 +101,7 @@ const MapPage: React.FC = () => {
               checked={showStops}
               onChange={(e) => setShowStops(e.target.checked)}
               className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+              aria-label="Show stops"
             />
             <span className="text-gray-700">Stops</span>
           </label>
@@ -157,6 +111,7 @@ const MapPage: React.FC = () => {
               checked={showVehicles}
               onChange={(e) => setShowVehicles(e.target.checked)}
               className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+              aria-label="Show vehicles"
             />
             <span className="text-gray-700">Vehicles</span>
           </label>
@@ -166,6 +121,7 @@ const MapPage: React.FC = () => {
               checked={showRoute}
               onChange={(e) => setShowRoute(e.target.checked)}
               className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+              aria-label="Show route"
             />
             <span className="text-gray-700">Route</span>
           </label>
@@ -173,7 +129,7 @@ const MapPage: React.FC = () => {
       </div>
 
       {/* Map */}
-      <div className="flex-1 relative">
+      <div className="flex-1 relative" role="region" aria-label="Map display">
         <MapContainer
           center={center}
           zoom={13}
@@ -184,18 +140,34 @@ const MapPage: React.FC = () => {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           
-          {/* Route Polyline */}
+          {/* Loading/Error States */}
+          {(stopsLoading || vehiclesLoading) && (
+            <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-70 z-10" aria-live="polite" role="status">
+              <span className="text-lg font-semibold text-gray-700">Loading map data...</span>
+            </div>
+          )}
+          {(stopsError || vehiclesError) && (
+            <div className="absolute inset-0 flex items-center justify-center bg-red-100 z-10" aria-live="assertive" role="alert">
+              <span className="text-lg font-semibold text-red-700">Error loading map data</span>
+            </div>
+          )}
+
+          {/* Route Polyline (remains static for now) */}
           {showRoute && (
             <Polyline
-              positions={routeCoordinates}
+              positions={[
+                [45.5152, -122.6784],
+                [45.5200, -122.6750],
+                [45.5100, -122.6900],
+              ]}
               color="blue"
               weight={4}
               opacity={0.7}
             />
           )}
-          
+
           {/* Stops */}
-          {showStops && mockStops.map((stop) => (
+          {showStops && stops && stops.map((stop) => (
             <Marker
               key={stop.id}
               position={[stop.lat, stop.lng]}
@@ -209,7 +181,7 @@ const MapPage: React.FC = () => {
                     <span className={`capitalize ${
                       stop.status === 'completed' ? 'text-green-600' :
                       stop.status === 'current' ? 'text-blue-600' : 'text-red-600'
-                    }`}>
+                    }`} aria-label={stop.status}>
                       {stop.status}
                     </span>
                     {' • '}
@@ -219,9 +191,9 @@ const MapPage: React.FC = () => {
               </Popup>
             </Marker>
           ))}
-          
+
           {/* Vehicles */}
-          {showVehicles && mockVehicles.map((vehicle) => (
+          {showVehicles && vehicles && vehicles.map((vehicle) => (
             <Marker
               key={vehicle.id}
               position={[vehicle.lat, vehicle.lng]}

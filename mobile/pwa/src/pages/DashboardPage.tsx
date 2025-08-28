@@ -74,25 +74,27 @@ const recentAlerts = [
 
 const DashboardPage: React.FC = () => {
   return (
-    <div className="px-4 py-6 sm:px-6 lg:px-8">
+    <div className="px-4 py-6 sm:px-6 lg:px-8" role="main" aria-labelledby="dashboard-title">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <h1 className="text-2xl font-bold text-gray-900" id="dashboard-title">Dashboard</h1>
         <p className="mt-1 text-sm text-gray-600">
           Welcome back! Here's your route management overview.
         </p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-4 mb-6 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 mb-6 sm:grid-cols-4" aria-label="Route statistics">
         {stats.map((stat) => (
           <div
             key={stat.name}
             className="bg-white overflow-hidden shadow rounded-lg"
+            role="region"
+            aria-label={stat.name}
           >
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <stat.icon className="h-6 w-6 text-gray-400" />
+                  <stat.icon className="h-6 w-6 text-gray-400" aria-hidden="true" />
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
@@ -129,11 +131,11 @@ const DashboardPage: React.FC = () => {
       {/* Recent Activity */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Alerts */}
-        <div className="bg-white shadow rounded-lg">
+        <div className="bg-white shadow rounded-lg" role="region" aria-label="Recent alerts">
           <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+            <h2 className="text-lg leading-6 font-medium text-gray-900 mb-4" id="recent-alerts-title">
               Recent Alerts
-            </h3>
+            </h2>
             <div className="flow-root">
               <ul className="-mb-8">
                 {recentAlerts.map((alert, alertIdx) => (
@@ -155,8 +157,9 @@ const DashboardPage: React.FC = () => {
                                 ? 'bg-yellow-500'
                                 : 'bg-blue-500'
                             }`}
+                            aria-label={alert.type === 'success' ? 'Success' : alert.type === 'warning' ? 'Warning' : 'Info'}
                           >
-                            <ExclamationTriangleIcon className="h-5 w-5 text-white" />
+                            <ExclamationTriangleIcon className="h-5 w-5 text-white" aria-hidden="true" />
                           </span>
                         </div>
                         <div className="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
@@ -177,23 +180,23 @@ const DashboardPage: React.FC = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white shadow rounded-lg">
+        <div className="bg-white shadow rounded-lg" role="region" aria-label="Quick actions">
           <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+            <h2 className="text-lg leading-6 font-medium text-gray-900 mb-4" id="quick-actions-title">
               Quick Actions
-            </h3>
+            </h2>
             <div className="grid grid-cols-1 gap-4">
-              <button className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 text-left hover:bg-indigo-100 transition-colors">
+              <button className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 text-left hover:bg-indigo-100 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" aria-label="Generate Route Report">
                 <div className="flex items-center">
-                  <ChartBarIcon className="h-6 w-6 text-indigo-600" />
+                  <ChartBarIcon className="h-6 w-6 text-indigo-600" aria-hidden="true" />
                   <span className="ml-3 text-sm font-medium text-indigo-900">
                     Generate Route Report
                   </span>
                 </div>
               </button>
-              <button className="bg-green-50 border border-green-200 rounded-lg p-4 text-left hover:bg-green-100 transition-colors">
+              <button className="bg-green-50 border border-green-200 rounded-lg p-4 text-left hover:bg-green-100 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2" aria-label="Optimize Routes">
                 <div className="flex items-center">
-                  <MapPinIcon className="h-6 w-6 text-green-600" />
+                  <MapPinIcon className="h-6 w-6 text-green-600" aria-hidden="true" />
                   <span className="ml-3 text-sm font-medium text-green-900">
                     Optimize Routes
                   </span>

@@ -10,6 +10,7 @@ import { z } from 'zod';
 import toast from 'react-hot-toast';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../hooks/useAuth';
+import { registerDevice, trackSession } from '../api';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -34,11 +35,32 @@ const LoginPage: React.FC = () => {
     return <Navigate to="/dashboard" replace />;
   }
 
+
   const onSubmit = async (data: LoginFormData) => {
     try {
       clearError();
       await login(data.email, data.password);
-      toast.success('Welcome back!');
+      // Register device after successful login
+      const deviceId = window.navigator.userAgent + '_' + (window.crypto?.randomUUID?.() || Math.random().toString(36).substring(2));
+      const platform = /iPhone|iPad|iPod|iOS/i.test(navigator.userAgent)
+        ? 'iOS'
+        : /Android/i.test(navigator.userAgent)
+        ? 'Android'
+        : 'Web';
+      await registerDevice({
+        deviceId,
+        userId: data.email,
+        platform,
+      });
+      // Track session analytics
+      await trackSession({
+        device_id: deviceId,
+        app_version: '1.0.0', // Replace with dynamic version if available
+        device_type: platform,
+        features_used: ['login'],
+        api_calls: 1,
+      });
+      toast.success('Welcome back! Device registered. Session tracked.');
     } catch (err) {
       toast.error(error || 'Login failed');
     }

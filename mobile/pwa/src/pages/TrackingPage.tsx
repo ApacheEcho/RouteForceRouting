@@ -3,6 +3,24 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
+import { fetchTelemetry, trackSession } from '../api';
+  // Track feature usage for analytics
+  useEffect(() => {
+    const deviceId = window.navigator.userAgent + '_' + (window.crypto?.randomUUID?.() || Math.random().toString(36).substring(2));
+    const platform = /iPhone|iPad|iPod|iOS/i.test(navigator.userAgent)
+      ? 'iOS'
+      : /Android/i.test(navigator.userAgent)
+      ? 'Android'
+      : 'Web';
+    trackSession({
+      device_id: deviceId,
+      app_version: '1.0.0',
+      device_type: platform,
+      features_used: ['tracking'],
+      api_calls: 1,
+    });
+  }, []);
 import {
   PlayIcon,
   PauseIcon,
@@ -62,19 +80,47 @@ const mockTrackingData: TrackingData = {
 const TrackingPage: React.FC = () => {
   const [isTracking, setIsTracking] = useState(true);
   const [trackingData, setTrackingData] = useState<TrackingData>(mockTrackingData);
+  const [loading, setLoading] = useState(true);
 
-  // Simulate real-time updates
+  // Fetch telemetry data for the vehicle on mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Replace with actual vehicleId as needed
+        const vehicleId = mockTrackingData.vehicleId;
+        const telemetry = await fetchTelemetry(vehicleId);
+        if (telemetry && telemetry.length > 0) {
+          const latest = telemetry[0];
+          setTrackingData(prev => ({
+            ...prev,
+            speed: latest.speed,
+            currentLocation: {
+              ...prev.currentLocation,
+              lat: latest.lat,
+              lng: latest.lng,
+            },
+            lastUpdate: new Date(latest.timestamp).toLocaleTimeString(),
+          }));
+        }
+      } catch (e) {
+        toast.error('Failed to fetch telemetry data. Showing last known values.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  // Simulate real-time updates (keep for demo)
   useEffect(() => {
     if (!isTracking) return;
-
     const interval = setInterval(() => {
       setTrackingData(prev => ({
         ...prev,
-        speed: Math.floor(Math.random() * 20) + 25, // Random speed between 25-45
+        speed: Math.floor(Math.random() * 20) + 25,
         lastUpdate: 'Just now',
       }));
     }, 5000);
-
     return () => clearInterval(interval);
   }, [isTracking]);
 
@@ -102,12 +148,21 @@ const TrackingPage: React.FC = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen" aria-live="polite" role="status">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600" aria-label="Loading" />
+        <span className="ml-4 text-indigo-700 font-medium">Loading vehicle data...</span>
+      </div>
+    );
+  }
+
   return (
-    <div className="px-4 py-6 sm:px-6 lg:px-8">
+    <div className="px-4 py-6 sm:px-6 lg:px-8" role="main" aria-labelledby="tracking-title">
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Live Tracking</h1>
+            <h1 className="text-2xl font-bold text-gray-900" id="tracking-title">Live Tracking</h1>
             <p className="mt-1 text-sm text-gray-600">
               Real-time vehicle and route monitoring
             </p>
@@ -115,16 +170,18 @@ const TrackingPage: React.FC = () => {
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setIsTracking(!isTracking)}
-              className={`p-2 rounded-lg ${
+              className={`p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
                 isTracking
                   ? 'bg-red-100 text-red-600 hover:bg-red-200'
                   : 'bg-green-100 text-green-600 hover:bg-green-200'
               }`}
+              aria-label={isTracking ? 'Pause tracking' : 'Resume tracking'}
+              tabIndex={0}
             >
               {isTracking ? (
-                <PauseIcon className="h-5 w-5" />
+                <PauseIcon className="h-5 w-5" aria-hidden="true" />
               ) : (
-                <PlayIcon className="h-5 w-5" />
+                <PlayIcon className="h-5 w-5" aria-hidden="true" />
               )}
             </button>
           </div>
@@ -132,15 +189,15 @@ const TrackingPage: React.FC = () => {
       </div>
 
       {/* Vehicle Status Card */}
-      <div className="bg-white shadow rounded-lg mb-6">
+      <div className="bg-white shadow rounded-lg mb-6" role="region" aria-label="Vehicle status">
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <TruckIcon className="h-8 w-8 text-gray-400" />
+              <TruckIcon className="h-8 w-8 text-gray-400" aria-hidden="true" />
               <div>
-                <h3 className="text-lg font-medium text-gray-900">
+                <h2 className="text-lg font-medium text-gray-900">
                   {trackingData.vehicleName}
-                </h3>
+                </h2>
                 <p className="text-sm text-gray-500">ID: {trackingData.vehicleId}</p>
               </div>
             </div>

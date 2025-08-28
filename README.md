@@ -45,6 +45,37 @@ Pre-alpha capabilities:
 - Google Maps link generation
 
 ## Setup
+## 🛠️ Expanding MCP Server Scope & Advanced Features
+
+The Model Context Protocol (MCP) Filesystem Server restricts file operations to specific directories for security. By default, it allows access to the project root and its parent directory. To enable advanced automation and context-aware development across more of your system, you can expand the allowed directories as follows:
+
+### How to Expand Allowed Directories
+
+1. **Edit the MCP server startup command** to include additional allowed paths. For example:
+
+	```bash
+	node mcp-server/build/filesystem.js /Users/frank /Users/frank/RouteForceRouting /any/other/path
+	```
+
+	Or, if using the provided script, edit `mcp-server/start-filesystem-server.sh` to add extra arguments:
+
+	```bash
+	#!/bin/bash
+	node mcp-server/build/filesystem.js /Users/frank /Users/frank/RouteForceRouting
+	```
+
+2. **Restart the MCP server** after making changes.
+
+3. **All advanced file operations** (read, write, search, create, delete, stats) are now available within the expanded set of allowed directories.
+
+> **Note:** The `mcp.yaml` file does NOT control allowed directories. Allowed paths are set at server startup only.
+
+### Troubleshooting
+
+- If you see "Path not allowed" errors, confirm the directory is included in the startup command.
+- For security, only add trusted directories.
+
+---
 
 ### Prerequisites
 

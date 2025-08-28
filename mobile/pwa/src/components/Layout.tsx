@@ -12,12 +12,10 @@ const Layout: React.FC = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
       <Header />
-      
       {/* Main Content */}
-      <main className="flex-1 pb-16 md:pb-0">
+      <main id="main-content" role="main" className="flex-1 pb-16 md:pb-0">
         <Outlet />
       </main>
-      
       {/* Bottom Navigation for mobile */}
       <Navigation />
     </div>

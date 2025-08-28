@@ -1,3 +1,48 @@
+// --- General App Offline Request Support ---
+self.addEventListener('message', (event) => {
+  const { type, data } = event.data;
+  if (type === 'QUEUE_OFFLINE_REQUEST') {
+    queueForSync({
+      type: data.type,
+      data: data.data,
+      url: data.url,
+      method: data.method
+    });
+  }
+});
+// --- Push Notification Support ---
+self.addEventListener('push', function(event) {
+  let data = {};
+  if (event.data) {
+    data = event.data.json();
+  }
+  const title = data.title || 'RouteForce Notification';
+  const options = {
+    body: data.body || '',
+    icon: data.icon || '/static/icons/icon-192x192.png',
+    badge: data.badge || '/static/icons/badge-72x72.png',
+    data: data.data || {},
+    actions: data.actions || []
+  };
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener('notificationclick', function(event) {
+  event.notification.close();
+  // Focus or open the app
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window' }).then(function(clientList) {
+      for (const client of clientList) {
+        if (client.url && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      if (self.clients.openWindow) {
+        return self.clients.openWindow('/');
+      }
+    })
+  );
+});
 /**
  * Voice Coding Service Worker
  * Handles offline voice note storage and background sync

@@ -90,27 +90,27 @@ const RoutesPage: React.FC = () => {
   };
 
   return (
-    <div className="px-4 py-6 sm:px-6 lg:px-8">
+    <div className="px-4 py-6 sm:px-6 lg:px-8" role="main" aria-labelledby="routes-title">
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Routes</h1>
+            <h1 className="text-2xl font-bold text-gray-900" id="routes-title">Routes</h1>
             <p className="mt-1 text-sm text-gray-600">
               Manage and optimize your delivery routes
             </p>
           </div>
-          <button className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-indigo-700 transition-colors">
-            <PlusIcon className="h-5 w-5" />
+          <button className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" aria-label="Create new route" tabIndex={0}>
+            <PlusIcon className="h-5 w-5" aria-hidden="true" />
             <span className="hidden sm:inline">New Route</span>
           </button>
         </div>
       </div>
 
       {/* Search and Filter */}
-      <div className="mb-6 space-y-4 sm:space-y-0 sm:flex sm:space-x-4">
+      <div className="mb-6 space-y-4 sm:space-y-0 sm:flex sm:space-x-4" role="search" aria-label="Search and filter routes">
         <div className="flex-1 relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+            <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
           </div>
           <input
             type="text"
@@ -118,14 +118,16 @@ const RoutesPage: React.FC = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            aria-label="Search routes"
           />
         </div>
         <div className="flex items-center space-x-2">
-          <FunnelIcon className="h-5 w-5 text-gray-400" />
+          <FunnelIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as any)}
             className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+            aria-label="Filter by status"
           >
             <option value="all">All Status</option>
             <option value="active">Active</option>
@@ -136,14 +138,14 @@ const RoutesPage: React.FC = () => {
       </div>
 
       {/* Routes List */}
-      <div className="bg-white shadow overflow-hidden rounded-md">
+      <div className="bg-white shadow overflow-hidden rounded-md" role="region" aria-label="Routes list">
         <ul className="divide-y divide-gray-200">
           {filteredRoutes.map((route) => (
             <li key={route.id} className="px-6 py-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <div className="flex-shrink-0">
-                    <MapPinIcon className="h-6 w-6 text-gray-400" />
+                    <MapPinIcon className="h-6 w-6 text-gray-400" aria-hidden="true" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2">
@@ -154,17 +156,18 @@ const RoutesPage: React.FC = () => {
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
                           route.status
                         )}`}
+                        aria-label={route.status}
                       >
                         {route.status}
                       </span>
                     </div>
                     <div className="mt-1 flex items-center space-x-4 text-sm text-gray-500">
                       <div className="flex items-center space-x-1">
-                        <TruckIcon className="h-4 w-4" />
+                        <TruckIcon className="h-4 w-4" aria-hidden="true" />
                         <span>{route.distance}</span>
                       </div>
                       <div className="flex items-center space-x-1">
-                        <ClockIcon className="h-4 w-4" />
+                        <ClockIcon className="h-4 w-4" aria-hidden="true" />
                         <span>{route.duration}</span>
                       </div>
                       <span>{route.stops} stops</span>
@@ -178,7 +181,7 @@ const RoutesPage: React.FC = () => {
                     </p>
                     <p className="text-sm text-gray-500">{route.lastUpdated}</p>
                   </div>
-                  <button className="text-indigo-600 hover:text-indigo-500 text-sm font-medium">
+                  <button className="text-indigo-600 hover:text-indigo-500 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" aria-label={`View details for ${route.name}`} tabIndex={0}>
                     View
                   </button>
                 </div>
@@ -189,8 +192,8 @@ const RoutesPage: React.FC = () => {
       </div>
 
       {filteredRoutes.length === 0 && (
-        <div className="text-center py-12">
-          <MapPinIcon className="mx-auto h-12 w-12 text-gray-400" />
+        <div className="text-center py-12" aria-live="polite" role="status">
+          <MapPinIcon className="mx-auto h-12 w-12 text-gray-400" aria-hidden="true" />
           <h3 className="mt-2 text-sm font-medium text-gray-900">No routes found</h3>
           <p className="mt-1 text-sm text-gray-500">
             Try adjusting your search or create a new route.

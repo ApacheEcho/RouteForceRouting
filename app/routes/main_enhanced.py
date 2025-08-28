@@ -6,22 +6,10 @@ Consolidated routing with file upload and route generation
 import csv
 import io
 import logging
-import os
 import time
-from typing import Any, Dict, List, Optional
 
-from flask import (
-    Blueprint,
-    Response,
-    current_app,
-    jsonify,
-    redirect,
-    render_template,
-    request,
-    send_file,
-    url_for,
-)
-from werkzeug.utils import secure_filename
+from flask import (Blueprint, Response, current_app, jsonify, redirect,
+                   render_template, request, send_file, url_for)
 
 from app import limiter
 from app.models.route_request import RouteRequest

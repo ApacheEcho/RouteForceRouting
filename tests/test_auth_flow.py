@@ -56,8 +56,8 @@ def user_factory(app: Flask) -> Callable[..., User]:
         **extra: Any,
     ) -> User:
         unique = str(uuid.uuid4())[:8]
-        # Always make email unique unless explicitly overridden with a unique value
-        if email is None or email in ["a@b.com", "ok@b.com", "ref@b.com", "lo@b.com", "chain@b.com", "inactive@b.com"]:
+        # Only generate a unique email if none is provided
+        if email is None:
             email = f"user_{unique}@example.com"
         if not username:
             username = f"testuser_{unique}"

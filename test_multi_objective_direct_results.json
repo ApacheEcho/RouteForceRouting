@@ -2,22 +2,22 @@
   {
     "test_case": "Distance + Time",
     "success": true,
-    "processing_time": 0.0008139610290527344,
+    "processing_time": 0.0007760524749755859,
     "metrics": {
       "algorithm": "multi_objective",
       "error": "list assignment index out of range",
-      "processing_time": 0.0008029937744140625
+      "processing_time": 0.0007679462432861328
     },
     "route_length": 8
   },
   {
     "test_case": "Distance + Priority",
     "success": true,
-    "processing_time": 0.09160995483398438,
+    "processing_time": 0.09177207946777344,
     "metrics": {
       "algorithm": "multi_objective",
       "pareto_front_size": 45,
-      "processing_time": 0.09140706062316895,
+      "processing_time": 0.09165787696838379,
       "total_generations": 100,
       "objectives_optimized": [
         "distance",
@@ -36,11 +36,11 @@
   {
     "test_case": "Distance + Time + Priority",
     "success": true,
-    "processing_time": 0.1756422519683838,
+    "processing_time": 0.17653203010559082,
     "metrics": {
       "algorithm": "multi_objective",
       "pareto_front_size": 54,
-      "processing_time": 0.17548108100891113,
+      "processing_time": 0.17641210556030273,
       "total_generations": 120,
       "objectives_optimized": [
         "distance",
@@ -61,11 +61,11 @@
   {
     "test_case": "All Objectives",
     "success": true,
-    "processing_time": 0.4261741638183594,
+    "processing_time": 0.4257619380950928,
     "metrics": {
       "algorithm": "multi_objective",
       "pareto_front_size": 70,
-      "processing_time": 0.42598819732666016,
+      "processing_time": 0.4256007671356201,
       "total_generations": 150,
       "objectives_optimized": [
         "distance",

@@ -277,6 +277,7 @@ def api_error_handler(f):
                     {
                         "success": False,
                         "error": e.message,
+                        "message": e.message,
                         "code": e.code,
                         "field": e.field,
                         "timestamp": datetime.utcnow().isoformat(),
@@ -292,6 +293,7 @@ def api_error_handler(f):
                     {
                         "success": False,
                         "error": e.message,
+                        "message": e.message,
                         "code": e.code,
                         "timestamp": datetime.utcnow().isoformat(),
                     }

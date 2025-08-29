@@ -57,7 +57,8 @@ def init_jwt(app):
 
     @jwt.unauthorized_loader
     def missing_token_callback(error):
-        return jsonify({"error": "Authorization token required"}), 401
+        # Align with tests expecting Flask-JWT-Extended default message key
+        return jsonify({"msg": "Missing Authorization Header"}), 401
 
 
 # Auth Blueprint
@@ -244,11 +245,24 @@ def requires_role(role: str):
         @wraps(f)
         @jwt_required()
         def decorated_function(*args, **kwargs):
-            current_user = get_jwt_identity()
-            user = auth_manager.get_user_by_id(current_user)
+            current_identity = get_jwt_identity()
+            # Identity may be an email or a user id; resolve accordingly
+            if isinstance(current_identity, str) and "@" in current_identity:
+                user = auth_manager.get_user_by_email(current_identity)
+                # Fallback to DB lookup if not found in in-memory store
+                if not user:
+                    try:
+                        from app.models.database import User as DbUser
+                        db_user = DbUser.query.filter_by(email=current_identity).first()
+                        if db_user:
+                            user = {"id": db_user.id, "email": db_user.email, "role": db_user.role}
+                    except Exception:
+                        user = user or None
+            else:
+                user = auth_manager.get_user_by_id(current_identity)
 
             if not user or user.get("role") != role:
-                return jsonify({"error": f"Role {role} required"}), 403
+                return jsonify({"error": "Insufficient permissions"}), 403
 
             return f(*args, **kwargs)
 

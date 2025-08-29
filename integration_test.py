@@ -35,8 +35,9 @@ class RouteForceSystemTest:
             print(f"[AUTH] Exception during login: {e}")
 
     def get_auth_headers(self):
-        if self.jwt_token:
-            return {"Authorization": f"Bearer {self.jwt_token}"}
+        token = getattr(self, "jwt_token", None)
+        if token:
+            return {"Authorization": f"Bearer {token}"}
         return {}
 
     def log_test(self, test_name, success, message=""):

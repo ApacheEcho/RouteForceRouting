@@ -58,15 +58,18 @@ class BeastModeOptimizer:
                 "📊 Initializing optimized database connection pool..."
             )
             database_url = app.config.get("SQLALCHEMY_DATABASE_URI")
-            if database_url:
+            # Skip optimized DB setup for SQLite/testing to avoid invalid pool args
+            if database_url and not database_url.startswith("sqlite") and not app.config.get("TESTING", False):
                 optimized_db = init_optimized_database(app, database_url)
                 self.optimization_components["database"] = optimized_db
                 self.database_optimized = True
                 results["database"] = (
                     "✅ Optimized database connection pool initialized"
                 )
-            else:
+            elif not database_url:
                 results["database"] = "⚠️ Database URL not configured"
+            else:
+                results["database"] = "ℹ️ Skipped optimized DB for SQLite/testing"
 
             # 2. Initialize Advanced Redis Cache
             logger.info("🗄️ Initializing advanced Redis cache...")

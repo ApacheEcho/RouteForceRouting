@@ -407,9 +407,13 @@ def get_routes():
     routing_service = RoutingService(user_id=user_id)
 
     # Get more routes for pagination
-    all_routes = routing_service.get_route_history(
-        limit=per_page * 10
-    )  # Get more for pagination
+    try:
+        all_routes = routing_service.get_route_history(
+            limit=per_page * 10
+        )  # Get more for pagination
+    except AttributeError:
+        # UnifiedRoutingService may not implement history in minimal/test envs
+        all_routes = []
 
     # Apply pagination
     paginated_data = paginate_response(

@@ -14,6 +14,7 @@ from pathlib import Path
 from app import create_app, db
 from app.models.database import User
 from flask_jwt_extended import create_access_token
+from routing_engine import Store
 
 # Add the app directory to Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "app"))
@@ -104,6 +105,66 @@ def admin_token(admin_user):
 @pytest.fixture(scope='function')
 def user_token(regular_user):
     return create_access_token(identity=regular_user.email)
+
+
+# Additional fixtures used by some multi-vehicle routing tests
+@pytest.fixture
+def large_store_dataset():
+    stores = []
+    store_templates = [
+        {"chain": "CVS", "base_weight": 20, "base_packages": 4},
+        {"chain": "WLG", "base_weight": 30, "base_packages": 6},
+        {"chain": "RIT", "base_weight": 25, "base_packages": 5},
+    ]
+
+    coordinates = [
+        {"lat": 40.7128, "lng": -74.0060},
+        {"lat": 40.7589, "lng": -73.9851},
+        {"lat": 40.7505, "lng": -73.9934},
+        {"lat": 40.6892, "lng": -73.9442},
+        {"lat": 40.7831, "lng": -73.9712},
+        {"lat": 40.7282, "lng": -73.9442},
+        {"lat": 40.7336, "lng": -73.9890},
+        {"lat": 40.8621, "lng": -73.9036},
+        {"lat": 40.6441, "lng": -74.0776},
+        {"lat": 40.7048, "lng": -73.6501},
+        {"lat": 40.7400, "lng": -73.9900},
+        {"lat": 40.7614, "lng": -73.9776},
+        {"lat": 40.7180, "lng": -74.0020},
+        {"lat": 40.7295, "lng": -73.9965},
+        {"lat": 40.7549, "lng": -73.9840},
+    ]
+
+    priorities = ["high", "medium", "low"] * 5
+    delivery_windows = [
+        "09:00-17:00",
+        "10:00-16:00",
+        "08:00-18:00",
+        "11:00-15:00",
+        "09:30-16:30",
+    ] * 3
+
+    for i in range(15):
+        template = store_templates[i % 3]
+        weight_variation = (-5 + (i % 11)) * 2
+        package_variation = -2 + (i % 5)
+
+        stores.append(
+            Store(
+                store_id=f"{template['chain']}_{i + 1:03d}",
+                name=f"{template['chain']} Store #{i + 1}",
+                address=f"{100 + i * 10} Test St, New York, NY 1000{i % 10}",
+                coordinates=coordinates[i],
+                delivery_window=delivery_windows[i],
+                priority=priorities[i],
+                estimated_service_time=10 + (i % 3) * 5,
+                packages=max(1, template["base_packages"] + package_variation),
+                weight_kg=max(5.0, template["base_weight"] + weight_variation),
+                special_requirements={"signature_required": i % 2 == 0},
+            )
+        )
+
+    return stores
 
 
 # Performance test fixtures

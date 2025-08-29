@@ -173,6 +173,14 @@ class TestingConfig(Config):
     SQLALCHEMY_DATABASE_URI = (
         "sqlite:///:memory:"  # In-memory database for testing
     )
+    # Ensure no incompatible pool args are applied to in-memory SQLite
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "pool_pre_ping": True,
+    }
+    # Disable background auto-commit service during tests
+    AUTO_COMMIT_ENABLED = False
+    # Force in-memory rate limiting storage for tests
+    RATELIMIT_STORAGE_URI = "memory://"
 
 
 # Configuration dictionary

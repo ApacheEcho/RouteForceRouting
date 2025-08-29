@@ -28,6 +28,8 @@ from app.performance_monitor import get_performance_monitor
 from app.advanced_dashboard_api import advanced_dashboard_bp
 from app.analytics_api import analytics_bp as analytics_ai_bp
 from app.api.analytics import analytics_bp
+from app.routes.analytics import analytics_bp as analytics_routes_bp
+from app.routes.user_activity import activity_bp as analytics_activity_bp
 from app.api.mobile import mobile_bp
 from app.api.traffic import traffic_bp
 from app.api.voice import voice_bp
@@ -73,6 +75,11 @@ def create_app(config_name: str = "development", testing: bool = False) -> Flask
     """
     app = Flask(__name__)
 
+    # Auto-detect pytest and prefer testing config to avoid external services
+    if not testing and os.getenv("PYTEST_CURRENT_TEST"):
+        testing = True
+        config_name = "testing"
+
     # Load configuration
     if testing:
         app.config.from_object(config["testing"])
@@ -103,8 +110,7 @@ def create_app(config_name: str = "development", testing: bool = False) -> Flask
         app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1
     )
 
-    # Load configuration
-    app.config.from_object(config[config_name])
+    # (Avoid reloading config here; already applied above)
 
     # Initialize database
     db.init_app(app)
@@ -425,13 +431,14 @@ def create_app(config_name: str = "development", testing: bool = False) -> Flask
         # (connection, config, etc.)
         logging.warning("Redis not available for optimizations: %s", e)
 
-    # Initialize all Beast Mode optimizations
-    beast_mode_results = init_beast_mode(app, socketio, redis_client)
-    app.beast_mode_results = beast_mode_results
-    logging.info(
-        "🚀 Beast Mode Status: %s",
-        beast_mode_results.get("beast_mode_status", "UNKNOWN"),
-    )
+    # Initialize all Beast Mode optimizations (skip during tests)
+    if not app.config.get("TESTING", False):
+        beast_mode_results = init_beast_mode(app, socketio, redis_client)
+        app.beast_mode_results = beast_mode_results
+        logging.info(
+            "🚀 Beast Mode Status: %s",
+            beast_mode_results.get("beast_mode_status", "UNKNOWN"),
+        )
 
     # Initialize legacy performance monitor as backup
     try:
@@ -556,6 +563,9 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(traffic_bp, url_prefix="/api/traffic")
     app.register_blueprint(mobile_bp, url_prefix="/api/mobile")
     app.register_blueprint(analytics_bp, url_prefix="/api/analytics")
+    # Register additional analytics route blueprints (already include full paths)
+    app.register_blueprint(analytics_routes_bp)
+    app.register_blueprint(analytics_activity_bp)
     app.register_blueprint(analytics_ai_bp, url_prefix="/api/ai")
     app.register_blueprint(claude_bp)  # Claude Opus 4.1 AI endpoints
     app.register_blueprint(

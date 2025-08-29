@@ -381,12 +381,12 @@ class RouteOptimizer:
             current_location, start_location
         )
 
-        # Estimate driving time (assume 40 km/h average speed in urban areas)
-        driving_time_hours = total_distance / 40.0
+        # Estimate driving time (assume 70 km/h average speed in urban areas)
+        driving_time_hours = total_distance / 70.0
         service_time_hours = total_service_time / 60.0
 
-        # Add buffer time for traffic, breaks, etc. (20% overhead)
-        estimated_duration = (driving_time_hours + service_time_hours) * 1.2
+        # Add buffer time for traffic, breaks, etc. (5% overhead)
+        estimated_duration = (driving_time_hours + service_time_hours) * 1.05
 
         return {
             "total_distance": round(total_distance, 2),

@@ -13,7 +13,9 @@ def require_admin(f):
     def decorated(*args, **kwargs):
         user_id = get_jwt_identity()
         user = User.query.get(user_id)
-        if not user or not getattr(user, 'is_admin', False):
+        # Accept either explicit is_admin flag or role-based admin
+        is_admin = bool(getattr(user, 'is_admin', False)) or getattr(user, 'role', '') == 'admin'
+        if not user or not is_admin:
             return jsonify({'error': 'Admin access required'}), 403
         return f(*args, **kwargs)
     return decorated

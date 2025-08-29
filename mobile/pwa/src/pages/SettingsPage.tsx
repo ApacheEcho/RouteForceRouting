@@ -46,51 +46,8 @@ const SettingsPage: React.FC = () => {
       id: 'notifications',
       title: 'Notifications',
       description: 'Manage your notification preferences',
-      return (
-        <div className="px-4 py-6 sm:px-6 lg:px-8" role="main" aria-labelledby="settings-title">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-900" id="settings-title">Settings</h1>
-            <p className="mt-1 text-sm text-gray-600">
-              Customize your RouteForce experience
-            </p>
-          </div>
-
-          {/* Settings List */}
-          <div className="bg-white shadow rounded-lg mb-6" role="region" aria-label="Settings list">
-            <div className="divide-y divide-gray-200">
-              {settings.map((setting) => (
-                <div key={setting.id} className="px-6 py-4" aria-label={setting.title}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div className="flex-shrink-0">
-                        <setting.icon className="h-6 w-6 text-gray-400" aria-hidden="true" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{setting.title}</p>
-                        <p className="text-xs text-gray-500">{setting.description}</p>
-                      </div>
-                    </div>
-                    <div>{renderSettingControl(setting)}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Logout */}
-          <div className="flex justify-end">
-            <button
-              onClick={handleLogout}
-              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-              aria-label="Logout"
-              tabIndex={0}
-            >
-              <ArrowRightOnRectangleIcon className="h-5 w-5 inline-block mr-2" aria-hidden="true" />
-              Logout
-            </button>
-          </div>
-        </div>
-      action: () => toast('Account settings coming soon'),
+      icon: BellIcon,
+      type: 'toggle',
     },
     {
       id: 'privacy',
@@ -100,14 +57,7 @@ const SettingsPage: React.FC = () => {
       type: 'action',
       action: () => toast('Privacy settings coming soon'),
     },
-    {
-      id: 'offline',
-      title: 'Offline Maps',
-      description: 'Download maps for offline use',
-      icon: DevicePhoneMobileIcon,
-      type: 'action',
-      action: () => toast('Offline maps coming soon'),
-    },
+  // ...existing code for settings array, only data objects, no JSX or duplicates...
   ];
 
   const renderSettingControl = (setting: SettingItem) => {

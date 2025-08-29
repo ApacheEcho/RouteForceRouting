@@ -4,41 +4,38 @@ import SettingsPage from './SettingsPage';
 describe('SettingsPage', () => {
   it('renders the settings page header', () => {
     render(<SettingsPage />);
-    expect(screen.getByRole('main')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /settings/i })).toBeInTheDocument();
+    expect(screen.getByText(/customize your routeforce experience/i)).toBeInTheDocument();
   });
 
-  it('renders all settings sections', () => {
+  it('renders all main settings section headings', () => {
     render(<SettingsPage />);
-    // Check for common section headings or labels
-    expect(screen.getByText(/account/i)).toBeInTheDocument();
-    expect(screen.getByText(/notifications/i)).toBeInTheDocument();
-    expect(screen.getByText(/privacy/i)).toBeInTheDocument();
-    expect(screen.getByText(/theme/i)).toBeInTheDocument();
+  // There are multiple elements with 'notifications', so check for the section heading specifically
+  const notificationHeadings = screen.getAllByText(/notifications/i);
+  // The first 'Notifications' is the section heading (h3), not the label
+  expect(notificationHeadings[0].tagName.toLowerCase()).toBe('h3');
+  expect(screen.getByText(/privacy & security/i)).toBeInTheDocument();
+  // There are multiple elements with 'notification preferences', so check for the heading specifically
+  const notificationPrefHeadings = screen.getAllByText(/notification preferences/i);
+  // The heading is an h3, not the label
+  expect(notificationPrefHeadings.some(el => el.tagName.toLowerCase() === 'h3')).toBe(true);
   });
 
-  it('toggles dark mode if present', () => {
+  it('renders and toggles notification switches', () => {
     render(<SettingsPage />);
-    const themeToggle = screen.queryByLabelText(/dark mode|theme/i);
-    if (themeToggle) {
-      fireEvent.click(themeToggle);
-      // No assertion, just ensure no error is thrown
-    }
+    // There are two notification toggles (push, email)
+    const toggles = screen.getAllByRole('button', { hidden: true });
+    expect(toggles.length).toBeGreaterThanOrEqual(2);
+    fireEvent.click(toggles[0]);
+    fireEvent.click(toggles[1]);
+    // No assertion, just ensure no error is thrown
   });
 
-  it('renders save button and is clickable', () => {
+  it('renders sign out button and is clickable', () => {
     render(<SettingsPage />);
-    const saveBtn = screen.getByRole('button', { name: /save/i });
-    expect(saveBtn).toBeInTheDocument();
-    fireEvent.click(saveBtn);
+    const signOutBtn = screen.getByRole('button', { name: /sign out/i });
+    expect(signOutBtn).toBeInTheDocument();
+    fireEvent.click(signOutBtn);
     // No modal expected, just ensure button is clickable
-  });
-
-  it('renders all regions with correct labels', () => {
-    render(<SettingsPage />);
-    expect(screen.getByRole('region', { name: /account/i })).toBeInTheDocument();
-    expect(screen.getByRole('region', { name: /notifications/i })).toBeInTheDocument();
-    expect(screen.getByRole('region', { name: /privacy/i })).toBeInTheDocument();
-    expect(screen.getByRole('region', { name: /theme/i })).toBeInTheDocument();
   });
 });

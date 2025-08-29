@@ -79,6 +79,13 @@ def create_app(config_name: str = "development", testing: bool = False) -> Flask
     else:
         app.config.from_object(config[config_name])
 
+    # Configure logging early
+    try:
+        configure_logging(app)
+    except Exception:
+        # Logging setup should not break app initialization
+        pass
+
     # Enforce HTTPS in production
     if app.config.get("PREFERRED_URL_SCHEME", "http") == "https":
         @app.before_request
@@ -126,8 +133,14 @@ def create_app(config_name: str = "development", testing: bool = False) -> Flask
             "PUT",
             "PATCH",
         }:
-            if request.path == "/api/mobile/auth/logout":
-                return  # Allow any content-type or no body for logout
+            # Exempt endpoints that legitimately have no body
+            exempt_paths = {
+                "/api/mobile/auth/logout",
+                "/api/v1/refresh",
+                "/api/v1/logout",
+            }
+            if request.path in exempt_paths:
+                return  # Allow any content-type or no body
             if not request.is_json:
                 abort(415, description="Content-Type must be application/json")
             # Attempt to parse JSON early to return a clear error

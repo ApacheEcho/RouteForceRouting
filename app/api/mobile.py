@@ -20,6 +20,7 @@ from werkzeug.exceptions import BadRequest
 # Import services
 from app.services.routing_service import RoutingService
 from app.services.traffic_service import TrafficService
+from app.services.geocoding_service import create_geocoding_service
 from app.security import require_api_key, validate_request
 
 # Initialize blueprint
@@ -180,7 +181,15 @@ def mobile_optimize_route():
         route_result = generate(stores=stores, constraints=preferences)
         optimization_time = time.time() - start_time
 
-        if not route_result or not route_result.get("success"):
+        # Normalize return to a dict shape expected by mobile
+        if isinstance(route_result, list):
+            normalized = {"route": route_result}
+        elif isinstance(route_result, dict):
+            normalized = route_result
+        else:
+            normalized = {"route": []}
+
+        if not normalized.get("route"):
             if analytics_service:
                 analytics_service.track_route_optimization(
                     {
@@ -198,18 +207,29 @@ def mobile_optimize_route():
                 400,
             )
 
-        mobile_route = _compress_route_for_mobile(route_result, mobile_prefs)
+        # Optionally compute simple totals if available
+        total_distance = None
+        try:
+            if isinstance(normalized.get("route"), list):
+                total_distance = routing_service.distance_calculator.calculate_route_distance(
+                    normalized["route"]
+                )
+        except Exception:
+            total_distance = None
+
+        normalized.setdefault("total_distance", total_distance)
+        mobile_route = _compress_route_for_mobile(normalized, mobile_prefs)
 
         if analytics_service:
             analytics_service.track_route_optimization(
                 {
-                    "route_id": route_result.get("route_id"),
+                    "route_id": normalized.get("route_id"),
                     "algorithm": preferences.get("algorithm", "genetic"),
                     "stores": stores,
                     "optimization_time": optimization_time,
-                    "total_distance": route_result.get("total_distance"),
-                    "total_time": route_result.get("total_time"),
-                    "improvement_percentage": route_result.get(
+                    "total_distance": normalized.get("total_distance"),
+                    "total_time": normalized.get("total_time"),
+                    "improvement_percentage": normalized.get(
                         "improvement_percentage"
                     ),
                     "success": True,
@@ -282,6 +302,36 @@ def mobile_traffic_route():
             "steps": data.get("include_steps", True),
         }
 
+        # Normalize origin/destination to coordinates (accept string or lat/lng)
+        def _normalize_location(loc):
+            if isinstance(loc, dict) and {"lat", "lng"}.issubset(loc.keys()):
+                return {"lat": float(loc["lat"]), "lng": float(loc["lng"]) }
+            if isinstance(loc, (list, tuple)) and len(loc) == 2:
+                return {"lat": float(loc[0]), "lng": float(loc[1])}
+            if isinstance(loc, str) and loc.strip():
+                # Geocode address string
+                try:
+                    geo = create_geocoding_service()
+                    coords = geo.get_coordinates(loc)
+                    if coords:
+                        return {"lat": float(coords[0]), "lng": float(coords[1])}
+                except Exception:
+                    return None
+            return None
+
+        origin_norm = _normalize_location(origin)
+        dest_norm = _normalize_location(destination)
+        if not origin_norm or not dest_norm:
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "error": "Invalid origin/destination. Provide address or [lat,lng].",
+                    }
+                ),
+                400,
+            )
+
         traffic_service = TrafficService()
         get_dir = getattr(traffic_service, "get_traffic_optimized_route", None)
         if not callable(get_dir):
@@ -294,10 +344,7 @@ def mobile_traffic_route():
             )
 
         traffic_route = get_dir(
-            stores=[
-                {"lat": origin[0], "lng": origin[1]},
-                {"lat": destination[0], "lng": destination[1]},
-            ],
+            stores=[origin_norm, dest_norm],
             constraints=nav_prefs,
         )
         if not traffic_route:
@@ -311,7 +358,20 @@ def mobile_traffic_route():
                 400,
             )
 
-        mobile_directions = _format_directions_for_mobile(traffic_route)
+        # Format Google directions payload when available
+        mobile_directions = _format_directions_for_mobile(
+            traffic_route.get("google_maps_data", {})
+        )
+
+        # Optionally compute alternatives
+        alternatives = []
+        try:
+            if nav_prefs.get("alternatives", False):
+                alternatives = traffic_service.get_route_alternatives(
+                    [origin_norm, dest_norm]
+                )
+        except Exception:
+            alternatives = []
 
         logger.info(
             "Mobile traffic route generated: %s to %s", origin, destination
@@ -322,8 +382,8 @@ def mobile_traffic_route():
                 {
                     "success": True,
                     "directions": mobile_directions,
-                    "traffic_info": traffic_route.get("traffic_info", {}),
-                    "alternatives": traffic_route.get("alternatives", []),
+                    "traffic_info": traffic_route.get("traffic_data", {}),
+                    "alternatives": alternatives,
                     "mobile_formatted": True,
                 }
             ),

@@ -5,22 +5,6 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { fetchTelemetry, trackSession } from '../api';
-  // Track feature usage for analytics
-  useEffect(() => {
-    const deviceId = window.navigator.userAgent + '_' + (window.crypto?.randomUUID?.() || Math.random().toString(36).substring(2));
-    const platform = /iPhone|iPad|iPod|iOS/i.test(navigator.userAgent)
-      ? 'iOS'
-      : /Android/i.test(navigator.userAgent)
-      ? 'Android'
-      : 'Web';
-    trackSession({
-      device_id: deviceId,
-      app_version: '1.0.0',
-      device_type: platform,
-      features_used: ['tracking'],
-      api_calls: 1,
-    });
-  }, []);
 import {
   PlayIcon,
   PauseIcon,
@@ -78,6 +62,22 @@ const mockTrackingData: TrackingData = {
 };
 
 const TrackingPage: React.FC = () => {
+  // Track feature usage for analytics (moved from top-level)
+  useEffect(() => {
+    const deviceId = window.navigator.userAgent + '_' + (window.crypto?.randomUUID?.() || Math.random().toString(36).substring(2));
+    const platform = /iPhone|iPad|iPod|iOS/i.test(navigator.userAgent)
+      ? 'iOS'
+      : /Android/i.test(navigator.userAgent)
+      ? 'Android'
+      : 'Web';
+    trackSession({
+      device_id: deviceId,
+      app_version: '1.0.0',
+      device_type: platform,
+      features_used: ['tracking'],
+      api_calls: 1,
+    });
+  }, []);
   const [isTracking, setIsTracking] = useState(true);
   const [trackingData, setTrackingData] = useState<TrackingData>(mockTrackingData);
   const [loading, setLoading] = useState(true);

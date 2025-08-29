@@ -33,6 +33,7 @@ def main():
             port=port,
             debug=(config_name == "development"),
             use_reloader=True,
+            allow_unsafe_werkzeug=True,
         )
     except KeyboardInterrupt:
         print("\n👋 Server shutdown requested")

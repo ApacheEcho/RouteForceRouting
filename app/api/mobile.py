@@ -3,20 +3,19 @@ Mobile API Blueprint for RouteForce Routing
 Provides mobile-optimized endpoints for mobile app integration
 """
 
-from flask import Blueprint, request, jsonify, current_app
+import logging
+import uuid
+from datetime import datetime, timedelta
+from typing import Any, Dict
+
+from flask import Blueprint, jsonify, request
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-import uuid
-import time
-from datetime import datetime, timedelta
-import logging
-from typing import Dict, Any, Optional, List
 
+from app.security import require_api_key, validate_request
 # Import services
 from app.services.routing_service import RoutingService
 from app.services.traffic_service import TrafficService
-from app.models.database import db
-from app.security import require_api_key, validate_request
 
 # Initialize blueprint
 mobile_bp = Blueprint("mobile_api", __name__)
@@ -609,8 +608,8 @@ def sync_offline_data():
 
 
 def _compress_route_for_mobile(
-    route_data: Dict[str, Any], preferences: Dict[str, Any]
-) -> Dict[str, Any]:
+    route_data: dict[str, Any], preferences: dict[str, Any]
+) -> dict[str, Any]:
     """
     Compress route data for mobile consumption
     """
@@ -648,7 +647,7 @@ def _compress_route_for_mobile(
     return compressed
 
 
-def _format_directions_for_mobile(directions_data: Dict[str, Any]) -> Dict[str, Any]:
+def _format_directions_for_mobile(directions_data: dict[str, Any]) -> dict[str, Any]:
     """
     Format directions data for mobile navigation
     """

@@ -12,21 +12,14 @@ from geopy.distance import geodesic
 
 # Import optimization algorithms
 from app.optimization.genetic_algorithm import GeneticAlgorithm, GeneticConfig
-from app.optimization.multi_objective import (
-    MultiObjectiveConfig,
-    MultiObjectiveOptimizer,
-)
-from app.optimization.simulated_annealing import (
-    SimulatedAnnealingConfig,
-    SimulatedAnnealingOptimizer,
-)
-
+from app.optimization.multi_objective import (MultiObjectiveConfig,
+                                              MultiObjectiveOptimizer)
+from app.optimization.simulated_annealing import (SimulatedAnnealingConfig,
+                                                  SimulatedAnnealingOptimizer)
 # Import the unified routing service
 from app.services.routing_service_unified import (
-    UnifiedRoutingMetrics,
-    UnifiedRoutingService,
-    create_unified_routing_service,
-)
+    UnifiedRoutingMetrics, UnifiedRoutingService,
+    create_unified_routing_service)
 
 # Import Flask for current_app
 try:
@@ -57,8 +50,8 @@ def create_routing_service(user_id=None):
 
 
 def cluster_by_proximity(
-    stores: List[Dict], radius_km: float = 2.0
-) -> List[List[Dict]]:
+    stores: list[dict], radius_km: float = 2.0
+) -> list[list[dict]]:
     """
     Cluster stores by proximity to optimize routing
 
@@ -82,7 +75,7 @@ def cluster_by_proximity(
     return clusters
 
 
-def is_within_radius(store1: Dict, store2: Dict, radius_km: float) -> bool:
+def is_within_radius(store1: dict, store2: dict, radius_km: float) -> bool:
     """
     Check if two stores are within the specified radius
 
@@ -109,11 +102,11 @@ class LegacyRoutingMetrics:
     total_stores: int
     filtered_stores: int
     optimization_score: float
-    route_id: Optional[int] = None
+    route_id: int | None = None
     clusters_used: int = 0
     distance_saved: float = 0.0
     algorithm_used: str = "default"
-    algorithm_metrics: Dict[str, Any] = None
+    algorithm_metrics: dict[str, Any] = None
 
 
 RoutingMetrics = UnifiedRoutingMetrics
@@ -133,7 +126,7 @@ class RoutingServiceBackup:
     # All methods below this line are now properly indented as class methods
     # ...existing code re-indented one level...
 
-    def get_route_by_id(self, route_id: int) -> Optional[Dict[str, Any]]:
+    def get_route_by_id(self, route_id: int) -> dict[str, Any] | None:
         """
         Get a specific route by ID
 
@@ -155,7 +148,7 @@ class RoutingServiceBackup:
             logger.error(f"Error retrieving route {route_id}: {str(e)}")
             return None
 
-    def _save_stores_to_db(self, stores: List[Dict[str, Any]]) -> None:
+    def _save_stores_to_db(self, stores: list[dict[str, Any]]) -> None:
         """Save stores to database if they don't already exist"""
         if not self.database_service:
             return
@@ -188,10 +181,10 @@ class RoutingServiceBackup:
 
     def _save_route_to_db(
         self,
-        route: List[Dict[str, Any]],
-        filters: Dict[str, Any],
+        route: list[dict[str, Any]],
+        filters: dict[str, Any],
         metrics: RoutingMetrics,
-    ) -> Optional[object]:
+    ) -> object | None:
         """Save route to database"""
         if not self.database_service:
             return None
@@ -233,7 +226,7 @@ class RoutingServiceBackup:
             logger.error(f"Error saving route to database: {str(e)}")
             return None
 
-    def _calculate_total_distance(self, route: List[Dict[str, Any]]) -> float:
+    def _calculate_total_distance(self, route: list[dict[str, Any]]) -> float:
         """Calculate total distance of the route"""
         if not route or len(route) < 2:
             return 0.0
@@ -248,7 +241,7 @@ class RoutingServiceBackup:
 
         return total_distance
 
-    def _build_constraints(self, filters: Dict[str, Any]) -> Dict[str, Any]:
+    def _build_constraints(self, filters: dict[str, Any]) -> dict[str, Any]:
         """Build routing constraints from filters"""
         constraints = {}
 
@@ -267,7 +260,7 @@ class RoutingServiceBackup:
 
         return constraints
 
-    def _apply_filters(self, stores: List[Dict], filters: Dict[str, Any]) -> List[Dict]:
+    def _apply_filters(self, stores: list[dict], filters: dict[str, Any]) -> list[dict]:
         """Apply filtering logic to stores"""
         filtered_stores = stores.copy()
 
@@ -305,7 +298,7 @@ class RoutingServiceBackup:
 
         return filtered_stores
 
-    def _is_within_bounds(self, store: Dict, bounds: Dict) -> bool:
+    def _is_within_bounds(self, store: dict, bounds: dict) -> bool:
         """Check if store is within geographic bounds"""
         lat = store.get("lat")
         lon = store.get("lon")
@@ -317,7 +310,7 @@ class RoutingServiceBackup:
             "north", 90
         ) and bounds.get("west", -180) <= lon <= bounds.get("east", 180)
 
-    def _calculate_optimization_score(self, route: List[Dict]) -> float:
+    def _calculate_optimization_score(self, route: list[dict]) -> float:
         """
         Calculate optimization score for the route
 
@@ -348,16 +341,16 @@ class RoutingServiceBackup:
         """Get the last processing time"""
         return self.last_processing_time
 
-    def get_metrics(self) -> Optional[RoutingMetrics]:
+    def get_metrics(self) -> RoutingMetrics | None:
         """Get the last routing metrics"""
         return self.metrics
 
     def generate_route(
         self,
-        stores: List[Dict],
-        constraints: Dict[str, Any],
+        stores: list[dict],
+        constraints: dict[str, Any],
         algorithm: str = "default",
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Generate route from stores with constraints
 
@@ -447,8 +440,8 @@ class RoutingServiceBackup:
             return []
 
     def predict_route_performance(
-        self, stores: List[Dict], context: Optional[Dict] = None
-    ) -> Dict[str, Any]:
+        self, stores: list[dict], context: dict | None = None
+    ) -> dict[str, Any]:
         """
         Predict route optimization performance using ML
 
@@ -477,8 +470,8 @@ class RoutingServiceBackup:
             }
 
     def recommend_algorithm(
-        self, stores: List[Dict], context: Optional[Dict] = None
-    ) -> Dict[str, Any]:
+        self, stores: list[dict], context: dict | None = None
+    ) -> dict[str, Any]:
         """
         Recommend the best algorithm for the given stores
 
@@ -508,7 +501,7 @@ class RoutingServiceBackup:
                 },
             }
 
-    def get_ml_model_info(self) -> Dict[str, Any]:
+    def get_ml_model_info(self) -> dict[str, Any]:
         """
         Get information about the ML model
 
@@ -546,10 +539,10 @@ class RoutingServiceBackup:
 
     def generate_route_with_ml_recommendation(
         self,
-        stores: List[Dict],
-        constraints: Dict[str, Any],
-        context: Optional[Dict] = None,
-    ) -> Dict[str, Any]:
+        stores: list[dict],
+        constraints: dict[str, Any],
+        context: dict | None = None,
+    ) -> dict[str, Any]:
         """
         Generate route using ML-recommended algorithm, then optimize with find_fastest_route.
 
@@ -625,7 +618,7 @@ class RoutingServiceBackup:
             logger.error(f"Error generating route with ML recommendation: {str(e)}")
             return {"success": False, "error": str(e), "route": []}
 
-    def _heuristic_algorithm_recommendation(self, stores: List[Dict]) -> Dict[str, Any]:
+    def _heuristic_algorithm_recommendation(self, stores: list[dict]) -> dict[str, Any]:
         """
         Provide heuristic algorithm recommendation based on simple rules
 
@@ -681,7 +674,7 @@ class RoutingServiceBackup:
                 },
             }
 
-    def _heuristic_performance_prediction(self, stores: List[Dict]) -> Dict[str, Any]:
+    def _heuristic_performance_prediction(self, stores: list[dict]) -> dict[str, Any]:
         """
         Provide heuristic performance prediction based on simple rules
 
@@ -720,10 +713,10 @@ class RoutingServiceBackup:
 
     def _generate_route_ml(
         self,
-        stores: List[Dict[str, Any]],
-        constraints: Dict[str, Any],
-        filters: Dict[str, Any],
-    ) -> tuple[List[Dict[str, Any]], Dict[str, Any]]:
+        stores: list[dict[str, Any]],
+        constraints: dict[str, Any],
+        filters: dict[str, Any],
+    ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
         """
         Generate route using ML-recommended algorithm
 
@@ -788,10 +781,10 @@ class RoutingServiceBackup:
 
     def generate_traffic_optimized_route(
         self,
-        stores: List[Dict[str, Any]],
-        constraints: Optional[Dict[str, Any]] = None,
-        start_location: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        stores: list[dict[str, Any]],
+        constraints: dict[str, Any] | None = None,
+        start_location: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """
         Generate route optimized for traffic conditions using Google Maps API
 
@@ -884,8 +877,8 @@ class RoutingServiceBackup:
             return self._fallback_to_basic_route(stores, f"Error: {str(e)}")
 
     def get_traffic_alternatives(
-        self, stores: List[Dict[str, Any]], max_alternatives: int = 3
-    ) -> Dict[str, Any]:
+        self, stores: list[dict[str, Any]], max_alternatives: int = 3
+    ) -> dict[str, Any]:
         """
         Get alternative routes with traffic analysis
 
@@ -936,8 +929,8 @@ class RoutingServiceBackup:
             return {"success": False, "error": str(e)}
 
     def predict_traffic_for_route(
-        self, stores: List[Dict[str, Any]], future_hours: List[int] = [1, 2, 4, 8]
-    ) -> Dict[str, Any]:
+        self, stores: list[dict[str, Any]], future_hours: list[int] = [1, 2, 4, 8]
+    ) -> dict[str, Any]:
         """
         Predict traffic conditions for future departure times
 
@@ -976,8 +969,8 @@ class RoutingServiceBackup:
             return {"success": False, "error": str(e)}
 
     def get_traffic_segment_data(
-        self, origin: Dict[str, Any], destination: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+        self, origin: dict[str, Any], destination: dict[str, Any]
+    ) -> dict[str, Any] | None:
         """
         Get detailed traffic data for a specific route segment
 
@@ -1019,8 +1012,8 @@ class RoutingServiceBackup:
             return None
 
     def _fallback_to_basic_route(
-        self, stores: List[Dict[str, Any]], reason: str
-    ) -> Dict[str, Any]:
+        self, stores: list[dict[str, Any]], reason: str
+    ) -> dict[str, Any]:
         """Fallback to basic route generation when traffic optimization fails"""
         try:
             basic_route = self.generate_route(stores, {})
@@ -1040,7 +1033,7 @@ class RoutingServiceBackup:
             }
 
     def _calculate_traffic_optimization_score(
-        self, traffic_result: Dict[str, Any]
+        self, traffic_result: dict[str, Any]
     ) -> float:
         """Calculate optimization score for traffic-optimized route"""
         try:
@@ -1068,8 +1061,8 @@ class RoutingServiceBackup:
             return 50.0  # Default neutral score
 
     def generate_route_from_stores(
-        self, stores: List[Dict], filters: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+        self, stores: list[dict], filters: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """
         Generate route from stores using specified filters
 
@@ -1161,7 +1154,7 @@ class RoutingServiceBackup:
 
             return []
 
-    def _broadcast_route_update(self, route_id: str, status: str, data: Dict[str, Any]):
+    def _broadcast_route_update(self, route_id: str, status: str, data: dict[str, Any]):
         """Broadcast route update via WebSocket"""
         try:
             # Check if we're in Flask app context and WebSocket is available
@@ -1178,7 +1171,7 @@ class RoutingServiceBackup:
         except Exception as e:
             logger.debug(f"WebSocket broadcast failed (non-critical): {str(e)}")
 
-    def _broadcast_optimization_progress(self, route_id: str, progress: Dict[str, Any]):
+    def _broadcast_optimization_progress(self, route_id: str, progress: dict[str, Any]):
         """Broadcast optimization progress via WebSocket"""
         try:
             if current_app and hasattr(current_app, "websocket_manager"):
@@ -1193,11 +1186,11 @@ class RoutingServiceBackup:
 
     def _generate_route_with_algorithm(
         self,
-        stores: List[Dict[str, Any]],
-        constraints: Dict[str, Any],
-        filters: Dict[str, Any],
+        stores: list[dict[str, Any]],
+        constraints: dict[str, Any],
+        filters: dict[str, Any],
         route_id: str = None,
-    ) -> tuple[List[Dict[str, Any]], Dict[str, Any]]:
+    ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
         """
         Generate route using specified algorithm
 
@@ -1276,8 +1269,8 @@ class RoutingServiceBackup:
             return route, metrics
 
     def _generate_route_default(
-        self, stores: List[Dict], constraints: Dict, route_id: str = None
-    ) -> tuple[List[Dict], Dict]:
+        self, stores: list[dict], constraints: dict, route_id: str = None
+    ) -> tuple[list[dict], dict]:
         """Generate route using default proximity clustering"""
         try:
             # Use proximity clustering if enabled
@@ -1311,8 +1304,8 @@ class RoutingServiceBackup:
             }
 
     def _generate_route_genetic(
-        self, stores: List[Dict], constraints: Dict, route_id: str = None
-    ) -> tuple[List[Dict], Dict]:
+        self, stores: list[dict], constraints: dict, route_id: str = None
+    ) -> tuple[list[dict], dict]:
         """Generate route using genetic algorithm"""
         try:
             if route_id:
@@ -1369,8 +1362,8 @@ class RoutingServiceBackup:
             return self._generate_route_default(stores, constraints, route_id)
 
     def _generate_route_simulated_annealing(
-        self, stores: List[Dict], constraints: Dict, route_id: str = None
-    ) -> tuple[List[Dict], Dict]:
+        self, stores: list[dict], constraints: dict, route_id: str = None
+    ) -> tuple[list[dict], dict]:
         """Generate route using simulated annealing"""
         try:
             if route_id:
@@ -1410,8 +1403,8 @@ class RoutingServiceBackup:
             return self._generate_route_default(stores, constraints, route_id)
 
     def _generate_route_multi_objective(
-        self, stores: List[Dict], constraints: Dict, route_id: str = None
-    ) -> tuple[List[Dict], Dict]:
+        self, stores: list[dict], constraints: dict, route_id: str = None
+    ) -> tuple[list[dict], dict]:
         """Generate route using multi-objective optimization"""
         try:
             if route_id:

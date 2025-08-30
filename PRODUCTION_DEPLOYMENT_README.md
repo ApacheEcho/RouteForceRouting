@@ -3,6 +3,8 @@
 ## Overview
 Complete production deployment setup for RouteForce with PostgreSQL, SSL, and CI/CD.
 
+Note: For a concise, step-by-step run path (Render or VPS) see `DEPLOYMENT_RUNBOOK.md`. For the full list of required secrets across methods, see `SECRETS_CHECKLIST.md`.
+
 ## 📋 Prerequisites
 - Ubuntu/Debian server with root access
 - Domain name pointing to your server (app.routeforcepro.com)

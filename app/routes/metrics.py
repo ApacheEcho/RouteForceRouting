@@ -1,17 +1,41 @@
 """
 Metrics API Blueprint - Prometheus-compatible metrics endpoint
 Provides /metrics endpoint for monitoring and observability
+
+Optional protection: set environment variable METRICS_TOKEN to require a matching
+`X-Metrics-Token` header or `?token=` query parameter for access. If unset, endpoints
+remain publicly accessible (default behavior).
 """
 
 import logging
+import os
 
-from flask import Blueprint, Response, jsonify
+from flask import Blueprint, Response, jsonify, request, abort
 
 from app.services.metrics_service import metrics_collector
 
 logger = logging.getLogger(__name__)
 
 metrics_bp = Blueprint("metrics", __name__)
+
+
+@metrics_bp.before_request
+def _protect_metrics():
+    """Protect metrics with optional token if METRICS_TOKEN is set.
+
+    Exempts the lightweight health probe at /metrics/health.
+    """
+    # Allow health probe without token
+    if request.endpoint and request.endpoint.endswith("metrics_health"):
+        return
+
+    required = os.getenv("METRICS_TOKEN")
+    if not required:
+        return  # No protection configured
+
+    provided = request.headers.get("X-Metrics-Token") or request.args.get("token")
+    if provided != required:
+        abort(401, description="Unauthorized: invalid or missing metrics token")
 
 
 @metrics_bp.route("/metrics", methods=["GET"])

@@ -97,6 +97,15 @@ Tasks:
 ```
 <!-- Log: All scripts and configurations provided by Copilot -->
 
+##### Execution Prep (by ChatGPT)
+- ✅ Validated deployment artifacts and parity between scripts/configs
+  - `nginx/routeforce.conf` enhanced (headers, timeouts, gzip)
+  - `scripts/production_setup.sh` fixed to use `nginx/routeforce.conf` and list Render secrets
+  - `scripts/preflight_deploy_check.py` added for quick validation
+  - `DEPLOYMENT_RUNBOOK.md` added with step-by-step commands (Render + VPS)
+- ✅ CI/CD `deploy.yml` reviewed — triggers Render deploy via hook/API
+- 📋 Next action: Run the runbook on target infra and set GitHub secrets
+
 #### **[ ] High Priority - Operations Setup**
 ```markdown
 Status: Post-deployment

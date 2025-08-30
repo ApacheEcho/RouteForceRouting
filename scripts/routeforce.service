@@ -9,6 +9,7 @@ Group=deploy
 WorkingDirectory=/home/deploy/routeforce
 Environment=PATH=/home/deploy/routeforce/venv/bin
 Environment=FLASK_ENV=production
+Environment=AUTO_COMMIT_ENABLED=false
 ExecStart=/home/deploy/routeforce/venv/bin/gunicorn app:app --bind 127.0.0.1:8000 --workers 4 --timeout 120 --daemon --pid /home/deploy/routeforce/app.pid
 ExecReload=/bin/kill -HUP $MAINPID
 ExecStop=/bin/kill -TERM $MAINPID

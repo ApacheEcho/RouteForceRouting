@@ -328,59 +328,7 @@ def create_app(config_name: str = "development", testing: bool = False) -> Flask
                 503,
             )
 
-    # Register metrics endpoint for Prometheus
-    @app.route("/metrics")
-    def metrics():
-        """
-        Prometheus metrics endpoint
-        """
-        try:
-            # Basic system metrics
-            cpu_percent = psutil.cpu_percent(interval=1)
-            memory = psutil.virtual_memory()
-            disk = psutil.disk_usage("/")
-
-            # Application metrics
-            app_metrics = []
-            app_metrics.append(
-                "# HELP routeforce_cpu_usage CPU usage percentage"
-            )
-            app_metrics.append("# TYPE routeforce_cpu_usage gauge")
-            app_metrics.append(f"routeforce_cpu_usage {cpu_percent}")
-
-            app_metrics.append(
-                "# HELP routeforce_memory_usage Memory usage percentage"
-            )
-            app_metrics.append("# TYPE routeforce_memory_usage gauge")
-            app_metrics.append(f"routeforce_memory_usage {memory.percent}")
-
-            app_metrics.append(
-                "# HELP routeforce_disk_usage Disk usage percentage"
-            )
-            app_metrics.append("# TYPE routeforce_disk_usage gauge")
-            app_metrics.append(f"routeforce_disk_usage {disk.percent}")
-
-            app_metrics.append(
-                "# HELP routeforce_uptime Application uptime in seconds"
-            )
-            app_metrics.append("# TYPE routeforce_uptime counter")
-            app_metrics.append(
-                f"routeforce_uptime {time.time() - psutil.boot_time()}"
-            )
-
-            return (
-                "\n".join(app_metrics),
-                200,
-                {"Content-Type": "text/plain; charset=utf-8"},
-            )
-
-        except Exception as e:  # noqa: BLE001
-            # Metrics endpoint must not crash the app
-            return (
-                f"# Error generating metrics: {str(e)}",
-                503,
-                {"Content-Type": "text/plain; charset=utf-8"},
-            )
+    # Metrics are provided by metrics blueprint at /metrics and related endpoints.
 
     # Initialize WebSocket support
     socketio.init_app(

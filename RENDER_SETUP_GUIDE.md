@@ -63,6 +63,11 @@ After creating services, you'll see the Service ID in the URL:
 - Format: `https://dashboard.render.com/web/srv-xxxxxxxxx`
 - The `srv-xxxxxxxxx` part is your Service ID
 
+### 6.1 Get a Deploy Hook (Recommended for CI)
+1. Open your Web Service → Settings → Deploy hooks
+2. Click "New Deploy Hook", name it, and copy the generated URL
+3. Save it as GitHub Secret `RENDER_DEPLOY_HOOK`
+
 ### 7. Set GitHub Secrets
 Run these commands with your actual Service IDs:
 
@@ -79,6 +84,15 @@ gh secret set DOCKER_PASSWORD --body="your-docker-token"
 gh secret set CODECOV_TOKEN --body="your-codecov-token"
 gh secret set SENTRY_DSN --body="https://your-sentry-dsn@sentry.io/project-id"
 gh secret set SLACK_WEBHOOK_URL --body="https://hooks.slack.com/services/your/webhook"
+
+# Recommended simple path (Deploy Hook)
+gh secret set RENDER_DEPLOY_HOOK --body="https://api.render.com/deploy/srv-xxxxxxxx?key=..."
+
+# Optional: protect /metrics with a token and set allowed CORS origins
+gh secret set METRICS_TOKEN --body="<random-token>"
+gh secret set CORS_ORIGINS --body="https://app.routeforcepro.com"
+gh secret set HEALTHCHECK_URL --body="https://<your-domain>/health"  # used by CI to poll service readiness
+gh secret set METRICS_URL --body="https://<your-domain>/metrics"   # used by CI to validate metrics
 ```
 
 ## 🧪 Testing Your Setup

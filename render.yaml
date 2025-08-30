@@ -6,6 +6,7 @@ services:
     env: docker
     dockerfilePath: ./Dockerfile.production
     region: oregon
+    preDeployCommand: ./scripts/run_db_upgrade.sh
     startCommand: "gunicorn --bind 0.0.0.0:5000 --workers 4 --worker-class gthread --timeout 120 --keep-alive 5 --access-logfile '-' --error-logfile '-' --log-level info app:create_app"
     envVars:
       - key: FLASK_ENV

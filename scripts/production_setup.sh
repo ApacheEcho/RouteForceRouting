@@ -41,7 +41,8 @@ echo "---------------------------------"
 sudo apt install -y nginx certbot python3-certbot-nginx
 
 # Copy NGINX configuration
-sudo cp scripts/routeforce.nginx /etc/nginx/sites-available/routeforce
+# Use the production NGINX config provided in the repo
+sudo cp nginx/routeforce.conf /etc/nginx/sites-available/routeforce
 sudo ln -sf /etc/nginx/sites-available/routeforce /etc/nginx/sites-enabled/
 
 # Test NGINX configuration
@@ -66,14 +67,23 @@ sudo systemctl enable routeforce
 echo "✅ System service configured"
 
 echo ""
-echo "4️⃣ Setting up GitHub Actions Secrets..."
-echo "---------------------------------------"
+echo "4️⃣ Setting up GitHub Actions / Render Secrets..."
+echo "------------------------------------------------"
 
-echo "Add these secrets to your GitHub repository:"
+echo "Add these secrets to your GitHub repository (Render deployment recommended):"
+echo "RENDER_DEPLOY_HOOK=your_render_service_deploy_hook_url   # Preferred simple trigger"
+echo "RENDER_API_KEY=your_render_api_key                       # Optional alternative trigger"
+echo "RENDER_SERVICE_ID=your_render_service_id                 # Required if using API key"
+echo "CORS_ORIGINS=https://app.routeforcepro.com               # Required in production"
+echo "SECRET_KEY=your-strong-secret-key                       # Flask secret key"
+echo "JWT_SECRET_KEY=your-strong-jwt-secret                    # JWT signing key"
+echo "DATABASE_URL=postgresql://routeforce_user:your_secure_password_here@localhost:5432/routeforce_prod   # If self-hosting DB"
+echo "SENTRY_DSN=optional_sentry_dsn                            # Optional error tracking"
+
+echo "If deploying to a VPS via SSH (alternative path), also configure:"
 echo "PROD_HOST=your_server_ip_or_domain"
 echo "PROD_USER=deploy"
 echo "SSH_PRIVATE_KEY=your_ssh_private_key"
-echo "DATABASE_URL=postgresql://routeforce_user:your_secure_password_here@localhost:5432/routeforce_prod"
 
 echo ""
 echo "5️⃣ Initial Application Deployment..."

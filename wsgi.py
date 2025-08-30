@@ -1,5 +1,20 @@
 import os
 
+# Load environment variables from local files if present
+try:
+    from dotenv import load_dotenv  # type: ignore
+    # Base .env for local usage
+    load_dotenv(dotenv_path=".env", override=False)
+    # Production-specific overrides if running in production
+    if os.getenv("FLASK_ENV", "production").lower() == "production":
+        # Load .env.production if present (does not exist on Render by default)
+        load_dotenv(dotenv_path=".env.production", override=True)
+        # Also support a render-specific env file if used locally
+        load_dotenv(dotenv_path=".env.render", override=False)
+except Exception:
+    # dotenv is optional; ignore if not installed or any error occurs
+    pass
+
 from app import create_app, socketio
 
 app = create_app(os.getenv("FLASK_ENV", "production"))

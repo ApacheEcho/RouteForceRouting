@@ -10,13 +10,14 @@ remain publicly accessible (default behavior).
 import logging
 import os
 
-from flask import Blueprint, Response, jsonify, request, abort
+from flask import Blueprint, Response, abort, jsonify, request
 
 from app.services.metrics_service import metrics_collector
 
 logger = logging.getLogger(__name__)
 
 metrics_bp = Blueprint("metrics", __name__)
+
 
 @metrics_bp.before_request
 def _protect_metrics():

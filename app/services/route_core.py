@@ -8,10 +8,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Protocol, Tuple
 
-from app.services.distance_service import (
-    RouteDistanceCalculator,
-    create_distance_calculator,
-)
+from app.services.distance_service import (RouteDistanceCalculator,
+                                           create_distance_calculator)
 
 logger = logging.getLogger(__name__)
 
@@ -20,12 +18,12 @@ logger = logging.getLogger(__name__)
 class RouteConstraints:
     """Type-safe route constraints"""
 
-    max_stores: Optional[int] = None
-    max_distance_km: Optional[float] = None
-    time_windows: Optional[Dict[str, Dict[str, str]]] = None
-    priority_weights: Optional[Dict[str, float]] = None
-    visit_date: Optional[datetime] = None
-    _allowed_days: Optional[Dict[str, List[str]]] = None
+    max_stores: int | None = None
+    max_distance_km: float | None = None
+    time_windows: dict[str, dict[str, str]] | None = None
+    priority_weights: dict[str, float] | None = None
+    visit_date: datetime | None = None
+    _allowed_days: dict[str, list[str]] | None = None
 
 
 @dataclass
@@ -37,7 +35,7 @@ class RouteMetrics:
     processing_time: float
     algorithm_used: str
     optimization_score: float = 0.0
-    constraints_violated: List[str] = None
+    constraints_violated: list[str] = None
 
     def __post_init__(self):
         if self.constraints_violated is None:
@@ -49,8 +47,8 @@ class RouteFilter(ABC):
 
     @abstractmethod
     def apply(
-        self, stores: List[Dict[str, Any]], constraints: RouteConstraints
-    ) -> List[Dict[str, Any]]:
+        self, stores: list[dict[str, Any]], constraints: RouteConstraints
+    ) -> list[dict[str, Any]]:
         """Apply filter to stores based on constraints"""
         ...
 
@@ -59,8 +57,8 @@ class TimeWindowFilter(RouteFilter):
     """Filter stores based on time windows"""
 
     def apply(
-        self, stores: List[Dict[str, Any]], constraints: RouteConstraints
-    ) -> List[Dict[str, Any]]:
+        self, stores: list[dict[str, Any]], constraints: RouteConstraints
+    ) -> list[dict[str, Any]]:
         """Apply time window filtering"""
         if not constraints.time_windows or not constraints.visit_date:
             return stores
@@ -91,8 +89,8 @@ class MaxStoresFilter(RouteFilter):
     """Filter stores based on maximum route length"""
 
     def apply(
-        self, stores: List[Dict[str, Any]], constraints: RouteConstraints
-    ) -> List[Dict[str, Any]]:
+        self, stores: list[dict[str, Any]], constraints: RouteConstraints
+    ) -> list[dict[str, Any]]:
         """Apply maximum stores filtering"""
         if constraints.max_stores and len(stores) > constraints.max_stores:
             # Sort by priority if available, then by name for consistency
@@ -116,8 +114,8 @@ class DaysAllowedFilter(RouteFilter):
     """Filter stores based on allowed days of the week"""
 
     def apply(
-        self, stores: List[Dict[str, Any]], constraints: RouteConstraints
-    ) -> List[Dict[str, Any]]:
+        self, stores: list[dict[str, Any]], constraints: RouteConstraints
+    ) -> list[dict[str, Any]]:
         """Apply days allowed filtering"""
         if not constraints._allowed_days or not constraints.visit_date:
             return stores
@@ -142,8 +140,8 @@ class RouteOptimizer(Protocol):
     """Protocol for route optimization algorithms"""
 
     def optimize(
-        self, stores: List[Dict[str, Any]], constraints: RouteConstraints
-    ) -> List[Dict[str, Any]]:
+        self, stores: list[dict[str, Any]], constraints: RouteConstraints
+    ) -> list[dict[str, Any]]:
         """Optimize the route order"""
         ...
 
@@ -152,8 +150,8 @@ class PriorityOptimizer:
     """Simple priority-based route optimization"""
 
     def optimize(
-        self, stores: List[Dict[str, Any]], constraints: RouteConstraints
-    ) -> List[Dict[str, Any]]:
+        self, stores: list[dict[str, Any]], constraints: RouteConstraints
+    ) -> list[dict[str, Any]]:
         """Optimize route by priority and distance"""
         if not stores:
             return []
@@ -175,8 +173,8 @@ class GreedyNearestNeighborOptimizer:
         self.distance_calculator = distance_calculator
 
     def optimize(
-        self, stores: List[Dict[str, Any]], constraints: RouteConstraints
-    ) -> List[Dict[str, Any]]:
+        self, stores: list[dict[str, Any]], constraints: RouteConstraints
+    ) -> list[dict[str, Any]]:
         """Optimize route using nearest neighbor with priority weighting"""
         if len(stores) <= 1:
             return stores
@@ -216,19 +214,23 @@ class ModernRouteGenerator:
 
     def __init__(
         self,
-        filters: List[RouteFilter] = None,
+        filters: list[RouteFilter] = None,
         optimizer: RouteOptimizer = None,
         distance_calculator: RouteDistanceCalculator = None,
     ):
-        self.filters = filters or [TimeWindowFilter(), DaysAllowedFilter(), MaxStoresFilter()]
+        self.filters = filters or [
+            TimeWindowFilter(),
+            DaysAllowedFilter(),
+            MaxStoresFilter(),
+        ]
         self.optimizer = optimizer or PriorityOptimizer()
         self.distance_calculator = distance_calculator or create_distance_calculator()
 
     def generate_route(
         self,
-        stores: List[Dict[str, Any]],
-        constraints: Optional[RouteConstraints] = None,
-    ) -> Tuple[List[Dict[str, Any]], RouteMetrics]:
+        stores: list[dict[str, Any]],
+        constraints: RouteConstraints | None = None,
+    ) -> tuple[list[dict[str, Any]], RouteMetrics]:
         """
         Generate optimized route with filtering and optimization
 
@@ -282,10 +284,10 @@ class ModernRouteGenerator:
 
     def summarize_route(
         self,
-        route: List[Dict[str, Any]],
-        original_stores: List[Dict[str, Any]],
-        constraints: Optional[RouteConstraints] = None,
-    ) -> Dict[str, Any]:
+        route: list[dict[str, Any]],
+        original_stores: list[dict[str, Any]],
+        constraints: RouteConstraints | None = None,
+    ) -> dict[str, Any]:
         """Generate route summary with analysis"""
         constraints = constraints or RouteConstraints()
 
@@ -347,10 +349,10 @@ def create_route_generator(algorithm: str = "priority") -> ModernRouteGenerator:
 
 # Legacy compatibility functions
 def generate_route(
-    stores: List[Dict[str, Any]],
-    visit_date: Optional[datetime] = None,
-    playbook: Optional[Dict] = None,
-) -> List[Dict[str, Any]]:
+    stores: list[dict[str, Any]],
+    visit_date: datetime | None = None,
+    playbook: dict | None = None,
+) -> list[dict[str, Any]]:
     """Legacy compatibility function"""
     # Convert playbook to constraints
     constraints = RouteConstraints()
@@ -360,17 +362,17 @@ def generate_route(
         # Handle special playbook keys first
         if "max_route_stops" in playbook:
             constraints.max_stores = playbook["max_route_stops"]
-            
+
         # Convert playbook format to modern constraints
         time_windows = {}
         priority_weights = {}
         allowed_days = {}
-        
+
         for chain, config in playbook.items():
             # Skip special keys that aren't chain configs
             if chain == "max_route_stops" or not isinstance(config, dict):
                 continue
-                
+
             if "visit_hours" in config:
                 time_windows[chain] = config["visit_hours"]
             if "time_window" in config:
@@ -379,10 +381,10 @@ def generate_route(
                 priority_weights[chain] = config["priority"]
             if "days_allowed" in config:
                 allowed_days[chain] = config["days_allowed"]
-                
+
         constraints.time_windows = time_windows if time_windows else None
         constraints.priority_weights = priority_weights if priority_weights else None
-        
+
         # Store days_allowed for custom filtering
         if allowed_days:
             constraints._allowed_days = allowed_days
@@ -393,11 +395,11 @@ def generate_route(
 
 
 def summarize_route(
-    route: List[Dict[str, Any]],
-    original_stores: List[Dict[str, Any]],
-    playbook: Optional[Dict] = None,
-    visit_date: Optional[datetime] = None,
-) -> Dict[str, Any]:
+    route: list[dict[str, Any]],
+    original_stores: list[dict[str, Any]],
+    playbook: dict | None = None,
+    visit_date: datetime | None = None,
+) -> dict[str, Any]:
     """Legacy compatibility function"""
     # Convert to modern format
     constraints = RouteConstraints()
@@ -418,7 +420,7 @@ def summarize_route(
     return generator.summarize_route(route, original_stores, constraints)
 
 
-def print_route_summary(summary: Dict[str, Any]) -> None:
+def print_route_summary(summary: dict[str, Any]) -> None:
     """Legacy compatibility function"""
     print("\n--- Route Summary ---")
     print(f"Total Stops: {summary.get('total_stops', 0)}")

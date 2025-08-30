@@ -3,21 +3,16 @@ Authentication and Authorization System for RouteForce
 JWT-based authentication with role-based access control
 """
 
-from flask import Blueprint, request, jsonify, current_app, session
-from flask_jwt_extended import (
-    JWTManager,
-    create_access_token,
-    get_jwt_identity,
-    jwt_required,
-    verify_jwt_in_request,
-)
-from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime, timedelta
-import secrets
-import json
-from typing import Dict, List, Optional, Any
-from functools import wraps
 import logging
+import secrets
+from datetime import datetime, timedelta
+from functools import wraps
+from typing import Any, Dict, Optional
+
+from flask import Blueprint, jsonify, request
+from flask_jwt_extended import (JWTManager, create_access_token,
+                                get_jwt_identity, jwt_required)
+from werkzeug.security import check_password_hash, generate_password_hash
 
 logger = logging.getLogger(__name__)
 
@@ -136,18 +131,18 @@ class AuthManager:
             identity = jwt_data["sub"]
             return self.get_user_by_id(identity)
 
-    def get_user_by_email(self, email: str) -> Optional[Dict[str, Any]]:
+    def get_user_by_email(self, email: str) -> dict[str, Any] | None:
         """Get user by email"""
         return users_db.get(email)
 
-    def get_user_by_id(self, user_id: str) -> Optional[Dict[str, Any]]:
+    def get_user_by_id(self, user_id: str) -> dict[str, Any] | None:
         """Get user by ID"""
         for user in users_db.values():
             if user["id"] == user_id:
                 return user
         return None
 
-    def authenticate_user(self, email: str, password: str) -> Optional[Dict[str, Any]]:
+    def authenticate_user(self, email: str, password: str) -> dict[str, Any] | None:
         """Authenticate user with email and password"""
         user = self.get_user_by_email(email)
         if (
@@ -162,7 +157,7 @@ class AuthManager:
 
     def create_user(
         self, email: str, name: str, password: str, role: str = "viewer"
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Create new user"""
         if email in users_db:
             raise ValueError("User already exists")
@@ -184,7 +179,7 @@ class AuthManager:
         users_db[email] = user
         return user
 
-    def has_permission(self, user: Dict[str, Any], permission: str) -> bool:
+    def has_permission(self, user: dict[str, Any], permission: str) -> bool:
         """Check if user has specific permission"""
         if not user or not user.get("is_active"):
             return False

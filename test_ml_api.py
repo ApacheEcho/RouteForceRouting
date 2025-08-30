@@ -6,6 +6,12 @@ Validates ML-based route prediction and algorithm recommendation API endpoints
 
 import sys
 import os
+import pytest
+
+# Mark as integration; skip unless explicitly enabled
+pytestmark = pytest.mark.integration
+if not os.getenv("RUN_INTEGRATION"):
+    pytest.skip("Integration test requires running server; set RUN_INTEGRATION=1 to enable.", allow_module_level=True)
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 

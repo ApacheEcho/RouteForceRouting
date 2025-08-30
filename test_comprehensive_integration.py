@@ -3,6 +3,7 @@ Comprehensive Integration Test for Enhanced RouteForce System
 Tests all major components: Analytics, Authentication, Database, External APIs, Dashboard
 """
 
+import os
 import pytest
 import requests
 import json
@@ -13,6 +14,11 @@ import logging
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Mark as integration; skip unless explicitly enabled
+pytestmark = pytest.mark.integration
+if not os.getenv("RUN_INTEGRATION"):
+    pytest.skip("Integration test requires running server; set RUN_INTEGRATION=1 to enable.", allow_module_level=True)
 
 # Base URL for testing
 BASE_URL = "http://localhost:5001"

@@ -226,5 +226,6 @@
     // YAML schema validation for GitHub workflows
     "yaml.schemas": {
         "https://json.schemastore.org/github-workflow.json": ".github/workflows/*.{yml,yaml}"
-    }
+    },
+    "chatgpt.openOnStartup": true
 }

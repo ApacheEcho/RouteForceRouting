@@ -3,12 +3,22 @@
 Comprehensive test suite for Advanced AI Analytics API
 """
 
+import os
+import pytest
 import requests
 import json
 import time
 from typing import Dict, Any
 
 BASE_URL = "http://localhost:5001/api/ai"
+
+# Mark as integration; skip unless explicitly enabled
+pytestmark = pytest.mark.integration
+if not os.getenv("RUN_INTEGRATION"):
+    pytest.skip(
+        "Integration test requires running server; set RUN_INTEGRATION=1 to enable.",
+        allow_module_level=True,
+    )
 
 
 def test_api_endpoint(

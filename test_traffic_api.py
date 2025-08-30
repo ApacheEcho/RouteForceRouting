@@ -4,10 +4,17 @@ Test script for traffic-aware routing API endpoints.
 This script validates the new traffic API functionality.
 """
 
+import os
+import pytest
 import requests
 import json
 import time
 from datetime import datetime, timedelta
+
+# Mark as integration; skip unless explicitly enabled
+pytestmark = pytest.mark.integration
+if not os.getenv("RUN_INTEGRATION"):
+    pytest.skip("Integration test requires running server; set RUN_INTEGRATION=1 to enable.", allow_module_level=True)
 
 # Base URL for the API
 BASE_URL = "http://localhost:5003"

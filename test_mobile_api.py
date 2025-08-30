@@ -4,11 +4,18 @@ Test script for Mobile API endpoints.
 This script validates the mobile API functionality for app integration.
 """
 
+import os
+import pytest
 import requests
 import json
 import time
 import uuid
 from datetime import datetime, timedelta
+
+# This test requires a running server. Mark as integration and skip by default.
+pytestmark = pytest.mark.integration
+if not os.getenv("RUN_INTEGRATION"):
+    pytest.skip("Integration test requires running server; set RUN_INTEGRATION=1 to enable.", allow_module_level=True)
 
 # Base URL for the API
 BASE_URL = "http://localhost:5002"

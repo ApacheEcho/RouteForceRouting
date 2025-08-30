@@ -185,10 +185,10 @@ def setup_request_monitoring(app):
 
         return response
 
-    # Add metrics endpoint
-    @app.route("/metrics")
-    def metrics():
-        """Prometheus-style metrics endpoint"""
+    # Add raw JSON metrics endpoint (avoid conflict with Prometheus /metrics)
+    @app.route("/metrics/raw")
+    def metrics_raw():
+        """Raw JSON metrics for debugging (non-Prometheus)"""
         from flask import jsonify
 
         return jsonify(metrics_collector.get_metrics())

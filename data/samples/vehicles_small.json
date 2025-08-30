@@ -1,0 +1,9 @@
+[
+  {"vehicle_id":"small_veh_01","capacity_kg":900,"max_packages":120,"max_driving_hours":9,"driver_id":"driver_001"},
+  {"vehicle_id":"small_veh_02","capacity_kg":1100,"max_packages":150,"max_driving_hours":10,"driver_id":"driver_002"},
+  {"vehicle_id":"small_veh_03","capacity_kg":800,"max_packages":100,"max_driving_hours":8},
+  {"vehicle_id":"small_veh_04","capacity_kg":1250,"max_packages":160,"max_driving_hours":10,"driver_id":"driver_004"},
+  {"vehicle_id":"small_veh_05","capacity_kg":700,"max_packages":90,"max_driving_hours":8},
+  {"vehicle_id":"small_veh_06","capacity_kg":1000,"max_packages":140,"max_driving_hours":9,"driver_id":"driver_006"}
+]
+

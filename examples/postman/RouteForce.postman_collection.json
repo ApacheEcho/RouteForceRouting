@@ -1,0 +1,41 @@
+{
+  "info": {
+    "name": "RouteForce API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "0f000000-0000-4000-8000-000000000abc"
+  },
+  "item": [
+    {
+      "name": "API Health",
+      "request": {
+        "method": "GET",
+        "header": [ { "key": "Accept", "value": "application/json" } ],
+        "url": { "raw": "{{host}}/api/v1/health", "host": ["{{host}}"], "path": ["api","v1","health"] }
+      }
+    },
+    {
+      "name": "Create Route",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" } ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"stores\": [\n    { \"name\": \"Store A\", \"address\": \"1600 Amphitheatre Pkwy, Mountain View, CA\" },\n    { \"name\": \"Store B\", \"address\": \"1 Hacker Way, Menlo Park, CA\" },\n    { \"name\": \"Store C\", \"address\": \"410 Terry Ave N, Seattle, WA\" }\n  ],\n  \"constraints\": { \"max_distance\": 100.0 },\n  \"options\": { \"algorithm\": \"genetic\", \"ga_population_size\": 50 }\n}"
+        },
+        "url": { "raw": "{{host}}/api/v1/routes", "host": ["{{host}}"], "path": ["api", "v1", "routes"] }
+      }
+    },
+    {
+      "name": "Analytics Health",
+      "request": {
+        "method": "GET",
+        "header": [ { "key": "Accept", "value": "application/json" } ],
+        "url": { "raw": "{{host}}/api/analytics/health", "host": ["{{host}}"], "path": ["api","analytics","health"] }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "host", "value": "http://localhost:8000" }
+  ]
+}
+

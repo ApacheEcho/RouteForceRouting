@@ -1,0 +1,14 @@
+[
+  {"id": 1,  "name": "S1",  "address": "Times Sq 1",       "latitude": 40.7580, "longitude": -73.9855, "priority": "high",   "estimated_service_time": 10, "packages": 2, "weight_kg": 5.0},
+  {"id": 2,  "name": "S2",  "address": "7th Ave 100",      "latitude": 40.7572, "longitude": -73.9881, "priority": "medium", "estimated_service_time": 10, "packages": 1, "weight_kg": 4.0},
+  {"id": 3,  "name": "S3",  "address": "W 45th St 200",    "latitude": 40.7586, "longitude": -73.9905, "priority": "low",    "estimated_service_time": 15, "packages": 1, "weight_kg": 3.5},
+  {"id": 4,  "name": "S4",  "address": "W 47th St 300",    "latitude": 40.7602, "longitude": -73.9875, "priority": "medium", "estimated_service_time": 15, "packages": 2, "weight_kg": 6.0},
+  {"id": 5,  "name": "S5",  "address": "Broadway 400",     "latitude": 40.7591, "longitude": -73.9820, "priority": "high",   "estimated_service_time": 10, "packages": 1, "weight_kg": 4.5},
+  {"id": 6,  "name": "S6",  "address": "W 43rd St 500",    "latitude": 40.7570, "longitude": -73.9828, "priority": "low",    "estimated_service_time": 10, "packages": 1, "weight_kg": 3.0},
+  {"id": 7,  "name": "S7",  "address": "8th Ave 600",      "latitude": 40.7598, "longitude": -73.9899, "priority": "medium", "estimated_service_time": 15, "packages": 2, "weight_kg": 6.5},
+  {"id": 8,  "name": "S8",  "address": "W 49th St 700",    "latitude": 40.7620, "longitude": -73.9850, "priority": "high",   "estimated_service_time": 10, "packages": 1, "weight_kg": 4.0},
+  {"id": 9,  "name": "S9",  "address": "6th Ave 800",      "latitude": 40.7575, "longitude": -73.9802, "priority": "medium", "estimated_service_time": 15, "packages": 2, "weight_kg": 5.5},
+  {"id": 10, "name": "S10", "address": "W 41st St 900",    "latitude": 40.7555, "longitude": -73.9860, "priority": "low",    "estimated_service_time": 10, "packages": 1, "weight_kg": 3.5},
+  {"id": 11, "name": "S11", "address": "5th Ave 1000",     "latitude": 40.7605, "longitude": -73.9795, "priority": "medium", "estimated_service_time": 15, "packages": 2, "weight_kg": 5.0},
+  {"id": 12, "name": "S12", "address": "Madison Ave 1100", "latitude": 40.7612, "longitude": -73.9778, "priority": "high",   "estimated_service_time": 10, "packages": 1, "weight_kg": 4.0}
+]

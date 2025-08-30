@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://routeforce.local/schemas/store.schema.json",
+  "title": "Store",
+  "description": "Store record used by RouteForce. Accepts either lat/lng or latitude/longitude. Priority may be an enum string or a small integer.",
+  "oneOf": [
+    { "$ref": "#/definitions/store" },
+    { "type": "array", "items": { "$ref": "#/definitions/store" } }
+  ],
+  "definitions": {
+    "id": {
+      "description": "Store identifier (string or integer)",
+      "oneOf": [ { "type": "string", "minLength": 1 }, { "type": "integer" } ]
+    },
+    "priority": {
+      "description": "Priority as enum or small integer",
+      "oneOf": [
+        { "type": "string", "enum": ["low", "medium", "high"] },
+        { "type": "integer", "minimum": 1, "maximum": 3 }
+      ]
+    },
+    "coord_pair": {
+      "description": "Either lat/lng or latitude/longitude must be present",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["lat", "lng"],
+          "properties": {
+            "lat": { "type": "number", "minimum": -90, "maximum": 90 },
+            "lng": { "type": "number", "minimum": -180, "maximum": 180 }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["latitude", "longitude"],
+          "properties": {
+            "latitude": { "type": "number", "minimum": -90, "maximum": 90 },
+            "longitude": { "type": "number", "minimum": -180, "maximum": 180 }
+          }
+        }
+      ]
+    },
+    "store": {
+      "type": "object",
+      "additionalProperties": true,
+      "allOf": [ { "$ref": "#/definitions/coord_pair" } ],
+      "required": ["name", "address"],
+      "properties": {
+        "id": { "$ref": "#/definitions/id" },
+        "name": { "type": "string", "minLength": 1 },
+        "address": { "type": "string", "minLength": 1 },
+        "latitude": { "type": "number", "minimum": -90, "maximum": 90 },
+        "longitude": { "type": "number", "minimum": -180, "maximum": 180 },
+        "lat": { "type": "number", "minimum": -90, "maximum": 90 },
+        "lng": { "type": "number", "minimum": -180, "maximum": 180 },
+        "priority": { "$ref": "#/definitions/priority" },
+        "estimated_service_time": { "type": "integer", "minimum": 0, "maximum": 1440 },
+        "packages": { "type": "integer", "minimum": 0 },
+        "weight_kg": { "type": "number", "minimum": 0 }
+      }
+    }
+  }
+}
+

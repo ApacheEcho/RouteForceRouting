@@ -1,0 +1,17 @@
+@host = http://localhost:8000
+
+### Create optimized route
+POST {{host}}/api/v1/routes
+Content-Type: application/json
+Accept: application/json
+
+{
+  "stores": [
+    { "name": "Store A", "address": "1600 Amphitheatre Pkwy, Mountain View, CA" },
+    { "name": "Store B", "address": "1 Hacker Way, Menlo Park, CA" },
+    { "name": "Store C", "address": "410 Terry Ave N, Seattle, WA" }
+  ],
+  "constraints": { "max_distance": 100.0 },
+  "options": { "algorithm": "genetic", "ga_population_size": 50 }
+}
+

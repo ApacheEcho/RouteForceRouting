@@ -64,6 +64,11 @@ def main(argv: List[str]) -> int:
         help="Optimization method",
     )
     parser.add_argument("--out", help="Write output JSON to this file (default stdout)")
+    parser.add_argument(
+        "--summary",
+        action="store_true",
+        help="Print a concise summary (keeps JSON clean when printing to stdout)",
+    )
     args = parser.parse_args(argv)
 
     seed_all_from_env()
@@ -99,6 +104,17 @@ def main(argv: List[str]) -> int:
         Path(args.out).write_text(out_str + "\n", encoding="utf-8")
     else:
         print(out_str)
+
+    if args.summary:
+        n_routes = len(routes)
+        total_distance = round(sum(r.total_distance_km for r in routes), 2)
+        total_stops = sum(len(r.stops) for r in routes)
+        summary = f"Summary: method={args.method} routes={n_routes} total_distance_km={total_distance} total_stops={total_stops}"
+        # If JSON was printed to stdout, write summary to stderr to avoid mixing
+        if args.out:
+            print(summary)
+        else:
+            print(summary, file=sys.stderr)
 
     return 0
 

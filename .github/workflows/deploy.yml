@@ -9,6 +9,9 @@ on:
 env:
   PYTHON_VERSION: "3.12"
   NODE_VERSION: "18"
+  HEALTHCHECK_URL: ${{ secrets.HEALTHCHECK_URL }}
+  METRICS_TOKEN: ${{ secrets.METRICS_TOKEN }}
+  METRICS_URL: ${{ secrets.METRICS_URL }}
 
 concurrency:
   group: deploy-${{ github.ref }}
@@ -194,10 +197,69 @@ jobs:
           fi
           echo "✅ Render deploy triggered"
 
+  healthcheck:
+    name: Verify Health Endpoint
+    runs-on: ubuntu-latest
+    needs: deploy
+    timeout-minutes: 10
+    if: env.HEALTHCHECK_URL != '' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Poll health endpoint until ready
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL="${HEALTHCHECK_URL}"
+          echo "Checking health at: ${URL}"
+          ATTEMPTS=30
+          SLEEP=10
+          for i in $(seq 1 ${ATTEMPTS}); do
+            if curl -fsS "${URL}" >/dev/null; then
+              echo "✅ Health check passed on attempt ${i}" | tee -a "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            echo "⏳ Attempt ${i}/${ATTEMPTS} failed; retrying in ${SLEEP}s..."
+            sleep ${SLEEP}
+          done
+          echo "❌ Health check failed after ${ATTEMPTS} attempts" | tee -a "$GITHUB_STEP_SUMMARY"
+          exit 1
+
+  metricscheck:
+    name: Verify Metrics Endpoint
+    runs-on: ubuntu-latest
+    needs: [deploy, healthcheck]
+    timeout-minutes: 10
+    if: env.METRICS_URL != '' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Poll metrics endpoint until ready
+        shell: bash
+        env:
+          METRICS_URL: ${{ env.METRICS_URL }}
+          METRICS_TOKEN: ${{ env.METRICS_TOKEN }}
+        run: |
+          set -euo pipefail
+          URL="${METRICS_URL}"
+          echo "Checking metrics at: ${URL}"
+          HDR=()
+          if [ -n "${METRICS_TOKEN}" ]; then
+            HDR=( -H "X-Metrics-Token: ${METRICS_TOKEN}" )
+          fi
+          ATTEMPTS=30
+          SLEEP=10
+          for i in $(seq 1 ${ATTEMPTS}); do
+            if curl -fsS "${HDR[@]}" "${URL}" >/dev/null; then
+              echo "✅ Metrics check passed on attempt ${i}" | tee -a "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            echo "⏳ Attempt ${i}/${ATTEMPTS} failed; retrying in ${SLEEP}s..."
+            sleep ${SLEEP}
+          done
+          echo "❌ Metrics check failed after ${ATTEMPTS} attempts" | tee -a "$GITHUB_STEP_SUMMARY"
+          exit 1
+
   notify:
     name: Notify Deployment Status
     runs-on: ubuntu-latest
-    needs: [test, deploy]
+    needs: [test, deploy, healthcheck, metricscheck]
     if: always()
     timeout-minutes: 5
     permissions:
@@ -205,10 +267,27 @@ jobs:
 
     steps:
       - name: Notify success
-        if: ${{ needs.deploy.result == 'success' }}
+        if: ${{ needs.deploy.result == 'success' && (needs.healthcheck.result == 'success' || env.HEALTHCHECK_URL == '') && (needs.metricscheck.result == 'success' || env.METRICS_URL == '') }}
         run: |
           echo "✅ Render deployment triggered successfully. Monitor progress in Render dashboard." >> $GITHUB_STEP_SUMMARY
+          if [ -n "${HEALTHCHECK_URL}" ]; then
+            echo "✅ Health check passed at ${HEALTHCHECK_URL}" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ -n "${METRICS_URL}" ]; then
+            echo "✅ Metrics check passed at ${METRICS_URL}" >> $GITHUB_STEP_SUMMARY
+          fi
       - name: Notify failure
-        if: ${{ needs.test.result == 'failure' || needs.deploy.result == 'failure' }}
+        if: ${{ needs.test.result == 'failure' || needs.deploy.result == 'failure' || needs.healthcheck.result == 'failure' || needs.metricscheck.result == 'failure' }}
         run: |
-          echo "❌ Render deployment trigger failed. Check GitHub Actions logs and Render settings." >> $GITHUB_STEP_SUMMARY
+          echo "❌ Deployment issues detected." >> $GITHUB_STEP_SUMMARY
+          echo "- Tests: ${{ needs.test.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Deploy: ${{ needs.deploy.result }}" >> $GITHUB_STEP_SUMMARY
+          if [ -n "${HEALTHCHECK_URL}" ]; then
+            echo "- Healthcheck: ${{ needs.healthcheck.result }} (${HEALTHCHECK_URL})" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ -n "${METRICS_URL}" ]; then
+            echo "- Metrics: ${{ needs.metricscheck.result }} (${METRICS_URL})" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "\nRollback guidance:" >> $GITHUB_STEP_SUMMARY
+          echo "- Render: Use dashboard → Deploys/Events → select previous successful deploy → Rollback." >> $GITHUB_STEP_SUMMARY
+          echo "- VPS: checkout previous commit, reinstall deps, run 'flask db upgrade' or restore DB backup, then 'systemctl restart routeforce'." >> $GITHUB_STEP_SUMMARY

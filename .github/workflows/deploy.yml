@@ -148,6 +148,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         
+      - name: Load .env fallback (Render + checks)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f .env ]; then
+            echo "ℹ️ Loading .env fallback variables (if secrets unset)"
+            # mask sensitive values
+            for k in RENDER_DEPLOY_HOOK RENDER_API_KEY RENDER_SERVICE_ID HEALTHCHECK_URL METRICS_URL METRICS_TOKEN; do
+              val=$(grep -E "^${k}=" .env | sed 's/^'"$k"'=//') || true
+              if [ -n "${val}" ] && [ -z "${!k:-}" ]; then
+                echo "::add-mask::${val}"
+                echo "${k}=${val}" >> "$GITHUB_ENV"
+              fi
+            done
+          fi
+
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -202,13 +218,29 @@ jobs:
     runs-on: ubuntu-latest
     needs: deploy
     timeout-minutes: 10
-    if: env.HEALTHCHECK_URL != '' && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
     steps:
+      - name: Checkout code (for .env fallback)
+        uses: actions/checkout@v4
+      - name: Load .env fallback for HEALTHCHECK_URL
+        shell: bash
+        run: |
+          if [ -f .env ] && [ -z "${HEALTHCHECK_URL}" ]; then
+            val=$(grep -E '^HEALTHCHECK_URL=' .env | sed 's/^HEALTHCHECK_URL=//') || true
+            if [ -n "${val}" ]; then
+              echo "::add-mask::${val}"
+              echo "HEALTHCHECK_URL=${val}" >> "$GITHUB_ENV"
+            fi
+          fi
       - name: Poll health endpoint until ready
         shell: bash
         run: |
           set -euo pipefail
-          URL="${HEALTHCHECK_URL}"
+          URL="${HEALTHCHECK_URL:-}"
+          if [ -z "${URL}" ]; then
+            echo "ℹ️ HEALTHCHECK_URL not set; skipping health check" | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
           echo "Checking health at: ${URL}"
           ATTEMPTS=30
           SLEEP=10
@@ -228,19 +260,41 @@ jobs:
     runs-on: ubuntu-latest
     needs: [deploy, healthcheck]
     timeout-minutes: 10
-    if: env.METRICS_URL != '' && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
     steps:
+      - name: Checkout code (for .env fallback)
+        uses: actions/checkout@v4
+      - name: Load .env fallback for METRICS_URL/METRICS_TOKEN
+        shell: bash
+        run: |
+          if [ -f .env ]; then
+            if [ -z "${METRICS_URL}" ]; then
+              val=$(grep -E '^METRICS_URL=' .env | sed 's/^METRICS_URL=//') || true
+              if [ -n "${val}" ]; then
+                echo "::add-mask::${val}"
+                echo "METRICS_URL=${val}" >> "$GITHUB_ENV"
+              fi
+            fi
+            if [ -z "${METRICS_TOKEN}" ]; then
+              val=$(grep -E '^METRICS_TOKEN=' .env | sed 's/^METRICS_TOKEN=//') || true
+              if [ -n "${val}" ]; then
+                echo "::add-mask::${val}"
+                echo "METRICS_TOKEN=${val}" >> "$GITHUB_ENV"
+              fi
+            fi
+          fi
       - name: Poll metrics endpoint until ready
         shell: bash
-        env:
-          METRICS_URL: ${{ env.METRICS_URL }}
-          METRICS_TOKEN: ${{ env.METRICS_TOKEN }}
         run: |
           set -euo pipefail
-          URL="${METRICS_URL}"
+          URL="${METRICS_URL:-}"
+          if [ -z "${URL}" ]; then
+            echo "ℹ️ METRICS_URL not set; skipping metrics check" | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
           echo "Checking metrics at: ${URL}"
           HDR=()
-          if [ -n "${METRICS_TOKEN}" ]; then
+          if [ -n "${METRICS_TOKEN:-}" ]; then
             HDR=( -H "X-Metrics-Token: ${METRICS_TOKEN}" )
           fi
           ATTEMPTS=30

@@ -15,6 +15,103 @@ from app import create_app, db
 from app.models.database import User
 from flask_jwt_extended import create_access_token
 from routing_engine import Store
+import sys
+from types import ModuleType
+from urllib.parse import urlparse
+
+
+# Install a lightweight requests shim to route localhost calls to Flask test client
+try:
+    import requests as _real_requests  # noqa: F401
+except Exception:
+    _real_requests = None
+
+
+_shim_app = None
+_shim_client = None
+
+
+def _ensure_client():
+    global _shim_app, _shim_client
+    if _shim_app is None or _shim_client is None:
+        _shim_app = create_app("testing", testing=True)
+        _shim_client = _shim_app.test_client()
+    return _shim_client
+
+
+def _flask_request(method: str, url: str, **kwargs):
+    parsed = urlparse(url)
+    if parsed.hostname in {"localhost", "127.0.0.1"}:
+        client = _ensure_client()
+        path = parsed.path or "/"
+        headers = kwargs.get("headers") or {}
+        json_data = kwargs.get("json")
+        data = kwargs.get("data")
+
+        if method == "GET":
+            resp = client.get(path, headers=headers)
+        elif method == "POST":
+            if json_data is not None:
+                resp = client.post(path, headers=headers, json=json_data)
+            else:
+                resp = client.post(path, headers=headers, data=data)
+        elif method == "PUT":
+            resp = client.put(path, headers=headers, json=json_data or data)
+        elif method == "DELETE":
+            resp = client.delete(path, headers=headers)
+        else:
+            return None
+
+        class _Adapter:
+            status_code = resp.status_code
+
+            def json(self):
+                try:
+                    return resp.get_json()
+                except Exception:
+                    return None
+
+            @property
+            def text(self):
+                try:
+                    return resp.get_data(as_text=True)
+                except Exception:
+                    return ""
+
+        return _Adapter()
+    return None
+
+
+class _RequestsProxy(ModuleType):
+    def __init__(self, real_mod):
+        super().__init__("requests")
+        self._real = real_mod
+
+    def __getattr__(self, name):
+        return getattr(self._real, name)
+
+    def get(self, url, **kwargs):
+        resp = _flask_request("GET", url, **kwargs)
+        return resp if resp is not None else self._real.get(url, **kwargs)
+
+    def post(self, url, **kwargs):
+        resp = _flask_request("POST", url, **kwargs)
+        return resp if resp is not None else self._real.post(url, **kwargs)
+
+    def put(self, url, **kwargs):
+        resp = _flask_request("PUT", url, **kwargs)
+        return resp if resp is not None else self._real.put(url, **kwargs)
+
+    def delete(self, url, **kwargs):
+        resp = _flask_request("DELETE", url, **kwargs)
+        return resp if resp is not None else self._real.delete(url, **kwargs)
+
+
+if "requests" in sys.modules:
+    # Replace already-imported requests with proxy
+    sys.modules["requests"] = _RequestsProxy(sys.modules["requests"])  # type: ignore[arg-type]
+elif _real_requests is not None:
+    sys.modules["requests"] = _RequestsProxy(_real_requests)
 
 # Add the app directory to Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "app"))

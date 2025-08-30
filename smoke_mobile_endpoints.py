@@ -16,7 +16,7 @@ def pretty(title: str):
 
 
 def main():
-    app = create_app("development")
+    app = create_app("development", testing=True)
     client = app.test_client()
 
     # Health
@@ -76,8 +76,8 @@ def main():
     r = client.post(
         "/api/mobile/routes/traffic",
         json={
-            "origin": "San Francisco, CA",
-            "destination": "Palo Alto, CA",
+            "origin": {"lat": 37.7749, "lng": -122.4194},
+            "destination": {"lat": 37.4419, "lng": -122.1430},
             "alternatives": False,
             "include_steps": False,
         },
@@ -116,4 +116,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

@@ -440,18 +440,19 @@ def create_app(config_name: str = "development", testing: bool = False) -> Flask
             beast_mode_results.get("beast_mode_status", "UNKNOWN"),
         )
 
-    # Initialize legacy performance monitor as backup
-    try:
-        monitor = get_performance_monitor()
-        monitor.start_monitoring()
-        logging.info("Legacy performance monitoring started as backup")
-    except Exception as e:  # noqa: BLE001
-        # Performance monitor can fail for many reasons
-        # (threading, config, etc.)
-        logging.warning("Legacy performance monitor not available: %s", e)
+    # Initialize legacy performance monitor as backup (skip during tests)
+    if not app.config.get("TESTING", False):
+        try:
+            monitor = get_performance_monitor()
+            monitor.start_monitoring()
+            logging.info("Legacy performance monitoring started as backup")
+        except Exception as e:  # noqa: BLE001
+            # Performance monitor can fail for many reasons
+            # (threading, config, etc.)
+            logging.warning("Legacy performance monitor not available: %s", e)
 
-    # Initialize auto-commit service for background code backup
-    if app.config.get("AUTO_COMMIT_ENABLED", True):
+    # Initialize auto-commit service for background code backup (skip during tests)
+    if not app.config.get("TESTING", False) and app.config.get("AUTO_COMMIT_ENABLED", True):
         start_auto_commit_service()
         logging.info("Auto-commit background service started")
 

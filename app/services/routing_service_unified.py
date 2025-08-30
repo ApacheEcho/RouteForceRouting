@@ -157,8 +157,14 @@ class UnifiedRoutingService:
         for store in stores:
             store_copy = store.copy()
 
-            # Check if coordinates already exist
-            if "lat" in store_copy and "lon" in store_copy:
+            # Check if coordinates already exist (support both lon and lng)
+            if "lat" in store_copy and ("lon" in store_copy or "lng" in store_copy):
+                # Normalize to 'lon' key internally for consistency
+                if "lng" in store_copy and "lon" not in store_copy:
+                    try:
+                        store_copy["lon"] = float(store_copy["lng"])  # type: ignore[index]
+                    except (TypeError, ValueError):
+                        pass
                 geocoded_stores.append(store_copy)
                 continue
 
@@ -325,6 +331,19 @@ class UnifiedRoutingService:
             config.crossover_rate = algorithm_params.get(
                 "crossover_rate", config.crossover_rate
             )
+
+        # If population size is 1, GA degenerates; use nearest neighbor fast path
+        if getattr(config, "population_size", 1) <= 1:
+            generator = create_route_generator("nearest_neighbor")
+            route, _ = generator.generate_route(stores, constraints)
+            # Store algorithm-specific metrics as a trivial result
+            if self.metrics:
+                self.metrics.algorithm_metrics = {
+                    "population_size": config.population_size,
+                    "generations": getattr(config, "generations", 0),
+                    "note": "Population size <= 1; used nearest_neighbor fallback",
+                }
+            return route
 
         # Run genetic algorithm
         ga = GeneticAlgorithm(config)

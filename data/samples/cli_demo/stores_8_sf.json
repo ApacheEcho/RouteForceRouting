@@ -1,0 +1,10 @@
+[
+  {"id": 1, "name": "S1", "address": "100 Market St", "latitude": 37.7805, "longitude": -122.4125, "priority": "high", "estimated_service_time": 15, "packages": 2, "weight_kg": 8.0},
+  {"id": 2, "name": "S2", "address": "101 Market St", "latitude": 37.7892, "longitude": -122.4011, "priority": "medium", "estimated_service_time": 20, "packages": 1, "weight_kg": 6.5},
+  {"id": 3, "name": "S3", "address": "200 Pine St",   "latitude": 37.7927, "longitude": -122.3990, "priority": "low", "estimated_service_time": 10, "packages": 1, "weight_kg": 5.0},
+  {"id": 4, "name": "S4", "address": "350 Bush St",    "latitude": 37.7913, "longitude": -122.4037, "priority": "medium", "estimated_service_time": 15, "packages": 3, "weight_kg": 9.0},
+  {"id": 5, "name": "S5", "address": "1 Stockton St",  "latitude": 37.7880, "longitude": -122.4068, "priority": "high", "estimated_service_time": 20, "packages": 2, "weight_kg": 7.5},
+  {"id": 6, "name": "S6", "address": "700 Mission St", "latitude": 37.7860, "longitude": -122.4040, "priority": "low", "estimated_service_time": 15, "packages": 1, "weight_kg": 4.0},
+  {"id": 7, "name": "S7", "address": "250 4th St",     "latitude": 37.7818, "longitude": -122.4055, "priority": "medium", "estimated_service_time": 15, "packages": 2, "weight_kg": 6.0},
+  {"id": 8, "name": "S8", "address": "95 3rd St",      "latitude": 37.7869, "longitude": -122.4030, "priority": "high", "estimated_service_time": 10, "packages": 1, "weight_kg": 4.5}
+]

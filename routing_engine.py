@@ -3,10 +3,14 @@ RouteForceRouting - Core routing engine with multi-vehicle optimization.
 """
 
 import math
+import logging
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
+from functools import lru_cache
+
+logger = logging.getLogger(__name__)
 
 
 class OptimizationMethod(Enum):
@@ -90,22 +94,12 @@ class RouteOptimizer:
     def calculate_distance(
         self, point1: Dict[str, float], point2: Dict[str, float]
     ) -> float:
-        """Calculate distance between two geographic points using Haversine formula."""
-        lat1, lng1 = math.radians(point1["lat"]), math.radians(point1["lng"])
-        lat2, lng2 = math.radians(point2["lat"]), math.radians(point2["lng"])
-
-        dlat = lat2 - lat1
-        dlng = lng2 - lng1
-
-        a = (
-            math.sin(dlat / 2) ** 2
-            + math.cos(lat1) * math.cos(lat2) * math.sin(dlng / 2) ** 2
-        )
-        c = 2 * math.asin(math.sqrt(a))
-
-        # Earth's radius in kilometers
-        earth_radius_km = 6371.0
-        return earth_radius_km * c
+        """Calculate distance between two points using cached Haversine formula."""
+        lat1 = round(float(point1["lat"]), 6)
+        lng1 = round(float(point1["lng"]), 6)
+        lat2 = round(float(point2["lat"]), 6)
+        lng2 = round(float(point2["lng"]), 6)
+        return _haversine_km(lat1, lng1, lat2, lng2)
 
     def create_distance_matrix(
         self, locations: List[Dict[str, float]]
@@ -325,6 +319,17 @@ class RouteOptimizer:
 
             optimized_routes.append(route)
 
+            logger.debug(
+                {
+                    "event": "route_optimized",
+                    "vehicle_id": vehicle_id,
+                    "method": method.value,
+                    "stops": len(optimized_sequence),
+                    "total_distance_km": route.total_distance_km,
+                    "estimated_duration_hours": route.estimated_duration_hours,
+                }
+            )
+
         return optimized_routes
 
     def calculate_route_metrics(
@@ -499,3 +504,17 @@ class PerformanceMonitor:
             "weight_utilization_percent": round(weight_utilization * 100, 2),
             "high_priority_ratio": round(high_priority_ratio, 2),
         }
+
+
+@lru_cache(maxsize=200_000)
+def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """Haversine distance between two lat/lon points in km (cached)."""
+    lat1r, lon1r, lat2r, lon2r = map(math.radians, [lat1, lon1, lat2, lon2])
+    dlat = lat2r - lat1r
+    dlon = lon2r - lon1r
+    a = (
+        math.sin(dlat / 2) ** 2
+        + math.cos(lat1r) * math.cos(lat2r) * math.sin(dlon / 2) ** 2
+    )
+    c = 2 * math.asin(math.sqrt(a))
+    return 6371.0 * c

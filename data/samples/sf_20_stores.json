@@ -1,0 +1,23 @@
+[
+  {"id":"sf_store_001","name":"San Francisco, CA Store 1","address":"101 Market St, San Francisco, CA","latitude":37.7754,"longitude":-122.4191,"priority":1,"estimated_service_time":10,"packages":1,"weight_kg":2.0},
+  {"id":"sf_store_002","name":"San Francisco, CA Store 2","address":"202 Mission St, San Francisco, CA","latitude":37.7759,"longitude":-122.4188,"priority":2,"estimated_service_time":15,"packages":2,"weight_kg":4.0},
+  {"id":"sf_store_003","name":"San Francisco, CA Store 3","address":"303 Broadway, San Francisco, CA","latitude":37.7764,"longitude":-122.4185,"priority":3,"estimated_service_time":20,"packages":3,"weight_kg":6.0},
+  {"id":"sf_store_004","name":"San Francisco, CA Store 4","address":"404 Pine St, San Francisco, CA","latitude":37.7769,"longitude":-122.4182,"priority":1,"estimated_service_time":25,"packages":4,"weight_kg":8.0},
+  {"id":"sf_store_005","name":"San Francisco, CA Store 5","address":"505 Cedar Ave, San Francisco, CA","latitude":37.7774,"longitude":-122.4179,"priority":2,"estimated_service_time":10,"packages":5,"weight_kg":10.0},
+  {"id":"sf_store_006","name":"San Francisco, CA Store 6","address":"606 Maple Ave, San Francisco, CA","latitude":37.7779,"longitude":-122.4176,"priority":3,"estimated_service_time":15,"packages":1,"weight_kg":2.0},
+  {"id":"sf_store_007","name":"San Francisco, CA Store 7","address":"707 Market St, San Francisco, CA","latitude":37.7784,"longitude":-122.4173,"priority":1,"estimated_service_time":20,"packages":2,"weight_kg":4.0},
+  {"id":"sf_store_008","name":"San Francisco, CA Store 8","address":"808 Mission St, San Francisco, CA","latitude":37.7789,"longitude":-122.417,"priority":2,"estimated_service_time":25,"packages":3,"weight_kg":6.0},
+  {"id":"sf_store_009","name":"San Francisco, CA Store 9","address":"909 Broadway, San Francisco, CA","latitude":37.7794,"longitude":-122.4167,"priority":3,"estimated_service_time":10,"packages":4,"weight_kg":8.0},
+  {"id":"sf_store_010","name":"San Francisco, CA Store 10","address":"1010 Pine St, San Francisco, CA","latitude":37.7799,"longitude":-122.4164,"priority":1,"estimated_service_time":15,"packages":5,"weight_kg":10.0},
+  {"id":"sf_store_011","name":"San Francisco, CA Store 11","address":"1111 Cedar Ave, San Francisco, CA","latitude":37.7804,"longitude":-122.4161,"priority":2,"estimated_service_time":20,"packages":1,"weight_kg":2.0},
+  {"id":"sf_store_012","name":"San Francisco, CA Store 12","address":"1212 Maple Ave, San Francisco, CA","latitude":37.7809,"longitude":-122.4158,"priority":3,"estimated_service_time":25,"packages":2,"weight_kg":4.0},
+  {"id":"sf_store_013","name":"San Francisco, CA Store 13","address":"1313 Market St, San Francisco, CA","latitude":37.7814,"longitude":-122.4155,"priority":1,"estimated_service_time":10,"packages":3,"weight_kg":6.0},
+  {"id":"sf_store_014","name":"San Francisco, CA Store 14","address":"1414 Mission St, San Francisco, CA","latitude":37.7819,"longitude":-122.4152,"priority":2,"estimated_service_time":15,"packages":4,"weight_kg":8.0},
+  {"id":"sf_store_015","name":"San Francisco, CA Store 15","address":"1515 Broadway, San Francisco, CA","latitude":37.7824,"longitude":-122.4149,"priority":3,"estimated_service_time":20,"packages":5,"weight_kg":10.0},
+  {"id":"sf_store_016","name":"San Francisco, CA Store 16","address":"1616 Pine St, San Francisco, CA","latitude":37.7829,"longitude":-122.4146,"priority":1,"estimated_service_time":25,"packages":1,"weight_kg":2.0},
+  {"id":"sf_store_017","name":"San Francisco, CA Store 17","address":"1717 Cedar Ave, San Francisco, CA","latitude":37.7834,"longitude":-122.4143,"priority":2,"estimated_service_time":10,"packages":2,"weight_kg":4.0},
+  {"id":"sf_store_018","name":"San Francisco, CA Store 18","address":"1818 Maple Ave, San Francisco, CA","latitude":37.7839,"longitude":-122.414,"priority":3,"estimated_service_time":15,"packages":3,"weight_kg":6.0},
+  {"id":"sf_store_019","name":"San Francisco, CA Store 19","address":"1919 Market St, San Francisco, CA","latitude":37.7844,"longitude":-122.4137,"priority":1,"estimated_service_time":20,"packages":4,"weight_kg":8.0},
+  {"id":"sf_store_020","name":"San Francisco, CA Store 20","address":"2020 Mission St, San Francisco, CA","latitude":37.7849,"longitude":-122.4134,"priority":2,"estimated_service_time":25,"packages":5,"weight_kg":10.0}
+]
+

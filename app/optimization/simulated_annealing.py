@@ -9,8 +9,35 @@ import time
 import logging
 from typing import List, Dict, Any, Tuple, Optional, Callable
 from dataclasses import dataclass
+from functools import lru_cache
+
+try:
+    # Best-effort deterministic seeding if RFR_SEED is set
+    from app.utils.random_seed import seed_all_from_env
+except Exception:  # pragma: no cover - utility optional
+    seed_all_from_env = lambda default=None: None  # type: ignore
 
 logger = logging.getLogger(__name__)
+
+
+@lru_cache(maxsize=200_000)
+def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """Haversine distance between two lat/lon points in km (cached)."""
+    # Convert to radians
+    lat1r, lon1r, lat2r, lon2r = map(math.radians, [lat1, lon1, lat2, lon2])
+
+    # Haversine formula
+    dlat = lat2r - lat1r
+    dlon = lon2r - lon1r
+    a = (
+        math.sin(dlat / 2) ** 2
+        + math.cos(lat1r) * math.cos(lat2r) * math.sin(dlon / 2) ** 2
+    )
+    c = 2 * math.asin(math.sqrt(a))
+
+    # Earth's radius in kilometers
+    r = 6371.0
+    return c * r
 
 
 @dataclass
@@ -122,6 +149,9 @@ class SimulatedAnnealingOptimizer:
         Returns:
             Tuple of (optimized_route, metrics_dict)
         """
+        # Apply deterministic seeding if configured
+        seed_all_from_env()
+
         start_time = time.time()
 
         try:
@@ -300,7 +330,7 @@ class SimulatedAnnealingOptimizer:
     def _calculate_distance(
         self, store1: Dict[str, Any], store2: Dict[str, Any]
     ) -> float:
-        """Calculate Haversine distance between two stores"""
+        """Calculate Haversine distance between two stores (cached by coords)."""
         # Handle both 'lat'/'lon' and 'latitude'/'longitude' formats
         lat1 = store1.get("lat", store1.get("latitude"))
         lon1 = store1.get("lon", store1.get("longitude"))
@@ -310,22 +340,16 @@ class SimulatedAnnealingOptimizer:
         if any(coord is None for coord in [lat1, lon1, lat2, lon2]):
             raise ValueError("Missing latitude/longitude coordinates")
 
-        # Convert to radians
-        lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
+        # Round to 6 decimals to stabilize cache keys and avoid FP noise
+        lat1r = round(float(lat1), 6)
+        lon1r = round(float(lon1), 6)
+        lat2r = round(float(lat2), 6)
+        lon2r = round(float(lon2), 6)
 
-        # Haversine formula
-        dlat = lat2 - lat1
-        dlon = lon2 - lon1
-        a = (
-            math.sin(dlat / 2) ** 2
-            + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
-        )
-        c = 2 * math.asin(math.sqrt(a))
+        return _haversine_km(lat1r, lon1r, lat2r, lon2r)
 
-        # Radius of Earth in kilometers
-        r = 6371
 
-        return c * r
+    
 
     def _calculate_route_distance(self, route: List[int]) -> float:
         """Calculate total distance of a route"""

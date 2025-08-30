@@ -9,6 +9,13 @@ from dataclasses import dataclass
 from geopy.distance import geodesic
 import logging
 from collections import deque
+from functools import lru_cache
+
+try:
+    # Best-effort deterministic seeding if RFR_SEED is set
+    from app.utils.random_seed import seed_all_from_env
+except Exception:  # pragma: no cover
+    seed_all_from_env = lambda default=None: None  # type: ignore
 
 logger = logging.getLogger(__name__)
 
@@ -71,17 +78,19 @@ class Individual:
             next_store = self.stores[self.route[(i + 1) % len(self.route)]]
 
             # Handle both 'lat'/'lon' and 'latitude'/'longitude' formats
-            coord1 = (
-                current_store.get("latitude", current_store.get("lat", 0)),
-                current_store.get("longitude", current_store.get("lon", 0)),
-            )
-            coord2 = (
-                next_store.get("latitude", next_store.get("lat", 0)),
-                next_store.get("longitude", next_store.get("lon", 0)),
-            )
+            lat1 = current_store.get("latitude", current_store.get("lat", 0))
+            lon1 = current_store.get("longitude", current_store.get("lon", 0))
+            lat2 = next_store.get("latitude", next_store.get("lat", 0))
+            lon2 = next_store.get("longitude", next_store.get("lon", 0))
 
-            if coord1 != (0, 0) and coord2 != (0, 0):
-                total_distance += geodesic(coord1, coord2).kilometers
+            if (lat1, lon1) != (0, 0) and (lat2, lon2) != (0, 0):
+                # Round to stabilize cache keys
+                total_distance += _geodesic_km(
+                    round(float(lat1), 6),
+                    round(float(lon1), 6),
+                    round(float(lat2), 6),
+                    round(float(lon2), 6),
+                )
 
         self.distance = total_distance
         # Fitness is inverse of distance (higher fitness = shorter distance)
@@ -121,6 +130,9 @@ class GeneticAlgorithm:
         Returns:
             Tuple of (optimized_route, optimization_metrics)
         """
+        # Apply deterministic seeding if configured
+        seed_all_from_env()
+
         logger.info(f"Starting genetic algorithm optimization for {len(stores)} stores")
 
         if len(stores) < 2:
@@ -321,3 +333,9 @@ class GeneticAlgorithm:
                 "elite_size": self.config.elite_size,
             },
         }
+
+
+@lru_cache(maxsize=200_000)
+def _geodesic_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """Cached geodesic distance in kilometers between two lat/lon points."""
+    return geodesic((lat1, lon1), (lat2, lon2)).kilometers

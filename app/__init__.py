@@ -41,6 +41,15 @@ def create_app(config_name: str = "development") -> Flask:
     """
     app = Flask(__name__)
 
+    # Optional deterministic seeding for stochastic components
+    try:
+        from app.utils.random_seed import seed_all_from_env
+
+        seed_all_from_env()
+    except Exception:
+        # Seeding is best-effort and should never block app startup
+        pass
+
     # Respect X-Forwarded-* headers from upstream proxy (Nginx/Render)
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 

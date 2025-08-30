@@ -1,0 +1,26 @@
+{
+  "stores": [
+    {
+      "id": "store_1",
+      "name": "Downtown Store",
+      "lat": 40.7128,
+      "lon": -74.0060,
+      "priority": 1,
+      "demand": 150
+    },
+    {
+      "id": "store_2",
+      "name": "Uptown Store",
+      "lat": 40.7580,
+      "lon": -73.9855,
+      "priority": 2,
+      "demand": 200
+    }
+  ],
+  "context": {
+    "weather_factor": 1.0,
+    "traffic_factor": 1.1,
+    "timestamp": "2025-01-01T10:30:00Z"
+  }
+}
+

@@ -1,0 +1,89 @@
+{
+  "info": {
+    "name": "RouteForce Routing",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "1d6b1c1c-0000-4c0a-aaaa-000000000001"
+  },
+  "item": [
+    {
+      "name": "API Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/health",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "health"]
+        }
+      }
+    },
+    {
+      "name": "Create Route",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"stores\": [\n    { \"name\": \"Store A\", \"address\": \"1600 Amphitheatre Pkwy, Mountain View, CA\" },\n    { \"name\": \"Store B\", \"address\": \"1 Hacker Way, Menlo Park, CA\" },\n    { \"name\": \"Store C\", \"address\": \"410 Terry Ave N, Seattle, WA\" }\n  ],\n  \"constraints\": { \"max_distance\": 100.0 },\n  \"options\": { \"algorithm\": \"genetic\", \"ga_population_size\": 50 }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/routes",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "routes"]
+        }
+      }
+    },
+    {
+      "name": "Create Clusters",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"stores\": [\n    { \"id\": \"s1\", \"name\": \"A\", \"latitude\": 37.7749, \"longitude\": -122.4194 },\n    { \"id\": \"s2\", \"name\": \"B\", \"latitude\": 37.7849, \"longitude\": -122.4094 },\n    { \"id\": \"s3\", \"name\": \"C\", \"latitude\": 37.7649, \"longitude\": -122.4294 }\n  ],\n  \"radius_km\": 2.0\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/clusters",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "clusters"]
+        }
+      }
+    },
+    {
+      "name": "ML Predict",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"stores\": [\n    {\n      \"id\": \"store_1\",\n      \"name\": \"Downtown Store\",\n      \"lat\": 40.7128,\n      \"lon\": -74.0060,\n      \"priority\": 1,\n      \"demand\": 150\n    },\n    {\n      \"id\": \"store_2\",\n      \"name\": \"Uptown Store\",\n      \"lat\": 40.7580,\n      \"lon\": -73.9855,\n      \"priority\": 2,\n      \"demand\": 200\n    }\n  ],\n  \"context\": {\n    \"weather_factor\": 1.0,\n    \"traffic_factor\": 1.1,\n    \"timestamp\": \"2025-01-01T10:30:00Z\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/ml/predict",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "ml", "predict"]
+        }
+      }
+    },
+    {
+      "name": "Traffic Optimize",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"stores\": [\n    { \"id\": \"p1\", \"name\": \"Point 1\", \"lat\": 37.7749, \"lng\": -122.4194 },\n    { \"id\": \"p2\", \"name\": \"Point 2\", \"lat\": 37.7849, \"lng\": -122.4094 },\n    { \"id\": \"p3\", \"name\": \"Point 3\", \"lat\": 37.7649, \"lng\": -122.4294 }\n  ],\n  \"constraints\": { \"max_time\": 480 },\n  \"start_location\": { \"lat\": 37.7749, \"lng\": -122.4194 }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/traffic/optimize",
+          "host": ["{{base_url}}"],
+          "path": ["api", "traffic", "optimize"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:5002" }
+  ]
+}
+

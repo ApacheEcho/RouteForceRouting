@@ -1,0 +1,51 @@
+graph LR
+  A[Client / Integrations]
+  subgraph Flask App
+    B[Blueprints]
+    B --> B1[/api (v1 routes)/]
+    B --> B2[/api/mobile/]
+    B --> B3[/api/analytics/]
+    B --> B4[/api/traffic/]
+    B --> B5[/api/docs (Swagger)/]
+
+    C[Services]
+    C --> C1[RoutingService]
+    C --> C2[AnalyticsService]
+    C --> C3[TrafficService]
+    C --> C4[WebSocket Handlers]
+
+    D[Core Engine]
+    D --> D1[routing_engine.py]
+    D --> D2[Optimization: Genetic, SA, Multi-objective]
+
+    E[Extensions]
+    E --> E1[Flask‑SQLAlchemy]
+    E --> E2[Flask‑Migrate]
+    E --> E3[Flask‑Caching]
+    E --> E4[Flask‑Limiter]
+    E --> E5[Flask‑SocketIO]
+    E --> E6[Flasgger]
+  end
+
+  A --> B
+  C1 --> E1
+  C2 --> E1
+  C3 --> E1
+  B1 --> C1
+  B2 --> C1
+  B3 --> C2
+  B4 --> C3
+  C4 --> E5
+  E3 -->|Local dev: SimpleCache| B
+  E1 --> F[(DB)]
+  E3 --> G[(Redis)]
+  E4 --> G
+
+  subgraph Ops & Observability
+    H[Sentry]
+    I[Metrics Collector]
+  end
+
+  B --> H
+  B --> I
+

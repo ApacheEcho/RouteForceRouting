@@ -164,18 +164,28 @@ jobs:
             done
           fi
 
+      - name: Export deploy secrets to env
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -n "${{ secrets.RENDER_DEPLOY_HOOK }}" ]; then
+            echo "::add-mask::${{ secrets.RENDER_DEPLOY_HOOK }}"
+            echo "RENDER_DEPLOY_HOOK=${{ secrets.RENDER_DEPLOY_HOOK }}" >> "$GITHUB_ENV"
+          fi
+          if [ -n "${{ secrets.RENDER_API_KEY }}" ]; then
+            echo "::add-mask::${{ secrets.RENDER_API_KEY }}"
+            echo "RENDER_API_KEY=${{ secrets.RENDER_API_KEY }}" >> "$GITHUB_ENV"
+          fi
+          if [ -n "${{ secrets.RENDER_SERVICE_ID }}" ]; then
+            echo "RENDER_SERVICE_ID=${{ secrets.RENDER_SERVICE_ID }}" >> "$GITHUB_ENV"
+          fi
+
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
           name: production-build
 
       - name: Trigger Render deploy
-        # Environment variables for Render deployment
-        env:
-          # Prefer deploy hook if available; otherwise use API key and service ID
-          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
-          RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID || '' }}
-          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK || '' }}
         run: |
           set -euo pipefail # Strict error handling
 

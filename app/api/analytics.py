@@ -4,7 +4,6 @@ Provides analytics endpoints for monitoring and business intelligence
 """
 
 from flask import Blueprint, request, jsonify, current_app
-from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import logging
 from datetime import datetime
@@ -17,8 +16,8 @@ from app.security import require_api_key
 # Initialize blueprint
 analytics_bp = Blueprint("analytics_api", __name__)
 
-# Initialize rate limiter
-limiter = Limiter(key_func=get_remote_address)
+# Use the app-wide rate limiter configured in app.__init__
+from app import limiter as app_limiter
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -30,7 +29,7 @@ def get_analytics_service():
 
 
 @analytics_bp.route("/health", methods=["GET"])
-@limiter.limit("30 per minute")
+@app_limiter.limit("30 per minute")
 def analytics_health_check():
     """
     Analytics API health check endpoint
@@ -97,7 +96,7 @@ def analytics_health_check():
 
 
 @analytics_bp.route("/mobile", methods=["GET"])
-@limiter.limit("20 per minute")
+@app_limiter.limit("20 per minute")
 @require_api_key
 def get_mobile_analytics():
     """
@@ -202,7 +201,7 @@ def get_mobile_analytics():
 
 
 @analytics_bp.route("/drivers", methods=["GET"])
-@limiter.limit("20 per minute")
+@app_limiter.limit("20 per minute")
 @require_api_key
 def get_driver_analytics():
     """
@@ -289,7 +288,7 @@ def get_driver_analytics():
 
 
 @analytics_bp.route("/routes", methods=["GET"])
-@limiter.limit("20 per minute")
+@app_limiter.limit("20 per minute")
 @require_api_key
 def get_route_analytics():
     """
@@ -339,7 +338,7 @@ def get_route_analytics():
 
 
 @analytics_bp.route("/api-usage", methods=["GET"])
-@limiter.limit("20 per minute")
+@app_limiter.limit("20 per minute")
 @require_api_key
 def get_api_analytics():
     """
@@ -389,7 +388,7 @@ def get_api_analytics():
 
 
 @analytics_bp.route("/system-health", methods=["GET"])
-@limiter.limit("30 per minute")
+@app_limiter.limit("30 per minute")
 @require_api_key
 def get_system_health():
     """
@@ -425,7 +424,7 @@ def get_system_health():
 
 
 @analytics_bp.route("/report", methods=["GET"])
-@limiter.limit("10 per minute")
+@app_limiter.limit("10 per minute")
 @require_api_key
 def get_analytics_report():
     """
@@ -475,7 +474,7 @@ def get_analytics_report():
 
 
 @analytics_bp.route("/track/session", methods=["POST"])
-@limiter.limit("100 per minute")
+@app_limiter.limit("100 per minute")
 @require_api_key
 def track_mobile_session():
     """
@@ -582,7 +581,7 @@ def track_mobile_session():
 
 
 @analytics_bp.route("/track/driver", methods=["POST"])
-@limiter.limit("100 per minute")
+@app_limiter.limit("100 per minute")
 @require_api_key
 def track_driver_performance():
     """
@@ -630,7 +629,7 @@ def track_driver_performance():
 
 
 @analytics_bp.route("/track/route", methods=["POST"])
-@limiter.limit("100 per minute")
+@app_limiter.limit("100 per minute")
 @require_api_key
 def track_route_optimization():
     """
@@ -679,7 +678,7 @@ def track_route_optimization():
 
 
 @analytics_bp.route("/track/event", methods=["POST"])
-@limiter.limit("100 per minute")
+@app_limiter.limit("100 per minute")
 @require_api_key
 def track_system_event():
     """

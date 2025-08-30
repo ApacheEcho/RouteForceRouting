@@ -149,3 +149,56 @@ def pytest_collection_modifyitems(config, items):
         if "performance" in item.name or "benchmark" in item.name:
             item.add_marker(pytest.mark.performance)
             item.add_marker(pytest.mark.slow)
+
+# Additional shared fixtures for cross-class usage
+@pytest.fixture
+def large_store_dataset():
+    """Module-level large store dataset used by multiple test classes.
+
+    Provides a reasonable set of stores with varied priorities, service times,
+    packages, and weights around NYC coordinates. This mirrors the intent of
+    per-class fixtures so tests outside that class can reuse the dataset.
+    """
+    try:
+        from routing_engine import Store
+    except Exception:
+        pytest.skip("routing_engine not available for large_store_dataset fixture")
+
+    stores = []
+    coords = [
+        {"lat": 40.7128, "lng": -74.0060},
+        {"lat": 40.7589, "lng": -73.9851},
+        {"lat": 40.7505, "lng": -73.9934},
+        {"lat": 40.6892, "lng": -73.9442},
+        {"lat": 40.7831, "lng": -73.9712},
+        {"lat": 40.7282, "lng": -73.9442},
+        {"lat": 40.7336, "lng": -73.9890},
+        {"lat": 40.8621, "lng": -73.9036},
+        {"lat": 40.6441, "lng": -74.0776},
+        {"lat": 40.7048, "lng": -73.6501},
+        {"lat": 40.7400, "lng": -73.9900},
+        {"lat": 40.7614, "lng": -73.9776},
+        {"lat": 40.7180, "lng": -74.0020},
+        {"lat": 40.7295, "lng": -73.9965},
+        {"lat": 40.7549, "lng": -73.9840},
+    ]
+
+    priorities = ["high", "medium", "low"] * 5
+    windows = ["09:00-17:00", "10:00-16:00", "08:00-18:00", "11:00-15:00", "09:30-16:30"] * 3
+
+    for i in range(15):
+        stores.append(
+            Store(
+                store_id=f"FIX_{i+1:03d}",
+                name=f"Fixture Store #{i+1}",
+                address=f"{100 + i} Test Ave, New York, NY",
+                coordinates=coords[i % len(coords)],
+                delivery_window=windows[i % len(windows)],
+                priority=priorities[i % len(priorities)],
+                estimated_service_time=10 + (i % 3) * 5,
+                packages=3 + (i % 4),
+                weight_kg=20 + (i % 10),
+            )
+        )
+
+    return stores

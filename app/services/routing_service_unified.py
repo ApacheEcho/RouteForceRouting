@@ -25,6 +25,7 @@ from app.services.route_core import (
     create_route_generator,
 )
 from app.services.route_scoring_service import RouteScorer
+from app.services.traffic_service import TrafficService, TrafficConfig
 
 # Import optimization algorithms (with fallback)
 try:
@@ -103,6 +104,12 @@ class UnifiedRoutingService:
         # Initialize advanced optimization algorithms
         self._initialize_optimization_algorithms()
 
+        # Initialize traffic service for traffic-aware operations
+        try:
+            self.traffic_service = TrafficService(TrafficConfig())
+        except Exception:
+            self.traffic_service = None
+
     def _initialize_database_service(self):
         """Initialize database service with fallback"""
         try:
@@ -153,8 +160,8 @@ class UnifiedRoutingService:
                 geocoded_stores.append(store_copy)
                 continue
 
-            # Try to geocode from address
-            address = store_copy.get("address", "")
+            # Try to geocode from address (fallback to name if no address)
+            address = store_copy.get("address") or store_copy.get("name", "")
             if address:
                 coords = self.geocoding_service.get_coordinates(address)
                 if coords:
@@ -279,6 +286,90 @@ class UnifiedRoutingService:
             priority_weights=constraints.get("priority_weights"),
             visit_date=constraints.get("visit_date"),
         )
+
+    # --- Traffic-aware routing (backward-compatibility) ---
+    def generate_traffic_optimized_route(
+        self,
+        stores: List[Dict[str, Any]],
+        constraints: Optional[Dict[str, Any]] = None,
+        start_location: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """Generate a traffic-optimized route using the TrafficService.
+
+        Provides a backward-compatible facade expected by API modules.
+        """
+        start = time.time()
+        if not self.traffic_service:
+            self.last_processing_time = 0.0
+            return {"success": False, "error": "Traffic service unavailable", "route": stores}
+
+        result = self.traffic_service.get_traffic_optimized_route(
+            stores=stores, start_location=start_location, constraints=constraints
+        )
+        self.last_processing_time = time.time() - start
+        return result
+
+    def get_traffic_alternatives(
+        self, stores: List[Dict[str, Any]], max_alternatives: int = 3
+    ) -> Dict[str, Any]:
+        """Return alternative routes with traffic analysis.
+
+        Normalizes output to include a success flag and recommendation.
+        """
+        start = time.time()
+        if not self.traffic_service:
+            self.last_processing_time = 0.0
+            return {"success": False, "error": "Traffic service unavailable", "alternatives": []}
+
+        alts = self.traffic_service.get_route_alternatives(stores, max_alternatives)
+        self.last_processing_time = time.time() - start
+        best = alts[0] if alts else None
+        recommendation = {
+            "use_alternative": bool(alts),
+            "reason": "lower_estimated_duration" if alts else "no_alternatives",
+        }
+        return {
+            "success": True,
+            "alternatives": alts,
+            "best_alternative": best,
+            "recommendation": recommendation,
+        }
+
+    def predict_traffic_for_route(
+        self, stores: List[Dict[str, Any]], future_hours: List[int]
+    ) -> Dict[str, Any]:
+        """Predict traffic conditions for a prospective route over future times."""
+        start = time.time()
+        if not self.traffic_service:
+            self.last_processing_time = 0.0
+            return {"success": False, "error": "Traffic service unavailable"}
+
+        result = self.traffic_service.predict_traffic_conditions(
+            stores, future_hours
+        )
+        self.last_processing_time = time.time() - start
+        if not result or "error" in result:
+            return {"success": False, **(result or {})}
+        return {"success": True, **result}
+
+    def get_traffic_segment_data(
+        self, origin: Dict[str, Any], destination: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
+        """Get traffic data for a specific segment between two coordinates."""
+        if not self.traffic_service:
+            return None
+        data = self.traffic_service.get_traffic_data_for_segment(origin, destination)
+        if not data:
+            return None
+        return {
+            "origin": data.origin,
+            "destination": data.destination,
+            "distance_meters": data.distance_meters,
+            "duration_seconds": data.duration_seconds,
+            "duration_in_traffic_seconds": data.duration_in_traffic_seconds,
+            "traffic_delay": data.traffic_delay,
+            "traffic_condition": data.traffic_condition,
+        }
 
     def _generate_route_genetic(
         self,

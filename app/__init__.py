@@ -215,6 +215,7 @@ def create_app(config_name: str = "development") -> Flask:
             return jsonify(
                 {
                     "status": status,
+                    "service": "RouteForce Routing",
                     "timestamp": datetime.utcnow().isoformat(),
                     "version": "1.0.0",
                     "services": {"database": db_status, "cache": cache_status},
@@ -275,15 +276,12 @@ def create_app(config_name: str = "development") -> Flask:
     # Register error handlers
     register_error_handlers(app)
 
-    # Initialize and start advanced performance monitoring
-    from app.performance_monitor import get_performance_monitor
-
-    # from app.performance.optimization_engine import PerformanceOptimizationEngine
-
-    # Start legacy performance monitor
-    monitor = get_performance_monitor()
-    monitor.start_monitoring()
-    logging.info("Performance monitoring started")
+    # Initialize and start advanced performance monitoring (guarded in tests)
+    if app.config.get("PERFORMANCE_MONITOR_ENABLED", True):
+        from app.performance_monitor import get_performance_monitor
+        monitor = get_performance_monitor()
+        monitor.start_monitoring()
+        logging.info("Performance monitoring started")
 
     # Initialize and start advanced optimization engine
     # optimization_engine = PerformanceOptimizationEngine()
@@ -291,12 +289,12 @@ def create_app(config_name: str = "development") -> Flask:
     # app.optimization_engine = optimization_engine
     # logging.info("Advanced performance optimization engine started")
 
-    # Initialize optimized database connection pool
-    from app.database.optimized_connection_pool import DatabaseConnectionPool
-
-    db_pool = DatabaseConnectionPool(app.config.get("SQLALCHEMY_DATABASE_URI"))
-    app.db_pool = db_pool
-    logging.info("Optimized database connection pool initialized")
+    # Initialize optimized database connection pool (guarded in tests)
+    if app.config.get("DB_POOL_ENABLED", True):
+        from app.database.optimized_connection_pool import DatabaseConnectionPool
+        db_pool = DatabaseConnectionPool(app.config.get("SQLALCHEMY_DATABASE_URI"))
+        app.db_pool = db_pool
+        logging.info("Optimized database connection pool initialized")
 
     # Initialize auto-commit service for background code backup
     from app.services.auto_commit_service import start_auto_commit_service
@@ -391,7 +389,8 @@ def register_blueprints(app: Flask) -> None:
 
     app.register_blueprint(main_bp)
     app.register_blueprint(api_bp, url_prefix="/api")
-    app.register_blueprint(scoring_bp, url_prefix="/api/route")
+    # scoring_bp already defines its url_prefix
+    app.register_blueprint(scoring_bp)
     app.register_blueprint(metrics_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
@@ -399,7 +398,8 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(enhanced_dashboard_bp)
     app.register_blueprint(enterprise_bp)
     app.register_blueprint(voice_dashboard_bp)  # Voice dashboard
-    app.register_blueprint(traffic_bp, url_prefix="/api/traffic")
+    # traffic_bp already defines its url_prefix
+    app.register_blueprint(traffic_bp)
     app.register_blueprint(mobile_bp, url_prefix="/api/mobile")
     app.register_blueprint(analytics_bp, url_prefix="/api/analytics")
     app.register_blueprint(analytics_ai_bp, url_prefix="/api/ai")

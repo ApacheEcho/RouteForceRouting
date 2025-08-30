@@ -218,50 +218,50 @@ def create_route():
             "mo_tournament_size": options.get("mo_tournament_size", 2),
         }
 
-        # Use the generate_route_from_stores method with algorithm support
-        route = routing_service.generate_route_from_stores(
-            stores,
-            constraints,
-            save_to_db=True,
-            algorithm=algorithm,
-            algorithm_params=algorithm_params,
+    # Use the generate_route_from_stores method with algorithm support for all cases
+    route = routing_service.generate_route_from_stores(
+        stores,
+        constraints,
+        save_to_db=True,
+        algorithm=algorithm,
+        algorithm_params=algorithm_params,
+    )
+
+    if route is None:
+        raise APIError(
+            "Failed to generate route",
+            status_code=422,
+            code="ROUTE_GENERATION_FAILED",
         )
 
-        if not route:
-            raise APIError(
-                "Failed to generate route",
-                status_code=422,
-                code="ROUTE_GENERATION_FAILED",
-            )
+    # Get metrics
+    metrics = routing_service.get_metrics()
 
-        # Get metrics
-        metrics = routing_service.get_metrics()
+    # Build response data
+    route_data = {
+        "route": route,
+        "route_id": metrics.route_id if metrics and metrics.route_id else None,
+        "algorithm_used": metrics.algorithm_used if metrics else algorithm,
+    }
 
-        # Build response data
-        route_data = {
-            "route": route,
-            "route_id": metrics.route_id if metrics and metrics.route_id else None,
-            "algorithm_used": metrics.algorithm_used if metrics else algorithm,
-        }
+    # Build metadata
+    metadata = {
+        "total_stores": len(stores),
+        "route_stores": len(route) if isinstance(route, list) else 0,
+        "processing_time": routing_service.get_last_processing_time(),
+        "optimization_score": metrics.optimization_score if metrics else 0,
+    }
 
-        # Build metadata
-        metadata = {
-            "total_stores": len(stores),
-            "route_stores": len(route),
-            "processing_time": routing_service.get_last_processing_time(),
-            "optimization_score": metrics.optimization_score if metrics else 0,
-        }
+    # Include algorithm-specific metrics
+    if metrics and metrics.algorithm_metrics:
+        metadata["algorithm_metrics"] = metrics.algorithm_metrics
 
-        # Include algorithm-specific metrics
-        if metrics and metrics.algorithm_metrics:
-            metadata["algorithm_metrics"] = metrics.algorithm_metrics
-
-        return create_success_response(
-            data=route_data,
-            status_code=201,
-            message="Route created successfully",
-            metadata=metadata,
-        )
+    return create_success_response(
+        data=route_data,
+        status_code=201,
+        message="Route created successfully",
+        metadata=metadata,
+    )
 
 
 @api_bp.route("/v1/routes/<int:route_id>", methods=["GET"])

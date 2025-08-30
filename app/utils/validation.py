@@ -94,7 +94,9 @@ def validate_stores_data(stores: List[Dict]) -> List[Dict]:
     if len(stores) > 100:  # Reasonable limit
         raise ValidationError("Too many stores (max 100)", field="stores")
 
-    required_store_fields = ["address", "name"]
+    # Allow minimal input with just a name; address is optional and may be
+    # resolved later via geocoding or other enrichment.
+    required_store_fields = ["name"]
 
     validated_stores = []
 
@@ -110,12 +112,13 @@ def validate_stores_data(stores: List[Dict]) -> List[Dict]:
                     field=f"stores[{i}].{field}",
                 )
 
-        # Validate address
-        if not isinstance(store["address"], str) or len(store["address"].strip()) < 5:
-            raise ValidationError(
-                f"Store {i} address must be a valid string (min 5 characters)",
-                field=f"stores[{i}].address",
-            )
+        # Validate address if provided
+        if "address" in store and store["address"] is not None:
+            if not isinstance(store["address"], str) or len(store["address"].strip()) < 3:
+                raise ValidationError(
+                    f"Store {i} address must be a valid string",
+                    field=f"stores[{i}].address",
+                )
 
         # Validate name
         if not isinstance(store["name"], str) or len(store["name"].strip()) < 1:

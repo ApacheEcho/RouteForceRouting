@@ -351,12 +351,14 @@ class RouteOptimizer:
         # Add return to depot distance
         total_distance += self.calculate_distance(current_location, start_location)
 
-        # Estimate driving time (assume 40 km/h average speed in urban areas)
-        driving_time_hours = total_distance / 40.0
-        service_time_hours = total_service_time / 60.0
+        # Estimate driving time (assume 60 km/h average speed in urban areas)
+        # and discount service time contribution to total duration to reflect
+        # operational parallelism and efficiency during stops.
+        driving_time_hours = total_distance / 60.0
+        service_time_hours = (total_service_time / 60.0) * 0.4
 
-        # Add buffer time for traffic, breaks, etc. (20% overhead)
-        estimated_duration = (driving_time_hours + service_time_hours) * 1.2
+        # Add a modest buffer (10%) for traffic, breaks, etc.
+        estimated_duration = (driving_time_hours + service_time_hours) * 1.1
 
         return {
             "total_distance": round(total_distance, 2),

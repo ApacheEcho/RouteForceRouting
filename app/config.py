@@ -42,7 +42,9 @@ class Config:
     ALLOWED_EXTENSIONS = {"csv", "xlsx", "xls"}
 
     # Cache configuration
-    CACHE_TYPE = os.environ.get("CACHE_TYPE", "flask_caching.backends.simple")
+    # Use a valid Flask-Caching backend identifier. For local/dev default to
+    # the in‑process simple cache; production overrides to Redis below.
+    CACHE_TYPE = os.environ.get("CACHE_TYPE", "SimpleCache")
     CACHE_DEFAULT_TIMEOUT = int(os.environ.get("CACHE_DEFAULT_TIMEOUT", "300"))
 
     # Rate limiting configuration
@@ -61,6 +63,11 @@ class Config:
     LOG_JSON = os.environ.get("LOG_JSON", "false").lower() == "true"
     REQUEST_ID_HEADER = os.environ.get("REQUEST_ID_HEADER", "X-Request-ID")
     JSONIFY_PRETTYPRINT_REGULAR = False
+    # Feature toggles
+    PERFORMANCE_MONITOR_ENABLED = True
+    DB_POOL_ENABLED = True
+    SOCKETIO_LOGGER = False
+    SOCKETIO_ENGINEIO_LOGGER = False
 
     # Google Maps API configuration
     GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY")
@@ -89,7 +96,7 @@ class DevelopmentConfig(Config):
     DEBUG = True
     TESTING = False
     LOG_LEVEL = "DEBUG"
-    CACHE_TYPE = "flask_caching.backends.simple"
+    CACHE_TYPE = "SimpleCache"
     SQLALCHEMY_DATABASE_URI = (
         os.environ.get("DATABASE_URL") or "sqlite:///routeforce_dev.db"
     )
@@ -108,7 +115,8 @@ class ProductionConfig(Config):
     AUTO_COMMIT_ENABLED = False
 
     # Production-specific settings
-    CACHE_TYPE = "flask_caching.backends.redis"
+    # Use Redis for caching in production
+    CACHE_TYPE = "RedisCache"
     CACHE_REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379")
     RATELIMIT_STORAGE_URI = os.environ.get("REDIS_URL", "redis://localhost:6379")
     SQLALCHEMY_DATABASE_URI = (
@@ -152,8 +160,13 @@ class TestingConfig(Config):
     DEBUG = True
     WTF_CSRF_ENABLED = False
     UPLOAD_FOLDER = "test_uploads"
-    CACHE_TYPE = "flask_caching.backends.null"  # Disable cache for testing
+    CACHE_TYPE = "NullCache"  # Disable cache for testing
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"  # In-memory database for testing
+    AUTO_COMMIT_ENABLED = False
+    PERFORMANCE_MONITOR_ENABLED = False
+    DB_POOL_ENABLED = False
+    SOCKETIO_LOGGER = False
+    SOCKETIO_ENGINEIO_LOGGER = False
 
 
 # Configuration dictionary

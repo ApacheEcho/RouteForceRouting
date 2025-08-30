@@ -9,7 +9,6 @@
     
     // ChatGPT Extension Configuration
     "chatgpt.apiKey": "",
-    "chatgpt.model": "gpt-4",
     "chatgpt.temperature": 0.3,
     "chatgpt.maxTokens": 2048,
     "chatgpt.systemMessage": "You are an expert Python developer specializing in Flask applications, route optimization, and geospatial data. Help with RouteForceRouting project development.",
@@ -227,5 +226,8 @@
     "yaml.schemas": {
         "https://json.schemastore.org/github-workflow.json": ".github/workflows/*.{yml,yaml}"
     },
-    "chatgpt.openOnStartup": true
+    "chatgpt.openOnStartup": true,
+    "chatgpt.config": {
+
+    }
 }

@@ -4,7 +4,6 @@ Provides mobile-optimized endpoints for mobile app integration
 """
 
 from flask import Blueprint, request, jsonify, current_app
-from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import uuid
 import time
@@ -21,15 +20,15 @@ from app.security import require_api_key, validate_request
 # Initialize blueprint
 mobile_bp = Blueprint("mobile_api", __name__)
 
-# Initialize rate limiter
-limiter = Limiter(key_func=get_remote_address)
+# Use the app-wide rate limiter configured in app.__init__
+from app import limiter as app_limiter
 
 # Configure logging
 logger = logging.getLogger(__name__)
 
 
 @mobile_bp.route("/health", methods=["GET"])
-@limiter.limit("30 per minute")
+@app_limiter.limit("30 per minute")
 def mobile_health_check():
     """
     Mobile API health check endpoint
@@ -89,7 +88,7 @@ def mobile_health_check():
 
 
 @mobile_bp.route("/auth/token", methods=["POST"])
-@limiter.limit("10 per minute")
+@app_limiter.limit("10 per minute")
 @validate_request(["device_id", "app_version"])
 def mobile_auth():
     """
@@ -141,7 +140,7 @@ def mobile_auth():
 
 
 @mobile_bp.route("/routes/optimize", methods=["POST"])
-@limiter.limit("20 per minute")
+@app_limiter.limit("20 per minute")
 @require_api_key
 @validate_request(["stores"])
 def mobile_optimize_route():
@@ -348,7 +347,7 @@ def mobile_optimize_route():
 
 
 @mobile_bp.route("/routes/traffic", methods=["POST"])
-@limiter.limit("15 per minute")
+@app_limiter.limit("15 per minute")
 @require_api_key
 @validate_request(["origin", "destination"])
 def mobile_traffic_route():
@@ -410,7 +409,7 @@ def mobile_traffic_route():
 
 
 @mobile_bp.route("/driver/location", methods=["POST"])
-@limiter.limit("60 per minute")
+@app_limiter.limit("60 per minute")
 @require_api_key
 @validate_request(["lat", "lng", "driver_id"])
 def update_driver_location():
@@ -485,7 +484,7 @@ def update_driver_location():
 
 
 @mobile_bp.route("/driver/status", methods=["POST"])
-@limiter.limit("30 per minute")
+@app_limiter.limit("30 per minute")
 @require_api_key
 @validate_request(["driver_id", "status"])
 def update_driver_status():
@@ -551,7 +550,7 @@ def update_driver_status():
 
 
 @mobile_bp.route("/sync/offline", methods=["POST"])
-@limiter.limit("10 per minute")
+@app_limiter.limit("10 per minute")
 @require_api_key
 @validate_request(["device_id"])
 def sync_offline_data():

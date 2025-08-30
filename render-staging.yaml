@@ -7,7 +7,8 @@ services:
     dockerfilePath: ./Dockerfile
     region: oregon
     buildCommand: "docker build -t routeforce-staging ."
-    startCommand: "python app.py"
+    # Use Gunicorn with the WSGI entry to avoid module shadowing
+    startCommand: "gunicorn wsgi:app --workers 2 --timeout 120"
     envVars:
       - key: FLASK_ENV
         value: staging

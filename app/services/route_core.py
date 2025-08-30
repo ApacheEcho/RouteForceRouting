@@ -80,7 +80,8 @@ class TimeWindowFilter(RouteFilter):
                         filtered_stores.append(store)
                 except (KeyError, ValueError) as e:
                     logger.warning(f"Invalid time window for chain {chain}: {e}")
-                    filtered_stores.append(store)  # Include store if parsing fails
+                    # Exclude store if time window is malformed to honor constraints
+                    continue
             else:
                 filtered_stores.append(store)  # Include stores without time constraints
 
@@ -339,7 +340,7 @@ def create_route_generator(algorithm: str = "priority") -> ModernRouteGenerator:
         optimizer = PriorityOptimizer()
 
     return ModernRouteGenerator(
-        filters=[TimeWindowFilter(), MaxStoresFilter()],
+        filters=[TimeWindowFilter(), DaysAllowedFilter(), MaxStoresFilter()],
         optimizer=optimizer,
         distance_calculator=distance_calc,
     )
@@ -386,6 +387,22 @@ def generate_route(
         # Store days_allowed for custom filtering
         if allowed_days:
             constraints._allowed_days = allowed_days
+
+    # Pre-filter: if playbook includes malformed visit_hours for a chain, exclude those stores
+    # This aligns with legacy behavior expected by tests when visit_date is not provided
+    if playbook and constraints.time_windows:
+        invalid_chains = set()
+        for chain, tw in constraints.time_windows.items():
+            try:
+                if not isinstance(tw, dict):
+                    raise ValueError("time window must be a dict")
+                _ = datetime.strptime(tw["start"], "%H:%M")
+                _ = datetime.strptime(tw["end"], "%H:%M")
+            except Exception:
+                invalid_chains.add(chain)
+
+        if invalid_chains:
+            stores = [s for s in stores if s.get("chain") not in invalid_chains]
 
     generator = create_route_generator("nearest_neighbor")
     route, _ = generator.generate_route(stores, constraints)

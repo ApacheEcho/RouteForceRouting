@@ -1,0 +1,81 @@
+name: MCP Model Usage Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+  push:
+    branches: ["**"]
+
+jobs:
+  scan-mcp-usage:
+    name: Scan changed files for MCP model usage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine changed files
+        id: changed-files
+        run: |
+          set -euo pipefail
+          echo "Determining changed files..."
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            base_ref="${{ github.event.pull_request.base.ref }}"
+            echo "PR detected, base ref: $base_ref"
+            git fetch origin "$base_ref" --depth=1 || true
+            git diff --name-only origin/$base_ref...HEAD > changed.txt || true
+          else
+            # For push events, compare last commit
+            git fetch --no-tags --prune --depth=1 || true
+            git diff --name-only HEAD~1..HEAD > changed.txt || true
+          fi
+          if [ -s changed.txt ]; then
+            echo "changed_files<<EOF" >> $GITHUB_OUTPUT
+            cat changed.txt >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "changed_files=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Scan changed files for MCP strings
+        id: scan
+        run: |
+          set -euo pipefail
+          if [ -z "${{ steps.changed-files.outputs.changed_files }}" ]; then
+            echo "No changed files to scan"
+            echo "found=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          echo "Files to scan:"
+          echo "${{ steps.changed-files.outputs.changed_files }}"
+          # write file list to a temp file
+          printf "%s" "${{ steps.changed-files.outputs.changed_files }}" > filelist.txt
+          models_regex='copilot/gpt-5-mini-preview|copilot/gpt-4.1|chat.mcp.modelPreferences|chat.mcp.serverSampling'
+          found=false
+          while IFS= read -r f; do
+            # skip empty lines
+            if [ -z "$f" ]; then
+              continue
+            fi
+            if [ -f "$f" ] && grep -En "${models_regex}" "$f" >/dev/null 2>&1; then
+              echo "Match in $f"
+              found=true
+              break
+            fi
+          done < filelist.txt
+          echo "found=$found" >> $GITHUB_OUTPUT
+
+      - name: Label PR when MCP usage detected
+        if: ${{ github.event_name == 'pull_request' && steps.scan.outputs.found == 'true' }}
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: mcp
+
+      - name: Annotate run for pushes
+        if: ${{ github.event_name != 'pull_request' && steps.scan.outputs.found == 'true' }}
+        run: |
+          echo "MCP model usage detected in changed files:" 
+          printf "%s" "${{ steps.changed-files.outputs.changed_files }}"

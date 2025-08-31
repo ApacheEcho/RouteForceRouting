@@ -63,7 +63,8 @@ jobs:
           printf "%s" "$FILES" > filelist.txt
           models_regex='copilot/gpt-5-mini-preview|copilot/gpt-4.1|chat.mcp.modelPreferences|chat.mcp.serverSampling'
           found=false
-          while IFS= read -r f; do
+          # Use a robust while-read that handles the last line without newline
+          while IFS= read -r f || [ -n "$f" ]; do
             # skip empty lines
             if [ -z "$f" ]; then
               continue

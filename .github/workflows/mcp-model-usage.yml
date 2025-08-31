@@ -59,10 +59,14 @@ jobs:
             if [ -z "$f" ]; then
               continue
             fi
-            if [ -f "$f" ] && grep -En "${models_regex}" "$f" >/dev/null 2>&1; then
-              echo "Match in $f"
-              found=true
-              break
+            if [ -f "$f" ]; then
+              matches=$(grep -En "${models_regex}" "$f" || true)
+              if [ -n "$matches" ]; then
+                echo "Match found in: $f"
+                echo "$matches"
+                found=true
+                break
+              fi
             fi
           done < filelist.txt
           echo "found=$found" >> $GITHUB_OUTPUT

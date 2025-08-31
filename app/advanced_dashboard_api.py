@@ -3,15 +3,13 @@ Advanced Real-time Analytics Dashboard
 Provides comprehensive system insights with ML model monitoring
 """
 
-from flask import Blueprint, render_template, jsonify, request
-from datetime import datetime, timedelta
-import json
-from typing import Dict, Any
+from datetime import datetime
 
-from app.auth_decorators import analytics_access_required, audit_log
+from flask import Blueprint, jsonify, render_template, request
+
 from app.analytics_ai import get_analytics_engine
+from app.auth_decorators import analytics_access_required, audit_log
 from app.performance_monitor import get_performance_monitor
-from app.services.database_integration import database_service
 
 advanced_dashboard_bp = Blueprint(
     "advanced_dashboard", __name__, url_prefix="/advanced"

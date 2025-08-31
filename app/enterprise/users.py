@@ -2,15 +2,17 @@
 Advanced User Management with Role-Based Access Control
 """
 
-from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token
-from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime, timedelta
-import uuid
-from typing import Dict, List, Optional
-from dataclasses import dataclass, asdict
 import logging
 import re
+import uuid
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional
+
+from flask import Blueprint, jsonify, request
+from flask_jwt_extended import (create_access_token, get_jwt_identity,
+                                jwt_required)
+from werkzeug.security import check_password_hash, generate_password_hash
 
 # Initialize blueprint
 users_bp = Blueprint("users", __name__, url_prefix="/api/users")
@@ -32,7 +34,7 @@ class Role:
 
     name: str
     description: str
-    permissions: List[str]
+    permissions: list[str]
     is_system_role: bool = False
 
 
@@ -149,7 +151,7 @@ class RoleManager:
         for role in roles:
             self.roles[role.name] = role
 
-    def get_role(self, role_name: str) -> Optional[Role]:
+    def get_role(self, role_name: str) -> Role | None:
         """Get role by name"""
         return self.roles.get(role_name)
 
@@ -222,7 +224,7 @@ class UserManager:
             for user_data in demo_users:
                 self.create_user(user_data, password="demo123")
 
-    def create_user(self, data: Dict, password: str) -> Dict:
+    def create_user(self, data: dict, password: str) -> dict:
         """Create new user"""
         user_id = str(uuid.uuid4())
 
@@ -267,7 +269,7 @@ class UserManager:
         logger.info(f"Created user: {user['email']} ({user['role']})")
         return user
 
-    def authenticate_user(self, email: str, password: str) -> Optional[Dict]:
+    def authenticate_user(self, email: str, password: str) -> dict | None:
         """Authenticate user login"""
         for user in self.users.values():
             if user["email"] == email and user["is_active"]:
@@ -277,7 +279,7 @@ class UserManager:
                     return user
         return None
 
-    def get_user(self, user_id: str) -> Optional[Dict]:
+    def get_user(self, user_id: str) -> dict | None:
         """Get user by ID"""
         user = self.users.get(user_id)
         if user:
@@ -287,7 +289,7 @@ class UserManager:
             return user_copy
         return None
 
-    def get_user_by_email(self, email: str) -> Optional[Dict]:
+    def get_user_by_email(self, email: str) -> dict | None:
         """Get user by email"""
         for user in self.users.values():
             if user["email"] == email:
@@ -296,7 +298,7 @@ class UserManager:
                 return user_copy
         return None
 
-    def list_organization_users(self, org_id: str) -> List[Dict]:
+    def list_organization_users(self, org_id: str) -> list[dict]:
         """List users in organization"""
         org_users = []
         for user in self.users.values():
@@ -306,7 +308,7 @@ class UserManager:
                 org_users.append(user_copy)
         return org_users
 
-    def update_user(self, user_id: str, data: Dict) -> Optional[Dict]:
+    def update_user(self, user_id: str, data: dict) -> dict | None:
         """Update user"""
         user = self.users.get(user_id)
         if not user:

@@ -7,10 +7,9 @@ PRNGs used across the codebase. Safe to call multiple times.
 
 from __future__ import annotations
 
-import os
 import logging
+import os
 from typing import Optional
-
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +37,7 @@ def seed_all(seed: int) -> None:
         pass
 
 
-def seed_all_from_env(default: Optional[int] = None) -> Optional[int]:
+def seed_all_from_env(default: int | None = None) -> int | None:
     """Seed PRNGs from RFR_SEED environment variable if present.
 
     Args:
@@ -63,4 +62,3 @@ def seed_all_from_env(default: Optional[int] = None) -> Optional[int]:
     seed_all(seed_int)
     logger.info(f"Deterministic seeding enabled (RFR_SEED={seed_int})")
     return seed_int
-

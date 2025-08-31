@@ -3,24 +3,13 @@ Advanced Analytics API Blueprint
 Provides endpoints for AI-powered route insights and predictions
 """
 
-from flask import Blueprint, request, jsonify, current_app
-from datetime import datetime, timedelta
-import json
-from typing import Dict, Any, List
+from datetime import datetime
 
-from app.analytics_ai import (
-    get_analytics_engine,
-    RouteInsight,
-    PredictionResult,
-    PerformanceTrend,
-)
-from app.auth_decorators import (
-    analytics_access_required,
-    admin_required,
-    dispatcher_required,
-    optional_auth,
-    audit_log,
-)
+from flask import Blueprint, current_app, jsonify, request
+
+from app.analytics_ai import get_analytics_engine
+from app.auth_decorators import (admin_required, analytics_access_required,
+                                 audit_log)
 from app.performance_monitor import get_performance_monitor
 
 analytics_bp = Blueprint("analytics_ai", __name__)

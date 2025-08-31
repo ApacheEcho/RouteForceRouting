@@ -49,14 +49,15 @@ jobs:
         id: scan
         run: |
           set -euo pipefail
-          if [ -z "${{ steps.changed-files.outputs.changed_files }}" ]; then
+          # read changed files from changed.txt written by the previous step
+          if [ ! -s changed.txt ]; then
             echo "No changed files to scan"
             echo "found=false" >> $GITHUB_OUTPUT
             exit 0
           fi
           echo "Files to scan:"
           # exclude workflow files from scanning to avoid self-matches
-          FILES=$(printf "%s" "${{ steps.changed-files.outputs.changed_files }}" | grep -Ev "^\.github/workflows/" || true)
+          FILES=$(grep -Ev "^\.github/workflows/" changed.txt || true)
           echo "$FILES"
           # write file list to a temp file
           printf "%s" "$FILES" > filelist.txt
@@ -96,7 +97,8 @@ jobs:
         id: collect
         run: |
           set -euo pipefail
-          FILES=$(printf "%s" "${{ steps.changed-files.outputs.changed_files }}" | grep -Ev "^\.github/workflows/" || true)
+          # read changed files from changed.txt (written earlier)
+          FILES=$(grep -Ev "^\.github/workflows/" changed.txt || true)
           models_regex='copilot/gpt-5-mini-preview|copilot/gpt-4.1|chat.mcp.modelPreferences|chat.mcp.serverSampling'
           tmpfile=$(mktemp)
           echo "MCP matches:" > "$tmpfile"

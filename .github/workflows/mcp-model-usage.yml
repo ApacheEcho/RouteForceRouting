@@ -6,6 +6,12 @@ on:
   push:
     branches: ["**"]
 
+# Allow the workflow to add labels and comments using the GITHUB_TOKEN
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
 jobs:
   scan-mcp-usage:
     name: Scan changed files for MCP model usage

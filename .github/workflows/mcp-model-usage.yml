@@ -57,11 +57,15 @@ jobs:
           fi
           echo "Files to scan:"
           # exclude workflow files from scanning to avoid self-matches
+          # exclude workflow files from scanning to avoid self-matches
           FILES=$(grep -Ev "^\.github/workflows/" changed.txt || true)
           echo "$FILES"
+          # restrict scanning to likely text/config files to reduce false positives
+          FILES=$(echo "$FILES" | grep -E "\.(py|js|ts|json|yaml|yml|md|txt|ini|cfg|env)$" || true)
           # write file list to a temp file
-          printf "%s" "$FILES" > filelist.txt
-          models_regex='copilot/gpt-5-mini-preview|copilot/gpt-4.1|chat.mcp.modelPreferences|chat.mcp.serverSampling'
+          printf "%s\n" "$FILES" > filelist.txt
+          # slightly more anchored regex (match full token or dotted property)
+          models_regex='(copilot/gpt-5-mini-preview|copilot/gpt-4.1)|\b(chat\.mcp\.modelPreferences|chat\.mcp\.serverSampling)\b'
           found=false
           # Use a robust while-read that handles the last line without newline
           while IFS= read -r f || [ -n "$f" ]; do
@@ -100,7 +104,9 @@ jobs:
           set -euo pipefail
           # read changed files from changed.txt (written earlier)
           FILES=$(grep -Ev "^\.github/workflows/" changed.txt || true)
-          models_regex='copilot/gpt-5-mini-preview|copilot/gpt-4.1|chat.mcp.modelPreferences|chat.mcp.serverSampling'
+          # keep only likely text/config files
+          FILES=$(echo "$FILES" | grep -E "\.(py|js|ts|json|yaml|yml|md|txt|ini|cfg|env)$" || true)
+          models_regex='(copilot/gpt-5-mini-preview|copilot/gpt-4.1)|\b(chat\.mcp\.modelPreferences|chat\.mcp\.serverSampling)\b'
           tmpfile=$(mktemp)
           echo "MCP matches:" > "$tmpfile"
           while IFS= read -r f; do

@@ -1,0 +1,15 @@
+[
+  {"vehicle_id":"med_veh_01","capacity_kg":1400,"max_packages":180,"max_driving_hours":10,"driver_id":"driver_011"},
+  {"vehicle_id":"med_veh_02","capacity_kg":1600,"max_packages":200,"max_driving_hours":10,"driver_id":"driver_012"},
+  {"vehicle_id":"med_veh_03","capacity_kg":1200,"max_packages":150,"max_driving_hours":9},
+  {"vehicle_id":"med_veh_04","capacity_kg":1500,"max_packages":190,"max_driving_hours":10,"driver_id":"driver_014"},
+  {"vehicle_id":"med_veh_05","capacity_kg":1300,"max_packages":170,"max_driving_hours":9,"driver_id":"driver_015"},
+  {"vehicle_id":"med_veh_06","capacity_kg":1000,"max_packages":140,"max_driving_hours":8},
+  {"vehicle_id":"med_veh_07","capacity_kg":1700,"max_packages":210,"max_driving_hours":11,"driver_id":"driver_017"},
+  {"vehicle_id":"med_veh_08","capacity_kg":900,"max_packages":120,"max_driving_hours":8},
+  {"vehicle_id":"med_veh_09","capacity_kg":1550,"max_packages":195,"max_driving_hours":10,"driver_id":"driver_019"},
+  {"vehicle_id":"med_veh_10","capacity_kg":1150,"max_packages":160,"max_driving_hours":9},
+  {"vehicle_id":"med_veh_11","capacity_kg":1800,"max_packages":220,"max_driving_hours":11,"driver_id":"driver_021"},
+  {"vehicle_id":"med_veh_12","capacity_kg":1350,"max_packages":175,"max_driving_hours":9}
+]
+

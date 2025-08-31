@@ -229,5 +229,24 @@
     "chatgpt.openOnStartup": true,
     "chatgpt.config": {
 
+    },
+    "chat.mcp.serverSampling": {
+        "Global in Code: context7": {
+            "allowedModels": [
+                "copilot/gpt-4.1",
+                "copilot/gpt-5-mini-preview"
+            ]
+        }
+    }
+},
+    "chat.mcp.modelPreferences": {
+        "beastMode": {
+            "primary": "copilot/gpt-5-mini-preview",
+            "fallback": "copilot/gpt-4.1",
+            "maxTokens": 512,
+            "temperature": 0.2,
+            "top_p": 0.8,
+            "structuredOutput": true
+        }
     }
 }

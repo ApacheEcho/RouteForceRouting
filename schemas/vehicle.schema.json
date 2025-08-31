@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://routeforce.local/schemas/vehicle.schema.json",
+  "title": "Vehicle",
+  "description": "Vehicle record used by RouteForce. Supports optional depot coordinates as lat/lng or latitude/longitude.",
+  "oneOf": [
+    { "$ref": "#/definitions/vehicle" },
+    { "type": "array", "items": { "$ref": "#/definitions/vehicle" } }
+  ],
+  "definitions": {
+    "coord_pair": {
+      "description": "Either both lat/lng or latitude/longitude if coordinates are present",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "lat": { "type": "number", "minimum": -90, "maximum": 90 },
+            "lng": { "type": "number", "minimum": -180, "maximum": 180 }
+          },
+          "required": ["lat", "lng"]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "latitude": { "type": "number", "minimum": -90, "maximum": 90 },
+            "longitude": { "type": "number", "minimum": -180, "maximum": 180 }
+          },
+          "required": ["latitude", "longitude"]
+        },
+        { "type": "object", "properties": {} }
+      ]
+    },
+    "vehicle": {
+      "type": "object",
+      "additionalProperties": true,
+      "allOf": [ { "$ref": "#/definitions/coord_pair" } ],
+      "required": ["vehicle_id", "capacity_kg", "max_packages", "max_driving_hours"],
+      "properties": {
+        "vehicle_id": { "type": "string", "minLength": 1 },
+        "capacity_kg": { "type": "integer", "minimum": 0 },
+        "max_packages": { "type": "integer", "minimum": 0 },
+        "max_driving_hours": { "type": "integer", "minimum": 0 },
+        "driver_id": { "type": "string" },
+        "latitude": { "type": "number", "minimum": -90, "maximum": 90 },
+        "longitude": { "type": "number", "minimum": -180, "maximum": 180 },
+        "lat": { "type": "number", "minimum": -90, "maximum": 90 },
+        "lng": { "type": "number", "minimum": -180, "maximum": 180 }
+      }
+    }
+  }
+}
+

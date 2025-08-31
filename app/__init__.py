@@ -82,11 +82,16 @@ def create_app(config_name: str = "development") -> Flask:
     # Minimal API request validation for JSON endpoints
     @app.before_request
     def _validate_request():
-        # Only apply to API routes
+        # Only apply to API routes and JSON endpoints; allow multipart/form-data for uploads
         if request.path.startswith("/api") and request.method in {"POST", "PUT", "PATCH"}:
+            ctype = request.content_type or ""
+            if ctype.startswith("multipart/form-data") or ctype.startswith(
+                "application/x-www-form-urlencoded"
+            ):
+                # File uploads and form submissions are allowed
+                return
             if not request.is_json:
                 abort(415, description="Content-Type must be application/json")
-            # Attempt to parse JSON early to return a clear error
             try:
                 _ = request.get_json(silent=False)
             except Exception:

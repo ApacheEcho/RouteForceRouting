@@ -1,0 +1,14 @@
+[
+  {"id": 1,  "name": "S1",  "address": "1 Civic Center Plaza",   "latitude": 37.7790, "longitude": -122.4194, "priority": "high",   "estimated_service_time": 10, "packages": 2, "weight_kg": 5.0},
+  {"id": 2,  "name": "S2",  "address": "50 Larkin St",           "latitude": 37.7802, "longitude": -122.4165, "priority": "medium", "estimated_service_time": 10, "packages": 1, "weight_kg": 4.0},
+  {"id": 3,  "name": "S3",  "address": "100 Hyde St",            "latitude": 37.7810, "longitude": -122.4155, "priority": "low",    "estimated_service_time": 15, "packages": 1, "weight_kg": 3.5},
+  {"id": 4,  "name": "S4",  "address": "200 McAllister St",      "latitude": 37.7818, "longitude": -122.4175, "priority": "medium", "estimated_service_time": 15, "packages": 2, "weight_kg": 6.0},
+  {"id": 5,  "name": "S5",  "address": "300 Grove St",           "latitude": 37.7775, "longitude": -122.4202, "priority": "high",   "estimated_service_time": 10, "packages": 1, "weight_kg": 4.5},
+  {"id": 6,  "name": "S6",  "address": "400 Hayes St",           "latitude": 37.7763, "longitude": -122.4215, "priority": "low",    "estimated_service_time": 10, "packages": 1, "weight_kg": 3.0},
+  {"id": 7,  "name": "S7",  "address": "500 Van Ness Ave",       "latitude": 37.7779, "longitude": -122.4230, "priority": "medium", "estimated_service_time": 15, "packages": 2, "weight_kg": 6.5},
+  {"id": 8,  "name": "S8",  "address": "600 Polk St",            "latitude": 37.7820, "longitude": -122.4205, "priority": "high",   "estimated_service_time": 10, "packages": 1, "weight_kg": 4.0},
+  {"id": 9,  "name": "S9",  "address": "700 Market St",          "latitude": 37.7865, "longitude": -122.4040, "priority": "medium", "estimated_service_time": 15, "packages": 2, "weight_kg": 5.5},
+  {"id": 10, "name": "S10", "address": "800 Mission St",         "latitude": 37.7840, "longitude": -122.4045, "priority": "low",    "estimated_service_time": 10, "packages": 1, "weight_kg": 3.5},
+  {"id": 11, "name": "S11", "address": "900 4th St",             "latitude": 37.7785, "longitude": -122.4050, "priority": "medium", "estimated_service_time": 15, "packages": 2, "weight_kg": 5.0},
+  {"id": 12, "name": "S12", "address": "1000 3rd St",            "latitude": 37.7760, "longitude": -122.4040, "priority": "high",   "estimated_service_time": 10, "packages": 1, "weight_kg": 4.0}
+]

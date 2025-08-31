@@ -15,6 +15,22 @@ RouteForce Scripts
   - vehicles: JSON array with vehicle_id/capacity_kg/max_packages/max_driving_hours; optional status and coordinates.
 - Output: JSON with routes; prints to stdout unless --out is provided.
 
+Examples (copy-paste):
+
+- San Francisco (compact dataset):
+  - export RFR_SEED=123
+  - python scripts/run_optimizer.py \
+      --stores data/samples/cli_demo/stores_12_sf_compact.json \
+      --vehicles data/samples/cli_demo/vehicles_sf_depot.json \
+      --method two_opt --out /tmp/routes_sf_compact.json --summary
+
+- New York City (compact dataset):
+  - export RFR_SEED=123
+  - python scripts/run_optimizer.py \
+      --stores data/samples/cli_demo/stores_12_nyc_compact.json \
+      --vehicles data/samples/cli_demo/vehicles_nyc_depot.json \
+      --method two_opt --out /tmp/routes_nyc_compact.json --summary
+
 2) profile_routing.py
 - Purpose: Generate synthetic stores and measure optimization performance.
 - Usage:
@@ -23,4 +39,3 @@ RouteForce Scripts
 - Notes:
   - Uses a Manhattan-like area for synthetic points.
   - Does not require any input files.
-

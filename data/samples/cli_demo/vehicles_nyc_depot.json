@@ -1,0 +1,4 @@
+[
+  {"vehicle_id": "V1", "capacity_kg": 500, "max_packages": 100, "max_driving_hours": 8, "lat": 40.7580, "lng": -73.9855},
+  {"vehicle_id": "V2", "capacity_kg": 500, "max_packages": 100, "max_driving_hours": 8, "lat": 40.7580, "lng": -73.9855}
+]

@@ -1,0 +1,6 @@
+@host = http://localhost:8000
+
+### Analytics health (read-only)
+GET {{host}}/api/analytics/health
+Accept: application/json
+

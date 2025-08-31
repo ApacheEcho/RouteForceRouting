@@ -229,5 +229,13 @@
     "chatgpt.openOnStartup": true,
     "chatgpt.config": {
 
+    },
+    "chat.mcp.serverSampling": {
+        "Global in Code: context7": {
+            "allowedModels": [
+                "copilot/gpt-4.1",
+                "copilot/gpt-5-mini-preview"
+            ]
+        }
     }
 }

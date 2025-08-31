@@ -46,6 +46,9 @@ npm start
 ### VS Code Integration:
 The MCP server is pre-configured for VS Code debugging. Use the `.vscode/mcp.json` configuration to connect AI tools directly to RouteForce capabilities.
 
+### Preview Models (optional)
+If your team wants to try preview or experimental models (for example `copilot/gpt-5-mini-preview`), see `.github/CODELLAUNCH.md` for workspace and user opt-in instructions, repository trust guidance, and an admin request template.
+
 ## 🚨 Security Notice
 
 - Do not commit API keys or passwords.

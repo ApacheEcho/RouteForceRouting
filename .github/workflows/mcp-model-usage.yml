@@ -79,6 +79,11 @@ jobs:
           done < filelist.txt
           echo "found=$found" >> $GITHUB_OUTPUT
 
+      - name: Debug scan outputs
+        run: |
+          echo "DEBUG: steps.scan.outputs.found='${{ steps.scan.outputs.found }}'"
+          echo "DEBUG: steps.changed-files.outputs.changed_files='${{ steps.changed-files.outputs.changed_files }}'"
+
       - name: Label PR when MCP usage detected
         if: ${{ github.event_name == 'pull_request' && steps.scan.outputs.found == 'true' }}
         uses: actions-ecosystem/action-add-labels@v1
@@ -106,7 +111,10 @@ jobs:
           done <<< "$FILES"
           # limit comment size
           head -n 500 "$tmpfile" > "$tmpfile".head
-          echo "comment_file=$tmpfile.head" >> $GITHUB_OUTPUT
+          # emit the file contents as a multi-line workflow output so the comment action receives the actual text
+          echo "comment_text<<EOF" >> $GITHUB_OUTPUT
+          cat "$tmpfile".head >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Post PR comment with matches
         if: ${{ github.event_name == 'pull_request' && steps.scan.outputs.found == 'true' }}
@@ -117,7 +125,7 @@ jobs:
             :mag: MCP model usage detected in this PR. The following snippets were found in changed files:
 
             ```
-            ${{ steps.collect.outputs.comment_file }}
+            ${{ steps.collect.outputs.comment_text }}
             ```
 
       - name: Annotate run for pushes

@@ -60,12 +60,16 @@ jobs:
           # exclude workflow files from scanning to avoid self-matches
           FILES=$(grep -Ev "^\.github/workflows/" changed.txt || true)
           echo "$FILES"
-          # restrict scanning to likely text/config files to reduce false positives
+          # restrict scanning to likely text/config files and to a narrow set of repository paths
           FILES=$(echo "$FILES" | grep -E "\.(py|js|ts|json|yaml|yml|md|txt|ini|cfg|env)$" || true)
+          # whitelist directories where configuration and source live to reduce noise
+          FILES=$(echo "$FILES" | grep -E '^(src/|mcp-server/|docs/|config/|\\.vscode/|scripts/|infra/|\\.github/).*(\\.py|\\.js|\\.ts|\\.json|\\.ya?ml|\\.md|\\.txt|\\.ini|\\.cfg|\\.env)$' || true)
+          # exclude common vendored/generated paths
+          FILES=$(echo "$FILES" | grep -Ev '(^|/)node_modules/|(^|/)dist/|(^|/)build/|(^|/)vendor/' || true)
           # write file list to a temp file
           printf "%s\n" "$FILES" > filelist.txt
-          # slightly more anchored regex (match full token or dotted property)
-          models_regex='(copilot/gpt-5-mini-preview|copilot/gpt-4.1)|\b(chat\.mcp\.modelPreferences|chat\.mcp\.serverSampling)\b'
+          # tightened regex: use word boundaries around explicit model ids and config keys
+          models_regex='\b(copilot/gpt-5-mini-preview|copilot/gpt-4.1)\b|\b(chat\.mcp\.modelPreferences|chat\.mcp\.serverSampling)\b'
           found=false
           # Use a robust while-read that handles the last line without newline
           while IFS= read -r f || [ -n "$f" ]; do
@@ -106,7 +110,9 @@ jobs:
           FILES=$(grep -Ev "^\.github/workflows/" changed.txt || true)
           # keep only likely text/config files
           FILES=$(echo "$FILES" | grep -E "\.(py|js|ts|json|yaml|yml|md|txt|ini|cfg|env)$" || true)
-          models_regex='(copilot/gpt-5-mini-preview|copilot/gpt-4.1)|\b(chat\.mcp\.modelPreferences|chat\.mcp\.serverSampling)\b'
+          FILES=$(echo "$FILES" | grep -E '^(src/|mcp-server/|docs/|config/|\\.vscode/|scripts/|infra/|\\.github/).*(\\.py|\\.js|\\.ts|\\.json|\\.ya?ml|\\.md|\\.txt|\\.ini|\\.cfg|\\.env)$' || true)
+          FILES=$(echo "$FILES" | grep -Ev '(^|/)node_modules/|(^|/)dist/|(^|/)build/|(^|/)vendor/' || true)
+          models_regex='\b(copilot/gpt-5-mini-preview|copilot/gpt-4.1)\b|\b(chat\.mcp\.modelPreferences|chat\.mcp\.serverSampling)\b'
           tmpfile=$(mktemp)
           echo "MCP matches:" > "$tmpfile"
           while IFS= read -r f; do

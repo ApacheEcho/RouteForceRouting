@@ -33,6 +33,8 @@ jobs:
         run: |
           set -euo pipefail
           FILES="${{ steps.changed-files.outputs.changed_files }}"
+          # exclude workflow files from scanning to avoid self-matches
+          FILES=$(printf "%s\n" "$FILES" | grep -Ev "^\.github/workflows/" || true)
           if [ -z "$FILES" ]; then
             echo "No changed files"
             echo "found=false" >> $GITHUB_OUTPUT

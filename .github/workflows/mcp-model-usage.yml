@@ -49,9 +49,11 @@ jobs:
             exit 0
           fi
           echo "Files to scan:"
-          echo "${{ steps.changed-files.outputs.changed_files }}"
+          # exclude workflow files from scanning to avoid self-matches
+          FILES=$(printf "%s" "${{ steps.changed-files.outputs.changed_files }}" | grep -Ev "^\.github/workflows/" || true)
+          echo "$FILES"
           # write file list to a temp file
-          printf "%s" "${{ steps.changed-files.outputs.changed_files }}" > filelist.txt
+          printf "%s" "$FILES" > filelist.txt
           models_regex='copilot/gpt-5-mini-preview|copilot/gpt-4.1|chat.mcp.modelPreferences|chat.mcp.serverSampling'
           found=false
           while IFS= read -r f; do

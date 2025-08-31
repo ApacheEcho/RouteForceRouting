@@ -1,0 +1,58 @@
+name: MCP Model Usage Dry-Run
+
+on:
+  push:
+    branches: ["mcp-dry-run"]
+
+jobs:
+  dry-run-scan:
+    name: Dry-run MCP scan (no side effects)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine changed files
+        id: changed-files
+        run: |
+          set -euo pipefail
+          git fetch origin main --depth=1 || true
+          git diff --name-only origin/main...HEAD > changed.txt || true
+          if [ -s changed.txt ]; then
+            echo "changed_files<<EOF" >> $GITHUB_OUTPUT
+            cat changed.txt >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "changed_files=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Scan changed files for MCP strings (dry-run)
+        id: scan
+        run: |
+          set -euo pipefail
+          FILES="${{ steps.changed-files.outputs.changed_files }}"
+          if [ -z "$FILES" ]; then
+            echo "No changed files"
+            echo "found=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          echo "Files to scan:"
+          printf "%s\n" "$FILES"
+          models_regex='copilot/gpt-5-mini-preview|copilot/gpt-4.1|chat.mcp.modelPreferences|chat.mcp.serverSampling'
+          found=false
+          while IFS= read -r f; do
+            if [ -z "$f" ]; then
+              continue
+            fi
+            if [ -f "$f" ] && grep -En "${models_regex}" "$f" >/dev/null 2>&1; then
+              echo "Match found in: $f"
+              found=true
+            fi
+          done <<< "$FILES"
+          echo "found=$found" >> $GITHUB_OUTPUT
+
+      - name: Output result
+        run: |
+          echo "Dry-run result: ${{ steps.scan.outputs.found }}"

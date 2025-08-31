@@ -1,0 +1,10 @@
+This PR tightens the MCP scanner workflow by restricting scanned file types, anchoring the model regex to reduce false positives, and adding a small local scan test harness at `.github/mcp-scan-test.sh`. It also removes the dry-run test artifact used for validation.
+
+Verification:
+- A previous dry-run push triggered workflow runs that posted the snippet-containing comment and added the `mcp` label to PR #101. See the Actions run: https://github.com/ApacheEcho/RouteForceRouting/actions/runs/17361388877
+
+How to test locally:
+- Run the included script against a `changed.txt` containing file paths (example):
+	`printf ".github/mcp-scan-local-test.txt\n" > changed.txt && bash .github/mcp-scan-test.sh changed.txt`
+
+If you'd like, I can merge this PR after review or re-run the scanner against a synthetic change to reconfirm.

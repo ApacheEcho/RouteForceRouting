@@ -1,0 +1,40 @@
+name: MCP scan check
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  mcp-scan:
+    name: Run MCP scan test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine changed files
+        run: |
+          echo "Determining changed files..."
+          # Try to fetch the base commit so we can diff against it
+          git fetch --no-tags origin "${{ github.event.pull_request.base.sha }}" || true
+          git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.sha }}" > changed.txt || true
+          echo "Files to scan:"
+          cat changed.txt || true
+
+      - name: Run MCP scan test harness
+        id: run-scan
+        run: |
+          set -eo pipefail
+          echo "Running .github/mcp-scan-test.sh against changed.txt"
+          # Run the existing test harness script; capture output but don't let it abort the step
+          result=$(bash .github/mcp-scan-test.sh changed.txt || true)
+          echo "$result"
+          # Fail the job when the scan reports a hit so the PR check surfaces the issue
+          if echo "$result" | grep -q 'FOUND=true'; then
+            echo "MCP model usage detected in changed files — failing check."
+            exit 1
+          fi

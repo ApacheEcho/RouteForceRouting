@@ -6,6 +6,12 @@ on:
   push:
     branches: ["**"]
 
+# Allow the workflow to add labels and comments using the GITHUB_TOKEN
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
 jobs:
   scan-mcp-usage:
     name: Scan changed files for MCP model usage
@@ -43,29 +49,46 @@ jobs:
         id: scan
         run: |
           set -euo pipefail
-          if [ -z "${{ steps.changed-files.outputs.changed_files }}" ]; then
+          # read changed files from changed.txt written by the previous step
+          if [ ! -s changed.txt ]; then
             echo "No changed files to scan"
             echo "found=false" >> $GITHUB_OUTPUT
             exit 0
           fi
           echo "Files to scan:"
-          echo "${{ steps.changed-files.outputs.changed_files }}"
+          # exclude workflow files from scanning to avoid self-matches
+          # exclude workflow files from scanning to avoid self-matches
+          FILES=$(grep -Ev "^\.github/workflows/" changed.txt || true)
+          echo "$FILES"
+          # restrict scanning to likely text/config files to reduce false positives
+          FILES=$(echo "$FILES" | grep -E "\.(py|js|ts|json|yaml|yml|md|txt|ini|cfg|env)$" || true)
           # write file list to a temp file
-          printf "%s" "${{ steps.changed-files.outputs.changed_files }}" > filelist.txt
-          models_regex='copilot/gpt-5-mini-preview|copilot/gpt-4.1|chat.mcp.modelPreferences|chat.mcp.serverSampling'
+          printf "%s\n" "$FILES" > filelist.txt
+          # slightly more anchored regex (match full token or dotted property)
+          models_regex='(copilot/gpt-5-mini-preview|copilot/gpt-4.1)|\b(chat\.mcp\.modelPreferences|chat\.mcp\.serverSampling)\b'
           found=false
-          while IFS= read -r f; do
+          # Use a robust while-read that handles the last line without newline
+          while IFS= read -r f || [ -n "$f" ]; do
             # skip empty lines
             if [ -z "$f" ]; then
               continue
             fi
-            if [ -f "$f" ] && grep -En "${models_regex}" "$f" >/dev/null 2>&1; then
-              echo "Match in $f"
-              found=true
-              break
+            if [ -f "$f" ]; then
+              matches=$(grep -En "${models_regex}" "$f" || true)
+              if [ -n "$matches" ]; then
+                echo "Match found in: $f"
+                echo "$matches"
+                found=true
+                break
+              fi
             fi
           done < filelist.txt
           echo "found=$found" >> $GITHUB_OUTPUT
+
+      - name: Debug scan outputs
+        run: |
+          echo "DEBUG: steps.scan.outputs.found='${{ steps.scan.outputs.found }}'"
+          echo "DEBUG: steps.changed-files.outputs.changed_files='${{ steps.changed-files.outputs.changed_files }}'"
 
       - name: Label PR when MCP usage detected
         if: ${{ github.event_name == 'pull_request' && steps.scan.outputs.found == 'true' }}
@@ -73,6 +96,46 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           labels: mcp
+
+      - name: Collect matching snippets
+        if: ${{ github.event_name == 'pull_request' && steps.scan.outputs.found == 'true' }}
+        id: collect
+        run: |
+          set -euo pipefail
+          # read changed files from changed.txt (written earlier)
+          FILES=$(grep -Ev "^\.github/workflows/" changed.txt || true)
+          # keep only likely text/config files
+          FILES=$(echo "$FILES" | grep -E "\.(py|js|ts|json|yaml|yml|md|txt|ini|cfg|env)$" || true)
+          models_regex='(copilot/gpt-5-mini-preview|copilot/gpt-4.1)|\b(chat\.mcp\.modelPreferences|chat\.mcp\.serverSampling)\b'
+          tmpfile=$(mktemp)
+          echo "MCP matches:" > "$tmpfile"
+          while IFS= read -r f; do
+            if [ -z "$f" ]; then
+              continue
+            fi
+            if [ -f "$f" ]; then
+              # capture up to 5 lines of context for each match
+              grep -EnC2 "${models_regex}" "$f" | sed "s|^|$f:|g" >> "$tmpfile" || true
+            fi
+          done <<< "$FILES"
+          # limit comment size
+          head -n 500 "$tmpfile" > "$tmpfile".head
+          # emit the file contents as a multi-line workflow output so the comment action receives the actual text
+          echo "comment_text<<EOF" >> $GITHUB_OUTPUT
+          cat "$tmpfile".head >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Post PR comment with matches
+        if: ${{ github.event_name == 'pull_request' && steps.scan.outputs.found == 'true' }}
+        uses: thollander/actions-comment-pull-request@v1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          message: |
+            :mag: MCP model usage detected in this PR. The following snippets were found in changed files:
+
+            ```
+            ${{ steps.collect.outputs.comment_text }}
+            ```
 
       - name: Annotate run for pushes
         if: ${{ github.event_name != 'pull_request' && steps.scan.outputs.found == 'true' }}

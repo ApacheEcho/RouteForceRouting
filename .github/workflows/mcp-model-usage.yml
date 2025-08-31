@@ -80,6 +80,40 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           labels: mcp
 
+      - name: Collect matching snippets
+        if: ${{ github.event_name == 'pull_request' && steps.scan.outputs.found == 'true' }}
+        id: collect
+        run: |
+          set -euo pipefail
+          FILES=$(printf "%s" "${{ steps.changed-files.outputs.changed_files }}" | grep -Ev "^\.github/workflows/" || true)
+          models_regex='copilot/gpt-5-mini-preview|copilot/gpt-4.1|chat.mcp.modelPreferences|chat.mcp.serverSampling'
+          tmpfile=$(mktemp)
+          echo "MCP matches:" > "$tmpfile"
+          while IFS= read -r f; do
+            if [ -z "$f" ]; then
+              continue
+            fi
+            if [ -f "$f" ]; then
+              # capture up to 5 lines of context for each match
+              grep -EnC2 "${models_regex}" "$f" | sed "s|^|$f:|g" >> "$tmpfile" || true
+            fi
+          done <<< "$FILES"
+          # limit comment size
+          head -n 500 "$tmpfile" > "$tmpfile".head
+          echo "comment_file=$tmpfile.head" >> $GITHUB_OUTPUT
+
+      - name: Post PR comment with matches
+        if: ${{ github.event_name == 'pull_request' && steps.scan.outputs.found == 'true' }}
+        uses: thollander/actions-comment-pull-request@v1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          message: |
+            :mag: MCP model usage detected in this PR. The following snippets were found in changed files:
+
+            ```
+            ${{ steps.collect.outputs.comment_file }}
+            ```
+
       - name: Annotate run for pushes
         if: ${{ github.event_name != 'pull_request' && steps.scan.outputs.found == 'true' }}
         run: |

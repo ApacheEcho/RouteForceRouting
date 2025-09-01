@@ -1,0 +1,3 @@
+line1
+Some config with copilot/gpt-5-mini-preview in it
+line3

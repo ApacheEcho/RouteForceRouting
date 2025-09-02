@@ -6,10 +6,12 @@ import RoutesPage from './pages/RoutesPage';
 import FleetPage from './pages/FleetPage';
 import DriversPage from './pages/DriversPage';
 import AnalyticsPage from './pages/AnalyticsPage';
-import { fetchRoutes, fetchVehicles, fetchDrivers, fetchAnalytics } from './services/dataService';
+import { fetchRoutes, fetchVehicles, fetchDrivers, fetchAnalytics, isTokenValid, logout as apiLogout } from './services/dataService';
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    return typeof window !== 'undefined' && isTokenValid();
+  });
   const [userRole, setUserRole] = useState('');
   const [activeView, setActiveView] = useState('dashboard');
   const [routes, setRoutes] = useState([]);
@@ -18,12 +20,20 @@ function App() {
   const [analytics, setAnalytics] = useState({});
 
   useEffect(() => {
+    // Check token validity on mount and auto-logout if expired
+    if (typeof window !== 'undefined' && !isTokenValid()) {
+      setIsLoggedIn(false);
+      apiLogout();
+    }
+
     // Load data when component mounts
-    fetchRoutes().then(setRoutes);
-    fetchVehicles().then(setVehicles);
-    fetchDrivers().then(setDrivers);
-    fetchAnalytics().then(setAnalytics);
-  }, []);
+    if (isLoggedIn) {
+      fetchRoutes().then(setRoutes);
+      fetchVehicles().then(setVehicles);
+      fetchDrivers().then(setDrivers);
+      fetchAnalytics().then(setAnalytics);
+    }
+  }, [isLoggedIn]);
 
   const handleLogin = (role) => {
     setIsLoggedIn(true);
@@ -34,6 +44,7 @@ function App() {
   const handleLogout = () => {
     setIsLoggedIn(false);
     setUserRole('');
+    apiLogout();
   };
 
   if (!isLoggedIn) {

@@ -1,5 +1,9 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+import os
+import jwt
+import datetime
+from functools import wraps
 
 app = Flask(__name__)
 CORS(app)
@@ -31,6 +35,27 @@ ANALYTICS = {
     "totalDeliveries": 120
 }
 
+# Load secret from env or fallback
+SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret')
+
+# Helper to create token
+def create_token(username, role, expires_minutes=60):
+    payload = {
+        'sub': username,
+        'role': role,
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=expires_minutes)
+    }
+    return jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+
+# Helper to decode token
+def decode_token(token):
+    try:
+        return jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+    except jwt.ExpiredSignatureError:
+        return None
+    except Exception:
+        return None
+
 @app.route("/health")
 def health():
     return jsonify({"status": "ok"}), 200
@@ -47,19 +72,49 @@ def get_vehicles():
 def get_drivers():
     return jsonify(DRIVERS)
 
-@app.route("/api/analytics")
-def get_analytics():
-    return jsonify(ANALYTICS)
-
-# Single development login endpoint: returns a mock token and the selected role.
+# Update login endpoint to issue JWT
 @app.route('/api/login', methods=['POST'])
 def login():
     payload = request.get_json() or {}
     username = payload.get('username', 'dev')
     role = payload.get('role', 'manager')
-    # NOTE: Development-only mock auth. Replace with real auth/JWT in production.
-    token = f'dev-token:{username}'
+    # Issue JWT for development
+    token = create_token(username, role)
     return jsonify({'token': token, 'role': role}), 200
+
+# Middleware helper to require auth for certain endpoints
+def require_auth(f):
+    @wraps(f)
+    def wrapped(*args, **kwargs):
+        auth = request.headers.get('Authorization', '')
+        if not auth.startswith('Bearer '):
+            return jsonify({'error': 'Unauthorized'}), 401
+        token = auth.split(' ', 1)[1]
+        decoded = decode_token(token)
+        if not decoded:
+            return jsonify({'error': 'Invalid or expired token'}), 401
+        # attach user info to request context (simple)
+        request.user = decoded
+        return f(*args, **kwargs)
+    return wrapped
+
+# Protect analytics endpoint
+@app.route('/api/analytics')
+@require_auth
+def get_analytics():
+    return jsonify(ANALYTICS)
+
+# example protected endpoint (dev) that requires Authorization header
+@app.route('/api/protected')
+def protected():
+    auth = request.headers.get('Authorization', '')
+    if not auth.startswith('Bearer '):
+        return jsonify({'error': 'missing token'}), 401
+    token = auth.split(' ', 1)[1]
+    data = decode_token(token)
+    if not data:
+        return jsonify({'error': 'invalid token'}), 401
+    return jsonify({'user': data.get('sub'), 'role': data.get('role')})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

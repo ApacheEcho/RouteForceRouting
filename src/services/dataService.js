@@ -27,9 +27,14 @@ export const getAnalytics = () => ({
 
 const API_BASE = process.env.REACT_APP_API_BASE_URL || process.env.API_BASE_URL || 'http://localhost:5000';
 
+function authHeader() {
+  const token = localStorage.getItem('rf_token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export const fetchRoutes = async () => {
   try {
-    const res = await fetch(`${API_BASE}/api/routes`);
+    const res = await fetch(`${API_BASE}/api/routes`, { headers: { ...authHeader() } });
     if (!res.ok) throw new Error('Network error fetching routes');
     return await res.json();
   } catch (e) {
@@ -39,7 +44,7 @@ export const fetchRoutes = async () => {
 
 export const fetchVehicles = async () => {
   try {
-    const res = await fetch(`${API_BASE}/api/vehicles`);
+    const res = await fetch(`${API_BASE}/api/vehicles`, { headers: { ...authHeader() } });
     if (!res.ok) throw new Error('Network error fetching vehicles');
     return await res.json();
   } catch (e) {
@@ -49,7 +54,7 @@ export const fetchVehicles = async () => {
 
 export const fetchDrivers = async () => {
   try {
-    const res = await fetch(`${API_BASE}/api/drivers`);
+    const res = await fetch(`${API_BASE}/api/drivers`, { headers: { ...authHeader() } });
     if (!res.ok) throw new Error('Network error fetching drivers');
     return await res.json();
   } catch (e) {
@@ -59,7 +64,7 @@ export const fetchDrivers = async () => {
 
 export const fetchAnalytics = async () => {
   try {
-    const res = await fetch(`${API_BASE}/api/analytics`);
+    const res = await fetch(`${API_BASE}/api/analytics`, { headers: { ...authHeader() } });
     if (!res.ok) throw new Error('Network error fetching analytics');
     return await res.json();
   } catch (e) {
@@ -81,3 +86,29 @@ export const login = async ({ username, password, role }) => {
     return Promise.resolve({ token: `dev-token-${username}`, role: role || 'manager' });
   }
 };
+
+// Check token expiry (returns true if token exists and is valid)
+export function isTokenValid() {
+  if (typeof window === 'undefined') return false;
+  const token = localStorage.getItem('rf_token');
+  if (!token) return false;
+
+  // Attempt to parse JWT payload
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return true; // not a JWT (dev-token)
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+    if (!payload.exp) return true;
+    const now = Math.floor(Date.now() / 1000);
+    return payload.exp > now;
+  } catch (e) {
+    // If parsing fails, consider token valid for dev fallback
+    return true;
+  }
+}
+
+export function logout() {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('rf_token');
+  }
+}

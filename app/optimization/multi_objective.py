@@ -3,14 +3,13 @@ Multi-Objective Optimization for Route Planning
 Implements NSGA-II (Non-dominated Sorting Genetic Algorithm II) for Pareto-optimal solutions
 """
 
-import random
-import math
-import time
 import logging
-from typing import List, Dict, Any, Tuple, Optional
+import math
+import random
+import time
 from dataclasses import dataclass
-from collections import defaultdict
-import numpy as np
+from typing import Any, Dict, List, Optional, Tuple
+
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +23,7 @@ class MultiObjectiveConfig:
     mutation_rate: float = 0.1
     crossover_rate: float = 0.9
     tournament_size: int = 2
-    objectives: List[str] = None  # ['distance', 'time', 'priority', 'fuel_cost']
+    objectives: list[str] = None  # ['distance', 'time', 'priority', 'fuel_cost']
 
     def __post_init__(self):
         if self.objectives is None:
@@ -50,8 +49,8 @@ class MultiObjectiveMetrics:
     processing_time: float = 0.0
     total_generations: int = 0
     dominated_solutions: int = 0
-    objectives_optimized: List[str] = None
-    best_compromise_solution: Dict[str, Any] = None
+    objectives_optimized: list[str] = None
+    best_compromise_solution: dict[str, Any] = None
 
 
 class MultiObjectiveOptimizer:
@@ -89,8 +88,8 @@ class MultiObjectiveOptimizer:
         )
 
     def optimize(
-        self, stores: List[Dict[str, Any]], constraints: Optional[Dict[str, Any]] = None
-    ) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
+        self, stores: list[dict[str, Any]], constraints: dict[str, Any] | None = None
+    ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
         """
         Optimize route using multi-objective approach
 
@@ -170,7 +169,7 @@ class MultiObjectiveOptimizer:
                 "processing_time": processing_time,
             }
 
-    def _initialize_population(self) -> List[List[int]]:
+    def _initialize_population(self) -> list[list[int]]:
         """Initialize random population of route permutations"""
         population = []
         n_stores = len(self.stores)
@@ -182,7 +181,7 @@ class MultiObjectiveOptimizer:
 
         return population
 
-    def _evaluate_population(self, population: List[List[int]]) -> List[List[float]]:
+    def _evaluate_population(self, population: list[list[int]]) -> list[list[float]]:
         """Evaluate all objectives for each individual in population"""
         objective_values = []
 
@@ -200,8 +199,8 @@ class MultiObjectiveOptimizer:
         return objective_values
 
     def _non_dominated_sort(
-        self, objective_values: List[List[float]]
-    ) -> List[List[int]]:
+        self, objective_values: list[list[float]]
+    ) -> list[list[int]]:
         """Perform non-dominated sorting (NSGA-II)"""
         n = len(objective_values)
         dominated_count = [0] * n
@@ -237,7 +236,7 @@ class MultiObjectiveOptimizer:
         # Return only non-empty fronts
         return [front for front in fronts if front]
 
-    def _dominates(self, obj1: List[float], obj2: List[float]) -> bool:
+    def _dominates(self, obj1: list[float], obj2: list[float]) -> bool:
         """Check if obj1 dominates obj2 (minimization assumed)"""
         better_in_at_least_one = False
         for i in range(len(obj1)):
@@ -248,8 +247,8 @@ class MultiObjectiveOptimizer:
         return better_in_at_least_one
 
     def _calculate_crowding_distance(
-        self, fronts: List[List[int]], objective_values: List[List[float]]
-    ) -> List[float]:
+        self, fronts: list[list[int]], objective_values: list[list[float]]
+    ) -> list[float]:
         """Calculate crowding distance for diversity preservation"""
         n = len(objective_values)
         distances = [0.0] * n
@@ -288,10 +287,10 @@ class MultiObjectiveOptimizer:
 
     def _evolutionary_operators(
         self,
-        population: List[List[int]],
-        fronts: List[List[int]],
-        crowding_distances: List[float],
-    ) -> List[List[int]]:
+        population: list[list[int]],
+        fronts: list[list[int]],
+        crowding_distances: list[float],
+    ) -> list[list[int]]:
         """Apply selection, crossover, and mutation"""
         new_population = []
 
@@ -330,8 +329,8 @@ class MultiObjectiveOptimizer:
         return new_population[: self.config.population_size]
 
     def _select_elite(
-        self, fronts: List[List[int]], crowding_distances: List[float], elite_size: int
-    ) -> List[int]:
+        self, fronts: list[list[int]], crowding_distances: list[float], elite_size: int
+    ) -> list[int]:
         """Select elite solutions based on front rank and crowding distance"""
         elite = []
 
@@ -351,9 +350,9 @@ class MultiObjectiveOptimizer:
 
     def _tournament_selection(
         self,
-        population: List[List[int]],
-        fronts: List[List[int]],
-        crowding_distances: List[float],
+        population: list[list[int]],
+        fronts: list[list[int]],
+        crowding_distances: list[float],
     ) -> int:
         """Tournament selection based on dominance and crowding distance"""
         candidates = random.sample(
@@ -375,7 +374,7 @@ class MultiObjectiveOptimizer:
 
         return best_candidate
 
-    def _get_front_rank(self, individual_idx: int, fronts: List[List[int]]) -> int:
+    def _get_front_rank(self, individual_idx: int, fronts: list[list[int]]) -> int:
         """Get the front rank of an individual"""
         for rank, front in enumerate(fronts):
             if individual_idx in front:
@@ -383,8 +382,8 @@ class MultiObjectiveOptimizer:
         return len(fronts)
 
     def _crossover(
-        self, parent1: List[int], parent2: List[int]
-    ) -> Tuple[List[int], List[int]]:
+        self, parent1: list[int], parent2: list[int]
+    ) -> tuple[list[int], list[int]]:
         """Order crossover (OX) for permutation representation"""
         n = len(parent1)
 
@@ -406,7 +405,7 @@ class MultiObjectiveOptimizer:
         return child1, child2
 
     def _fill_remaining(
-        self, child: List[int], parent: List[int], start: int, end: int
+        self, child: list[int], parent: list[int], start: int, end: int
     ):
         """Fill remaining positions in order crossover"""
         child_set = set(child[start:end])
@@ -418,7 +417,7 @@ class MultiObjectiveOptimizer:
                 child[i] = parent_filtered[idx]
                 idx += 1
 
-    def _mutate(self, individual: List[int]) -> List[int]:
+    def _mutate(self, individual: list[int]) -> list[int]:
         """Swap mutation for permutation representation"""
         mutated = individual[:]
         if len(mutated) >= 2:
@@ -427,7 +426,7 @@ class MultiObjectiveOptimizer:
         return mutated
 
     def _select_best_compromise(
-        self, pareto_front: List[int], objective_values: List[List[float]]
+        self, pareto_front: list[int], objective_values: list[list[float]]
     ) -> int:
         """Select best compromise solution from Pareto front"""
         if not pareto_front:
@@ -455,11 +454,11 @@ class MultiObjectiveOptimizer:
 
     def _calculate_metrics(
         self,
-        pareto_front: List[int],
-        objective_values: List[List[float]],
+        pareto_front: list[int],
+        objective_values: list[list[float]],
         processing_time: float,
         best_compromise_idx: int,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Calculate optimization metrics"""
         metrics = {
             "algorithm": "multi_objective",
@@ -487,7 +486,7 @@ class MultiObjectiveOptimizer:
         return metrics
 
     def _calculate_hypervolume(
-        self, pareto_front: List[int], objective_values: List[List[float]]
+        self, pareto_front: list[int], objective_values: list[list[float]]
     ) -> float:
         """Calculate hypervolume metric (simplified version)"""
         if len(pareto_front) == 0:
@@ -510,8 +509,8 @@ class MultiObjectiveOptimizer:
         return total_volume
 
     def _create_distance_matrix(
-        self, stores: List[Dict[str, Any]]
-    ) -> List[List[float]]:
+        self, stores: list[dict[str, Any]]
+    ) -> list[list[float]]:
         """Create distance matrix between stores"""
         n = len(stores)
         matrix = [[0.0] * n for _ in range(n)]
@@ -525,7 +524,7 @@ class MultiObjectiveOptimizer:
         return matrix
 
     def _calculate_distance(
-        self, store1: Dict[str, Any], store2: Dict[str, Any]
+        self, store1: dict[str, Any], store2: dict[str, Any]
     ) -> float:
         """Calculate Haversine distance between two stores"""
         lat1 = store1.get("lat", store1.get("latitude", 0))
@@ -548,7 +547,7 @@ class MultiObjectiveOptimizer:
         return c * 6371  # Earth's radius in km
 
     # Objective functions
-    def _calculate_total_distance(self, route: List[int]) -> float:
+    def _calculate_total_distance(self, route: list[int]) -> float:
         """Calculate total distance of route"""
         if len(route) < 2:
             return 0.0
@@ -561,14 +560,14 @@ class MultiObjectiveOptimizer:
         total += self.distance_matrix[route[-1]][route[0]]
         return total
 
-    def _calculate_total_time(self, route: List[int]) -> float:
+    def _calculate_total_time(self, route: list[int]) -> float:
         """Calculate total time (distance + service time)"""
         distance = self._calculate_total_distance(route)
         service_time = len(route) * 0.5  # 30 minutes per stop
         travel_time = distance / 50  # 50 km/h average speed
         return travel_time + service_time
 
-    def _calculate_priority_score(self, route: List[int]) -> float:
+    def _calculate_priority_score(self, route: list[int]) -> float:
         """Calculate priority score (lower is better)"""
         total_priority = 0.0
         for i, store_idx in enumerate(route):
@@ -579,13 +578,13 @@ class MultiObjectiveOptimizer:
             total_priority += priority * position_weight
         return -total_priority  # Negative for minimization
 
-    def _calculate_fuel_cost(self, route: List[int]) -> float:
+    def _calculate_fuel_cost(self, route: list[int]) -> float:
         """Calculate fuel cost based on distance"""
         distance = self._calculate_total_distance(route)
         fuel_rate = 0.12  # $0.12 per km
         return distance * fuel_rate
 
-    def _calculate_time_window_violations(self, route: List[int]) -> float:
+    def _calculate_time_window_violations(self, route: list[int]) -> float:
         """Calculate time window violations"""
         violations = 0.0
         current_time = 9.0  # Start at 9 AM
@@ -617,7 +616,7 @@ class MultiObjectiveOptimizer:
 
         return violations
 
-    def _calculate_capacity_violations(self, route: List[int]) -> float:
+    def _calculate_capacity_violations(self, route: list[int]) -> float:
         """Calculate vehicle capacity violations"""
         total_load = 0.0
         capacity = 1000.0  # Default capacity
@@ -631,10 +630,9 @@ class MultiObjectiveOptimizer:
             return total_load - capacity
         return 0.0
 
-    def get_pareto_front(self) -> List[Dict[str, Any]]:
+    def get_pareto_front(self) -> list[dict[str, Any]]:
         """Get the Pareto front solutions"""
         # This would return all non-dominated solutions
-        pass
 
     def get_metrics(self) -> MultiObjectiveMetrics:
         """Get optimization metrics"""

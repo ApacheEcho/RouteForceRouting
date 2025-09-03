@@ -23,6 +23,9 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 CORS(app, origins=['http://localhost:3000'])
+# Register main_enhanced blueprint for test endpoints
+from app.routes.main_enhanced import main_bp
+app.register_blueprint(main_bp)
 
 # Simple models
 class User(db.Model):

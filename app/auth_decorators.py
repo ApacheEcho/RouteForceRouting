@@ -14,6 +14,56 @@ from app.auth_system import users_db, ROLES
 logger = logging.getLogger(__name__)
 
 
+def _resolve_user(identity: str):
+    """Resolve a user identity which may be an email or an id.
+
+    Tries local users_db by key, then searches by id or email in users_db values,
+    then falls back to enterprise user manager if available.
+    Returns user dict or None.
+    """
+    if not identity:
+        return None
+
+    # Direct lookup by email key
+    user = users_db.get(identity)
+    if user:
+        return user
+
+    # Search by id or email in stored users
+    for u in users_db.values():
+        if u.get("id") == identity or u.get("email") == identity:
+            return u
+
+    # Fallback to enterprise user manager
+    try:
+        from app.enterprise.users import user_manager
+
+        enterprise_user = user_manager.get_user(identity)
+        if enterprise_user:
+            # adapt enterprise user shape to local users_db-like dict
+            # and include permissions from the enterprise role manager when possible
+            perms = []
+            try:
+                role_name = enterprise_user.get("role")
+                role_obj = user_manager.role_manager.get_role(role_name)
+                if role_obj:
+                    perms = role_obj.permissions
+            except Exception:
+                perms = []
+
+            return {
+                "id": enterprise_user.get("id"),
+                "email": enterprise_user.get("email"),
+                "role": enterprise_user.get("role"),
+                "is_active": enterprise_user.get("is_active", True),
+                "permissions": perms,
+            }
+    except Exception:
+        pass
+
+    return None
+
+
 def auth_required(
     roles: Optional[List[str]] = None, permissions: Optional[List[str]] = None
 ):
@@ -44,8 +94,8 @@ def auth_required(
                         401,
                     )
 
-                # Get user from database
-                user = users_db.get(current_user_email)
+                # Get user from database (flexible resolver)
+                user = _resolve_user(current_user_email)
                 if not user:
                     return (
                         jsonify(
@@ -75,26 +125,55 @@ def auth_required(
 
                 # Check permission-based access
                 if permissions:
-                    user_role = user["role"]
-                    user_permissions = ROLES.get(user_role, {}).get("permissions", [])
+                    # Resolve permissions list (may come from enterprise user resolver)
+                    user_permissions = user.get("permissions")
+                    if user_permissions is None:
+                        user_role = user.get("role")
+                        user_permissions = ROLES.get(user_role, {}).get("permissions", [])
 
-                    # Admin has all permissions
-                    if "all" not in user_permissions:
-                        missing_permissions = [
-                            p for p in permissions if p not in user_permissions
-                        ]
-                        if missing_permissions:
-                            return (
-                                jsonify(
-                                    {
-                                        "error": "Insufficient permissions",
-                                        "message": f"Missing required permissions: {missing_permissions}",
-                                        "user_permissions": user_permissions,
-                                        "required_permissions": permissions,
-                                    }
-                                ),
-                                403,
-                            )
+                    # helper: check permission with wildcard support
+                    def _perm_matches(user_perms: List[str], perm: str) -> bool:
+                        if not user_perms:
+                            return False
+                        if "all" in user_perms:
+                            return True
+
+                        for up in user_perms:
+                            # exact match
+                            if up == perm:
+                                return True
+
+                            # wildcard namespace like 'analytics.*' should match 'analytics.view'
+                            if up.endswith(".*"):
+                                ns = up[:-2]
+                                # direct namespace match e.g., 'analytics.view'
+                                if perm.startswith(ns + "."):
+                                    return True
+                                # support 'verb_resource' style like 'view_analytics'
+                                if "_" in perm:
+                                    verb, resource = perm.split("_", 1)
+                                    if resource == ns:
+                                        return True
+
+                            # system wildcard
+                            if up == "system.*":
+                                return True
+
+                        return False
+
+                    missing_permissions = [p for p in permissions if not _perm_matches(user_permissions, p)]
+                    if missing_permissions:
+                        return (
+                            jsonify(
+                                {
+                                    "error": "Insufficient permissions",
+                                    "message": f"Missing required permissions: {missing_permissions}",
+                                    "user_permissions": user_permissions,
+                                    "required_permissions": permissions,
+                                }
+                            ),
+                            403,
+                        )
 
                 # Log access
                 logger.info(
@@ -151,7 +230,7 @@ def driver_access_required(f: Callable) -> Callable:
                 verify_jwt_in_request()
                 current_user_email = get_jwt_identity()
 
-                user = users_db.get(current_user_email)
+                user = _resolve_user(current_user_email)
                 if not user:
                     return jsonify({"error": "User not found"}), 401
 
@@ -203,7 +282,7 @@ def optional_auth(f: Callable) -> Callable:
             current_user_email = get_jwt_identity()
 
             if current_user_email:
-                user = users_db.get(current_user_email)
+                user = _resolve_user(current_user_email)
                 g.current_user = user
             else:
                 g.current_user = None

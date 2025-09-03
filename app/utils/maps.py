@@ -38,20 +38,39 @@ def generate_google_maps_link(waypoints: List[Dict[str, Any]]) -> str:
     if len(valid_waypoints) == 1:
         # Single destination
         lat, lon = valid_waypoints[0]["latitude"], valid_waypoints[0]["longitude"]
-        return f"https://www.google.com/maps/search/?api=1&query={lat},{lon}"
+        try:
+            lat_f = float(lat)
+            lon_f = float(lon)
+            coord = f"{lat_f:.4f},{lon_f:.4f}"
+        except Exception:
+            coord = f"{lat},{lon}"
+        return f"https://www.google.com/maps/search/?api=1&query={coord}"
 
     # Multiple waypoints - create directions URL
     origin = valid_waypoints[0]
     destination = valid_waypoints[-1]
 
-    origin_str = f"{origin['latitude']},{origin['longitude']}"
-    dest_str = f"{destination['latitude']},{destination['longitude']}"
+    try:
+        origin_lat = float(origin['latitude'])
+        origin_lon = float(origin['longitude'])
+        dest_lat = float(destination['latitude'])
+        dest_lon = float(destination['longitude'])
+        origin_str = f"{origin_lat:.4f},{origin_lon:.4f}"
+        dest_str = f"{dest_lat:.4f},{dest_lon:.4f}"
+    except Exception:
+        origin_str = f"{origin['latitude']},{origin['longitude']}"
+        dest_str = f"{destination['latitude']},{destination['longitude']}"
 
     # Add intermediate waypoints if any
     if len(valid_waypoints) > 2:
         waypoint_strs = []
         for wp in valid_waypoints[1:-1]:
-            waypoint_strs.append(f"{wp['latitude']},{wp['longitude']}")
+            try:
+                wlat = float(wp['latitude'])
+                wlon = float(wp['longitude'])
+                waypoint_strs.append(f"{wlat:.4f},{wlon:.4f}")
+            except Exception:
+                waypoint_strs.append(f"{wp['latitude']},{wp['longitude']}")
         waypoints_param = "|".join(waypoint_strs)
         return f"https://www.google.com/maps/dir/?api=1&origin={origin_str}&destination={dest_str}&waypoints={waypoints_param}"
     else:

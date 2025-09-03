@@ -204,7 +204,8 @@ class AutoCommitService:
                 message = f"Auto-save: {action} {file_name}"
             elif len(changed_files) <= 5:
                 file_names = [os.path.basename(f) for f in changed_files]
-                message = f"Auto-save: Updated {', '.join(file_names)}"
+                # Include both the list of file names and the count for clarity
+                message = f"Auto-save: Updated {', '.join(file_names)} ({len(changed_files)} files)"
             else:
                 message = f"Auto-save: Updated {len(changed_files)} files"
             

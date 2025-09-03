@@ -49,6 +49,33 @@ def init_jwt(app):
     def missing_token_callback(error):
         return jsonify({"error": "Authorization token required"}), 401
 
+    # Provide a user lookup loader that can resolve identities from multiple user stores
+    @jwt.user_lookup_loader
+    def module_user_lookup_callback(_jwt_header, jwt_data):
+        identity = jwt_data.get("sub")
+        # Check local users_db first
+        for u in users_db.values():
+            if u.get("id") == identity or u.get("email") == identity:
+                return u
+
+        # Fallback to enterprise user manager if available
+        try:
+            from app.enterprise.users import user_manager
+
+            enterprise_user = user_manager.get_user(identity)
+            if enterprise_user:
+                return {
+                    "id": enterprise_user.get("id"),
+                    "email": enterprise_user.get("email"),
+                    "name": enterprise_user.get("username") or enterprise_user.get("first_name"),
+                    "role": enterprise_user.get("role"),
+                    "is_active": enterprise_user.get("is_active", True),
+                }
+        except Exception:
+            pass
+
+        return None
+
 
 # Auth Blueprint
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
@@ -133,8 +160,31 @@ class AuthManager:
 
         @self.jwt.user_lookup_loader
         def user_lookup_callback(_jwt_header, jwt_data):
-            identity = jwt_data["sub"]
-            return self.get_user_by_id(identity)
+                identity = jwt_data.get("sub")
+                # Primary lookup in this module's user store
+                user = self.get_user_by_id(identity)
+                if user:
+                    return user
+
+                # Fallback: try enterprise user manager (tokens issued by app.enterprise.users)
+                try:
+                    from app.enterprise.users import user_manager
+
+                    enterprise_user = user_manager.get_user(identity)
+                    if enterprise_user:
+                        # adapt enterprise user shape to this module's expected dict
+                        return {
+                            "id": enterprise_user.get("id"),
+                            "email": enterprise_user.get("email"),
+                            "name": enterprise_user.get("username") or enterprise_user.get("first_name"),
+                            "role": enterprise_user.get("role"),
+                            "is_active": enterprise_user.get("is_active", True),
+                        }
+                except Exception:
+                    # If enterprise user manager isn't available, ignore and return None
+                    pass
+
+                return None
 
     def get_user_by_email(self, email: str) -> Optional[Dict[str, Any]]:
         """Get user by email"""

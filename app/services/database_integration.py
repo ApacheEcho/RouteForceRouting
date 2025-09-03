@@ -10,14 +10,8 @@ import json
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import and_, or_, desc, func
 
-from app.database.models import (
-    Route,
-    RouteInsightDB,
-    RoutePredictionDB,
-    PerformanceTrendDB,
-    Base,
-)
-from app.models.database import db
+from app.models.database import db, Route
+from app.models.insight import Insight
 
 logger = logging.getLogger(__name__)
 
@@ -39,42 +33,42 @@ class DatabaseIntegrationService:
             route_id: Stored route ID
         """
         try:
-            # Create new route record
+            # Map incoming route_data into our Flask-SQLAlchemy Route model
             route = Route(
-                route_id=route_data.get(
-                    "route_id", f"route_{datetime.now().timestamp()}"
-                ),
-                distance=route_data.get("distance", 0.0),
-                duration=route_data.get("duration", 0.0),
-                fuel_used=route_data.get("fuel_used", 0.0),
-                driver_id=route_data.get("driver_id"),
-                vehicle_type=route_data.get("vehicle_type", "unknown"),
-                stops_count=len(route_data.get("stops", [])),
-                stops_data=route_data.get("stops", []),
-                timestamp=datetime.now(),
-                speed_avg=route_data.get("speed_avg", 0.0),
-                fuel_efficiency=route_data.get("fuel_efficiency", 0.0),
-                hour_of_day=datetime.now().hour,
-                day_of_week=datetime.now().weekday(),
-                is_weekend=datetime.now().weekday() >= 5,
-                is_rush_hour=self._is_rush_hour(),
-                avg_stop_distance=route_data.get("avg_stop_distance", 0.0),
+                name=route_data.get("name"),
+                description=route_data.get("description"),
             )
+
+            # store raw route payload in route_data column
+            try:
+                route.set_route_data(route_data.get("stops", []))
+            except Exception:
+                route.route_data = json.dumps(route_data.get("stops", []))
+
+            # populate totals
+            route.total_distance = route_data.get("distance") or route_data.get(
+                "total_distance"
+            )
+            route.estimated_time = int(route_data.get("duration") or route_data.get(
+                "estimated_time", 0
+            ))
+
+            # optional metrics
+            route.optimization_score = route_data.get("optimization_score")
+            route.algorithm_used = route_data.get("algorithm_used")
 
             db.session.add(route)
             db.session.commit()
 
-            self.logger.info(f"Stored route data: {route.route_id}")
-            return route.route_id
+            self.logger.info(f"Stored route data: {route.id}")
+            return str(route.id)
 
         except Exception as e:
             self.logger.error(f"Error storing route data: {str(e)}")
             db.session.rollback()
             raise
 
-    def store_route_insights(
-        self, route_id: str, insights: List[Dict[str, Any]]
-    ) -> List[str]:
+    def store_route_insights(self, route_id: str, insights: List[Dict[str, Any]]) -> List[str]:
         """
         Store route insights in database
 
@@ -86,25 +80,17 @@ class DatabaseIntegrationService:
             List of stored insight IDs
         """
         try:
-            insight_ids = []
+            insight_ids: List[str] = []
 
             for insight_data in insights:
-                insight = RouteInsightDB(
-                    route_id=route_id,
+                insight = Insight(
+                    route_id=int(route_id) if isinstance(route_id, (int, str)) and str(route_id).isdigit() else route_id,
                     insight_type=insight_data.get("type", "general"),
-                    category=insight_data.get("category", "performance"),
-                    title=insight_data.get("title", ""),
-                    description=insight_data.get("description", ""),
-                    severity=insight_data.get("severity", "low"),
-                    confidence_score=insight_data.get("confidence", 0.0),
-                    impact_score=insight_data.get("impact", 0.0),
-                    actionable=insight_data.get("actionable", False),
-                    recommendation=insight_data.get("recommendation", ""),
-                    data_points=insight_data.get("data_points", {}),
-                    timestamp=datetime.now(),
+                    content=insight_data.get("content", {}),
                 )
 
                 db.session.add(insight)
+                db.session.flush()
                 insight_ids.append(str(insight.id))
 
             db.session.commit()
@@ -128,25 +114,18 @@ class DatabaseIntegrationService:
             prediction_id: Stored prediction ID
         """
         try:
-            prediction = RoutePredictionDB(
-                route_id=route_id,
-                prediction_type=predictions.get("type", "performance"),
-                model_name=predictions.get("model", "ensemble"),
-                model_version=predictions.get("version", "1.0"),
-                predicted_value=predictions.get("predicted_value", 0.0),
-                confidence_interval=predictions.get("confidence_interval", [0.0, 0.0]),
-                feature_importance=predictions.get("feature_importance", {}),
-                prediction_metadata=predictions.get("metadata", {}),
-                actual_value=predictions.get("actual_value"),
-                accuracy_score=predictions.get("accuracy"),
-                timestamp=datetime.now(),
+            # No dedicated prediction model in Flask-SQLAlchemy models; store as an Insight
+            insight = Insight(
+                route_id=int(route_id) if isinstance(route_id, (int, str)) and str(route_id).isdigit() else route_id,
+                insight_type="prediction",
+                content=predictions,
             )
 
-            db.session.add(prediction)
+            db.session.add(insight)
             db.session.commit()
 
             self.logger.info(f"Stored prediction for route {route_id}")
-            return str(prediction.id)
+            return str(insight.id)
 
         except Exception as e:
             self.logger.error(f"Error storing prediction: {str(e)}")
@@ -238,43 +217,43 @@ class DatabaseIntegrationService:
             List of insight dictionaries
         """
         try:
-            query = db.session.query(RouteInsightDB)
+            query = db.session.query(Insight)
 
             # Apply filters
             if route_id:
-                query = query.filter(RouteInsightDB.route_id == route_id)
+                # route_id could be stored as integer PK or route identifier; match both
+                try:
+                    rid = int(route_id)
+                    query = query.filter(Insight.route_id == rid)
+                except Exception:
+                    query = query.filter(Insight.route_id == route_id)
 
             if insight_type:
-                query = query.filter(RouteInsightDB.insight_type == insight_type)
+                query = query.filter(Insight.insight_type == insight_type)
 
             if days_back:
                 cutoff_date = datetime.now() - timedelta(days=days_back)
-                query = query.filter(RouteInsightDB.timestamp >= cutoff_date)
+                query = query.filter(Insight.created_at >= cutoff_date)
 
-            # Order by timestamp
-            query = query.order_by(desc(RouteInsightDB.timestamp))
+            # Order by created_at
+            query = query.order_by(desc(Insight.created_at))
 
             insights = query.all()
 
             # Convert to dictionaries
-            insight_data = []
+            insight_data: List[Dict[str, Any]] = []
             for insight in insights:
-                insight_dict = {
-                    "id": str(insight.id),
-                    "route_id": insight.route_id,
-                    "type": insight.insight_type,
-                    "category": insight.category,
-                    "title": insight.title,
-                    "description": insight.description,
-                    "severity": insight.severity,
-                    "confidence": insight.confidence_score,
-                    "impact": insight.impact_score,
-                    "actionable": insight.actionable,
-                    "recommendation": insight.recommendation,
-                    "data_points": insight.data_points,
-                    "timestamp": insight.timestamp.isoformat(),
-                }
-                insight_data.append(insight_dict)
+                insight_data.append(
+                    {
+                        "id": str(insight.id),
+                        "route_id": insight.route_id,
+                        "type": insight.insight_type,
+                        "content": insight.content,
+                        "created_at": insight.created_at.isoformat()
+                        if insight.created_at
+                        else None,
+                    }
+                )
 
             self.logger.info(f"Retrieved {len(insight_data)} insights")
             return insight_data
@@ -393,32 +372,20 @@ class DatabaseIntegrationService:
             routes_to_delete = (
                 db.session.query(Route).filter(Route.timestamp < cutoff_date).count()
             )
+            # Only clean up insights and routes (predictions model not present in Flask models)
             insights_to_delete = (
-                db.session.query(RouteInsightDB)
-                .filter(RouteInsightDB.timestamp < cutoff_date)
-                .count()
-            )
-            predictions_to_delete = (
-                db.session.query(RoutePredictionDB)
-                .filter(RoutePredictionDB.timestamp < cutoff_date)
-                .count()
+                db.session.query(Insight).filter(Insight.created_at < cutoff_date).count()
             )
 
             # Delete old records
-            db.session.query(RouteInsightDB).filter(
-                RouteInsightDB.timestamp < cutoff_date
-            ).delete()
-            db.session.query(RoutePredictionDB).filter(
-                RoutePredictionDB.timestamp < cutoff_date
-            ).delete()
-            db.session.query(Route).filter(Route.timestamp < cutoff_date).delete()
+            db.session.query(Insight).filter(Insight.created_at < cutoff_date).delete()
+            db.session.query(Route).filter(Route.created_at < cutoff_date).delete()
 
             db.session.commit()
 
             cleanup_stats = {
                 "routes_deleted": routes_to_delete,
                 "insights_deleted": insights_to_delete,
-                "predictions_deleted": predictions_to_delete,
                 "cutoff_date": cutoff_date.isoformat(),
             }
 

@@ -434,6 +434,35 @@ class RouteScorer:
         self.weights = new_weights
         logger.info("Updated route scoring weights")
 
+    def calculate_comprehensive_score(self, route: List[Dict], weights: Optional[Dict[str, float]] = None) -> float:
+        """Compatibility method expected by older codepaths.
+
+        Accepts an optional weights dict (keys like 'distance_weight', 'time_weight', etc.)
+        Applies the weights for this single calculation and returns a numeric score
+        on a 0-100 scale.
+        """
+        # Temporarily apply provided weights if present
+        original_weights = self.weights
+        try:
+            if weights:
+                # Build a ScoringWeights using provided values and fallbacks
+                new_w = ScoringWeights(
+                    distance_weight=weights.get("distance_weight", self.weights.distance_weight),
+                    time_weight=weights.get("time_weight", self.weights.time_weight),
+                    priority_weight=weights.get("priority_weight", self.weights.priority_weight),
+                    traffic_weight=weights.get("traffic_weight", self.weights.traffic_weight),
+                    playbook_weight=weights.get("playbook_weight", self.weights.playbook_weight),
+                    efficiency_weight=weights.get("efficiency_weight", self.weights.efficiency_weight),
+                )
+                self.weights = new_w
+
+            score_obj = self.score_route(route)
+            return float(score_obj.total_score)
+
+        finally:
+            # Restore original weights to avoid side effects
+            self.weights = original_weights
+
 
 # Factory function for easy instantiation
 def create_route_scorer(weights: Optional[ScoringWeights] = None) -> RouteScorer:

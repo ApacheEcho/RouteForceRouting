@@ -637,6 +637,54 @@ class UnifiedRoutingService:
 
         return clusters
 
+    def _apply_filters(self, stores: List[Dict[str, Any]], options: Optional[Dict[str, Any]] = None):
+        """Backward-compatible filter application used by legacy code/tests.
+
+        Supports options like `use_clustering` and `cluster_radius` to return
+        clustered store lists when requested.
+        """
+        if not stores:
+            return []
+
+        opts = options or {}
+
+        # Clustering filter
+        if opts.get("use_clustering"):
+            radius = float(opts.get("cluster_radius", 2.0))
+            return self.cluster_stores_by_proximity(stores, radius)
+
+        # No filters applied - return stores as-is
+        return stores
+
+    def generate_route_with_filters(
+        self, stores: List[Dict[str, Any]], params: Optional[Dict[str, Any]] = None
+    ) -> List[Dict[str, Any]]:
+        """Backward-compatible facade that applies legacy filters and generates a route.
+
+        Args:
+            stores: Input stores list
+            params: Legacy parameters dict (may include clustering and other filters)
+
+        Returns:
+            Generated route as a list of stores
+        """
+        # Apply legacy filters (clustering, etc.)
+        processed = self._apply_filters(stores, params)
+
+        # If clustering produced groups, flatten them into a single list for generation
+        if processed and isinstance(processed[0], list):
+            flat_stores = [s for cluster in processed for s in cluster]
+        else:
+            flat_stores = processed
+
+        # Delegate to modern generator
+        try:
+            route = self.generate_route_from_stores(flat_stores, constraints=params or {})
+            return route
+        except Exception as e:
+            logger.error(f"generate_route_with_filters failed: {e}")
+            return []
+
     def _stores_within_radius(
         self, store1: Dict[str, Any], store2: Dict[str, Any], radius_km: float
     ) -> bool:

@@ -167,6 +167,7 @@ def create_app(config_name: str = "development") -> Flask:
 
     init_jwt(app)
 
+
     # Initialize Sentry monitoring
     from app.monitoring import setup_monitoring
     

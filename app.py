@@ -6,6 +6,7 @@ Modern Flask application with enterprise-grade architecture and real-time featur
 import os
 from app import create_app, socketio
 from flask import send_file
+from flask import send_from_directory, request
 
 # Create application instance
 app = create_app(os.getenv("FLASK_ENV", "development"))
@@ -16,6 +17,19 @@ def _openapi_json_route():
         return send_file("openapi.json", mimetype="application/json")
     return ("OpenAPI spec not found", 404)
 app.add_url_rule("/openapi.json", "openapi_json", _openapi_json_route)
+
+# Serve static files from frontend/dist
+@app.route('/static/<path:filename>')
+def static_files(filename):
+    return send_from_directory(os.path.join('frontend', 'dist', 'static'), filename)
+
+# SPA fallback: route all non-API, non-static requests to index.html
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_frontend(path):
+    if path.startswith('api') or path.startswith('openapi.json') or path.startswith('static'):
+        return ("Not Found", 404)
+    return send_from_directory(os.path.join('frontend', 'dist'), 'index.html')
 
 if __name__ == "__main__":
     # Development server with WebSocket support

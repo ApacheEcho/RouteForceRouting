@@ -9,8 +9,9 @@
   },
   "scripts": {
     "test": "echo \"✅ Root level - no tests to run. See frontend/, client/, or python tests\"",
-    "build": "echo \"✅ Root level - no build needed. See frontend/ or client/ directories\"",
-    "start": "echo \"✅ Root level - Python Flask app. Use 'python app.py' to start\""
+    "build": "cd frontend && npm run build",
+    "start": "python3 app.py",
+    "serve": "npm run build && python3 app.py"
   },
   "keywords": [
     "routing",

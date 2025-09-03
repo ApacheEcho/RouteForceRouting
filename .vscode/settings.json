@@ -30,7 +30,7 @@
     "remote.autoForwardPortsSource": "hybrid", 
     "remote.forwardOnOpen": true,
     "remote.restoreForwardedPorts": true,
-    "workbench.colorTheme": "Neon City",
+    "workbench.colorTheme": "GitHub Dark High Contrast",
     
     // Terminal and Git for Codespaces
     "terminal.integrated.defaultProfile.linux": "bash",

@@ -63,12 +63,12 @@ class RouteScore:
     """Comprehensive route score with component breakdown"""
 
     total_score: float
-    component_scores: Dict[str, float] = field(default_factory=dict)
-    raw_metrics: Dict[str, Any] = field(default_factory=dict)
-    scoring_metadata: Dict[str, Any] = field(default_factory=dict)
+    component_scores: dict[str, float] = field(default_factory=dict)
+    raw_metrics: dict[str, Any] = field(default_factory=dict)
+    scoring_metadata: dict[str, Any] = field(default_factory=dict)
     calculation_time: float = 0.0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for API responses"""
         return {
             "total_score": round(self.total_score, 2),
@@ -84,12 +84,12 @@ class RouteScore:
 class RouteScorer:
     """Main route scoring service with configurable weights and algorithms"""
 
-    def __init__(self, weights: Optional[ScoringWeights] = None):
+    def __init__(self, weights: ScoringWeights | None = None):
         self.weights = weights or ScoringWeights()
         self.scoring_history = []
 
     def score_route(
-        self, route: List[Dict], context: Optional[Dict] = None
+        self, route: list[dict], context: dict | None = None
     ) -> RouteScore:
         """
         Calculate comprehensive score for a route
@@ -169,13 +169,14 @@ class RouteScorer:
                 calculation_time=time.time() - start_time,
             )
 
-    def _calculate_distance_score(self, route: List[Dict]) -> float:
+    def _calculate_distance_score(self, route: list[dict]) -> float:
         """Calculate score based on total route distance (lower = better)"""
         if len(route) < 2:
             return 1.0
 
         try:
-            from app.services.distance_service import create_distance_calculator
+            from app.services.distance_service import \
+                create_distance_calculator
 
             calculator = create_distance_calculator()
 
@@ -193,14 +194,15 @@ class RouteScorer:
             logger.warning(f"Error calculating distance score: {e}")
             return 0.5  # Neutral score on error
 
-    def _calculate_time_score(self, route: List[Dict], context: Dict) -> float:
+    def _calculate_time_score(self, route: list[dict], context: dict) -> float:
         """Calculate score based on estimated travel time (lower = better)"""
         if len(route) < 2:
             return 1.0
 
         try:
             # Estimate time based on distance (assume average 60 km/h)
-            from app.services.distance_service import create_distance_calculator
+            from app.services.distance_service import \
+                create_distance_calculator
 
             calculator = create_distance_calculator()
 
@@ -221,7 +223,7 @@ class RouteScorer:
             logger.warning(f"Error calculating time score: {e}")
             return 0.5
 
-    def _calculate_priority_score(self, route: List[Dict]) -> float:
+    def _calculate_priority_score(self, route: list[dict]) -> float:
         """Calculate score based on store priorities (higher priority = better)"""
         if not route:
             return 0.0
@@ -244,7 +246,7 @@ class RouteScorer:
             logger.warning(f"Error calculating priority score: {e}")
             return 0.5
 
-    def _calculate_traffic_score(self, route: List[Dict], context: Dict) -> float:
+    def _calculate_traffic_score(self, route: list[dict], context: dict) -> float:
         """Calculate score based on traffic conditions (lower traffic = better)"""
         try:
             # Check if traffic data is available in context
@@ -266,7 +268,7 @@ class RouteScorer:
             logger.warning(f"Error calculating traffic score: {e}")
             return 0.7
 
-    def _calculate_playbook_score(self, route: List[Dict], context: Dict) -> float:
+    def _calculate_playbook_score(self, route: list[dict], context: dict) -> float:
         """Calculate score based on playbook compliance"""
         try:
             playbook = context.get("playbook", {})
@@ -293,7 +295,7 @@ class RouteScorer:
             logger.warning(f"Error calculating playbook score: {e}")
             return 0.8
 
-    def _calculate_efficiency_score(self, route: List[Dict]) -> float:
+    def _calculate_efficiency_score(self, route: list[dict]) -> float:
         """Calculate score based on route efficiency (geometric optimization)"""
         if len(route) < 3:
             return 1.0
@@ -301,7 +303,8 @@ class RouteScorer:
         try:
             # Calculate efficiency based on how close the route is to optimal
             # Compare actual distance to minimum spanning tree distance
-            from app.services.distance_service import create_distance_calculator
+            from app.services.distance_service import \
+                create_distance_calculator
 
             calculator = create_distance_calculator()
 
@@ -325,7 +328,7 @@ class RouteScorer:
             logger.warning(f"Error calculating efficiency score: {e}")
             return 0.5
 
-    def _estimate_optimal_distance(self, route: List[Dict], calculator) -> float:
+    def _estimate_optimal_distance(self, route: list[dict], calculator) -> float:
         """Estimate optimal route distance using simplified MST"""
         if len(route) < 2:
             return 0.0
@@ -343,7 +346,7 @@ class RouteScorer:
 
         return total_distance * 0.8  # MST is typically ~80% of sum of nearest neighbors
 
-    def _check_rule_compliance(self, route: List[Dict], rule: Dict) -> bool:
+    def _check_rule_compliance(self, route: list[dict], rule: dict) -> bool:
         """Check if route complies with a specific playbook rule"""
         rule_type = rule.get("type", "")
 
@@ -367,10 +370,11 @@ class RouteScorer:
 
         return True  # Unknown rules default to compliant
 
-    def _extract_raw_metrics(self, route: List[Dict], context: Dict) -> Dict[str, Any]:
+    def _extract_raw_metrics(self, route: list[dict], context: dict) -> dict[str, Any]:
         """Extract raw metrics for detailed analysis"""
         try:
-            from app.services.distance_service import create_distance_calculator
+            from app.services.distance_service import \
+                create_distance_calculator
 
             calculator = create_distance_calculator()
 
@@ -397,8 +401,8 @@ class RouteScorer:
             return {"error": str(e)}
 
     def compare_routes(
-        self, routes: List[List[Dict]], context: Optional[Dict] = None
-    ) -> Dict[str, Any]:
+        self, routes: list[list[dict]], context: dict | None = None
+    ) -> dict[str, Any]:
         """Compare multiple routes and return detailed comparison"""
         if not routes:
             return {"error": "No routes provided"}
@@ -425,7 +429,7 @@ class RouteScorer:
             },
         }
 
-    def get_scoring_history(self, limit: int = 10) -> List[Dict]:
+    def get_scoring_history(self, limit: int = 10) -> list[dict]:
         """Get recent scoring history for analysis"""
         return self.scoring_history[-limit:] if self.scoring_history else []
 
@@ -436,7 +440,7 @@ class RouteScorer:
 
 
 # Factory function for easy instantiation
-def create_route_scorer(weights: Optional[ScoringWeights] = None) -> RouteScorer:
+def create_route_scorer(weights: ScoringWeights | None = None) -> RouteScorer:
     """Create a route scorer with optional custom weights"""
     return RouteScorer(weights)
 

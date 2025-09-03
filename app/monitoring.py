@@ -2,15 +2,17 @@
 Advanced monitoring and metrics collection
 """
 
-import time
 import logging
-from functools import wraps
-from typing import Dict, Any, Callable
-from flask import request, g
-import psutil
 import threading
-from datetime import datetime, timedelta
+import time
 from collections import defaultdict, deque
+from datetime import datetime
+from functools import wraps
+from typing import Any, Dict
+from collections.abc import Callable
+
+import psutil
+from flask import g, request
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +75,7 @@ class MetricsCollector:
         with self.lock:
             self.metrics["cache_misses"] += 1
 
-    def get_metrics(self) -> Dict[str, Any]:
+    def get_metrics(self) -> dict[str, Any]:
         """Get current metrics"""
         with self.lock:
             # Calculate averages
@@ -211,7 +213,7 @@ class StructuredLogger:
 
         self.logger.info(f"EVENT: {log_data}")
 
-    def log_error(self, error: Exception, context: Dict[str, Any] = None):
+    def log_error(self, error: Exception, context: dict[str, Any] = None):
         """Log structured error"""
         log_data = {
             "event_type": "error",

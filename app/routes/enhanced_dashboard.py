@@ -3,10 +3,11 @@ Enhanced Analytics Dashboard
 Integrates AI analytics with real-time WebSocket updates
 """
 
-from flask import Blueprint, render_template, request, jsonify, current_app
-from datetime import datetime, timedelta
+from datetime import datetime
+
+from flask import Blueprint, jsonify, render_template, request
+
 from app.analytics_ai import get_analytics_engine
-import json
 
 enhanced_dashboard_bp = Blueprint(
     "enhanced_dashboard", __name__, url_prefix="/dashboard"

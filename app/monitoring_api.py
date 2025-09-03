@@ -3,11 +3,12 @@ Performance Monitoring API Blueprint
 Provides endpoints for real-time performance metrics and system health
 """
 
-from flask import Blueprint, request, jsonify, current_app
 from datetime import datetime
-from typing import Dict, Any
 
-from app.auth_decorators import admin_required, analytics_access_required, audit_log
+from flask import Blueprint, current_app, jsonify, request
+
+from app.auth_decorators import (admin_required, analytics_access_required,
+                                 audit_log)
 from app.performance_monitor import get_performance_monitor
 
 monitoring_bp = Blueprint("monitoring", __name__, url_prefix="/api/monitoring")
@@ -305,8 +306,9 @@ def update_monitoring_thresholds():
 def get_system_info():
     """Get basic system information"""
     try:
-        import psutil
         import platform
+
+        import psutil
 
         system_info = {
             "platform": platform.platform(),

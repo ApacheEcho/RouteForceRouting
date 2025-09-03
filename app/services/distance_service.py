@@ -1,3 +1,46 @@
+"""Distance calculation utilities for RouteForce
+
+Provides a lightweight DistanceCalculator using the Haversine formula and a
+factory function used throughout services.
+"""
+import math
+from typing import Dict, Tuple
+
+
+class DistanceCalculator:
+    EARTH_RADIUS_KM = 6371.0
+
+    def haversine_distance(self, lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+        """Return distance in kilometers between two lat/lon points."""
+        # convert to radians
+        lat1_r, lon1_r, lat2_r, lon2_r = map(math.radians, (lat1, lon1, lat2, lon2))
+        dlat = lat2_r - lat1_r
+        dlon = lon2_r - lon1_r
+        a = math.sin(dlat / 2) ** 2 + math.cos(lat1_r) * math.cos(lat2_r) * math.sin(dlon / 2) ** 2
+        c = 2 * math.asin(math.sqrt(a))
+        return self.EARTH_RADIUS_KM * c
+
+    def calculate_store_distance(self, store1: Dict, store2: Dict) -> float:
+        """Calculate distance between two store dicts with lat/lon keys.
+
+        Accepts multiple key names for compatibility: lat/lon, latitude/longitude.
+        Returns distance in kilometers as float.
+        """
+        def _get_coords(store):
+            lat = store.get("lat") or store.get("latitude") or store.get("latitude")
+            lon = store.get("lon") or store.get("lng") or store.get("longitude")
+            try:
+                return float(lat), float(lon)
+            except Exception:
+                return 0.0, 0.0
+
+        lat1, lon1 = _get_coords(store1)
+        lat2, lon2 = _get_coords(store2)
+        return self.haversine_distance(lat1, lon1, lat2, lon2)
+
+
+def create_distance_calculator() -> DistanceCalculator:
+    return DistanceCalculator()
 """
 Modern Distance Calculation Utilities - Clean, testable, performant
 """

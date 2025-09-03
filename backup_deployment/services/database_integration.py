@@ -10,14 +10,14 @@ import json
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import and_, or_, desc, func
 
-from app.database.models import (
-    Route,
-    RouteInsightDB,
-    RoutePredictionDB,
-    PerformanceTrendDB,
-    Base,
-)
+from app.models import database as models_pkg
 from app.models.database import db
+from app.models.insight import Insight
+from app.models.route import Route
+try:
+    from app.models.prediction import Prediction
+except Exception:
+    Prediction = None
 
 logger = logging.getLogger(__name__)
 
@@ -89,22 +89,27 @@ class DatabaseIntegrationService:
             insight_ids = []
 
             for insight_data in insights:
-                insight = RouteInsightDB(
+                # Use the Flask-SQLAlchemy `Insight` model. Map fields where possible.
+                insight = Insight(
                     route_id=route_id,
                     insight_type=insight_data.get("type", "general"),
-                    category=insight_data.get("category", "performance"),
-                    title=insight_data.get("title", ""),
-                    description=insight_data.get("description", ""),
-                    severity=insight_data.get("severity", "low"),
-                    confidence_score=insight_data.get("confidence", 0.0),
-                    impact_score=insight_data.get("impact", 0.0),
-                    actionable=insight_data.get("actionable", False),
-                    recommendation=insight_data.get("recommendation", ""),
-                    data_points=insight_data.get("data_points", {}),
-                    timestamp=datetime.now(),
+                    content={
+                        "category": insight_data.get("category", "performance"),
+                        "title": insight_data.get("title", ""),
+                        "description": insight_data.get("description", ""),
+                        "severity": insight_data.get("severity", "low"),
+                        "confidence_score": insight_data.get("confidence", 0.0),
+                        "impact_score": insight_data.get("impact", 0.0),
+                        "actionable": insight_data.get("actionable", False),
+                        "recommendation": insight_data.get("recommendation", ""),
+                        "data_points": insight_data.get("data_points", {}),
+                    },
+                    created_at=datetime.now(),
                 )
 
                 db.session.add(insight)
+                # flush to populate id
+                db.session.flush()
                 insight_ids.append(str(insight.id))
 
             db.session.commit()
@@ -128,25 +133,49 @@ class DatabaseIntegrationService:
             prediction_id: Stored prediction ID
         """
         try:
-            prediction = RoutePredictionDB(
-                route_id=route_id,
-                prediction_type=predictions.get("type", "performance"),
-                model_name=predictions.get("model", "ensemble"),
-                model_version=predictions.get("version", "1.0"),
-                predicted_value=predictions.get("predicted_value", 0.0),
-                confidence_interval=predictions.get("confidence_interval", [0.0, 0.0]),
-                feature_importance=predictions.get("feature_importance", {}),
-                prediction_metadata=predictions.get("metadata", {}),
-                actual_value=predictions.get("actual_value"),
-                accuracy_score=predictions.get("accuracy"),
-                timestamp=datetime.now(),
-            )
+            # If a Prediction model is present in Flask models, store there; otherwise, store as an Insight
+            if Prediction is not None:
+                prediction = Prediction(
+                    route_id=route_id,
+                    prediction_type=predictions.get("type", "performance"),
+                    model_name=predictions.get("model", "ensemble"),
+                    model_version=predictions.get("version", "1.0"),
+                    predicted_value=predictions.get("predicted_value", 0.0),
+                    confidence_interval=predictions.get("confidence_interval", [0.0, 0.0]),
+                    feature_importance=predictions.get("feature_importance", {}),
+                    prediction_metadata=predictions.get("metadata", {}),
+                    actual_value=predictions.get("actual_value"),
+                    accuracy_score=predictions.get("accuracy"),
+                    timestamp=datetime.now(),
+                )
 
-            db.session.add(prediction)
-            db.session.commit()
+                db.session.add(prediction)
+                db.session.commit()
 
-            self.logger.info(f"Stored prediction for route {route_id}")
-            return str(prediction.id)
+                self.logger.info(f"Stored prediction for route {route_id}")
+                return str(prediction.id)
+            else:
+                # Fall back: store prediction as an Insight with type 'prediction'
+                pred_insight = Insight(
+                    route_id=route_id,
+                    insight_type="prediction",
+                    content={
+                        "model": predictions.get("model", "ensemble"),
+                        "version": predictions.get("version", "1.0"),
+                        "predicted_value": predictions.get("predicted_value", 0.0),
+                        "confidence_interval": predictions.get("confidence_interval", [0.0, 0.0]),
+                        "feature_importance": predictions.get("feature_importance", {}),
+                        "metadata": predictions.get("metadata", {}),
+                        "actual_value": predictions.get("actual_value"),
+                        "accuracy": predictions.get("accuracy"),
+                    },
+                    created_at=datetime.now(),
+                )
+
+                db.session.add(pred_insight)
+                db.session.commit()
+                self.logger.info(f"Stored prediction-as-insight for route {route_id}")
+                return str(pred_insight.id)
 
         except Exception as e:
             self.logger.error(f"Error storing prediction: {str(e)}")
@@ -238,41 +267,43 @@ class DatabaseIntegrationService:
             List of insight dictionaries
         """
         try:
-            query = db.session.query(RouteInsightDB)
+            query = db.session.query(Insight)
 
             # Apply filters
             if route_id:
-                query = query.filter(RouteInsightDB.route_id == route_id)
+                query = query.filter(Insight.route_id == route_id)
 
             if insight_type:
-                query = query.filter(RouteInsightDB.insight_type == insight_type)
+                query = query.filter(Insight.insight_type == insight_type)
 
             if days_back:
                 cutoff_date = datetime.now() - timedelta(days=days_back)
-                query = query.filter(RouteInsightDB.timestamp >= cutoff_date)
+                query = query.filter(Insight.created_at >= cutoff_date)
 
             # Order by timestamp
-            query = query.order_by(desc(RouteInsightDB.timestamp))
+            query = query.order_by(desc(Insight.created_at))
 
             insights = query.all()
 
             # Convert to dictionaries
             insight_data = []
             for insight in insights:
+                # Map Flask `Insight` model fields to expected output structure
+                content = insight.content or {}
                 insight_dict = {
                     "id": str(insight.id),
                     "route_id": insight.route_id,
                     "type": insight.insight_type,
-                    "category": insight.category,
-                    "title": insight.title,
-                    "description": insight.description,
-                    "severity": insight.severity,
-                    "confidence": insight.confidence_score,
-                    "impact": insight.impact_score,
-                    "actionable": insight.actionable,
-                    "recommendation": insight.recommendation,
-                    "data_points": insight.data_points,
-                    "timestamp": insight.timestamp.isoformat(),
+                    "category": content.get("category"),
+                    "title": content.get("title"),
+                    "description": content.get("description"),
+                    "severity": content.get("severity"),
+                    "confidence": content.get("confidence_score"),
+                    "impact": content.get("impact_score"),
+                    "actionable": content.get("actionable"),
+                    "recommendation": content.get("recommendation"),
+                    "data_points": content.get("data_points"),
+                    "timestamp": (insight.created_at.isoformat() if insight.created_at else None),
                 }
                 insight_data.append(insight_dict)
 
@@ -394,23 +425,24 @@ class DatabaseIntegrationService:
                 db.session.query(Route).filter(Route.timestamp < cutoff_date).count()
             )
             insights_to_delete = (
-                db.session.query(RouteInsightDB)
-                .filter(RouteInsightDB.timestamp < cutoff_date)
+                db.session.query(Insight)
+                .filter(Insight.created_at < cutoff_date)
                 .count()
             )
-            predictions_to_delete = (
-                db.session.query(RoutePredictionDB)
-                .filter(RoutePredictionDB.timestamp < cutoff_date)
-                .count()
-            )
+            # predictions are either Prediction or stored as Insights; count Predictions if model exists
+            if Prediction is not None:
+                predictions_to_delete = (
+                    db.session.query(Prediction)
+                    .filter(Prediction.timestamp < cutoff_date)
+                    .count()
+                )
+            else:
+                predictions_to_delete = 0
 
             # Delete old records
-            db.session.query(RouteInsightDB).filter(
-                RouteInsightDB.timestamp < cutoff_date
-            ).delete()
-            db.session.query(RoutePredictionDB).filter(
-                RoutePredictionDB.timestamp < cutoff_date
-            ).delete()
+            db.session.query(Insight).filter(Insight.created_at < cutoff_date).delete()
+            if Prediction is not None:
+                db.session.query(Prediction).filter(Prediction.timestamp < cutoff_date).delete()
             db.session.query(Route).filter(Route.timestamp < cutoff_date).delete()
 
             db.session.commit()

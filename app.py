@@ -5,6 +5,12 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_migrate import Migrate
 
+# Load environment
+from dotenv import load_dotenv
+import os
+
+load_dotenv(dotenv_path=f".env.{os.getenv('FLASK_ENV', 'development')}")
+
 # Create Flask app
 app = Flask(__name__)
 

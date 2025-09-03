@@ -158,6 +158,8 @@ class Route(db.Model):
 
     # Relationships
     optimizations = db.relationship("RouteOptimization", backref="route", lazy=True)
+    # Relationship to insights (stored in app.models.insight.Insight)
+    insights = db.relationship("Insight", backref="route", lazy=True)
 
     def set_route_data(self, route_data: List[Dict[str, Any]]):
         """Set route data as JSON string"""

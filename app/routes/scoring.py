@@ -289,7 +289,28 @@ def compare_routes():
 
 @scoring_bp.route("/score/weights", methods=["GET"])
 def get_available_weights():
-    """Get available weight presets and their configurations"""
+    """
+    Get available weight presets and their configurations
+    ---
+    tags:
+      - Routes
+    summary: Get available scoring weight presets
+    responses:
+      200:
+        description: Preset weights returned
+        schema:
+          $ref: '#/definitions/ScoringWeightsPresetsResponse'
+        examples:
+          application/json:
+            success: true
+            presets:
+              balanced: { distance_weight: 0.25, time_weight: 0.2, priority_weight: 0.25, traffic_weight: 0.15, playbook_weight: 0.1, efficiency_weight: 0.05 }
+            default: balanced
+      500:
+        description: Server error
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+    """
     try:
         presets = {}
         for name, weights in PRESET_WEIGHTS.items():
@@ -313,7 +334,28 @@ def get_available_weights():
 
 @scoring_bp.route("/score/history", methods=["GET"])
 def get_scoring_history():
-    """Get recent scoring history"""
+    """
+    Get recent scoring history
+    ---
+    tags:
+      - Routes
+    summary: Get recent scoring history
+    parameters:
+      - in: query
+        name: limit
+        type: integer
+        required: false
+        default: 10
+    responses:
+      200:
+        description: Scoring history returned
+        schema:
+          $ref: '#/definitions/ScoringHistoryResponse'
+      500:
+        description: Server error
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+    """
     try:
         limit = request.args.get("limit", 10, type=int)
         limit = min(max(limit, 1), 100)  # Clamp between 1 and 100

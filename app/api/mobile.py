@@ -1002,6 +1002,8 @@ def get_assigned_routes():
     responses:
       200:
         description: Assigned routes returned
+        schema:
+          $ref: '#/definitions/MobileAssignedRoutesResponse'
       401:
         description: Unauthorized
         schema:
@@ -1057,6 +1059,8 @@ def get_route_details(route_id):
     responses:
       200:
         description: Route details returned
+        schema:
+          $ref: '#/definitions/MobileRouteDetailsResponse'
       401:
         description: Unauthorized
         schema:
@@ -1128,6 +1132,8 @@ def update_route_status(route_id):
     responses:
       200:
         description: Route status updated
+        schema:
+          $ref: '#/definitions/MobileRouteStatusUpdateResponse'
       400:
         description: Bad request
         schema:
@@ -1242,6 +1248,8 @@ def get_user_profile():
     responses:
       200:
         description: Profile returned
+        schema:
+          $ref: '#/definitions/MobileProfileResponse'
       401:
         description: Unauthorized
         schema:
@@ -1417,6 +1425,8 @@ def get_tracking_status():
     responses:
       200:
         description: Tracking status returned
+        schema:
+          $ref: '#/definitions/MobileTrackingStatusResponse'
       401:
         description: Unauthorized
         schema:

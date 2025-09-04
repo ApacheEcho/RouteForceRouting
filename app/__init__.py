@@ -502,6 +502,103 @@ def create_app(config_name: str = "development", testing: bool = False) -> Flask
                     "front": {"type": "array", "items": {"$ref": "#/definitions/ParetoItem"}},
                     "count": {"type": "integer"}
                 }
+            },
+            "ScoringWeights": {
+                "type": "object",
+                "properties": {
+                    "distance_weight": {"type": "number"},
+                    "time_weight": {"type": "number"},
+                    "priority_weight": {"type": "number"},
+                    "traffic_weight": {"type": "number"},
+                    "playbook_weight": {"type": "number"},
+                    "efficiency_weight": {"type": "number"}
+                }
+            },
+            "ScoringWeightsPresetsResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {"type": "boolean"},
+                    "presets": {
+                        "type": "object",
+                        "additionalProperties": {"$ref": "#/definitions/ScoringWeights"}
+                    },
+                    "default": {"type": "string"}
+                }
+            },
+            "ScoringHistoryItem": {
+                "type": "object",
+                "properties": {
+                    "timestamp": {"type": "number"},
+                    "route_id": {"type": "string"},
+                    "score": {"$ref": "#/definitions/RouteScoreData"}
+                }
+            },
+            "ScoringHistoryResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {"type": "boolean"},
+                    "history": {"type": "array", "items": {"$ref": "#/definitions/ScoringHistoryItem"}},
+                    "count": {"type": "integer"}
+                }
+            },
+            "MobileProfileResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {"type": "boolean"},
+                    "user": {
+                        "type": "object",
+                        "properties": {
+                            "id": {"type": "string"},
+                            "username": {"type": "string"},
+                            "role": {"type": "string"},
+                            "active_routes": {"type": "integer"}
+                        }
+                    }
+                }
+            },
+            "MobileTrackingStatusResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {"type": "boolean"},
+                    "tracking": {
+                        "type": "object",
+                        "properties": {
+                            "active": {"type": "boolean"},
+                            "last_update": {"type": "string", "format": "date-time"},
+                            "accuracy": {"type": "string"}
+                        }
+                    }
+                }
+            },
+            "MobileRouteDetailsResponse": {
+                "type": "object",
+                "properties": {
+                    "id": {"type": "string"},
+                    "title": {"type": "string"},
+                    "status": {"type": "string"},
+                    "stores": {
+                        "type": "array",
+                        "items": {"type": "object", "properties": {"address": {"type": "string"}, "status": {"type": "string"}}}
+                    },
+                    "estimated_duration": {"type": "string"}
+                }
+            },
+            "MobileRouteStatusUpdateResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "route_id": {"type": "string"},
+                    "status": {"type": "string"}
+                }
+            },
+            "MobileAssignedRoutesResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {"type": "boolean"},
+                    "routes": {"type": "array", "items": {"type": "object"}},
+                    "total": {"type": "integer"}
+                }
             }
         },
         "paths": {

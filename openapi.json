@@ -167,6 +167,23 @@
       ],
       "type": "object"
     },
+    "MobileAssignedRoutesResponse": {
+      "properties": {
+        "routes": {
+          "items": {
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "success": {
+          "type": "boolean"
+        },
+        "total": {
+          "type": "integer"
+        }
+      },
+      "type": "object"
+    },
     "MobileCompressedRoute": {
       "properties": {
         "id": {
@@ -308,6 +325,62 @@
       },
       "type": "object"
     },
+    "MobileProfileResponse": {
+      "properties": {
+        "success": {
+          "type": "boolean"
+        },
+        "user": {
+          "properties": {
+            "active_routes": {
+              "type": "integer"
+            },
+            "id": {
+              "type": "string"
+            },
+            "role": {
+              "type": "string"
+            },
+            "username": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "MobileRouteDetailsResponse": {
+      "properties": {
+        "estimated_duration": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "stores": {
+          "items": {
+            "properties": {
+              "address": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
     "MobileRouteOptimizeResponse": {
       "properties": {
         "mobile_optimized": {
@@ -321,6 +394,46 @@
         },
         "success": {
           "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "MobileRouteStatusUpdateResponse": {
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "route_id": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "success": {
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "MobileTrackingStatusResponse": {
+      "properties": {
+        "success": {
+          "type": "boolean"
+        },
+        "tracking": {
+          "properties": {
+            "accuracy": {
+              "type": "string"
+            },
+            "active": {
+              "type": "boolean"
+            },
+            "last_update": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          "type": "object"
         }
       },
       "type": "object"
@@ -463,6 +576,77 @@
       "properties": {
         "score": {
           "$ref": "#/definitions/RouteScoreData"
+        },
+        "success": {
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "ScoringHistoryItem": {
+      "properties": {
+        "route_id": {
+          "type": "string"
+        },
+        "score": {
+          "$ref": "#/definitions/RouteScoreData"
+        },
+        "timestamp": {
+          "type": "number"
+        }
+      },
+      "type": "object"
+    },
+    "ScoringHistoryResponse": {
+      "properties": {
+        "count": {
+          "type": "integer"
+        },
+        "history": {
+          "items": {
+            "$ref": "#/definitions/ScoringHistoryItem"
+          },
+          "type": "array"
+        },
+        "success": {
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "ScoringWeights": {
+      "properties": {
+        "distance_weight": {
+          "type": "number"
+        },
+        "efficiency_weight": {
+          "type": "number"
+        },
+        "playbook_weight": {
+          "type": "number"
+        },
+        "priority_weight": {
+          "type": "number"
+        },
+        "time_weight": {
+          "type": "number"
+        },
+        "traffic_weight": {
+          "type": "number"
+        }
+      },
+      "type": "object"
+    },
+    "ScoringWeightsPresetsResponse": {
+      "properties": {
+        "default": {
+          "type": "string"
+        },
+        "presets": {
+          "additionalProperties": {
+            "$ref": "#/definitions/ScoringWeights"
+          },
+          "type": "object"
         },
         "success": {
           "type": "boolean"
@@ -1292,7 +1476,10 @@
       "get": {
         "responses": {
           "200": {
-            "description": "Profile returned"
+            "description": "Profile returned",
+            "schema": {
+              "$ref": "#/definitions/MobileProfileResponse"
+            }
           },
           "401": {
             "description": "Unauthorized",
@@ -1732,7 +1919,10 @@
       "get": {
         "responses": {
           "200": {
-            "description": "Assigned routes returned"
+            "description": "Assigned routes returned",
+            "schema": {
+              "$ref": "#/definitions/MobileAssignedRoutesResponse"
+            }
           },
           "401": {
             "description": "Unauthorized",
@@ -1997,7 +2187,10 @@
         ],
         "responses": {
           "200": {
-            "description": "Route details returned"
+            "description": "Route details returned",
+            "schema": {
+              "$ref": "#/definitions/MobileRouteDetailsResponse"
+            }
           },
           "401": {
             "description": "Unauthorized",
@@ -2057,7 +2250,10 @@
         ],
         "responses": {
           "200": {
-            "description": "Route status updated"
+            "description": "Route status updated",
+            "schema": {
+              "$ref": "#/definitions/MobileRouteStatusUpdateResponse"
+            }
           },
           "400": {
             "description": "Bad request",
@@ -2115,7 +2311,10 @@
         ],
         "responses": {
           "200": {
-            "description": "Route status updated"
+            "description": "Route status updated",
+            "schema": {
+              "$ref": "#/definitions/MobileRouteStatusUpdateResponse"
+            }
           },
           "400": {
             "description": "Bad request",
@@ -2209,7 +2408,10 @@
       "get": {
         "responses": {
           "200": {
-            "description": "Tracking status returned"
+            "description": "Tracking status returned",
+            "schema": {
+              "$ref": "#/definitions/MobileTrackingStatusResponse"
+            }
           },
           "401": {
             "description": "Unauthorized",
@@ -2430,6 +2632,75 @@
           }
         },
         "summary": "Compare multiple routes",
+        "tags": [
+          "Routes"
+        ]
+      }
+    },
+    "/api/route/score/history": {
+      "get": {
+        "parameters": [
+          {
+            "default": 10,
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Scoring history returned",
+            "schema": {
+              "$ref": "#/definitions/ScoringHistoryResponse"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "summary": "Get recent scoring history",
+        "tags": [
+          "Routes"
+        ]
+      }
+    },
+    "/api/route/score/weights": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Preset weights returned",
+            "examples": {
+              "application/json": {
+                "default": "balanced",
+                "presets": {
+                  "balanced": {
+                    "distance_weight": 0.25,
+                    "efficiency_weight": 0.05,
+                    "playbook_weight": 0.1,
+                    "priority_weight": 0.25,
+                    "time_weight": 0.2,
+                    "traffic_weight": 0.15
+                  }
+                },
+                "success": true
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/ScoringWeightsPresetsResponse"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "summary": "Get available weight presets and their configurations",
         "tags": [
           "Routes"
         ]

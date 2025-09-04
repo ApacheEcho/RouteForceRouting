@@ -77,11 +77,13 @@ def get_ml_insights():
         )
 
     except Exception as e:
+        # Log the error for internal review
+        print(f"Error in get_ml_insights: {e}")
         return (
             jsonify(
                 {
                     "success": False,
-                    "error": f"Failed to retrieve ML insights: {str(e)}",
+                    "error": "An internal error occurred. Please contact support.",
                 }
             ),
             500,
@@ -166,11 +168,12 @@ def get_performance_trends():
         )
 
     except Exception as e:
+        print(f"Error in get_performance_trends: {e}")
         return (
             jsonify(
                 {
                     "success": False,
-                    "error": f"Failed to retrieve performance trends: {str(e)}",
+                    "error": "An internal error occurred. Please contact support.",
                 }
             ),
             500,
@@ -250,11 +253,12 @@ def get_predictive_analytics():
         )
 
     except Exception as e:
+        print(f"Error in get_predictive_analytics: {e}")
         return (
             jsonify(
                 {
                     "success": False,
-                    "error": f"Failed to retrieve predictive analytics: {str(e)}",
+                    "error": "An internal error occurred. Please contact support.",
                 }
             ),
             500,

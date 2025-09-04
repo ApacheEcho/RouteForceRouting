@@ -571,35 +571,46 @@ def create_clusters():
         "radius_km": 2.0
     }
     """
-    data = request.get_json()
-    if not data or "stores" not in data:
-        raise ValidationError("Missing stores data", field="stores")
+    try:
+        data = request.get_json()
+        if not data or "stores" not in data:
+            raise ValidationError("Missing stores data", field="stores")
 
-    stores = data["stores"]
-    radius_km = data.get("radius_km", 2.0)
+        stores = data["stores"]
+        radius_km = data.get("radius_km", 2.0)
 
-    # Validate radius
-    if not isinstance(radius_km, (int, float)) or radius_km <= 0:
-        raise ValidationError("Invalid radius_km value", field="radius_km")
+        # Validate radius
+        if not isinstance(radius_km, (int, float)) or radius_km <= 0:
+            raise ValidationError("Invalid radius_km value", field="radius_km")
 
-    # Validate stores have coordinates
-    for store in stores:
-        if "latitude" not in store or "longitude" not in store:
-            raise ValidationError("All stores must have latitude and longitude", field="stores")
+        # Validate stores have coordinates
+        for store in stores:
+            if "latitude" not in store or "longitude" not in store:
+                raise ValidationError("All stores must have latitude and longitude", field="stores")
 
-    routing_service = RoutingService()
-    clusters = routing_service.cluster_stores_by_proximity(stores, radius_km)
+        routing_service = RoutingService()
+        clusters = routing_service.cluster_stores_by_proximity(stores, radius_km)
 
-    return create_success_response(
-        data={
-            "clusters": clusters,
-            "cluster_count": len(clusters),
-            "total_stores": len(stores),
-            "radius_km": radius_km,
-        },
-        status_code=200,
-        message="Clusters created successfully"
-    )
+        return create_success_response(
+            data={
+                "clusters": clusters,
+                "cluster_count": len(clusters),
+                "total_stores": len(stores),
+                "radius_km": radius_km,
+            },
+            status_code=200,
+            message="Clusters created successfully"
+        )
+    except ValidationError:
+        # Let the api_error_handler decorator handle this
+        raise
+    except Exception as e:
+        logger.error(f"Error in create_clusters: {e}", exc_info=True)
+        return create_success_response(
+            data=None,
+            status_code=500,
+            message="An unexpected error occurred while creating clusters. Please try again later."
+        )
 
 
 @api_bp.route("/metrics", methods=["GET"])

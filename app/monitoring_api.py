@@ -125,7 +125,7 @@ def get_alerts():
     except Exception as e:
         current_app.logger.error(f"Error retrieving alerts: {str(e)}")
         return (
-            jsonify({"success": False, "error": "Failed to retrieve alerts"}),
+            jsonify({"success": False, "error": "An internal error occurred. Please contact support."}),
             500,
         )
 
@@ -346,9 +346,7 @@ def update_monitoring_thresholds():
     except Exception as e:
         current_app.logger.error(f"Error updating thresholds: {str(e)}")
         return (
-            jsonify(
-                {"success": False, "error": "Failed to update thresholds"}
-            ),
+            jsonify({"success": False, "error": "An internal error occurred. Please contact support."}),
             500,
         )
 

@@ -25,7 +25,7 @@ def get_github_secrets() -> Set[str]:
                     secrets.add(secret_name)
         return secrets
     except Exception as e:
-        print(f"Error getting GitHub secrets: {e}")
+        print("Error getting GitHub secrets. Details are redacted for security.")
         return set()
 
 
@@ -61,6 +61,7 @@ def check_missing_tokens():
     # Get configured secrets
     configured_secrets = get_github_secrets()
     print(f"\n✅ Configured GitHub Secrets ({len(configured_secrets)}):")
+    # Only secret names are shown, never values
     for secret in sorted(configured_secrets):
         print(f"   🔑 {secret}")
 
@@ -124,7 +125,7 @@ def check_missing_tokens():
             print("      1. Go to https://sentry.io/settings/auth-tokens/")
             print("      2. Create new token with 'project:write' scope")
             print(
-                '      3. gh secret set SENTRY_AUTH_TOKEN --body="your_token"'
+                '      3. gh secret set SENTRY_AUTH_TOKEN --body="<REDACTED>"'
             )
 
         if "SLACK_WEBHOOK_URL" in unique_missing:
@@ -132,7 +133,7 @@ def check_missing_tokens():
             print("      1. Go to your Slack → Apps → Incoming Webhooks")
             print("      2. Create webhook for deployment notifications")
             print(
-                '      3. gh secret set SLACK_WEBHOOK_URL --body="https://hooks.slack.com/..."'
+                '      3. gh secret set SLACK_WEBHOOK_URL --body="<REDACTED>"'
             )
 
     print(f"\n🚀 Current Service Status:")

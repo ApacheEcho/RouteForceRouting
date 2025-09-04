@@ -279,9 +279,7 @@ def generate_route():
         except Exception as e:
             logger.error(f"Error generating route: {str(e)}")
             return (
-                jsonify(
-                    {"error": "Failed to generate route", "details": str(e)}
-                ),
+                jsonify({"error": "An internal error occurred. Please contact support."}),
                 500,
             )
 
@@ -491,7 +489,7 @@ def export_route():
 
     except Exception as e:
         logger.error(f"Error exporting route: {str(e)}")
-        return jsonify({"error": "Export failed", "details": str(e)}), 500
+    return jsonify({"error": "An internal error occurred. Please contact support."}), 500
 
 
 @main_bp.route("/api/upload/validate", methods=["POST"])
@@ -521,7 +519,7 @@ def validate_upload():
 
     except Exception as e:
         logger.error(f"Error validating file: {str(e)}")
-        return jsonify({"error": "Validation failed", "details": str(e)}), 500
+    return jsonify({"error": "An internal error occurred. Please contact support."}), 500
 
 
 @main_bp.route("/api/algorithms", methods=["GET"])
@@ -598,7 +596,7 @@ def route_progress(task_id):
         return jsonify(progress)
     except Exception as e:
         logger.error(f"Error getting route progress: {str(e)}")
-        return jsonify({"error": "Failed to get progress"}), 500
+        return jsonify({"error": "An internal error occurred. Please contact support."}), 500
 
 
 @main_bp.route("/api/route/history")

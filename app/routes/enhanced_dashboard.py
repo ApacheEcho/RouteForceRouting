@@ -70,7 +70,8 @@ def analytics_summary():
         return jsonify({"success": True, "summary": summary})
 
     except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
+        current_app.logger.error(f"Error in analytics_summary: {e}")
+        return jsonify({"success": False, "error": "An internal error occurred. Please contact support."}), 500
 
 
 @enhanced_dashboard_bp.route("/api/performance/alerts")
@@ -145,7 +146,8 @@ def performance_alerts():
         )
 
     except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
+        current_app.logger.error(f"Error in performance_alerts: {e}")
+        return jsonify({"success": False, "error": "An internal error occurred. Please contact support."}), 500
 
 
 @enhanced_dashboard_bp.route("/api/insights/generate", methods=["POST"])
@@ -225,7 +227,8 @@ def generate_insights():
         )
 
     except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
+        current_app.logger.error(f"Error in generate_insights: {e}")
+        return jsonify({"success": False, "error": "An internal error occurred. Please contact support."}), 500
 
 
 def generate_trend_recommendations(trend):
@@ -328,4 +331,5 @@ def bulk_predictions():
         )
 
     except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
+        current_app.logger.error(f"Error in predictions endpoint: {e}")
+        return jsonify({"success": False, "error": "An internal error occurred. Please contact support."}), 500

@@ -170,7 +170,7 @@ jobs:
       - name: 📊 Issue Statistics
         if: github.event.action == 'opened'
         run: |
-          echo "📊 New issue opened: #${{ github.event.issue.number }}"
-          echo "📝 Title: ${{ github.event.issue.title }}"
-          echo "👤 Author: ${{ github.event.issue.user.login }}"
-          echo "🏷️ Labels: ${{ join(github.event.issue.labels.*.name, ', ') }}"
+            printf "📊 New issue opened: %s\n" "${{ github.event.issue.number }}"
+            printf "📝 Title: %s\n" "${{ github.event.issue.title }}"
+            printf "👤 Author: %s\n" "${{ github.event.issue.user.login }}"
+            printf "🏷️ Labels: %s\n" "${{ join(github.event.issue.labels.*.name, ', ') }}"

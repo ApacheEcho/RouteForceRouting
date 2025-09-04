@@ -247,9 +247,7 @@ def predict_traffic():
     except Exception as e:
         logger.error(f"Error in traffic prediction API: {str(e)}")
         return (
-            jsonify(
-                {"success": False, "error": f"Internal server error: {str(e)}"}
-            ),
+            jsonify({"success": False, "error": "An internal error occurred. Please contact support."}),
             500,
         )
 
@@ -363,7 +361,7 @@ def get_traffic_service_status():
 
     except Exception as e:
         logger.error(f"Error getting traffic service status: {str(e)}")
-        return jsonify({"available": False, "error": str(e)}), 500
+        return jsonify({"available": False, "error": "An internal error occurred. Please contact support."}), 500
 
 
 @traffic_bp.route("/cache/clear", methods=["POST"])
@@ -392,9 +390,7 @@ def clear_traffic_cache():
     except Exception as e:
         logger.error(f"Error clearing traffic cache: {str(e)}")
         return (
-            jsonify(
-                {"success": False, "error": f"Failed to clear cache: {str(e)}"}
-            ),
+            jsonify({"success": False, "error": "An internal error occurred. Please contact support."}),
             500,
         )
 

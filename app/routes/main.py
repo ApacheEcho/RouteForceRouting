@@ -54,7 +54,7 @@ def login():
             
     except Exception as e:
         logger.error(f"Login error: {str(e)}")
-        return jsonify({"error": "Login failed", "message": "Login failed"}), 500
+        return jsonify({"error": "An internal error occurred. Please contact support."}), 500
 
 
 @main_bp.route("/")
@@ -209,12 +209,7 @@ def generate_route():
     except Exception as e:
         logger.error(f"Error generating route: {str(e)}", exc_info=True)
         return (
-            jsonify(
-                {
-                    "error": "Internal server error",
-                    "message": "Failed to generate route",
-                }
-            ),
+            jsonify({"error": "An internal error occurred. Please contact support."}),
             500,
         )
 

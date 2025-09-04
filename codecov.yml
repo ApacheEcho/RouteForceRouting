@@ -1,48 +1,22 @@
-##
-## CodeCov Configuration for RouteForce Routing
-## This file provides comprehensive test coverage analysis and reporting
-##
-
-# Coverage collection settings
+# Codecov configuration for RouteForce Routing
 coverage:
   precision: 2
   round: down
   range: "70...100"
-  
   status:
-    # Project-level coverage requirements
-    project:
-      default:
-        target: 80%
-        threshold: 1%
-        base: auto
-        if_ci_failed: error
-        informational: false
-        only_pulls: false
-    
-    # Patch-level coverage for new changes
-    patch:
-      default:
-        target: 80%
-        threshold: 1%
-        base: auto
-        if_ci_failed: error
-        informational: false
-        only_pulls: false
-        
+    default:
+      target: 80%
+      threshold: 1%
 
-# Pull Request comments configuration
 comment:
-  layout: "reach,diff,flags,tree"
+  layout: "condensed_header, diff, condensed_files, condensed_footer"
   behavior: default
-  require_changes: false
-  require_base: false
-  require_head: true
-  branches: 
+  require_changes: true
+  hide_project_coverage: true
+  branches:
     - "main"
     - "develop"
 
-# Coverage ignore patterns
 ignore:
   - "tests/*"
   - "test_*.py"
@@ -64,54 +38,21 @@ ignore:
   - "build/*"
   - "dist/*"
 
-# Flags for different test categories
 flags:
   unit:
     paths:
       - app/
-    carryforward: false
-  
   integration:
     paths:
       - app/routes/
       - app/services/
-    carryforward: false
-    
   algorithms:
     paths:
       - app/algorithms/
       - app/optimization/
-    carryforward: false
-    
   monitoring:
     paths:
       - app/monitoring/
-    carryforward: false
-
   api:
     paths:
       - app/routes/
-    carryforward: false
-
-# GitHub integration
-github_checks:
-  annotations: true
-
-# Parsing configuration  
-parsers:
-  gcov:
-    branch_detection:
-      conditional: true
-      loop: true
-      macro: false
-      method: false
-  javascript:
-    enable_partials: false
-
-# Profiling and performance  
-profiling:
-  critical_files_paths:
-    - "app/algorithms/"
-    - "app/optimization/" 
-    - "app/services/routing_service.py"
-    - "app/routes/"

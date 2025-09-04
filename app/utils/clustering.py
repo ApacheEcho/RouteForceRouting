@@ -11,8 +11,8 @@ logger = logging.getLogger(__name__)
 
 
 def cluster_by_proximity(
-    stores: List[Dict[str, Any]], radius_km: float = 2.0
-) -> List[List[Dict[str, Any]]]:
+    stores: list[dict[str, Any]], radius_km: float = 2.0
+) -> list[list[dict[str, Any]]]:
     """
     Cluster stores by proximity using a greedy algorithm
 
@@ -52,7 +52,7 @@ def cluster_by_proximity(
 
 
 def is_within_radius(
-    store1: Dict[str, Any], store2: Dict[str, Any], radius_km: float
+    store1: dict[str, Any], store2: dict[str, Any], radius_km: float
 ) -> bool:
     """
     Check if two stores are within specified radius
@@ -88,7 +88,7 @@ def is_within_radius(
         return False
 
 
-def get_cluster_center(cluster: List[Dict[str, Any]]) -> Dict[str, float]:
+def get_cluster_center(cluster: list[dict[str, Any]]) -> dict[str, float]:
     """
     Calculate the geographic center of a cluster
 
@@ -122,8 +122,8 @@ def get_cluster_center(cluster: List[Dict[str, Any]]) -> Dict[str, float]:
 
 
 def optimize_cluster_order(
-    clusters: List[List[Dict[str, Any]]],
-) -> List[List[Dict[str, Any]]]:
+    clusters: list[list[dict[str, Any]]],
+) -> list[list[dict[str, Any]]]:
     """
     Optimize the order of clusters for efficient routing
 

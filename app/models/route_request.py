@@ -17,12 +17,12 @@ class RouteRequest:
 
     file: FileStorage
     proximity: bool = False
-    time_start: Optional[str] = None
-    time_end: Optional[str] = None
+    time_start: str | None = None
+    time_end: str | None = None
     priority_only: bool = False
-    exclude_days: List[str] = None
-    max_stores_per_chain: Optional[int] = None
-    min_sales_threshold: Optional[float] = None
+    exclude_days: list[str] = None
+    max_stores_per_chain: int | None = None
+    min_sales_threshold: float | None = None
 
     def __post_init__(self):
         if self.exclude_days is None:
@@ -55,7 +55,7 @@ class RouteRequest:
         errors = self.get_validation_errors()
         return len(errors) == 0
 
-    def get_validation_errors(self) -> List[str]:
+    def get_validation_errors(self) -> list[str]:
         """Get list of validation errors"""
         errors = []
 
@@ -95,7 +95,7 @@ class RouteRequest:
 
         return errors
 
-    def get_filters(self) -> Dict[str, Any]:
+    def get_filters(self) -> dict[str, Any]:
         """Get filters dictionary for route generation"""
         return {
             "proximity": self.proximity,
@@ -128,7 +128,7 @@ class RouteRequest:
             "." in filename and filename.rsplit(".", 1)[1].lower() in allowed_extensions
         )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for logging/debugging"""
         return {
             "has_file": self.file is not None,

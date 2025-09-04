@@ -2,15 +2,17 @@
 WebSocket handlers for real-time features
 """
 
-from flask_socketio import SocketIO, emit, join_room, leave_room
-from flask import request
-from app.monitoring import metrics_collector
 import logging
-import time
-import threading
 import signal
+import threading
+import time
 from threading import Event
-from typing import Dict, Any
+from typing import Any, Dict
+
+from flask import request
+from flask_socketio import SocketIO, emit, join_room, leave_room
+
+from app.monitoring import metrics_collector
 
 logger = logging.getLogger(__name__)
 
@@ -210,7 +212,7 @@ def broadcast_metrics_update():
         logger.error(f"Error broadcasting metrics: {e}")
 
 
-def broadcast_route_update(route_id: str, update_data: Dict[str, Any]):
+def broadcast_route_update(route_id: str, update_data: dict[str, Any]):
     """Broadcast route update to all clients tracking the route"""
     room = f"route_{route_id}"
     socketio.emit(
@@ -234,7 +236,7 @@ def broadcast_system_alert(alert_type: str, message: str, severity: str = "info"
     )
 
 
-def get_connection_stats() -> Dict[str, Any]:
+def get_connection_stats() -> dict[str, Any]:
     """Get current connection statistics"""
     return {
         "connected_clients": len(connected_clients),

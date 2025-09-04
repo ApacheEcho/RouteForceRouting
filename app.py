@@ -40,3 +40,6 @@ if __name__ == "__main__":
         debug=app.config.get("DEBUG", False),
         allow_unsafe_werkzeug=True,  # Allow Werkzeug in Docker/dev
     )
+
+# TEST PR: Trivial change for Codecov comment validation
+# (This line is only for testing CI and coverage)

@@ -1,0 +1,10 @@
+on:
+  workflow_dispatch:
+
+jobs:
+  model-usage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Model Usage Placeholder
+        run: echo "Model usage workflow placeholder"

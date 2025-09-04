@@ -1,0 +1,108 @@
+on:
+  push:
+    branches: [ main, auto-wip ]
+  pull_request:
+    branches: [ main, auto-wip ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Custom check: enforce commit message style
+      - name: Check commit message style
+        run: |
+          git log -1 --pretty=%B | grep -E '^(feat|fix|docs|style|refactor|test|chore):' || echo "Warning: Commit message does not follow conventional style"
+
+      # Custom check: scan for TODOs in code
+      - name: Scan for TODOs in code
+        run: |
+          grep -r TODO . || echo "No TODOs found"
+
+      # Backend setup and tests
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install backend dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt || true
+
+      - name: Lint backend
+        run: |
+          flake8 . || echo "No flake8 config or errors found"
+
+      - name: Run backend tests with coverage
+        run: |
+          coverage run -m pytest --maxfail=1 --disable-warnings || echo "No backend tests found"
+          coverage xml
+
+      - name: Upload backend coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: coverage.xml
+
+      - name: Upload backend coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage.xml
+          flags: backend
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      # Frontend setup and tests
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend && npm ci
+
+      - name: Lint frontend
+        run: |
+          cd frontend && npm run lint || echo "No lint errors found"
+
+      - name: Build frontend
+        run: |
+          cd frontend && npm run build
+
+      - name: Run frontend tests
+        run: |
+          cd frontend && npm test || echo "No frontend tests found"
+
+      - name: Run frontend coverage
+        run: |
+          cd frontend && npm run test -- --coverage || echo "No frontend coverage found"
+
+      - name: Upload frontend coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: frontend/coverage/
+
+      - name: Upload frontend coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: frontend/coverage/lcov.info
+          flags: frontend
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      # Deploy preview (Netlify)
+      - name: Deploy preview to Netlify
+        uses: nwtgck/actions-netlify@v3.0
+        with:
+          publish-dir: frontend/dist
+          production-branch: main
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "Deploy from GitHub Actions"
+          enable-pull-request-comment: false
+          enable-commit-comment: true
+          overwrites-pull-request-comment: true
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}

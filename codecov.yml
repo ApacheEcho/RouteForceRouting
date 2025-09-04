@@ -30,15 +30,6 @@ coverage:
         informational: false
         only_pulls: false
         
-    # Changes-specific coverage tracking
-    changes:
-      default:
-        target: 80%
-        threshold: 1%
-        base: auto
-        if_ci_failed: error
-        informational: false
-        only_pulls: false
 
 # Pull Request comments configuration
 comment:

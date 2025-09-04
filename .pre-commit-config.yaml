@@ -33,3 +33,10 @@ repos:
     hooks:
       - id: bandit
         args: ["-r", "app/", "-ll"]
+  - repo: local
+    hooks:
+      - id: validate-openapi-parity
+        name: Validate OpenAPI parity (and regenerate if needed)
+        entry: bash -c 'python3 scripts/validate_openapi.py || { python3 scripts/generate_openapi.py && echo "Regenerated openapi.json. Please git add openapi.json" >&2 && exit 1; }'
+        language: system
+        files: ^(app/|openapi.json|scripts/)

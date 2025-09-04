@@ -388,7 +388,7 @@ class ClaudeOpus4Service:
             # Try to close the client if it exists
             if hasattr(self, 'client') and self.client:
                 asyncio.create_task(self.client.aclose())
-        except:
+        except Exception:
             pass
 
 

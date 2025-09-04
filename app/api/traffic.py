@@ -17,13 +17,46 @@ logger = logging.getLogger(__name__)
 def optimize_route_with_traffic():
     """
     Generate traffic-optimized route
-
-    Expected JSON:
-    {
-        "stores": [{"lat": float, "lng": float, "name": str, ...}],
-        "constraints": {...},
-        "start_location": {"lat": float, "lng": float} (optional)
-    }
+    ---
+    tags:
+      - Traffic
+    summary: Optimize a route considering live traffic
+    consumes:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required: [stores]
+          properties:
+            stores:
+              type: array
+              items:
+                $ref: '#/definitions/TrafficStop'
+            constraints:
+              type: object
+            start_location:
+              $ref: '#/definitions/TrafficStop'
+    responses:
+      200:
+        description: Traffic-optimized route returned
+        examples:
+          application/json:
+            success: true
+            route: [ { name: Store A, lat: 40.71, lng: -74.0 }, { name: Store B, lat: 40.76, lng: -73.98 } ]
+            traffic_data: { delay_minutes: 3 }
+            metrics: { total_distance: 12.3, total_duration: 1800, traffic_delay: 180, processing_time: 0.12 }
+            algorithm_used: traffic_optimized
+      400:
+        description: Bad request
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      500:
+        description: Server error
+        schema:
+          $ref: '#/definitions/ErrorResponse'
     """
     try:
         data = request.get_json()
@@ -181,12 +214,46 @@ def get_route_alternatives():
 def predict_traffic():
     """
     Predict traffic conditions for future departure times
-
-    Expected JSON:
-    {
-        "stores": [{"lat": float, "lng": float, "name": str, ...}],
-        "future_hours": [1, 2, 4, 8] (optional)
-    }
+    ---
+    tags:
+      - Traffic
+    summary: Predict traffic along a route for given future hours
+    consumes:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required: [stores]
+          properties:
+            stores:
+              type: array
+              items:
+                $ref: '#/definitions/TrafficStop'
+            future_hours:
+              type: array
+              items: { type: integer }
+              default: [1, 2, 4, 8]
+    responses:
+      200:
+        description: Traffic prediction available
+        examples:
+          application/json:
+            success: true
+            predictions: [ { hour: 1, delay_minutes: 2 }, { hour: 2, delay_minutes: 5 } ]
+            best_time: { hour: 1 }
+            recommendation: { depart_after_hours: 1 }
+            processing_time: 0.06
+      400:
+        description: Bad request
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      500:
+        description: Server error
+        schema:
+          $ref: '#/definitions/ErrorResponse'
     """
     try:
         data = request.get_json()
@@ -326,7 +393,25 @@ def get_segment_traffic():
 
 @traffic_bp.route("/status", methods=["GET"])
 def get_traffic_service_status():
-    """Get status of traffic service and Google Maps API"""
+    """Get status of traffic service and Google Maps API
+    ---
+    tags:
+      - Traffic
+    summary: Get traffic subsystem status and cache stats
+    responses:
+      200:
+        description: Service status returned
+        examples:
+          application/json:
+            available: true
+            api_key_configured: true
+            cache_stats: { hits: 12, misses: 3 }
+            config: { cache_duration: 3600, max_waypoints: 23, avoid_tolls: false, avoid_highways: false, avoid_ferries: false, traffic_model: best_guess }
+      500:
+        description: Server error
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+    """
     try:
         routing_service = RoutingService()
 

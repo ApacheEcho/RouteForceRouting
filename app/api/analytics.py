@@ -43,33 +43,18 @@ def analytics_health_check():
       200:
         description: Service is healthy
         schema:
-          type: object
-          properties:
-            status:
-              type: string
-              example: "healthy"
-            service:
-              type: string
-              example: "RouteForce Analytics API"
-            version:
-              type: string
-              example: "1.0.0"
-            timestamp:
-              type: string
-              format: date-time
-            capabilities:
-              type: array
-              items:
-                type: string
-              example: ["mobile_analytics", "driver_performance", "route_optimization_analytics"]
+          $ref: '#/definitions/AnalyticsHealthResponse'
+        examples:
+          application/json:
+            status: healthy
+            service: RouteForce Analytics API
+            version: 1.0.0
+            timestamp: '2024-01-15T10:30:00Z'
+            capabilities: [mobile_analytics, driver_performance, route_optimization_analytics]
       500:
         description: Health check failed
         schema:
-          type: object
-          properties:
-            error:
-              type: string
-              example: "Health check failed"
+          $ref: '#/definitions/ErrorResponse'
     """
     try:
         return (
@@ -121,43 +106,28 @@ def get_mobile_analytics():
       200:
         description: Mobile analytics data retrieved successfully
         schema:
-          type: object
-          properties:
-            success:
-              type: boolean
-              example: true
-            data:
-              type: object
-              description: Mobile analytics data
-            generated_at:
-              type: string
-              format: date-time
+          $ref: '#/definitions/AnalyticsDataResponse'
+        examples:
+          application/json:
+            success: true
+            data: { active_users: 123, sessions: 456 }
+            generated_at: '2024-01-15T10:30:00Z'
       400:
         description: Invalid timeframe parameter
         schema:
-          type: object
-          properties:
-            success:
-              type: boolean
-              example: false
-            error:
-              type: string
-              example: "Invalid timeframe. Use: 1h, 24h, 7d, 30d"
+          $ref: '#/definitions/ErrorResponse'
       401:
         description: Unauthorized - invalid API key
+        schema:
+          $ref: '#/definitions/ErrorResponse'
       500:
         description: Failed to retrieve mobile analytics
         schema:
-          type: object
-          properties:
-            success:
-              type: boolean
-              example: false
-            error:
-              type: string
-              example: "Failed to retrieve mobile analytics"
+          $ref: '#/definitions/ErrorResponse'
       503:
         description: Analytics service not available
+        schema:
+          $ref: '#/definitions/ErrorResponse'
     """
     try:
         timeframe = request.args.get("timeframe", "24h")
@@ -236,25 +206,23 @@ def get_driver_analytics():
       200:
         description: Driver analytics data retrieved successfully
         schema:
-          type: object
-          properties:
-            success:
-              type: boolean
-              example: true
-            data:
-              type: object
-              description: Driver performance analytics data
-            generated_at:
-              type: string
-              format: date-time
+          $ref: '#/definitions/AnalyticsDataResponse'
       400:
         description: Invalid timeframe parameter
+        schema:
+          $ref: '#/definitions/ErrorResponse'
       401:
         description: Unauthorized - invalid API key
+        schema:
+          $ref: '#/definitions/ErrorResponse'
       500:
         description: Failed to retrieve driver analytics
+        schema:
+          $ref: '#/definitions/ErrorResponse'
       503:
         description: Analytics service not available
+        schema:
+          $ref: '#/definitions/ErrorResponse'
     """
     try:
         timeframe = request.args.get("timeframe", "24h")
@@ -314,7 +282,31 @@ def get_driver_analytics():
 def get_route_analytics():
     """
     Get route optimization analytics
-    Query params: timeframe (1h, 24h, 7d, 30d)
+    ---
+    tags:
+      - Analytics
+    summary: Get route optimization analytics
+    description: Retrieve route optimization analytics for the selected timeframe
+    security:
+      - ApiKeyAuth: []
+    parameters:
+      - name: timeframe
+        in: query
+        type: string
+        enum: ["1h", "24h", "7d", "30d"]
+        default: "24h"
+        required: false
+    responses:
+      200:
+        description: Route analytics retrieved successfully
+      400:
+        description: Invalid timeframe parameter
+      401:
+        description: Unauthorized - invalid API key
+      500:
+        description: Failed to retrieve route analytics
+      503:
+        description: Analytics service not available
     """
     try:
         timeframe = request.args.get("timeframe", "24h")
@@ -374,7 +366,31 @@ def get_route_analytics():
 def get_api_analytics():
     """
     Get API usage and performance analytics
-    Query params: timeframe (1h, 24h, 7d, 30d)
+    ---
+    tags:
+      - Analytics
+    summary: Get API usage and performance analytics
+    description: Retrieve API usage and performance metrics for the selected timeframe
+    security:
+      - ApiKeyAuth: []
+    parameters:
+      - name: timeframe
+        in: query
+        type: string
+        enum: ["1h", "24h", "7d", "30d"]
+        default: "24h"
+        required: false
+    responses:
+      200:
+        description: API analytics retrieved successfully
+      400:
+        description: Invalid timeframe parameter
+      401:
+        description: Unauthorized - invalid API key
+      500:
+        description: Failed to retrieve API analytics
+      503:
+        description: Analytics service not available
     """
     try:
         timeframe = request.args.get("timeframe", "24h")
@@ -431,6 +447,20 @@ def get_api_analytics():
 def get_system_health():
     """
     Get overall system health metrics
+    ---
+    tags:
+      - Analytics
+    summary: Get overall system health metrics
+    description: Retrieve system health metrics for monitoring and diagnostics
+    security:
+      - ApiKeyAuth: []
+    responses:
+      200:
+        description: System health metrics retrieved successfully
+      401:
+        description: Unauthorized - invalid API key
+      503:
+        description: Analytics service not available
     """
     try:
         analytics_service = get_analytics_service()
@@ -654,6 +684,49 @@ def track_mobile_session():
 def track_driver_performance():
     """
     Track driver performance metrics
+    ---
+    tags:
+      - Analytics
+    summary: Track driver performance metrics
+    description: Submit driver performance metrics for analytics
+    security:
+      - ApiKeyAuth: []
+    parameters:
+      - name: driver_metrics
+        in: body
+        required: true
+        schema:
+          type: object
+          required:
+            - driver_id
+          properties:
+            driver_id:
+              type: string
+            location_accuracy:
+              type: number
+            speed:
+              type: number
+            route_deviation:
+              type: number
+            stops_completed:
+              type: integer
+            time_at_stop:
+              type: number
+            fuel_efficiency:
+              type: number
+            customer_rating:
+              type: number
+    responses:
+      200:
+        description: Driver performance tracked successfully
+      400:
+        description: Bad request - driver_id is required
+      401:
+        description: Unauthorized - invalid API key
+      500:
+        description: Failed to track driver performance
+      503:
+        description: Analytics service not available
     """
     try:
         data = request.get_json()
@@ -718,6 +791,45 @@ def track_driver_performance():
 def track_route_optimization():
     """
     Track route optimization performance
+    ---
+    tags:
+      - Analytics
+    summary: Track route optimization performance
+    description: Submit route-level analytics and KPIs
+    security:
+      - ApiKeyAuth: []
+    parameters:
+      - name: route_data
+        in: body
+        required: true
+        schema:
+          type: object
+          required:
+            - route_id
+          properties:
+            route_id:
+              type: string
+            optimization_time:
+              type: number
+            total_distance:
+              type: number
+            total_time:
+              type: number
+            improvement_percentage:
+              type: number
+            algorithm:
+              type: string
+    responses:
+      200:
+        description: Route optimization tracked successfully
+      400:
+        description: Bad request - route_id is required
+      401:
+        description: Unauthorized - invalid API key
+      500:
+        description: Failed to track route optimization
+      503:
+        description: Analytics service not available
     """
     try:
         data = request.get_json()
@@ -782,7 +894,38 @@ def track_route_optimization():
 @require_api_key
 def track_system_event():
     """
-    Track system events for monitoring
+    Track system event
+    ---
+    tags:
+      - Analytics
+    summary: Track system event
+    description: Submit arbitrary system events for analytics and auditing
+    security:
+      - ApiKeyAuth: []
+    parameters:
+      - name: event_data
+        in: body
+        required: true
+        schema:
+          type: object
+          required:
+            - event_type
+          properties:
+            event_type:
+              type: string
+            event_data:
+              type: object
+    responses:
+      200:
+        description: Event tracked successfully
+      400:
+        description: Bad request - event_type is required
+      401:
+        description: Unauthorized - invalid API key
+      500:
+        description: Failed to track event
+      503:
+        description: Analytics service not available
     """
     try:
         data = request.get_json()

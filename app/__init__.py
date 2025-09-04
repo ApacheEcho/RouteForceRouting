@@ -86,12 +86,7 @@ def create_app(config_name: str = "development", testing: bool = False) -> Flask
     else:
         app.config.from_object(config[config_name])
 
-    # Configure logging early
-    try:
-        configure_logging(app)
-    except Exception:
-        # Logging setup should not break app initialization
-        pass
+    # Configure logging once later after extensions initialized
 
     # Enforce HTTPS in production
     if app.config.get("PREFERRED_URL_SCHEME", "http") == "https":
@@ -202,9 +197,10 @@ def create_app(config_name: str = "development", testing: bool = False) -> Flask
                 "url": "https://github.com/ApacheEcho/RouteForceRouting",
             },
         },
-        "host": "localhost:8000",
         "basePath": "/",
         "schemes": ["http", "https"],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
         "tags": [
             {
                 "name": "Analytics",
@@ -222,6 +218,535 @@ def create_app(config_name: str = "development", testing: bool = False) -> Flask
                 "type": "apiKey",
                 "in": "header",
                 "name": "X-API-Key",
+            },
+            "JWT": {
+                "type": "apiKey",
+                "name": "Authorization",
+                "in": "header",
+                "description": "JWT Bearer token. Use: 'Bearer <token>'",
+            },
+        },
+        "definitions": {
+            "Store": {
+                "type": "object",
+                "required": ["lat", "lon"],
+                "properties": {
+                    "id": {"type": "string"},
+                    "name": {"type": "string"},
+                    "lat": {"type": "number"},
+                    "lon": {"type": "number"},
+                    "priority": {"type": "integer"}
+                }
+            },
+            "RouteItem": {
+                "$ref": "#/definitions/Store"
+            },
+            "TrafficStop": {
+                "type": "object",
+                "required": ["lat", "lng"],
+                "properties": {
+                    "lat": {"type": "number"},
+                    "lng": {"type": "number"}
+                }
+            },
+            "ErrorResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {"type": "boolean"},
+                    "error": {"type": "string"}
+                }
+            },
+            "LoginRequest": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                    "email": {"type": "string", "format": "email"},
+                    "password": {"type": "string"}
+                }
+            },
+            "RegisterRequest": {
+                "type": "object",
+                "required": ["email", "password", "username"],
+                "properties": {
+                    "email": {"type": "string", "format": "email"},
+                    "password": {"type": "string"},
+                    "username": {"type": "string"}
+                }
+            },
+            "MobileDriverLocationRequest": {
+                "type": "object",
+                "required": ["driver_id", "lat", "lng"],
+                "properties": {
+                    "driver_id": {"type": "string", "example": "driver_123"},
+                    "lat": {"type": "number", "example": 40.7128},
+                    "lng": {"type": "number", "example": -74.0060},
+                    "heading": {"type": "number", "example": 180},
+                    "speed": {"type": "number", "example": 45.3},
+                    "accuracy": {"type": "number", "example": 5.0},
+                    "timestamp": {"type": "string", "format": "date-time"}
+                }
+            },
+            "MobileDriverLocationResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {"type": "boolean", "example": True},
+                    "received_at": {"type": "string", "format": "date-time"}
+                }
+            },
+            "MobileDriverStatusRequest": {
+                "type": "object",
+                "required": ["driver_id", "status"],
+                "properties": {
+                    "driver_id": {"type": "string", "example": "driver_123"},
+                    "status": {"type": "string", "enum": ["available", "busy", "en_route", "delivering", "break", "offline"], "example": "available"},
+                    "metadata": {"type": "object"}
+                }
+            },
+            "MobileDriverStatusResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {"type": "boolean", "example": True},
+                    "status": {"type": "string"},
+                    "updated_at": {"type": "string", "format": "date-time"}
+                }
+            },
+            "VoiceAudioUploadResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {"type": "boolean", "example": True},
+                    "data": {
+                        "type": "object",
+                        "properties": {
+                            "audio_id": {"type": "string"},
+                            "filename": {"type": "string"},
+                            "size": {"type": "integer"},
+                            "uploaded_at": {"type": "string", "format": "date-time"},
+                            "status": {"type": "string"},
+                            "processing_status": {"type": "string"}
+                        }
+                    },
+                    "message": {"type": "string"}
+                }
+            },
+            "VoiceNoteResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {"type": "boolean", "example": True},
+                    "data": {
+                        "type": "object",
+                        "properties": {
+                            "note_id": {"type": "string"},
+                            "transcript": {"type": "string"},
+                            "category": {"type": "string"},
+                            "tags": {"type": "array", "items": {"type": "string"}},
+                            "priority": {"type": "string"},
+                            "created_at": {"type": "string", "format": "date-time"},
+                            "processed": {"type": "boolean"}
+                        }
+                    },
+                    "message": {"type": "string"}
+                }
+            },
+            "MobileCompressedStop": {
+                "type": "object",
+                "properties": {
+                    "id": {"type": "string"},
+                    "name": {"type": "string"},
+                    "address": {"type": "string"},
+                    "lat": {"type": "number"},
+                    "lng": {"type": "number"},
+                    "order": {"type": "integer"}
+                }
+            },
+            "MobileCompressedRoute": {
+                "type": "object",
+                "properties": {
+                    "id": {"type": "string"},
+                    "stops": {"type": "array", "items": {"$ref": "#/definitions/MobileCompressedStop"}},
+                    "total_distance": {"type": "number"},
+                    "total_time": {"type": "number"},
+                    "optimized": {"type": "boolean"}
+                }
+            },
+            "MobileRouteOptimizeResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {"type": "boolean"},
+                    "route": {"$ref": "#/definitions/MobileCompressedRoute"},
+                    "optimization_time": {"type": "number"},
+                    "mobile_optimized": {"type": "boolean"}
+                }
+            },
+            "LatLng": {
+                "type": "object",
+                "properties": {"lat": {"type": "number"}, "lng": {"type": "number"}}
+            },
+            "DistanceValue": {
+                "type": "object",
+                "properties": {"text": {"type": "string"}, "value": {"type": "number"}}
+            },
+            "DirectionStep": {
+                "type": "object",
+                "properties": {
+                    "distance": {"$ref": "#/definitions/DistanceValue"},
+                    "duration": {"$ref": "#/definitions/DistanceValue"},
+                    "html_instructions": {"type": "string"},
+                    "maneuver": {"type": "string"},
+                    "start_location": {"$ref": "#/definitions/LatLng"},
+                    "end_location": {"$ref": "#/definitions/LatLng"},
+                    "polyline": {"type": "object"}
+                }
+            },
+            "DirectionLeg": {
+                "type": "object",
+                "properties": {
+                    "distance": {"$ref": "#/definitions/DistanceValue"},
+                    "duration": {"$ref": "#/definitions/DistanceValue"},
+                    "duration_in_traffic": {"$ref": "#/definitions/DistanceValue"},
+                    "start_location": {"$ref": "#/definitions/LatLng"},
+                    "end_location": {"$ref": "#/definitions/LatLng"},
+                    "steps": {"type": "array", "items": {"$ref": "#/definitions/DirectionStep"}}
+                }
+            },
+            "Directions": {
+                "type": "object",
+                "properties": {
+                    "overview_polyline": {"type": "object"},
+                    "bounds": {"type": "object"},
+                    "legs": {"type": "array", "items": {"$ref": "#/definitions/DirectionLeg"}},
+                    "warnings": {"type": "array", "items": {"type": "string"}}
+                }
+            },
+            "TrafficDirectionsResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {"type": "boolean"},
+                    "directions": {"$ref": "#/definitions/Directions"},
+                    "traffic_info": {"type": "object"},
+                    "alternatives": {"type": "array", "items": {"type": "object"}},
+                    "mobile_formatted": {"type": "boolean"}
+                }
+            },
+            "AnalyticsHealthResponse": {
+                "type": "object",
+                "properties": {
+                    "status": {"type": "string"},
+                    "service": {"type": "string"},
+                    "version": {"type": "string"},
+                    "timestamp": {"type": "string", "format": "date-time"},
+                    "capabilities": {"type": "array", "items": {"type": "string"}}
+                }
+            },
+            "AnalyticsDataResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {"type": "boolean"},
+                    "data": {"type": "object"},
+                    "generated_at": {"type": "string", "format": "date-time"}
+                }
+            },
+            "RouteScoreData": {
+                "type": "object",
+                "properties": {
+                    "total_score": {"type": "number"},
+                    "component_scores": {"type": "object", "additionalProperties": {"type": "number"}},
+                    "raw_metrics": {"type": "object"},
+                    "metadata": {"type": "object"},
+                    "calculation_time_ms": {"type": "number"}
+                }
+            },
+            "RouteScoreResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {"type": "boolean"},
+                    "score": {"$ref": "#/definitions/RouteScoreData"}
+                }
+            },
+            "RouteCompareResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {"type": "boolean"},
+                    "comparison": {
+                        "type": "object",
+                        "properties": {
+                            "route_count": {"type": "integer"},
+                            "scores": {"type": "array", "items": {"$ref": "#/definitions/RouteScoreData"}},
+                            "best_route_index": {"type": "integer"},
+                            "best_score": {"type": "number"},
+                            "score_range": {
+                                "type": "object",
+                                "properties": {
+                                    "min": {"type": "number"},
+                                    "max": {"type": "number"},
+                                    "average": {"type": "number"}
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "ParetoItem": {
+                "type": "object",
+                "properties": {
+                    "route_indices": {"type": "array", "items": {"type": "integer"}},
+                    "route": {"type": "array", "items": {"$ref": "#/definitions/Store"}},
+                    "objectives": {"type": "object", "additionalProperties": {"type": "number"}},
+                    "rank": {"type": "integer"},
+                    "crowding_distance": {"type": "number"}
+                }
+            },
+            "ParetoFrontResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {"type": "boolean"},
+                    "front": {"type": "array", "items": {"$ref": "#/definitions/ParetoItem"}},
+                    "count": {"type": "integer"}
+                }
+            }
+        },
+        "paths": {
+            "/api/v1/login": {
+                "post": {
+                    "tags": ["Routes"],
+                    "summary": "Login and obtain JWT tokens",
+                    "parameters": [
+                        {
+                            "in": "body",
+                            "name": "body",
+                            "required": True,
+                            "schema": {"$ref": "#/definitions/LoginRequest"}
+                        }
+                    ],
+                    "responses": {
+                        "200": {"description": "Login successful"},
+                        "401": {"description": "Invalid credentials", "schema": {"$ref": "#/definitions/ErrorResponse"}}
+                    }
+                }
+            },
+            "/api/v1/register": {
+                "post": {
+                    "tags": ["Routes"],
+                    "summary": "Register a new user",
+                    "parameters": [
+                        {
+                            "in": "body",
+                            "name": "body",
+                            "required": True,
+                            "schema": {"$ref": "#/definitions/RegisterRequest"}
+                        }
+                    ],
+                    "responses": {
+                        "201": {"description": "Registration successful"},
+                        "409": {"description": "Conflict", "schema": {"$ref": "#/definitions/ErrorResponse"}}
+                    }
+                }
+            },
+            "/api/v1/refresh": {
+                "post": {
+                    "tags": ["Routes"],
+                    "summary": "Refresh JWT access token",
+                    "description": "No request body required. Requires refresh token in Authorization header.",
+                    "security": [{"JWT": []}],
+                    "parameters": [],
+                    "responses": {
+                        "200": {"description": "Token refreshed"},
+                        "401": {"description": "Unauthorized", "schema": {"$ref": "#/definitions/ErrorResponse"}}
+                    }
+                }
+            },
+            "/api/v1/logout": {
+                "post": {
+                    "tags": ["Routes"],
+                    "summary": "Logout and revoke JWT",
+                    "description": "No request body required. Requires access token.",
+                    "security": [{"JWT": []}],
+                    "parameters": [],
+                    "responses": {
+                        "200": {"description": "Logout successful"},
+                        "401": {"description": "Unauthorized", "schema": {"$ref": "#/definitions/ErrorResponse"}}
+                    }
+                }
+            },
+            "/api/v1/auth/validate": {
+                "post": {
+                    "tags": ["Routes"],
+                    "summary": "Validate current JWT access token",
+                    "security": [{"JWT": []}],
+                    "parameters": [],
+                    "responses": {
+                        "200": {"description": "Token validation result"},
+                        "401": {"description": "Unauthorized", "schema": {"$ref": "#/definitions/ErrorResponse"}}
+                    }
+                }
+            },
+            "/api/v1/routes": {
+                "post": {
+                    "tags": ["Routes"],
+                    "summary": "Create an optimized route from stores",
+                    "parameters": [
+                        {
+                            "in": "body",
+                            "name": "body",
+                            "required": True,
+                            "schema": {
+                                "type": "object",
+                                "required": ["stores"],
+                                "properties": {
+                                    "stores": {
+                                        "type": "array",
+                                        "items": {"$ref": "#/definitions/Store"}
+                                    },
+                                    "constraints": {"type": "object"},
+                                    "options": {"type": "object"}
+                                }
+                            }
+                        }
+                    ],
+                    "responses": {
+                        "201": {"description": "Route created"},
+                        "422": {"description": "Validation error", "schema": {"$ref": "#/definitions/ErrorResponse"}},
+                        "500": {"description": "Server error", "schema": {"$ref": "#/definitions/ErrorResponse"}}
+                    }
+                }
+            },
+            "/api/route/score": {
+                "post": {
+                    "tags": ["Routes"],
+                    "summary": "Score a single route",
+                    "parameters": [
+                        {
+                            "in": "body",
+                            "name": "body",
+                            "required": True,
+                            "schema": {
+                                "type": "object",
+                                "required": ["route"],
+                                "properties": {
+                                    "route": {"type": "array", "items": {"$ref": "#/definitions/RouteItem"}},
+                                    "preset": {"type": "string"}
+                                }
+                            }
+                        }
+                    ],
+                    "responses": {
+                        "200": {"description": "Score computed"},
+                        "400": {"description": "Bad request", "schema": {"$ref": "#/definitions/ErrorResponse"}},
+                        "422": {"description": "Validation error", "schema": {"$ref": "#/definitions/ErrorResponse"}},
+                        "500": {"description": "Server error", "schema": {"$ref": "#/definitions/ErrorResponse"}}
+                    }
+                }
+            },
+            "/api/route/score/compare": {
+                "post": {
+                    "tags": ["Routes"],
+                    "summary": "Compare multiple routes",
+                    "parameters": [
+                        {
+                            "in": "body",
+                            "name": "body",
+                            "required": True,
+                            "schema": {
+                                "type": "object",
+                                "required": ["routes"],
+                                "properties": {
+                                    "routes": {
+                                        "type": "array",
+                                        "items": {"type": "array", "items": {"$ref": "#/definitions/RouteItem"}}
+                                    },
+                                    "preset": {"type": "string"}
+                                }
+                            }
+                        }
+                    ],
+                    "responses": {
+                        "200": {"description": "Comparison computed"},
+                        "400": {"description": "Bad request", "schema": {"$ref": "#/definitions/ErrorResponse"}},
+                        "422": {"description": "Validation error", "schema": {"$ref": "#/definitions/ErrorResponse"}},
+                        "500": {"description": "Server error", "schema": {"$ref": "#/definitions/ErrorResponse"}}
+                    }
+                }
+            },
+            "/api/traffic/optimize": {
+                "post": {
+                    "tags": ["Traffic"],
+                    "summary": "Generate traffic-optimized route",
+                    "parameters": [
+                        {
+                            "in": "body",
+                            "name": "body",
+                            "required": True,
+                            "schema": {
+                                "type": "object",
+                                "required": ["stores"],
+                                "properties": {
+                                    "stores": {"type": "array", "items": {"$ref": "#/definitions/TrafficStop"}},
+                                    "constraints": {"type": "object"},
+                                    "start_location": {"$ref": "#/definitions/TrafficStop"}
+                                }
+                            }
+                        }
+                    ],
+                    "responses": {
+                        "200": {"description": "Traffic-optimized route generated"},
+                        "400": {"description": "Bad request", "schema": {"$ref": "#/definitions/ErrorResponse"}},
+                        "500": {"description": "Server error", "schema": {"$ref": "#/definitions/ErrorResponse"}}
+                    }
+                }
+            },
+            "/api/traffic/predict": {
+                "post": {
+                    "tags": ["Traffic"],
+                    "summary": "Predict traffic conditions for a route",
+                    "parameters": [
+                        {
+                            "in": "body",
+                            "name": "body",
+                            "required": True,
+                            "schema": {
+                                "type": "object",
+                                "required": ["stores"],
+                                "properties": {
+                                    "stores": {"type": "array", "items": {"$ref": "#/definitions/TrafficStop"}},
+                                    "future_hours": {"type": "array", "items": {"type": "integer"}}
+                                }
+                            }
+                        }
+                    ],
+                    "responses": {
+                        "200": {"description": "Traffic predictions generated"},
+                        "400": {"description": "Bad request", "schema": {"$ref": "#/definitions/ErrorResponse"}},
+                        "500": {"description": "Server error", "schema": {"$ref": "#/definitions/ErrorResponse"}}
+                    }
+                }
+            },
+            "/api/traffic/status": {
+                "get": {
+                    "tags": ["Traffic"],
+                    "summary": "Get traffic service status",
+                    "responses": {
+                        "200": {"description": "Status returned"},
+                        "500": {"description": "Server error", "schema": {"$ref": "#/definitions/ErrorResponse"}}
+                    }
+                }
+            },
+            "/health": {
+                "get": {
+                    "summary": "Service health check",
+                    "responses": {"200": {"description": "Service is healthy"}, "503": {"description": "Degraded/Unhealthy"}}
+                }
+            },
+            "/api/docs": {
+                "get": {
+                    "summary": "Swagger UI",
+                    "produces": ["text/html"],
+                    "responses": {"200": {"description": "Swagger UI HTML"}}
+                }
+            },
+            "/api/swagger.json": {
+                "get": {
+                    "summary": "Swagger JSON",
+                    "responses": {"200": {"description": "Swagger spec JSON"}}
+                }
             }
         },
     }
@@ -246,8 +771,11 @@ def create_app(config_name: str = "development", testing: bool = False) -> Flask
     # Initialize JWT authentication
     init_jwt(app)
 
-    # Initialize Sentry monitoring
-    setup_monitoring(app)
+    # Initialize Sentry/monitoring (skip in tests to keep runs fast/stable)
+    if not app.config.get("TESTING", False):
+        setup_monitoring(app)
+    else:
+        app.config["MONITORING_ENABLED"] = False
 
     # Security headers
     @app.after_request
@@ -293,7 +821,8 @@ def create_app(config_name: str = "development", testing: bool = False) -> Flask
 
             # System metrics
             system_metrics = {
-                "cpu_percent": psutil.cpu_percent(interval=1),
+                # Avoid blocking health endpoint; get instantaneous CPU percent
+                "cpu_percent": psutil.cpu_percent(interval=None),
                 "memory_percent": psutil.virtual_memory().percent,
                 "disk_usage": psutil.disk_usage("/").percent,
             }

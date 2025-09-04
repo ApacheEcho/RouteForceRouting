@@ -11,11 +11,21 @@ from flask import send_from_directory, request
 # Create application instance
 app = create_app(os.getenv("FLASK_ENV", "development"))
 
-# Serve openapi.json at /openapi.json if it exists
+# Serve openapi.json at /openapi.json mirroring Flasgger JSON (fallback to file)
 def _openapi_json_route():
-    if os.path.exists("openapi.json"):
-        return send_file("openapi.json", mimetype="application/json")
-    return ("OpenAPI spec not found", 404)
+    try:
+        # Prefer the live Flasgger spec to avoid drift
+        return app.view_functions["apispec_1"]()
+    except Exception:
+        root = os.path.dirname(os.path.abspath(__file__))
+        path = os.path.join(root, "openapi.json")
+        if os.path.exists(path):
+            return send_file(path, mimetype="application/json")
+        # Also check project root one level up if running from app subdir
+        parent_path = os.path.join(os.path.dirname(root), "openapi.json")
+        if os.path.exists(parent_path):
+            return send_file(parent_path, mimetype="application/json")
+        return ("OpenAPI spec not found", 404)
 app.add_url_rule("/openapi.json", "openapi_json", _openapi_json_route)
 
 # Serve static files from frontend/dist

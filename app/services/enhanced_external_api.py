@@ -60,7 +60,7 @@ class EnhancedExternalAPIService:
             )
             cache.ping()
             return cache
-        except:
+        except Exception:
             logger.warning("Redis not available, using in-memory cache")
             return {}
 

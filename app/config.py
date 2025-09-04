@@ -80,8 +80,9 @@ class Config:
     )  # 1 hour
 
     # Auto-commit service configuration
+    # Default disabled for safety; enable explicitly via env var if desired
     AUTO_COMMIT_ENABLED = (
-        os.environ.get("AUTO_COMMIT_ENABLED", "true").lower() == "true"
+        os.environ.get("AUTO_COMMIT_ENABLED", "false").lower() == "true"
     )
     AUTO_COMMIT_INTERVAL_MINUTES = int(
         os.environ.get("AUTO_COMMIT_INTERVAL_MINUTES", "10")

@@ -23,6 +23,43 @@ voice_bp = Blueprint("voice", __name__)
 def voice_commit():
     """
     Handle voice-dictated commit messages
+    ---
+    tags:
+      - Voice
+    summary: Create a commit entry from a voice message
+    security:
+      - JWT: []
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required: [message]
+          properties:
+            message:
+              type: string
+            files:
+              type: array
+              items:
+                type: string
+            author:
+              type: string
+    responses:
+      200:
+        description: Commit accepted
+      400:
+        description: Bad request
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      401:
+        description: Unauthorized
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      500:
+        description: Server error
+        schema:
+          $ref: '#/definitions/ErrorResponse'
     """
     try:
         data = request.get_json()
@@ -72,6 +109,55 @@ def voice_commit():
 def generate_code_from_voice():
     """
     Generate code from voice input description
+    ---
+    tags:
+      - Voice
+    summary: Generate code snippet from a voice description
+    security:
+      - JWT: []
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required: [description]
+          properties:
+            description:
+              type: string
+            language:
+              type: string
+            function_name:
+              type: string
+            component_name:
+              type: string
+    responses:
+      200:
+        description: Code generated
+        examples:
+          application/json:
+            success: true
+            data:
+              code: |
+                def new_function():
+                    # calculate something from input
+                    pass
+              language: python
+              description: calculate something from input
+              generated_at: '2024-01-15T10:30:00Z'
+              metadata: { lines: 6, characters: 120, function_name: new_function }
+      400:
+        description: Bad request
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      401:
+        description: Unauthorized
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      500:
+        description: Server error
+        schema:
+          $ref: '#/definitions/ErrorResponse'
     """
     try:
         data = request.get_json()
@@ -126,6 +212,47 @@ def generate_code_from_voice():
 def save_voice_note():
     """
     Save voice note for later processing
+    ---
+    tags:
+      - Voice
+    summary: Save a transcribed voice note
+    security:
+      - JWT: []
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required: [transcript]
+          properties:
+            transcript:
+              type: string
+            category:
+              type: string
+            tags:
+              type: array
+              items:
+                type: string
+            priority:
+              type: string
+    responses:
+      200:
+        description: Voice note saved
+        schema:
+          $ref: '#/definitions/VoiceNoteResponse'
+      400:
+        description: Bad request
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      401:
+        description: Unauthorized
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      500:
+        description: Server error
+        schema:
+          $ref: '#/definitions/ErrorResponse'
     """
     try:
         data = request.get_json()
@@ -178,6 +305,37 @@ def save_voice_note():
 def upload_voice_audio():
     """
     Handle audio file upload for offline voice processing
+    ---
+    tags:
+      - Voice
+    summary: Upload audio for processing
+    security:
+      - JWT: []
+    consumes:
+      - multipart/form-data
+    parameters:
+      - in: formData
+        name: audio
+        type: file
+        required: true
+        description: Audio file to upload (wav, mp3, ogg, webm, m4a)
+    responses:
+      200:
+        description: Audio uploaded
+        schema:
+          $ref: '#/definitions/VoiceAudioUploadResponse'
+      400:
+        description: Bad request
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      401:
+        description: Unauthorized
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      500:
+        description: Server error
+        schema:
+          $ref: '#/definitions/ErrorResponse'
     """
     try:
         if "audio" not in request.files:
@@ -234,6 +392,38 @@ def upload_voice_audio():
 def voice_settings():
     """
     Get or update voice settings for the user
+    ---
+    tags:
+      - Voice
+    summary: Get or update voice settings
+    security:
+      - JWT: []
+    parameters:
+      - in: body
+        name: body
+        required: false
+        schema:
+          type: object
+          properties:
+            language:
+              type: string
+            auto_save:
+              type: boolean
+            push_to_talk:
+              type: boolean
+            noise_reduction:
+              type: boolean
+    responses:
+      200:
+        description: Settings retrieved/updated
+      401:
+        description: Unauthorized
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      500:
+        description: Server error
+        schema:
+          $ref: '#/definitions/ErrorResponse'
     """
     if request.method == "GET":
         # Get current voice settings

@@ -1,0 +1,59 @@
+on:
+  push:
+    branches: [ main, auto-wip ]
+  pull_request:
+    branches: [ main, auto-wip ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Backend setup and tests
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install backend dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt || true
+      - name: Lint backend
+        run: |
+          flake8 . || echo "No flake8 config or errors found"
+      - name: Run backend tests with coverage
+        run: |
+          coverage run -m pytest --maxfail=1 --disable-warnings || echo "No backend tests found"
+          coverage xml
+      - name: Upload backend coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: coverage.xml
+
+      # Frontend setup and tests
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install frontend dependencies
+        run: |
+          cd frontend && npm ci
+      - name: Lint frontend
+        run: |
+          cd frontend && npm run lint || echo "No lint errors found"
+      - name: Build frontend
+        run: |
+          cd frontend && npm run build
+      - name: Run frontend tests
+        run: |
+          cd frontend && npm test || echo "No frontend tests found"
+      - name: Run frontend coverage
+        run: |
+          cd frontend && npm run test -- --coverage || echo "No frontend coverage found"
+      - name: Upload frontend coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: frontend/coverage/

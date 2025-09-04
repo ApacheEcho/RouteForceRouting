@@ -287,7 +287,7 @@ def audit_log(action: str, resource: str = None):
                 try:
                     verify_jwt_in_request(optional=True)
                     user_email = get_jwt_identity() or "anonymous"
-                except:
+                except Exception:
                     pass
 
                 # Log the action

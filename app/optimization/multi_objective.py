@@ -76,6 +76,13 @@ class MultiObjectiveOptimizer:
         self.distance_matrix = None
         self.stores = None
 
+        # Last-run artifacts (persist only most recent run)
+        self._last_population: Optional[List[List[int]]] = None
+        self._last_objectives: Optional[List[List[float]]] = None
+        self._last_front_indices: Optional[List[int]] = None
+        self._last_config: Optional[MultiObjectiveConfig] = None
+        self._last_crowding_distances: Optional[List[float]] = None
+
         # Objective functions
         self.objective_functions = {
             "distance": self._calculate_total_distance,
@@ -145,6 +152,11 @@ class MultiObjectiveOptimizer:
             final_fronts = self._non_dominated_sort(final_objectives)
             pareto_front = final_fronts[0]
 
+            # Compute crowding distances for final fronts
+            final_crowding = self._calculate_crowding_distance(
+                final_fronts, final_objectives
+            )
+
             # Select best compromise solution
             best_compromise_idx = self._select_best_compromise(
                 pareto_front, final_objectives
@@ -160,6 +172,13 @@ class MultiObjectiveOptimizer:
                 processing_time,
                 best_compromise_idx,
             )
+
+            # Persist last-run artifacts
+            self._last_population = population
+            self._last_objectives = final_objectives
+            self._last_front_indices = pareto_front[:]
+            self._last_config = self.config
+            self._last_crowding_distances = final_crowding
 
             logger.info(
                 f"Multi-objective optimization completed in {processing_time:.4f}s"
@@ -510,7 +529,7 @@ class MultiObjectiveOptimizer:
                 metrics["hypervolume"] = self._calculate_hypervolume(
                     pareto_front, objective_values
                 )
-            except:
+            except Exception:
                 metrics["hypervolume"] = 0.0
 
         return metrics
@@ -664,8 +683,50 @@ class MultiObjectiveOptimizer:
 
     def get_pareto_front(self) -> List[Dict[str, Any]]:
         """Get the Pareto front solutions"""
-        # This would return all non-dominated solutions
-        pass
+        if (
+            self._last_population is None
+            or self._last_objectives is None
+            or self._last_front_indices is None
+            or self.stores is None
+            or not self._last_front_indices
+        ):
+            return []
+
+        # Optionally compute crowding distances just for the saved fronts
+        crowding_distances = self._last_crowding_distances
+        if crowding_distances is None:
+            # Recompute distances for the saved first front if needed
+            try:
+                fronts = [self._last_front_indices]
+                crowding_distances = self._calculate_crowding_distance(
+                    fronts, self._last_objectives
+                )
+            except Exception:
+                crowding_distances = None
+
+        results: List[Dict[str, Any]] = []
+        for idx in self._last_front_indices:
+            route_indices = self._last_population[idx]
+            route = [self.stores[i] for i in route_indices]
+            objectives_map = {
+                obj: self._last_objectives[idx][i]
+                for i, obj in enumerate(self.config.objectives)
+            }
+            item: Dict[str, Any] = {
+                "route_indices": route_indices,
+                "route": route,
+                "objectives": objectives_map,
+                "rank": 0,
+            }
+            if crowding_distances is not None:
+                try:
+                    item["crowding_distance"] = crowding_distances[idx]
+                except Exception:
+                    # If indexing fails, omit crowding distance
+                    pass
+            results.append(item)
+
+        return results
 
     def get_metrics(self) -> MultiObjectiveMetrics:
         """Get optimization metrics"""

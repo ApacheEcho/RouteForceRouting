@@ -12,6 +12,7 @@ from typing import Dict, Optional, Protocol, Tuple
 
 import requests
 
+import os
 from app.services.metrics_service import track_geocoding
 
 logger = logging.getLogger(__name__)
@@ -152,6 +153,24 @@ class NominatimGeocoder:
         return None
 
 
+class DummyGeocoder:
+    """Fast, deterministic geocoder for tests (no network, no sleep)."""
+
+    def __init__(self, config: GeocodingConfig):
+        self.config = config
+
+    @track_geocoding
+    def geocode(self, address: str) -> Optional[Tuple[float, float]]:
+        if not address:
+            return None
+        # Deterministic pseudo-coordinates derived from address hash.
+        h = abs(hash(address.strip().lower()))
+        # Map to plausible lat [-60, 60] and lon [-150, 150]
+        lat = ((h % 1200000) / 10000.0) - 60.0
+        lon = (((h // 1200000) % 3000000) / 10000.0) - 150.0
+        return (lat, lon)
+
+
 class ModernGeocodingService:
     """Modern, testable geocoding service with dependency injection"""
 
@@ -200,6 +219,16 @@ def create_geocoding_service(
 ) -> ModernGeocodingService:
     """Create a properly configured geocoding service"""
     config = config or GeocodingConfig()
+    # In tests, use a dummy geocoder to avoid network and delays
+    is_test_env = bool(os.getenv("PYTEST_CURRENT_TEST")) or os.getenv(
+        "ROUTEFORCE_TESTING", "0"
+    ) == "1"
+    if is_test_env:
+        config.delay_seconds = 0
+        cache = JSONFileCache("geocoding_cache_test.json")
+        provider = DummyGeocoder(config)
+        return ModernGeocodingService(cache, provider, config)
+
     cache = JSONFileCache(config.cache_file)
     provider = NominatimGeocoder(config)
     return ModernGeocodingService(cache, provider, config)

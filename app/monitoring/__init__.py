@@ -3,12 +3,25 @@ Sentry Integration for Flask Application
 Initialize and configure Sentry monitoring in the main Flask app
 """
 
-from app.monitoring.sentry_config import (
-    init_sentry,
-    SentryHelper,
-    monitor_performance,
-    SentryContext,
-)
+try:
+    from app.monitoring.sentry_config import (
+        init_sentry,
+        SentryHelper,
+        monitor_performance,
+        SentryContext,
+    )
+except Exception:  # pragma: no cover - fallback when sentry not installed
+    def init_sentry(app=None):
+        return False
+
+    class SentryHelper:  # type: ignore
+        pass
+
+    def monitor_performance(func):  # type: ignore
+        return func
+
+    class SentryContext:  # type: ignore
+        pass
 import logging
 
 # Also re-export metrics_collector for compatibility with existing imports

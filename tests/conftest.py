@@ -20,6 +20,9 @@ from types import ModuleType
 from urllib.parse import urlparse
 
 
+# Ensure fast, network-free behavior in tests
+os.environ.setdefault("ROUTEFORCE_TESTING", "1")
+
 # Install a lightweight requests shim to route localhost calls to Flask test client
 try:
     import requests as _real_requests  # noqa: F401

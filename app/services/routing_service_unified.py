@@ -245,14 +245,9 @@ class UnifiedRoutingService:
             self.last_processing_time = processing_time
 
             # Calculate metrics
-            total_distance = self.distance_calculator.calculate_route_distance(
-                route
-            )
-            optimization_score = (
-                len(route) / max(total_distance, 0.1)
-                if total_distance > 0
-                else 0
-            )
+            total_distance = self.distance_calculator.calculate_route_distance(route)
+            # Use comprehensive scoring for optimization score (0-100)
+            optimization_score = self._calculate_optimization_score(route)
 
             self.metrics = UnifiedRoutingMetrics(
                 processing_time=processing_time,

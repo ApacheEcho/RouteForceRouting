@@ -40,6 +40,20 @@ logger = logging.getLogger(__name__)
 @mobile_bp.route("/health", methods=["GET"])
 @limiter.limit("30 per minute")
 def mobile_health_check():
+    """
+    Mobile API health check
+    ---
+    tags:
+      - Mobile
+    summary: Health check for Mobile API
+    responses:
+      200:
+        description: Service is healthy
+      500:
+        description: Health check failed
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+    """
     try:
         return (
             jsonify(
@@ -68,6 +82,36 @@ def mobile_health_check():
 @limiter.limit("10 per minute")
 @validate_request(["device_id", "app_version"])
 def mobile_auth():
+    """
+    Get a mobile session token
+    ---
+    tags:
+      - Mobile
+    summary: Authenticate a device and return a session token
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required: [device_id, app_version]
+          properties:
+            device_id:
+              type: string
+            app_version:
+              type: string
+    responses:
+      200:
+        description: Token issued
+      400:
+        description: Invalid request
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      500:
+        description: Authentication failed
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+    """
     try:
         data = request.get_json(silent=True)
         if not isinstance(data, dict):
@@ -117,6 +161,59 @@ def mobile_auth():
 @require_api_key
 @validate_request(["stores"])
 def mobile_optimize_route():
+    """
+    Optimize a route for mobile
+    ---
+    tags:
+      - Mobile
+    summary: Optimize a route using mobile-friendly response
+    security:
+      - ApiKeyAuth: []
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required: [stores]
+          properties:
+            stores:
+              type: array
+              items:
+                $ref: '#/definitions/Store'
+            preferences:
+              type: object
+    responses:
+      200:
+        description: Route optimized
+        schema:
+          $ref: '#/definitions/MobileRouteOptimizeResponse'
+        examples:
+          application/json:
+            success: true
+            route:
+              id: route_123
+              stops:
+                - { id: s1, name: Store A, address: 1 Main St, lat: 40.71, lng: -74.0, order: 0 }
+                - { id: s2, name: Store B, address: 2 Oak Ave, lat: 40.76, lng: -73.98, order: 1 }
+              total_distance: 12.3
+              total_time: 45.0
+              optimized: true
+            optimization_time: 0.423
+            mobile_optimized: true
+      400:
+        description: Bad request
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      401:
+        description: Unauthorized
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      500:
+        description: Server error
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+    """
     try:
         data = request.get_json(silent=True)
         if not isinstance(data, dict):
@@ -266,6 +363,72 @@ def mobile_optimize_route():
 @require_api_key
 @validate_request(["origin", "destination"])
 def mobile_traffic_route():
+    """
+    Get traffic-aware directions for mobile
+    ---
+    tags:
+      - Mobile
+    summary: Generate directions with traffic analysis
+    security:
+      - ApiKeyAuth: []
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required: [origin, destination]
+          properties:
+            origin:
+              $ref: '#/definitions/TrafficStop'
+            destination:
+              $ref: '#/definitions/TrafficStop'
+            waypoints:
+              type: array
+              items:
+                $ref: '#/definitions/TrafficStop'
+    responses:
+      200:
+        description: Directions generated
+        schema:
+          $ref: '#/definitions/TrafficDirectionsResponse'
+        examples:
+          application/json:
+            success: true
+            directions:
+              overview_polyline: { points: "abcd" }
+              bounds: { }
+              legs:
+                - distance: { text: "12 km", value: 12000 }
+                  duration: { text: "25 mins", value: 1500 }
+                  duration_in_traffic: { text: "28 mins", value: 1680 }
+                  start_location: { lat: 40.71, lng: -74.0 }
+                  end_location: { lat: 40.76, lng: -73.98 }
+                  steps:
+                    - distance: { text: "1 km", value: 1000 }
+                      duration: { text: "3 mins", value: 180 }
+                      html_instructions: "Head north"
+                      maneuver: "turn-left"
+                      start_location: { lat: 40.71, lng: -74.0 }
+                      end_location: { lat: 40.72, lng: -74.0 }
+                      polyline: { points: "efgh" }
+              warnings: []
+            traffic_info: { congestion: "moderate" }
+            alternatives: []
+            mobile_formatted: true
+      400:
+        description: Bad request
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      401:
+        description: Unauthorized
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      500:
+        description: Server error
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+    """
     try:
         data = request.get_json(silent=True)
         if not isinstance(data, dict):
@@ -405,6 +568,38 @@ def mobile_traffic_route():
 @require_api_key
 @validate_request(["lat", "lng", "driver_id"])
 def update_driver_location():
+    """
+    Update driver location
+    ---
+    tags:
+      - Mobile
+    summary: Post current driver GPS location
+    security:
+      - ApiKeyAuth: []
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/MobileDriverLocationRequest'
+    responses:
+      200:
+        description: Location accepted
+        schema:
+          $ref: '#/definitions/MobileDriverLocationResponse'
+      400:
+        description: Bad request
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      401:
+        description: Unauthorized
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      500:
+        description: Server error
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+    """
     try:
         data = request.get_json(silent=True)
         if not isinstance(data, dict):
@@ -503,6 +698,38 @@ def update_driver_location():
 @require_api_key
 @validate_request(["driver_id", "status"])
 def update_driver_status():
+    """
+    Update driver status
+    ---
+    tags:
+      - Mobile
+    summary: Update driver operational status
+    security:
+      - ApiKeyAuth: []
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/MobileDriverStatusRequest'
+    responses:
+      200:
+        description: Status updated
+        schema:
+          $ref: '#/definitions/MobileDriverStatusResponse'
+      400:
+        description: Bad request
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      401:
+        description: Unauthorized
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      500:
+        description: Server error
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+    """
     try:
         data = request.get_json(silent=True)
         if not isinstance(data, dict):
@@ -584,6 +811,44 @@ def update_driver_status():
 @require_api_key
 @validate_request(["device_id"])
 def sync_offline_data():
+    """
+    Sync offline data
+    ---
+    tags:
+      - Mobile
+    summary: Sync offline events from the device
+    security:
+      - ApiKeyAuth: []
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required: [device_id]
+          properties:
+            device_id:
+              type: string
+            offline_data:
+              type: array
+              items:
+                type: object
+    responses:
+      200:
+        description: Sync processed
+      400:
+        description: Bad request
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      401:
+        description: Unauthorized
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      500:
+        description: Server error
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+    """
     try:
         data = request.get_json(silent=True)
         if not isinstance(data, dict):
@@ -726,7 +991,26 @@ def _format_directions_for_mobile(
 @require_api_key
 @limiter.limit("100 per hour")
 def get_assigned_routes():
-    """Get routes assigned to the authenticated driver"""
+    """
+    Get routes assigned to the authenticated driver
+    ---
+    tags:
+      - Mobile
+    summary: List routes assigned to the driver
+    security:
+      - ApiKeyAuth: []
+    responses:
+      200:
+        description: Assigned routes returned
+      401:
+        description: Unauthorized
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      500:
+        description: Server error
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+    """
     try:
         # This is a placeholder - would normally get user ID from auth token
         routes = [
@@ -757,7 +1041,35 @@ def get_assigned_routes():
 @require_api_key
 @limiter.limit("100 per hour")
 def get_route_details(route_id):
-    """Get detailed route information"""
+    """
+    Get detailed route information
+    ---
+    tags:
+      - Mobile
+    summary: Get route details
+    security:
+      - ApiKeyAuth: []
+    parameters:
+      - name: route_id
+        in: path
+        required: true
+        type: string
+    responses:
+      200:
+        description: Route details returned
+      401:
+        description: Unauthorized
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      404:
+        description: Route not found
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      500:
+        description: Server error
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+    """
     try:
         # Validate route_id
         if route_id == "invalid_route_id":
@@ -791,7 +1103,44 @@ def get_route_details(route_id):
 @require_api_key
 @limiter.limit("50 per hour")
 def update_route_status(route_id):
-    """Update route status"""
+    """
+    Update route status
+    ---
+    tags:
+      - Mobile
+    summary: Update status for a route
+    security:
+      - ApiKeyAuth: []
+    parameters:
+      - name: route_id
+        in: path
+        required: true
+        type: string
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required: [status]
+          properties:
+            status:
+              type: string
+    responses:
+      200:
+        description: Route status updated
+      400:
+        description: Bad request
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      401:
+        description: Unauthorized
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      500:
+        description: Server error
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+    """
     try:
         data = request.get_json()
         if not data or 'status' not in data:
@@ -818,7 +1167,36 @@ def update_route_status(route_id):
 @mobile_bp.route("/auth/login", methods=["POST"])
 @limiter.limit("10 per minute")
 def mobile_login():
-    """Mobile authentication login"""
+    """
+    Mobile authentication login
+    ---
+    tags:
+      - Mobile
+    summary: Login and obtain a mobile token
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required: [username, password]
+          properties:
+            username:
+              type: string
+            password:
+              type: string
+    responses:
+      200:
+        description: Login successful
+      400:
+        description: Invalid request
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      500:
+        description: Server error
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+    """
     try:
         data = request.get_json()
         if not data:
@@ -853,7 +1231,26 @@ def mobile_login():
 @require_api_key
 @limiter.limit("30 per minute")
 def get_user_profile():
-    """Get user profile information"""
+    """
+    Get user profile information
+    ---
+    tags:
+      - Mobile
+    summary: Get profile for the authenticated mobile user
+    security:
+      - ApiKeyAuth: []
+    responses:
+      200:
+        description: Profile returned
+      401:
+        description: Unauthorized
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      500:
+        description: Server error
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+    """
     try:
         return jsonify({
             "success": True,
@@ -876,7 +1273,20 @@ def get_user_profile():
 @mobile_bp.route("/auth/refresh", methods=["POST"])
 @limiter.limit("20 per hour")
 def refresh_token():
-    """Refresh authentication token"""
+    """
+    Refresh authentication token
+    ---
+    tags:
+      - Mobile
+    summary: Refresh the mobile authentication token
+    responses:
+      200:
+        description: Token refreshed
+      500:
+        description: Server error
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+    """
     try:
         return jsonify({
             "success": True,
@@ -896,7 +1306,26 @@ def refresh_token():
 @require_api_key
 @limiter.limit("10 per minute")
 def mobile_logout():
-    """Mobile logout"""
+    """
+    Mobile logout
+    ---
+    tags:
+      - Mobile
+    summary: Logout the mobile session
+    security:
+      - ApiKeyAuth: []
+    responses:
+      200:
+        description: Logged out
+      401:
+        description: Unauthorized
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      500:
+        description: Server error
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+    """
     try:
         return jsonify({
             "success": True,
@@ -915,7 +1344,42 @@ def mobile_logout():
 @require_api_key
 @limiter.limit("200 per hour")
 def update_location():
-    """Update driver location"""
+    """
+    Update driver location (legacy)
+    ---
+    tags:
+      - Mobile
+    summary: Update driver location with latitude/longitude
+    security:
+      - ApiKeyAuth: []
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required: [latitude, longitude]
+          properties:
+            latitude:
+              type: number
+            longitude:
+              type: number
+    responses:
+      200:
+        description: Location updated
+      400:
+        description: Bad request
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      401:
+        description: Unauthorized
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      500:
+        description: Server error
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+    """
     try:
         data = request.get_json()
         if not data or 'latitude' not in data or 'longitude' not in data:
@@ -942,7 +1406,26 @@ def update_location():
 @require_api_key
 @limiter.limit("100 per hour")
 def get_tracking_status():
-    """Get current tracking status"""
+    """
+    Get current tracking status
+    ---
+    tags:
+      - Mobile
+    summary: Get tracking status for the device
+    security:
+      - ApiKeyAuth: []
+    responses:
+      200:
+        description: Tracking status returned
+      401:
+        description: Unauthorized
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      500:
+        description: Server error
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+    """
     try:
         return jsonify({
             "success": True,
@@ -965,7 +1448,36 @@ def get_tracking_status():
 @require_api_key
 @limiter.limit("50 per hour")
 def submit_optimization_feedback():
-    """Submit feedback for route optimization"""
+    """
+    Submit feedback for route optimization
+    ---
+    tags:
+      - Mobile
+    summary: Submit optimization feedback
+    security:
+      - ApiKeyAuth: []
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+    responses:
+      200:
+        description: Feedback submitted
+      400:
+        description: Bad request
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      401:
+        description: Unauthorized
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      500:
+        description: Server error
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+    """
     try:
         data = request.get_json()
         if not data:
@@ -992,7 +1504,35 @@ def submit_optimization_feedback():
 @require_api_key
 @limiter.limit("100 per hour")
 def get_optimization_suggestions():
-    """Get route optimization suggestions"""
+    """
+    Get route optimization suggestions
+    ---
+    tags:
+      - Mobile
+    summary: Get suggestions for route optimization
+    security:
+      - ApiKeyAuth: []
+    parameters:
+      - name: route_id
+        in: query
+        required: true
+        type: string
+    responses:
+      200:
+        description: Suggestions returned
+      400:
+        description: Bad request
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      401:
+        description: Unauthorized
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      500:
+        description: Server error
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+    """
     try:
         route_id = request.args.get('route_id')
         if not route_id:
@@ -1024,7 +1564,31 @@ def get_optimization_suggestions():
 @require_api_key
 @limiter.limit("20 per hour")
 def download_offline_route(route_id):
-    """Download route data for offline use"""
+    """
+    Download route data for offline use
+    ---
+    tags:
+      - Mobile
+    summary: Download offline-ready route data
+    security:
+      - ApiKeyAuth: []
+    parameters:
+      - name: route_id
+        in: path
+        required: true
+        type: string
+    responses:
+      200:
+        description: Offline data returned
+      401:
+        description: Unauthorized
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      500:
+        description: Server error
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+    """
     try:
         return jsonify({
             "success": True,
@@ -1048,7 +1612,32 @@ def download_offline_route(route_id):
 @require_api_key
 @limiter.limit("50 per hour")
 def get_performance_metrics():
-    """Get driver performance metrics"""
+    """
+    Get driver performance metrics
+    ---
+    tags:
+      - Mobile
+    summary: Get performance metrics for the driver
+    security:
+      - ApiKeyAuth: []
+    parameters:
+      - name: period
+        in: query
+        type: string
+        required: false
+        description: Time period for metrics
+    responses:
+      200:
+        description: Metrics returned
+      401:
+        description: Unauthorized
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      500:
+        description: Server error
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+    """
     try:
         period = request.args.get('period', 'week')
         

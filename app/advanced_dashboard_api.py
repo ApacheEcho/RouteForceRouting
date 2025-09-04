@@ -1,3 +1,5 @@
+import logging
+logger = logging.getLogger(__name__)
 """
 Advanced Real-time Analytics Dashboard
 Provides comprehensive system insights with ML model monitoring
@@ -77,8 +79,7 @@ def get_ml_insights():
         )
 
     except Exception as e:
-        # Log the error for internal review
-        print(f"Error in get_ml_insights: {e}")
+        logger.error(f"Error in get_ml_insights: {e}", exc_info=True)
         return (
             jsonify(
                 {
@@ -168,7 +169,7 @@ def get_performance_trends():
         )
 
     except Exception as e:
-        print(f"Error in get_performance_trends: {e}")
+        logger.error(f"Error in get_performance_trends: {e}", exc_info=True)
         return (
             jsonify(
                 {
@@ -253,7 +254,7 @@ def get_predictive_analytics():
         )
 
     except Exception as e:
-        print(f"Error in get_predictive_analytics: {e}")
+        logger.error(f"Error in get_predictive_analytics: {e}", exc_info=True)
         return (
             jsonify(
                 {
@@ -373,11 +374,12 @@ def get_real_time_alerts():
         )
 
     except Exception as e:
+        logger.error(f"Error in get_real_time_alerts: {e}", exc_info=True)
         return (
             jsonify(
                 {
                     "success": False,
-                    "error": f"Failed to retrieve real-time alerts: {str(e)}",
+                    "error": "An internal error occurred. Please contact support.",
                 }
             ),
             500,
@@ -451,11 +453,12 @@ def get_optimization_insights():
         )
 
     except Exception as e:
+        logger.error(f"Error in get_optimization_insights: {e}", exc_info=True)
         return (
             jsonify(
                 {
                     "success": False,
-                    "error": f"Failed to retrieve optimization insights: {str(e)}",
+                    "error": "An internal error occurred. Please contact support.",
                 }
             ),
             500,

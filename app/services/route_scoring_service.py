@@ -88,6 +88,79 @@ class RouteScorer:
         self.weights = weights or ScoringWeights()
         self.scoring_history = []
 
+    def calculate_comprehensive_score(
+        self, route: List[Dict], weights: Optional[Dict[str, float]] = None, context: Optional[Dict] = None
+    ) -> float:
+        """
+        Calculate a weighted comprehensive score for the route on a 0-100 scale.
+
+        Args:
+            route: List of stores in route order
+            weights: Optional component weights dict (keys like 'distance_weight',
+                     'time_weight', 'priority_weight', 'traffic_weight',
+                     'playbook_weight', 'efficiency_weight'). Missing keys default
+                     to 0 and the provided weights are normalized to sum to 1.
+            context: Optional context (traffic/playbook) used by component scorers
+
+        Returns:
+            Float score in the range [0, 100]
+        """
+        # Edge cases
+        if not route or len(route) < 1:
+            return 0.0
+
+        context = context or {}
+
+        # Prepare weights map with safe defaults (zeros for unspecified keys)
+        provided = weights or {}
+        w_map = {
+            "distance_weight": float(provided.get("distance_weight", 0.0) or 0.0),
+            "time_weight": float(provided.get("time_weight", 0.0) or 0.0),
+            "priority_weight": float(provided.get("priority_weight", 0.0) or 0.0),
+            "traffic_weight": float(provided.get("traffic_weight", 0.0) or 0.0),
+            "playbook_weight": float(provided.get("playbook_weight", 0.0) or 0.0),
+            "efficiency_weight": float(provided.get("efficiency_weight", 0.0) or 0.0),
+        }
+
+        total = sum(w_map.values())
+        if total <= 0:
+            # Fall back to current scorer weights (already normalized in __post_init__)
+            w_map = {
+                "distance_weight": float(self.weights.distance_weight),
+                "time_weight": float(self.weights.time_weight),
+                "priority_weight": float(self.weights.priority_weight),
+                "traffic_weight": float(self.weights.traffic_weight),
+                "playbook_weight": float(self.weights.playbook_weight),
+                "efficiency_weight": float(self.weights.efficiency_weight),
+            }
+            total = sum(w_map.values())
+
+        # Normalize to sum to 1 to avoid scaling drift
+        if total > 0:
+            for k in list(w_map.keys()):
+                w_map[k] = w_map[k] / total
+
+        # Reuse component calculators (they are robust to errors)
+        distance_score = self._calculate_distance_score(route)
+        time_score = self._calculate_time_score(route, context)
+        priority_score = self._calculate_priority_score(route)
+        traffic_score = self._calculate_traffic_score(route, context)
+        playbook_score = self._calculate_playbook_score(route, context)
+        efficiency_score = self._calculate_efficiency_score(route)
+
+        # Weighted sum on 0..1, then scale to 0..100
+        combined = (
+            distance_score * w_map["distance_weight"]
+            + time_score * w_map["time_weight"]
+            + priority_score * w_map["priority_weight"]
+            + traffic_score * w_map["traffic_weight"]
+            + playbook_score * w_map["playbook_weight"]
+            + efficiency_score * w_map["efficiency_weight"]
+        )
+
+        score_0_100 = max(0.0, min(100.0, combined * 100.0))
+        return score_0_100
+
     def score_route(
         self, route: List[Dict], context: Optional[Dict] = None
     ) -> RouteScore:

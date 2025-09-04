@@ -10,6 +10,10 @@ from app.jwt_blocklist import add_token_to_blocklist
 from app.models.database import db, User
 from app.auth_decorators import auth_required
 from app.extensions import limiter
+from app.optimization.multi_objective import (
+    MultiObjectiveConfig,
+    MultiObjectiveOptimizer,
+)
 
 # --- End Blueprint and Core Imports ---
 
@@ -220,6 +224,119 @@ def get_current_user_id():
     return user_id
 
 
+# =====================
+# Pareto front endpoints
+# =====================
+
+# Store last optimizer to expose Pareto front from the most recent run
+_last_mo_optimizer: MultiObjectiveOptimizer = None  # type: ignore
+
+
+@api_bp.route("/routes/pareto", methods=["GET"])
+@api_error_handler
+def get_pareto_front_api():
+    """
+    Get last Pareto front from multi-objective optimization
+    ---
+    tags:
+      - Routes
+    summary: Return Pareto-optimal solutions from the last multi-objective run
+    responses:
+      200:
+        description: Pareto front returned (empty if no prior run)
+        schema:
+          $ref: '#/definitions/ParetoFrontResponse'
+        examples:
+          application/json:
+            success: true
+            front: []
+            count: 0
+    """
+    global _last_mo_optimizer  # noqa: PLW0603
+    if not _last_mo_optimizer:
+        return jsonify({"success": True, "front": [], "count": 0}), 200
+    front = _last_mo_optimizer.get_pareto_front() or []
+    return jsonify({"success": True, "front": front, "count": len(front)}), 200
+
+
+@api_bp.route("/routes/pareto", methods=["POST"])
+@api_error_handler
+def run_pareto_front_api():
+    """
+    Run multi-objective optimization and return Pareto front
+    ---
+    tags:
+      - Routes
+    summary: Execute NSGA-II with given stores/objectives and return Pareto front
+    consumes:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required: [stores]
+          properties:
+            stores:
+              type: array
+              items:
+                $ref: '#/definitions/Store'
+            options:
+              type: object
+              properties:
+                mo_objectives: { type: string, example: 'distance,time' }
+                mo_population_size: { type: integer, default: 50 }
+                mo_generations: { type: integer, default: 100 }
+                mo_mutation_rate: { type: number, default: 0.1 }
+                mo_crossover_rate: { type: number, default: 0.9 }
+                mo_tournament_size: { type: integer, default: 2 }
+    responses:
+      200:
+        description: Pareto front computed
+        schema:
+          $ref: '#/definitions/ParetoFrontResponse'
+    """
+    global _last_mo_optimizer  # noqa: PLW0603
+    data = request.get_json()
+    if not data:
+        raise ValidationError("Request body required")
+    stores = data.get("stores") or []
+    if not isinstance(stores, list) or not stores:
+        raise ValidationError("stores must be a non-empty array", field="stores")
+    options = data.get("options", {}) or {}
+    obj_str = options.get("mo_objectives", "distance,time")
+    objectives = [o.strip() for o in obj_str.split(",") if o.strip()]
+    try:
+        cfg = MultiObjectiveConfig(
+            population_size=int(options.get("mo_population_size", 50)),
+            generations=int(options.get("mo_generations", 100)),
+            mutation_rate=float(options.get("mo_mutation_rate", 0.1)),
+            crossover_rate=float(options.get("mo_crossover_rate", 0.9)),
+            tournament_size=int(options.get("mo_tournament_size", 2)),
+            objectives=objectives,
+        )
+    except Exception as e:
+        raise ValidationError(f"Invalid options: {e}")
+
+    optimizer = MultiObjectiveOptimizer(cfg)
+    best_route, metrics = optimizer.optimize(stores)
+    _last_mo_optimizer = optimizer
+    front = optimizer.get_pareto_front() or []
+    return (
+        jsonify(
+            {
+                "success": True,
+                "front": front,
+                "count": len(front),
+                "best_route": best_route,
+                "metrics": metrics,
+            }
+        ),
+        200,
+    )
+
+
 @api_bp.route("/stores", methods=["POST"])
 @auth_required()
 @api_error_handler
@@ -251,7 +368,61 @@ def create_store():
 @api_bp.route("/routes", methods=["POST"])
 @api_error_handler
 def create_route():
-    """Create a new route via API with database persistence"""
+    """
+    Create a new route via API with database persistence
+    ---
+    tags:
+      - Routes
+    summary: Create an optimized route from stores
+    consumes:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required: [stores]
+          properties:
+            stores:
+              type: array
+              items:
+                $ref: '#/definitions/Store'
+            constraints:
+              type: object
+            options:
+              type: object
+              properties:
+                algorithm:
+                  type: string
+                  enum: [default, nearest_neighbor, priority, genetic, simulated_annealing, multi_objective]
+                ga_population_size: { type: integer }
+                ga_generations: { type: integer }
+                mo_objectives: { type: string }
+    responses:
+      201:
+        description: Route created successfully
+        examples:
+          application/json:
+            success: true
+            data:
+              route: [ { id: 's1', name: 'Store A', lat: 40.71, lon: -74.0 }, { id: 's2', name: 'Store B', lat: 40.76, lon: -73.98 } ]
+              route_id: 101
+              algorithm_used: genetic
+            metadata:
+              total_stores: 2
+              route_stores: 2
+              processing_time: 0.25
+              optimization_score: 1.8
+      422:
+        description: Validation error
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      500:
+        description: Server error
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+    """
     
     data = request.get_json()
     if not data:

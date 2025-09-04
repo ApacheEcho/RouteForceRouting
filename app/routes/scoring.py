@@ -61,14 +61,57 @@ def _validate_weights(weights: Dict[str, Any]) -> List[str]:
 def score_route():
     """
     Score a single route
-
-    Expected JSON:
-    {
-        "route": [list of stores],
-        "context": {optional context data},
-        "weights": {optional custom weights},
-        "preset": "balanced|distance_focused|priority_focused|traffic_aware|playbook_strict"
-    }
+    ---
+    tags:
+      - Routes
+    summary: Score a route with weighted components
+    consumes:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required: [route]
+          properties:
+            route:
+              type: array
+              items:
+                $ref: '#/definitions/RouteItem'
+            context:
+              type: object
+            weights:
+              type: object
+            preset:
+              type: string
+              enum: [balanced, distance_focused, priority_focused, traffic_aware, playbook_strict]
+    responses:
+      200:
+        description: Score computed
+        schema:
+          $ref: '#/definitions/RouteScoreResponse'
+        examples:
+          application/json:
+            success: true
+            score:
+              total_score: 87.25
+              component_scores: { distance: 0.92, time: 0.85, priority: 0.90, traffic: 0.78, playbook: 0.80, efficiency: 0.70 }
+              raw_metrics: { total_distance_km: 12.3, total_time_h: 0.75 }
+              metadata: { route_length: 5 }
+              calculation_time_ms: 4.12
+      400:
+        description: Bad request
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      422:
+        description: Validation error
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      500:
+        description: Server error
+        schema:
+          $ref: '#/definitions/ErrorResponse'
     """
     try:
         data = request.get_json()
@@ -139,13 +182,58 @@ def score_route():
 def compare_routes():
     """
     Compare multiple routes
-
-    Expected JSON:
-    {
-        "routes": [list of route lists],
-        "context": {optional context data},
-        "preset": "balanced|distance_focused|..."
-    }
+    ---
+    tags:
+      - Routes
+    summary: Compare multiple routes and return the best
+    consumes:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required: [routes]
+          properties:
+            routes:
+              type: array
+              items:
+                type: array
+                items:
+                  $ref: '#/definitions/RouteItem'
+            context:
+              type: object
+            preset:
+              type: string
+    responses:
+      200:
+        description: Comparison computed
+        schema:
+          $ref: '#/definitions/RouteCompareResponse'
+        examples:
+          application/json:
+            success: true
+            comparison:
+              route_count: 2
+              scores:
+                - { total_score: 82.5, component_scores: { distance: 0.9 }, raw_metrics: { }, metadata: { }, calculation_time_ms: 3.2 }
+                - { total_score: 78.1, component_scores: { distance: 0.85 }, raw_metrics: { }, metadata: { }, calculation_time_ms: 3.4 }
+              best_route_index: 0
+              best_score: 82.5
+              score_range: { min: 78.1, max: 82.5, average: 80.3 }
+      400:
+        description: Bad request
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      422:
+        description: Validation error
+        schema:
+          $ref: '#/definitions/ErrorResponse'
+      500:
+        description: Server error
+        schema:
+          $ref: '#/definitions/ErrorResponse'
     """
     try:
         data = request.get_json()

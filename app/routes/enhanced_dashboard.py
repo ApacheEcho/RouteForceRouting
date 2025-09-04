@@ -312,10 +312,11 @@ def bulk_predictions():
                     }
                 )
             except Exception as e:
+                current_app.logger.error(f"Error in route prediction for route_id {route_data.get('route_id', 'unknown')}: {e}")
                 predictions.append(
                     {
                         "route_id": route_data.get("route_id", "unknown"),
-                        "error": str(e),
+                        "error": "Prediction failed for this route. Please contact support.",
                     }
                 )
 

@@ -402,7 +402,9 @@ class RouteOptimizationDashboard {
         
         return stores;
     }
-        
+
+    // Fix orphaned code: wrap in async function
+    async handleFileUpload(file) {
         if (!file) {
             this.showError('Please select a file');
             return;

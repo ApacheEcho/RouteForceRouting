@@ -3,13 +3,13 @@ Simulated Annealing Algorithm for Route Optimization
 Implements classical simulated annealing with various cooling schedules and neighborhood operations
 """
 
-import random
-import math
-import time
 import logging
-from typing import List, Dict, Any, Tuple, Optional, Callable
+import math
+import random
+import time
 from dataclasses import dataclass
 from functools import lru_cache
+from typing import Any, Dict, List, Optional, Tuple
 
 try:
     # Best-effort deterministic seeding if RFR_SEED is set
@@ -137,8 +137,8 @@ class SimulatedAnnealingOptimizer:
         )
 
     def optimize(
-        self, stores: List[Dict[str, Any]], constraints: Optional[Dict[str, Any]] = None
-    ) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
+        self, stores: list[dict[str, Any]], constraints: dict[str, Any] | None = None
+    ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
         """
         Optimize route using simulated annealing
 
@@ -313,8 +313,8 @@ class SimulatedAnnealingOptimizer:
             }
 
     def _create_distance_matrix(
-        self, stores: List[Dict[str, Any]]
-    ) -> List[List[float]]:
+        self, stores: list[dict[str, Any]]
+    ) -> list[list[float]]:
         """Create distance matrix between all stores"""
         n = len(stores)
         matrix = [[0.0] * n for _ in range(n)]
@@ -328,7 +328,7 @@ class SimulatedAnnealingOptimizer:
         return matrix
 
     def _calculate_distance(
-        self, store1: Dict[str, Any], store2: Dict[str, Any]
+        self, store1: dict[str, Any], store2: dict[str, Any]
     ) -> float:
         """Calculate Haversine distance between two stores (cached by coords)."""
         # Handle both 'lat'/'lon' and 'latitude'/'longitude' formats
@@ -348,10 +348,7 @@ class SimulatedAnnealingOptimizer:
 
         return _haversine_km(lat1r, lon1r, lat2r, lon2r)
 
-
-    
-
-    def _calculate_route_distance(self, route: List[int]) -> float:
+    def _calculate_route_distance(self, route: list[int]) -> float:
         """Calculate total distance of a route"""
         if not route or len(route) < 2:
             return 0.0
@@ -383,7 +380,7 @@ class SimulatedAnnealingOptimizer:
         return self.config.initial_temperature / (1 + math.log(1 + iteration))
 
     # Neighborhood operation functions
-    def _swap_two_nodes(self, route: List[int]) -> List[int]:
+    def _swap_two_nodes(self, route: list[int]) -> list[int]:
         """Swap two random nodes in the route"""
         if len(route) < 2:
             return route
@@ -392,7 +389,7 @@ class SimulatedAnnealingOptimizer:
         route[i], route[j] = route[j], route[i]
         return route
 
-    def _insert_node(self, route: List[int]) -> List[int]:
+    def _insert_node(self, route: list[int]) -> list[int]:
         """Remove a node and insert it at a different position"""
         if len(route) < 3:
             return route
@@ -407,7 +404,7 @@ class SimulatedAnnealingOptimizer:
 
         return route
 
-    def _reverse_segment(self, route: List[int]) -> List[int]:
+    def _reverse_segment(self, route: list[int]) -> list[int]:
         """Reverse a random segment of the route"""
         if len(route) < 3:
             return route
@@ -420,7 +417,7 @@ class SimulatedAnnealingOptimizer:
 
         return route
 
-    def _mixed_neighborhood(self, route: List[int]) -> List[int]:
+    def _mixed_neighborhood(self, route: list[int]) -> list[int]:
         """Randomly choose between different neighborhood operations"""
         operations = [self._swap_two_nodes, self._insert_node, self._reverse_segment]
         operation = random.choice(operations)

@@ -3,13 +3,12 @@ Real-time WebSocket Handlers for RouteForce Routing
 Provides live route updates, driver tracking, and collaborative features
 """
 
-import json
-import time
-from datetime import datetime
-from typing import Dict, Any, List, Optional
-from flask import session, request
-from flask_socketio import SocketIO, emit, join_room, leave_room, disconnect
 import logging
+from datetime import datetime
+from typing import Any, Dict, List
+
+from flask import request, session
+from flask_socketio import SocketIO, emit, join_room, leave_room
 
 logger = logging.getLogger(__name__)
 
@@ -251,7 +250,7 @@ class WebSocketManager:
             except Exception as e:
                 logger.error(f"Error handling ping: {str(e)}")
 
-    def broadcast_route_update(self, route_id: str, update_data: Dict[str, Any]):
+    def broadcast_route_update(self, route_id: str, update_data: dict[str, Any]):
         """Broadcast route update to all connected clients"""
         try:
             room_id = f"route_{route_id}"
@@ -263,7 +262,7 @@ class WebSocketManager:
         except Exception as e:
             logger.error(f"Error broadcasting route update: {str(e)}")
 
-    def broadcast_optimization_progress(self, route_id: str, progress: Dict[str, Any]):
+    def broadcast_optimization_progress(self, route_id: str, progress: dict[str, Any]):
         """Broadcast optimization progress to interested clients"""
         try:
             room_id = f"route_{route_id}"
@@ -279,7 +278,7 @@ class WebSocketManager:
         except Exception as e:
             logger.error(f"Error broadcasting optimization progress: {str(e)}")
 
-    def notify_user(self, user_id: int, notification: Dict[str, Any]):
+    def notify_user(self, user_id: int, notification: dict[str, Any]):
         """Send notification to specific user"""
         try:
             if user_id in self.user_rooms:
@@ -292,7 +291,7 @@ class WebSocketManager:
         except Exception as e:
             logger.error(f"Error sending notification: {str(e)}")
 
-    def get_route_status(self, route_id: str) -> Dict[str, Any]:
+    def get_route_status(self, route_id: str) -> dict[str, Any]:
         """Get current route status (placeholder for integration)"""
         # This would integrate with your routing service
         return {
@@ -303,7 +302,7 @@ class WebSocketManager:
             "estimated_completion": None,
         }
 
-    def get_active_users(self) -> List[Dict[str, Any]]:
+    def get_active_users(self) -> list[dict[str, Any]]:
         """Get list of active users"""
         return [
             {

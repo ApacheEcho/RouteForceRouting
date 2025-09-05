@@ -1,8 +1,8 @@
-from typing import List, Dict, Any, Optional
 import logging
 import time
 from dataclasses import dataclass
-from geopy.distance import geodesic
+from typing import Any, Dict, List, Optional
+
 
 logger = logging.getLogger(__name__)
 
@@ -15,13 +15,13 @@ class RoutingMetrics:
     total_stores: int
     filtered_stores: int
     optimization_score: float
-    route_id: Optional[int] = None
+    route_id: int | None = None
 
 
 class RoutingService:
     """Service for route generation with database integration"""
 
-    def __init__(self, user_id: Optional[int] = None):
+    def __init__(self, user_id: int | None = None):
         self.user_id = user_id
         self.last_processing_time = 0.0
         self.metrics = None
@@ -35,8 +35,8 @@ class RoutingService:
             self.database_service = None
 
     def generate_route(
-        self, stores: List[Dict], constraints: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+        self, stores: list[dict], constraints: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """Generate route from stores with constraints"""
         start_time = time.time()
 
@@ -62,7 +62,7 @@ class RoutingService:
             self.last_processing_time = time.time() - start_time
             return []
 
-    def _calculate_optimization_score(self, route: List[Dict]) -> float:
+    def _calculate_optimization_score(self, route: list[dict]) -> float:
         """Calculate optimization score for the route"""
         if not route or len(route) < 2:
             return 0.0
@@ -74,6 +74,6 @@ class RoutingService:
         """Get the last processing time"""
         return self.last_processing_time
 
-    def get_metrics(self) -> Optional[RoutingMetrics]:
+    def get_metrics(self) -> RoutingMetrics | None:
         """Get the last routing metrics"""
         return self.metrics

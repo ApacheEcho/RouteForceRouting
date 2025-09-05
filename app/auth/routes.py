@@ -2,12 +2,14 @@
 Authentication routes
 """
 
-from flask import render_template, request, redirect, url_for, flash, session, jsonify
-from werkzeug.security import generate_password_hash, check_password_hash
+import logging
+
+from flask import (flash, jsonify, redirect, render_template, request, session,
+                   url_for)
+
 from app.auth import auth_bp
 from app.models.database import db
 from app.services.database_service import DatabaseService
-import logging
 
 logger = logging.getLogger(__name__)
 

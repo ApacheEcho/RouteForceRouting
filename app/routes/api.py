@@ -3,28 +3,20 @@ API Blueprint - RESTful API endpoints with database integration
 Enhanced with comprehensive validation and error handling
 """
 
-from flask import Blueprint, jsonify, request, current_app, session
-from flask_limiter import Limiter
 import logging
 from datetime import datetime
-from typing import Dict, Any
 
-from app.services.routing_service import RoutingService
-from app.services.database_service import DatabaseService
-from app import cache, limiter
+from flask import Blueprint, current_app, jsonify, request, session
+
+from app import limiter
 from app.monitoring import metrics_collector
-
+from app.services.database_service import DatabaseService
+from app.services.routing_service import RoutingService
 # AUTO-PILOT: Enhanced validation and error handling
-from app.utils.validation import (
-    validate_json_request,
-    validate_stores_data,
-    validate_algorithm_options,
-    api_error_handler,
-    create_success_response,
-    paginate_response,
-    ValidationError,
-    APIError,
-)
+from app.utils.validation import (APIError, ValidationError, api_error_handler,
+                                  create_success_response, paginate_response,
+                                  validate_algorithm_options,
+                                  validate_json_request, validate_stores_data)
 
 logger = logging.getLogger(__name__)
 
@@ -1248,7 +1240,7 @@ def optimize_route():
         # Calculate basic metrics
         total_distance = 0
         if len(optimized_route) > 1:
-            from math import radians, cos, sin, asin, sqrt
+            from math import asin, cos, radians, sin, sqrt
 
             def haversine(lon1, lat1, lon2, lat2):
                 """Calculate the great circle distance between two points on earth"""

@@ -3,7 +3,7 @@ API Documentation Routes
 Provides convenient access to API documentation
 """
 
-from flask import Blueprint, redirect, render_template_string
+from flask import Blueprint, redirect
 
 docs_bp = Blueprint("docs", __name__)
 

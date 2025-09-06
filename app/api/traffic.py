@@ -3,10 +3,11 @@ Traffic-aware routing API endpoints
 Provides REST API for traffic optimization features
 """
 
-from flask import Blueprint, request, jsonify, current_app
-from app.services.routing_service import RoutingService
 import logging
-import time
+
+from flask import Blueprint, jsonify, request
+
+from app.services.routing_service import RoutingService
 
 # Create blueprint
 traffic_bp = Blueprint("traffic", __name__, url_prefix="/api/traffic")

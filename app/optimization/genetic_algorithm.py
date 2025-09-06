@@ -3,13 +3,14 @@ Genetic Algorithm for Route Optimization
 Advanced TSP (Traveling Salesman Problem) solver using evolutionary algorithms
 """
 
-import random
-from typing import List, Dict, Tuple, Any
-from dataclasses import dataclass
-from geopy.distance import geodesic
 import logging
+import random
 from collections import deque
+from dataclasses import dataclass
 from functools import lru_cache
+from typing import Any, Dict, List, Tuple
+
+from geopy.distance import geodesic
 
 try:
     # Best-effort deterministic seeding if RFR_SEED is set
@@ -62,7 +63,7 @@ class GeneticConfig:
 class Individual:
     """Represents a single route solution"""
 
-    def __init__(self, route: List[int], stores: List[Dict[str, Any]]):
+    def __init__(self, route: list[int], stores: list[dict[str, Any]]):
         self.route = route
         self.stores = stores
         self.fitness = 0.0
@@ -118,8 +119,8 @@ class GeneticAlgorithm:
         self.generation_stats = []
 
     def optimize(
-        self, stores: List[Dict[str, Any]], constraints: Dict[str, Any] = None
-    ) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
+        self, stores: list[dict[str, Any]], constraints: dict[str, Any] = None
+    ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
         """
         Optimize route using genetic algorithm
 
@@ -199,7 +200,7 @@ class GeneticAlgorithm:
         logger.info(f"Genetic algorithm completed: {improvement:.1f}% improvement")
         return optimized_route, metrics
 
-    def _initialize_population(self, stores: List[Dict[str, Any]]):
+    def _initialize_population(self, stores: list[dict[str, Any]]):
         """Initialize population with random routes"""
         self.population = []
         store_indices = list(range(len(stores)))
@@ -215,7 +216,7 @@ class GeneticAlgorithm:
         # Sort by fitness
         self.population.sort()
 
-    def _evolve_population(self) -> List[Individual]:
+    def _evolve_population(self) -> list[Individual]:
         """Evolve population through selection, crossover, and mutation"""
         new_population = []
 
@@ -262,7 +263,7 @@ class GeneticAlgorithm:
 
     def _order_crossover(
         self, parent1: Individual, parent2: Individual
-    ) -> Tuple[Individual, Individual]:
+    ) -> tuple[Individual, Individual]:
         """Order crossover (OX) preserving route validity"""
         size = len(parent1.route)
 
@@ -287,7 +288,7 @@ class GeneticAlgorithm:
         return child1, child2
 
     def _fill_remaining(
-        self, child_route: List[int], parent_route: List[int], start_pos: int
+        self, child_route: list[int], parent_route: list[int], start_pos: int
     ):
         """Fill remaining positions in crossover"""
         size = len(child_route)
@@ -315,7 +316,7 @@ class GeneticAlgorithm:
 
         return Individual(mutated_route, individual.stores)
 
-    def get_optimization_stats(self) -> Dict[str, Any]:
+    def get_optimization_stats(self) -> dict[str, Any]:
         """Get detailed optimization statistics"""
         if not self.best_individual:
             return {}

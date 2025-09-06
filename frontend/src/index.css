@@ -6,32 +6,40 @@
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
+  /* Density variables */
+  --rf-gap: 1.5rem;
+  --rf-pad-x: 1.5rem;
+  --rf-pad-y: 1rem;
 }
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
-  min-height: 100vh;
 }
 
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
   width: 100%;
+}
+
+/* Density: compact mode adjusts gaps and paddings */
+.density-compact {
+  --rf-gap: 0.75rem;
+  --rf-pad-x: 0.75rem;
+  --rf-pad-y: 0.5rem;
+}
+
+/* Utility classes consumed by components */
+.rf-grid-gap {
+  gap: var(--rf-gap);
+}
+
+.rf-card-content {
+  padding: var(--rf-pad-y) var(--rf-pad-x) !important;
 }
 
 /* Dashboard specific styles */

@@ -57,6 +57,16 @@ SECRET_KEY=your-secret-key
 # Database
 DATABASE_URL=sqlite:///routeforce.db
 
+# Cache / Redis / Rate Limiting (optional)
+# Shorthand values are supported for CACHE_TYPE: simple | redis | null
+CACHE_TYPE=simple
+# In-memory rate limiting by default; set Redis URI for multi-process
+RATELIMIT_STORAGE_URI=memory://
+# REDIS_URL provides a default for Redis-backed features
+# REDIS_URL=redis://localhost:6379/0
+# CACHE_REDIS_URL falls back to REDIS_URL if unset
+# CACHE_REDIS_URL=redis://localhost:6379/1
+
 # Google Maps API
 GOOGLE_MAPS_API_KEY=your-api-key
 
@@ -93,11 +103,24 @@ python3 quickstart.py --test
 
 # Manual
 python3 -m pytest tests/ -v
+
+# Fast (exclude slow tests)
+pytest -m "not slow" -q
+
+# Only slow tests (run locally or nightly CI)
+pytest -m slow -q --durations=10
 ```
 
 ### Test Files
 - `test_*.py` files in the root directory
 - `tests/` directory for organized test suites
+
+### Slow Tests
+- Some suites are marked with `@pytest.mark.slow` to keep default CI fast:
+  - `tests/test_advanced.py`
+  - `tests/test_genetic_edge_case.py`
+- In CI, slow tests run in a separate job and nightly workflow.
+- Locally, use the commands above to include or exclude them.
 
 ## 🔍 Code Quality
 
@@ -132,9 +155,9 @@ docker-compose up -d
 ### Production
 1. Set environment variables
 2. Use production database (PostgreSQL recommended)
-3. Configure Redis for caching
-4. Set up proper logging
-5. Use a production WSGI server (gunicorn)
+3. Configure Redis for caching and rate limiting (set REDIS_URL, CACHE_REDIS_URL, RATELIMIT_STORAGE_URI)
+4. Set up proper logging (LOG_LEVEL, optional LOG_JSON)
+5. Use a production WSGI server (gunicorn); you can set PORT, GUNICORN_WORKERS, GUNICORN_LOG_LEVEL
 
 ## 🗺️ Google Maps API Setup
 

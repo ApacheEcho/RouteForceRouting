@@ -1,5 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
+import Skeleton from '../ui/Skeleton';
 import { TrendingUp, MapPin, Users, BarChart } from 'lucide-react';
 import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { PredictiveData } from '../../types/dashboard';
@@ -9,6 +10,27 @@ interface PredictiveAnalyticsProps {
 }
 
 export const PredictiveAnalytics: React.FC<PredictiveAnalyticsProps> = ({ data }) => {
+  if (!data || Object.keys(data).length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Predictive Analytics</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4" aria-busy="true" aria-live="polite">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <Skeleton className="h-24" />
+              <Skeleton className="h-24" />
+              <Skeleton className="h-24" />
+            </div>
+            <Skeleton className="h-8 w-56" />
+            <Skeleton className="h-64 w-full" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (!data.success) {
     return (
       <Card>
@@ -16,9 +38,7 @@ export const PredictiveAnalytics: React.FC<PredictiveAnalyticsProps> = ({ data }
           <CardTitle>Predictive Analytics</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-center h-64 text-gray-500">
-            Predictive analytics not available
-          </div>
+          <p className="text-gray-500">Predictive analytics not available</p>
         </CardContent>
       </Card>
     );
@@ -123,15 +143,18 @@ export const PredictiveAnalytics: React.FC<PredictiveAnalyticsProps> = ({ data }
               No demand forecast data available
             </div>
           ) : (
-            <ResponsiveContainer width="100%" height={400}>
-              <RechartsBarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="location" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="demand" fill="#3B82F6" name="Predicted Demand" />
-              </RechartsBarChart>
-            </ResponsiveContainer>
+            <figure aria-label="Demand forecast by location bar chart">
+              <ResponsiveContainer width="100%" height={400}>
+                <RechartsBarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="location" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="demand" fill="#3B82F6" name="Predicted Demand" isAnimationActive={!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)} animationDuration={300} />
+                </RechartsBarChart>
+              </ResponsiveContainer>
+              <figcaption className="sr-only">Bar chart showing predicted demand per location.</figcaption>
+            </figure>
           )}
         </CardContent>
       </Card>

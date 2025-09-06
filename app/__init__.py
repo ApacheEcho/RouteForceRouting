@@ -36,14 +36,17 @@ from app.api.voice import voice_bp
 from app.auth_system import auth_bp
 from app.monitoring_api import monitoring_bp
 from app.routes.api import api_bp
+from app.routes.optimize import optimize_bp
 from app.routes.dashboard import dashboard_bp
 from app.routes.docs import docs_bp
 from app.routes.enhanced_dashboard import enhanced_dashboard_bp
 from app.routes.enterprise_dashboard import enterprise_bp
 from app.routes.main_enhanced import main_bp
 from app.routes.metrics import metrics_bp
+from app.routes.export import export_bp
 from app.routes.scoring import scoring_bp
 from app.routes.voice_dashboard import voice_dashboard_bp
+from app.routes.connections import connections_bp
 from app.enterprise.organizations import organizations_bp
 from app.enterprise.users import users_bp
 from app.claude_api import claude_bp
@@ -110,6 +113,13 @@ def create_app(config_name: str = "development", testing: bool = False) -> Flask
     # Initialize database
     db.init_app(app)
     migrate.init_app(app, db)
+    # In testing mode, ensure tables exist for shimmed requests
+    if app.config.get("TESTING", False):
+        try:
+            with app.app_context():
+                db.create_all()
+        except Exception:
+            pass
 
     # Request ID correlation
     @app.before_request
@@ -1127,6 +1137,7 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(main_bp)
     # Register api_bp at root so /api/v1/* endpoints are accessible as /api/v1/*
     app.register_blueprint(api_bp)
+    # app.register_blueprint(optimize_bp) registered later with explicit prefix
     app.register_blueprint(scoring_bp, url_prefix="/api/route")
     app.register_blueprint(metrics_bp)
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
@@ -1135,6 +1146,7 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(enhanced_dashboard_bp)
     app.register_blueprint(enterprise_bp)
     app.register_blueprint(voice_dashboard_bp)  # Voice dashboard
+    app.register_blueprint(connections_bp, url_prefix="/api/connections")
     app.register_blueprint(traffic_bp, url_prefix="/api/traffic")
     app.register_blueprint(mobile_bp, url_prefix="/api/mobile")
     app.register_blueprint(analytics_bp, url_prefix="/api/analytics")
@@ -1155,6 +1167,10 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(organizations_bp)
     app.register_blueprint(users_bp)
     app.register_blueprint(iot_api, url_prefix="/api/iot")  # Register IoT API
+    # Skip optional blueprints in testing to avoid duplication from fixtures
+    if not app.config.get("TESTING", False):
+        app.register_blueprint(optimize_bp, url_prefix="/api/optimize")
+        app.register_blueprint(export_bp, url_prefix="/api/export")
 
 
 def register_error_handlers(app):

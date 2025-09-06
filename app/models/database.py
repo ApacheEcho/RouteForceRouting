@@ -308,3 +308,49 @@ class Analytics(db.Model):
                 self.created_at.isoformat() if self.created_at else None
             ),
         }
+
+
+class Connection(db.Model):
+    """External service connection (BYO)"""
+
+    __tablename__ = "connections"
+    __table_args__ = (
+        Index("idx_connections_user_id", "user_id"),
+        Index("idx_connections_provider", "provider"),
+        Index("idx_connections_created_at", "created_at"),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    provider = db.Column(db.String(100), nullable=False)
+    auth_type = db.Column(db.String(50), nullable=True)
+    connected = db.Column(db.Boolean, default=False)
+    # JSON/text for non-sensitive config/meta (never store raw tokens here)
+    config = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Foreign keys
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+
+    def set_config(self, cfg: Dict[str, Any]):
+        self.config = json.dumps(cfg)
+
+    def get_config(self) -> Dict[str, Any]:
+        if self.config:
+            try:
+                return json.loads(self.config)
+            except json.JSONDecodeError:
+                return {}
+        return {}
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "id": self.id,
+            "provider": self.provider,
+            "auth_type": self.auth_type,
+            "connected": self.connected,
+            "config": self.get_config(),
+            "user_id": self.user_id,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }

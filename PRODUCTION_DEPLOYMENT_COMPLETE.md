@@ -78,6 +78,12 @@ Services Deployed:
 
 ---
 
+## 🔌 Ports & Defaults
+- Default behavior: app binds to port 5000 in development and 8000 in production if `PORT` is not set.
+- Recommendation: set `PORT` explicitly per environment to avoid drift (e.g., `PORT=5000` on Render/Docker; align Nginx upstreams and health checks).
+- Docker/Compose: examples map host `5000:5000`; ensure `PORT=5000` is set in the app service.
+- Kubernetes: service targets 5000; ensure container `PORT` matches 5000 or update manifests accordingly.
+
 ## 📈 Production Readiness Metrics
 
 ### System Health

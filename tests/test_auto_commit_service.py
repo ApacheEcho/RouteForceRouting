@@ -222,14 +222,16 @@ class TestAutoCommitService(unittest.TestCase):
             f.write("Integration test content")
 
         # Mock the push operation to avoid network calls
+        # Preserve the real subprocess.run to avoid recursive calls in side_effect
+        real_run = subprocess.run
         with patch("subprocess.run") as mock_run:
 
             def side_effect(cmd, **kwargs):
                 if cmd[:2] == ["git", "push"]:
                     return MagicMock(returncode=0)
                 else:
-                    # Execute actual git commands for everything else
-                    return subprocess.run(cmd, **kwargs)
+                    # Execute actual git commands for everything else using real_run
+                    return real_run(cmd, **kwargs)
 
             mock_run.side_effect = side_effect
 

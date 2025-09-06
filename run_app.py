@@ -17,8 +17,9 @@ def main():
     # Create the application instance
     app = create_app(config_name)
 
-    # Get port from environment, default to 5002 to avoid conflicts
-    port = int(os.environ.get("PORT", 5002))
+    # Get port from environment; default 5000 (dev) / 8000 (prod)
+    default_port = 8000 if config_name == "production" else 5000
+    port = int(os.environ.get("PORT", default_port))
 
     print(f"🚀 Starting RouteForce Routing Server")
     print(f"📍 Environment: {config_name}")

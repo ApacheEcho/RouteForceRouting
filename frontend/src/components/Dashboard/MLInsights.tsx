@@ -1,5 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
+import Skeleton from '../ui/Skeleton';
 import { Brain, TrendingUp, Target, Zap } from 'lucide-react';
 import { MLInsightsData } from '../../types/dashboard';
 
@@ -8,6 +9,27 @@ interface MLInsightsProps {
 }
 
 export const MLInsights: React.FC<MLInsightsProps> = ({ data }) => {
+  if (!data || Object.keys(data).length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>ML Insights</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4" aria-busy="true" aria-live="polite">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Skeleton className="h-20" />
+              <Skeleton className="h-20" />
+              <Skeleton className="h-20" />
+            </div>
+            <Skeleton className="h-8 w-40" />
+            <Skeleton className="h-32 w-full" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (!data.success) {
     return (
       <Card>
@@ -15,9 +37,7 @@ export const MLInsights: React.FC<MLInsightsProps> = ({ data }) => {
           <CardTitle>ML Insights</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-center h-64 text-gray-500">
-            ML insights not available
-          </div>
+          <p className="text-gray-500">ML insights not available</p>
         </CardContent>
       </Card>
     );

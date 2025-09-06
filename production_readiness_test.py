@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """
 Real-World Production Testing
-Comprehensive validation respecting production safeguards
+Comprehensive validation respecting production safeguards.
+
+Ports & Defaults: the app binds to 5000 in development and 8000 in production
+if PORT is not set. Update URLs below or set PORT explicitly to match your env.
 """
 
 import requests

@@ -11,6 +11,7 @@ import logging
 import os
 
 from flask import Blueprint, Response, jsonify, request, abort
+import psutil
 
 from app.services.metrics_service import metrics_collector
 
@@ -45,6 +46,16 @@ def prometheus_metrics():
     Returns metrics in Prometheus exposition format
     """
     try:
+        # Ensure basic system metrics are present
+        try:
+            metrics_collector.set_gauge(
+                "routeforce_cpu_usage", psutil.cpu_percent(interval=None)
+            )
+            metrics_collector.set_gauge(
+                "routeforce_memory_usage", psutil.virtual_memory().percent
+            )
+        except Exception:
+            pass
         metrics_text = metrics_collector.get_prometheus_metrics()
         return Response(
             metrics_text, mimetype="text/plain; version=0.0.4; charset=utf-8"

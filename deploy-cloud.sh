@@ -154,6 +154,8 @@ perform_health_checks() {
     # Check application health
     APP_POD=$(kubectl get pods -n ${NAMESPACE} -l app=routeforce,component=application -o jsonpath='{.items[0].metadata.name}')
     
+    # Note: app defaults to 8000 in production if PORT is not set.
+    # Kubernetes manifests in k8s/ bind service port 5000; ensure the container PORT matches.
     if kubectl exec -n ${NAMESPACE} ${APP_POD} -- curl -f http://localhost:5000/health > /dev/null 2>&1; then
         log_success "Application health check passed"
     else
@@ -191,7 +193,7 @@ get_deployment_info() {
     echo ""
     log_info "Useful Commands:"
     echo "  • View logs: kubectl logs -f deployment/routeforce-app -n ${NAMESPACE}"
-    echo "  • Port forward: kubectl port-forward svc/routeforce-app 8080:5000 -n ${NAMESPACE}"
+    echo "  • Port forward: kubectl port-forward svc/routeforce-app 8080:5000 -n ${NAMESPACE}  # match service port"
     echo "  • Shell access: kubectl exec -it deployment/routeforce-app -n ${NAMESPACE} -- /bin/bash"
     echo "  • Scale app: kubectl scale deployment routeforce-app --replicas=5 -n ${NAMESPACE}"
     echo ""

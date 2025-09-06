@@ -20,7 +20,10 @@ class SentryConfig:
 
     def __init__(self):
         self.dsn = os.environ.get("SENTRY_DSN")
-        self.environment = os.environ.get("FLASK_ENV", "development")
+        # Prefer explicit SENTRY_ENVIRONMENT; fall back to FLASK_ENV
+        self.environment = os.environ.get("SENTRY_ENVIRONMENT") or os.environ.get(
+            "FLASK_ENV", "development"
+        )
         self.release = os.environ.get("SENTRY_RELEASE", "1.0.0")
         self.traces_sample_rate = float(
             os.environ.get("SENTRY_TRACES_SAMPLE_RATE", "0.1")
@@ -28,6 +31,8 @@ class SentryConfig:
         self.profiles_sample_rate = float(
             os.environ.get("SENTRY_PROFILES_SAMPLE_RATE", "0.1")
         )
+        # Optional server name override
+        self.server_name = os.environ.get("SENTRY_SERVER_NAME")
 
     def is_enabled(self):
         """Check if Sentry is enabled"""
@@ -56,6 +61,7 @@ def init_sentry(app: Flask = None):
             release=config.release,
             traces_sample_rate=config.traces_sample_rate,
             profiles_sample_rate=config.profiles_sample_rate,
+            server_name=config.server_name,
             # Integrations for comprehensive monitoring
             integrations=[
                 FlaskIntegration(

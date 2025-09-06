@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """
 100% Readiness Test - Production Ready Validation
-Fixed version that handles rate limiting and validates all features
+Fixed version that handles rate limiting and validates all features.
+
+Ports & Defaults: app defaults to port 8000 in production if PORT is not set
+(5000 in development). Update the URLs below or set PORT explicitly.
 """
 
 import requests

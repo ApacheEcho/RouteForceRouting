@@ -2,19 +2,67 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="manifest" href="/site.webmanifest" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0b1220" />
     <title>RouteForce - AI-Powered Route Optimization</title>
     <meta name="description" content="Enterprise-grade route optimization with advanced AI and machine learning algorithms">
-    <script type="module" crossorigin src="/assets/index-dfc65106.js"></script>
+    <!-- Open Graph / Social -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="RouteForce" />
+    <meta property="og:title" content="RouteForce - AI-Powered Route Optimization" />
+    <meta property="og:description" content="Enterprise-grade route optimization with advanced AI and machine learning algorithms" />
+    <meta property="og:image" content="/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="RouteForce - AI-Powered Route Optimization" />
+    <meta name="twitter:description" content="Enterprise-grade route optimization with advanced AI and machine learning algorithms" />
+    <meta name="twitter:image" content="/og-image.png" />
+    <!-- Safari pinned tab / Apple touch (SVG used here; for best iOS results provide PNG 180x180) -->
+    <link rel="mask-icon" href="/favicon.svg" color="#0B1220" />
+    <link rel="apple-touch-icon" sizes="120x120" href="/apple-touch-icon-120x120.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon-152x152.png" />
+    <link rel="apple-touch-icon" sizes="167x167" href="/apple-touch-icon-167x167.png" />
+    <link rel="apple-touch-icon" sizes="76x76" href="/apple-touch-icon-76x76.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <!-- Preconnect & Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Dark mode initialization -->
+    <script>
+      (function() {
+        try {
+          const stored = localStorage.getItem('theme');
+          const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (stored === 'dark' || (!stored && prefersDark)) {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        } catch (e) {}
+      })();
+    </script>
+    <!-- Density initialization: default to compact on very large screens if not set -->
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('density');
+          var isUltraWide = window.matchMedia && window.matchMedia('(min-width: 2560px)').matches;
+          if (!saved && isUltraWide) {
+            document.documentElement.classList.add('density-compact');
+          }
+        } catch (e) {}
+      })();
+    </script>
+    <script type="module" crossorigin src="/assets/index-3266b17f.js"></script>
     <link rel="modulepreload" crossorigin href="/js/chunk-3c8011bb.js">
     <link rel="modulepreload" crossorigin href="/js/chunk-2af6de6f.js">
     <link rel="modulepreload" crossorigin href="/js/chunk-d06d74dc.js">
-    <link rel="modulepreload" crossorigin href="/js/chunk-22705815.js">
     <link rel="modulepreload" crossorigin href="/js/chunk-a61ab96e.js">
-    <link rel="stylesheet" href="/css/index-f18b343c.css">
+    <link rel="stylesheet" href="/css/index-be7f2a93.css">
   </head>
-  <body>
+  <body class="bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100" style="font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';">
     <div id="root"></div>
     
   </body>

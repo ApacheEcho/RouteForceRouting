@@ -44,15 +44,20 @@ def auth_required(
 
                 # 2) Load user from SQLAlchemy (Flask-SQLAlchemy session)
                 try:
-                    # Support both user.id (int) and user.email (str) as JWT identity
+                    # Support user.id (int or numeric string) and user.email (str)
                     if isinstance(identity, int):
                         user = db.session.execute(
                             select(User).where(User.id == identity)
                         ).scalar_one_or_none()
                     elif isinstance(identity, str):
-                        user = db.session.execute(
-                            select(User).where(User.email == identity)
-                        ).scalar_one_or_none()
+                        if identity.isdigit():
+                            user = db.session.execute(
+                                select(User).where(User.id == int(identity))
+                            ).scalar_one_or_none()
+                        else:
+                            user = db.session.execute(
+                                select(User).where(User.email == identity)
+                            ).scalar_one_or_none()
                     else:
                         user = None
                 except SQLAlchemyError as e:
@@ -62,33 +67,73 @@ def auth_required(
                         "message": "Unable to verify user at this time",
                     }), 500
 
-                if user is None:
+                # Fall back to enterprise in-memory user store if SQL user not found
+                enterprise_user = None
+                if user is None and isinstance(identity, str):
+                    try:
+                        from app.enterprise.users import user_manager as _um
+                        # Identity may be a UUID or an email
+                        enterprise_user = _um.get_user(identity)
+                        if not enterprise_user and "@" in identity:
+                            enterprise_user = _um.get_user_by_email(identity)
+                    except Exception:
+                        enterprise_user = None
+
+                if user is None and enterprise_user is None:
                     return jsonify({
                         "error": "User not found",
                         "message": "User account not found",
                     }), 401
 
                 # 3) Stash user on the request context
-                g.current_user = user
+                g.current_user = user if user is not None else enterprise_user
 
                 # 4) Role check
-                if roles and getattr(user, "role", None) not in roles:
+                current_role = (
+                    getattr(user, "role", None)
+                    if user is not None
+                    else (enterprise_user or {}).get("role")
+                )
+                if roles and current_role not in roles:
                     return jsonify({
                         "error": "Insufficient permissions",
-                        "message": f"Role {getattr(user,'role',None)} not authorized for this endpoint",
+                        "message": f"Role {current_role} not authorized for this endpoint",
                         "required_roles": roles,
                     }), 403
 
                 # 5) Permission check
                 if permissions:
-                    user_role = getattr(user, "role", None)
+                    user_role = current_role
                     user_permissions = ROLES.get(user_role, {}).get("permissions", [])
-                    if "all" not in user_permissions:
-                        missing = [p for p in permissions if p not in user_permissions]
-                        if missing:
+                    allowed = "all" in user_permissions or all(
+                        p in user_permissions for p in permissions
+                    )
+
+                    if not allowed:
+                        # Attempt enterprise permission model if available
+                        enterprise_ok = False
+                        try:
+                            from app.enterprise.users import user_manager as _um
+                            perm_map = {
+                                "view_analytics": "analytics.view",
+                                "manage_routes": "routes.edit",
+                            }
+                            enterprise_ok = all(
+                                _um.has_permission(
+                                    getattr(user, "id", None)
+                                    if user is not None
+                                    else (enterprise_user or {}).get("id"),
+                                    perm_map.get(p, p),
+                                )
+                                for p in permissions
+                            )
+                        except Exception:
+                            enterprise_ok = False
+
+                        if not enterprise_ok:
                             return jsonify({
                                 "error": "Insufficient permissions",
-                                "message": f"Missing required permissions: {missing}",
+                                "message": f"Missing required permissions: {permissions}",
                                 "user_permissions": user_permissions,
                                 "required_permissions": permissions,
                             }), 403

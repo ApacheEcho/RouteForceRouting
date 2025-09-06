@@ -49,6 +49,14 @@ class Config:
 
     # Cache configuration
     CACHE_TYPE = os.environ.get("CACHE_TYPE", "flask_caching.backends.simple")
+    # Accept shorthand values like 'redis', 'simple', 'null' and map to full backend path
+    _cache_map = {
+        "redis": "flask_caching.backends.redis",
+        "simple": "flask_caching.backends.simple",
+        "null": "flask_caching.backends.null",
+    }
+    if CACHE_TYPE.lower() in _cache_map:
+        CACHE_TYPE = _cache_map[CACHE_TYPE.lower()]
     CACHE_DEFAULT_TIMEOUT = int(os.environ.get("CACHE_DEFAULT_TIMEOUT", "300"))
 
     # Rate limiting configuration
@@ -56,6 +64,11 @@ class Config:
         "RATELIMIT_STORAGE_URI", "memory://"
     )
     RATE_LIMITS = os.environ.get("RATE_LIMITS", "200/day;50/hour")
+
+    # Redis configuration (commonly referenced by services)
+    REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
+    # Provide CACHE_REDIS_URL fallback to REDIS_URL if not explicitly set
+    CACHE_REDIS_URL = os.environ.get("CACHE_REDIS_URL") or REDIS_URL
 
     # Routing configuration
     MAX_ROUTE_OPTIMIZATION_TIME = int(
@@ -69,6 +82,17 @@ class Config:
     LOG_JSON = os.environ.get("LOG_JSON", "false").lower() == "true"
     REQUEST_ID_HEADER = os.environ.get("REQUEST_ID_HEADER", "X-Request-ID")
     JSONIFY_PRETTYPRINT_REGULAR = False
+
+    # Mail settings (used for error reporting in production)
+    MAIL_SERVER = os.environ.get("MAIL_SERVER")
+    MAIL_PORT = int(os.environ.get("MAIL_PORT", "587"))
+    MAIL_USERNAME = os.environ.get("MAIL_USERNAME")
+    MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD")
+    ADMINS = [
+        a.strip()
+        for a in (os.environ.get("ADMINS", "").split(",") if os.environ.get("ADMINS") else [])
+        if a.strip()
+    ]
 
     # Google Maps API configuration
     GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY")
@@ -121,8 +145,10 @@ class ProductionConfig(Config):
 
     # Production-specific settings
     CACHE_TYPE = "flask_caching.backends.redis"
-    CACHE_REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379")
-    RATELIMIT_STORAGE_URI = os.environ.get(
+    CACHE_REDIS_URL = os.environ.get("CACHE_REDIS_URL") or os.environ.get(
+        "REDIS_URL", "redis://localhost:6379"
+    )
+    RATELIMIT_STORAGE_URI = os.environ.get("RATELIMIT_STORAGE_URI") or os.environ.get(
         "REDIS_URL", "redis://localhost:6379"
     )
     SQLALCHEMY_DATABASE_URI = (

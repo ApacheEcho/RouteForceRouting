@@ -41,7 +41,7 @@ server {
     # Client max body size for file uploads
     client_max_body_size 16M;
 
-    # Proxy configuration for Flask backend
+    # Proxy configuration for Flask backend (ensure this matches your app's PORT)
     location / {
         proxy_pass http://127.0.0.1:8000;
         proxy_set_header Host $host;

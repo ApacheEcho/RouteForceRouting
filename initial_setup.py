@@ -175,6 +175,7 @@ Next steps to get RouteForce Routing running:
 
 6. Access the application:
    🌐 http://localhost:5000
+   (Note: app defaults to port 8000 in production if PORT is not set. Set PORT explicitly to match your platform.)
 
 7. Optional - Set up production environment:
    🐳 Use docker-compose.yml for containerized deployment

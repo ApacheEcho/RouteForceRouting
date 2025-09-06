@@ -1,13 +1,16 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import Dashboard from './components/Dashboard/Dashboard';
-import HomePage from './components/HomePage/HomePage';
-import Analytics from './components/Analytics/Analytics';
-import RouteGenerator from './components/RouteGenerator/RouteGenerator';
-import Auth from './components/Auth/Auth';
-import NotFound from './components/NotFound/NotFound';
-import PlaybookGUI from './components/PlaybookGUI/PlaybookGUI';
+import React from 'react';
+const Dashboard = React.lazy(() => import('./components/Dashboard/Dashboard'));
+const HomePage = React.lazy(() => import('./components/HomePage/HomePage'));
+const Analytics = React.lazy(() => import('./components/Analytics/Analytics'));
+const RouteGenerator = React.lazy(() => import('./components/RouteGenerator/RouteGenerator'));
+const Auth = React.lazy(() => import('./components/Auth/Auth'));
+const NotFound = React.lazy(() => import('./components/NotFound/NotFound'));
+const PlaybookGUI = React.lazy(() => import('./components/PlaybookGUI/PlaybookGUI'));
+const Connections = React.lazy(() => import('./components/Connections/Connections'));
+import Header from './components/layout/Header';
 
 // Page transition variants
 const pageVariants = {
@@ -59,6 +62,7 @@ function AppRoutes() {
         <Route path="/analytics" element={<AnimatedRoute><Analytics /></AnimatedRoute>} />
         <Route path="/generate" element={<AnimatedRoute><RouteGenerator /></AnimatedRoute>} />
         <Route path="/playbook" element={<AnimatedRoute><PlaybookGUI /></AnimatedRoute>} />
+        <Route path="/connections" element={<AnimatedRoute><Connections /></AnimatedRoute>} />
         <Route path="/auth" element={<AnimatedRoute><Auth /></AnimatedRoute>} />
         <Route path="*" element={<AnimatedRoute><NotFound /></AnimatedRoute>} />
       </Routes>
@@ -69,10 +73,13 @@ function AppRoutes() {
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-8">
-          <AppRoutes />
-        </div>
+      <div className="min-h-screen">
+        <Header />
+        <main className="container mx-auto px-4 py-8">
+          <React.Suspense fallback={<div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div></div>}>
+            <AppRoutes />
+          </React.Suspense>
+        </main>
       </div>
     </Router>
   );

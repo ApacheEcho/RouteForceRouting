@@ -95,6 +95,11 @@ pip install -r requirements.txt
 python app.py
 ```
 
+Defaults
+- Port: uses `PORT` if set; otherwise 5000 in development, 8000 in production
+- Cache: `CACHE_TYPE` accepts shorthand values `redis`, `simple`, or `null` and maps to the proper Flask-Caching backend automatically
+- Redis: if `CACHE_REDIS_URL` is not set, it falls back to `REDIS_URL`
+
 ## Data Format
 
 Your store data file should have columns: `Store Name`, `Address`.

@@ -3,6 +3,8 @@ set -euo pipefail
 
 # Simple post-deploy smoke test.
 # Usage: ./scripts/smoke_post_deploy.sh https://app.routeforcepro.com [metrics_token]
+# Note: App defaults to port 8000 in production if PORT is not set.
+#       Adjust BASE_URL accordingly or set PORT explicitly in your environment.
 
 BASE_URL=${1:-http://127.0.0.1:8000}
 METRICS_TOKEN=${2:-}
@@ -42,4 +44,3 @@ else
   echo "🚨 Smoke tests failed" >&2
   exit 1
 fi
-

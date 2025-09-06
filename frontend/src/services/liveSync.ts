@@ -17,9 +17,8 @@ class LiveSyncService {
   private reconnectDelay = 1000; // Start with 1 second
 
   private get baseUrl() {
-    return process.env.NODE_ENV === 'production' 
-      ? 'https://api.routeforce.com'
-      : 'http://localhost:8000';
+    const vite = (import.meta as any).env || {};
+    return vite.VITE_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '');
   }
 
   // Initialize connection
@@ -179,6 +178,10 @@ export function useLiveSync(eventType: string, callback: LiveSyncCallback) {
 }
 
 // Auto-start connection when service is imported
+// Only enable LiveSync if explicitly configured
 if (typeof window !== 'undefined') {
-  liveSyncService.connect();
+  const vite = (import.meta as any).env || {};
+  if (vite.VITE_ENABLE_LIVE_SYNC === 'true') {
+    liveSyncService.connect();
+  }
 }

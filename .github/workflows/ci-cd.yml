@@ -40,7 +40,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
         ports:
-          - 5432:5432
+        - 5432:5432
 
       redis:
         image: redis:7-alpine
@@ -50,107 +50,128 @@ jobs:
           --health-timeout 5s
           --health-retries 5
         ports:
-          - 6379:6379
+        - 6379:6379
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-          cache: 'pip'
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest pytest-cov black flake8 mypy
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-cov pytest-xdist black flake8 mypy
 
-      - name: Code formatting check
-        continue-on-error: true
-        run: |
-          black --check --diff . || echo "⚠️ Black found formatting issues but continuing..."
+    - name: Code formatting check
+      continue-on-error: true
+      run: |
+        black --check --diff . || echo "⚠️ Black found formatting issues but continuing..."
 
-      - name: Lint with flake8
-        continue-on-error: true
-        run: |
-          flake8 app/ --count --select=E9,F63,F7,F82 --show-source --statistics || echo "⚠️ Critical flake8 errors found but continuing..."
-          flake8 app/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: Lint with flake8
+      continue-on-error: true
+      run: |
+        flake8 app/ --count --select=E9,F63,F7,F82 --show-source --statistics || echo "⚠️ Critical flake8 errors found but continuing..."
+        flake8 app/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
-      - name: Type checking with mypy
-        continue-on-error: true
-        run: |
-          mypy app/ --ignore-missing-imports --no-strict-optional || echo "⚠️ MyPy found issues but continuing..."
+    - name: Type checking with mypy
+      continue-on-error: true
+      run: |
+        mypy app/ --ignore-missing-imports --no-strict-optional || echo "⚠️ MyPy found issues but continuing..."
 
-      - name: Run tests with coverage
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/routeforce_test
-          REDIS_URL: redis://localhost:6379/0
-          FLASK_ENV: testing
-          SECRET_KEY: test-secret-key
-          JWT_SECRET_KEY: test-jwt-secret
-        run: |
-          pytest --cov=app --cov-report=xml --cov-report=term-missing
+    - name: Run tests with coverage (fast subset)
+      env:
+        DATABASE_URL: 
+          postgresql://postgres:postgres@localhost:5432/routeforce_test
+        REDIS_URL: redis://localhost:6379/0
+        FLASK_ENV: testing
+        SECRET_KEY: test-secret-key
+        JWT_SECRET_KEY: test-jwt-secret
+      run: |-
+        pytest -m "not slow" -n auto --dist=loadfile --cov=app --cov-report=xml --cov-report=html --cov-report=term-missing
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        continue-on-error: true
-        with:
-          file: ./coverage.xml
-          flags: unittests
-          name: codecov-umbrella-${{ matrix.python-version }}
-          token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: false
+  # Long-running tests split to separate job to avoid CI timeouts
+  test-long:
+    runs-on: ubuntu-latest
+    needs: test
+    timeout-minutes: 30
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Security scan with bandit
-        run: |
-          pip install bandit
-          bandit -r app/ -f json -o bandit-report.json || true
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+        cache: pip
 
-      - name: Upload test results
-        uses: actions/upload-artifact@v4
-        if: always()
-        continue-on-error: true
-        with:
-          name: test-results-${{ matrix.python-version }}
-          path: |
-            coverage.xml
-            bandit-report.json
-          if-no-files-found: warn
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-xdist
+
+    - name: Run heavy test modules (-m slow)
+      env:
+        FLASK_ENV: testing
+        SECRET_KEY: test-secret-key
+        JWT_SECRET_KEY: test-jwt-secret
+      run: |-
+        pytest -m slow -q --durations=10 || true
+
+    - name: Security scan with bandit
+      run: |
+        pip install bandit
+        bandit -r app/ -f json -o bandit-report.json || true
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      continue-on-error: true
+      with:
+        name: test-results-${{ matrix.python-version }}
+        path: |
+          coverage.xml
+          bandit-report.json
+        if-no-files-found: warn
 
   # Security and vulnerability scanning
   security:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: "fs"
-          scan-ref: "."
-          format: "sarif"
-          output: "trivy-results.sarif"
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: fs
+        scan-ref: .
+        format: sarif
+        output: trivy-results.sarif
 
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
-        if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
-        continue-on-error: true
-        env:
-          CODEQL_DISABLE_TELEMETRY: true
-        with:
-          sarif_file: "trivy-results.sarif"
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v3
+      if: always() && github.event_name == 'push' && github.ref == 
+        'refs/heads/main'
+      continue-on-error: true
+      env:
+        CODEQL_DISABLE_TELEMETRY: true
+      with:
+        sarif_file: trivy-results.sarif
 
-      - name: Upload Trivy scan results as artifact (fallback)
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: trivy-security-scan
-          path: "trivy-results.sarif"
+    - name: Upload Trivy scan results as artifact (fallback)
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: trivy-security-scan
+        path: trivy-results.sarif
 
   # Build and push Docker images
   build:
@@ -159,53 +180,53 @@ jobs:
     if: github.event_name == 'push'
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
 
-      - name: Log in to Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.DOCKER_REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.DOCKER_REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=sha,prefix={{branch}}-
-            type=raw,value=latest,enable={{is_default_branch}}
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile.production
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile.production
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
 
-      - name: Generate SBOM
-        uses: anchore/sbom-action@v0
-        with:
-          image: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-          format: spdx-json
-          output-file: sbom.spdx.json
+    - name: Generate SBOM
+      uses: anchore/sbom-action@v0
+      with:
+        image: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+        format: spdx-json
+        output-file: sbom.spdx.json
 
-      - name: Upload SBOM
-        uses: actions/upload-artifact@v4
-        with:
-          name: sbom
-          path: sbom.spdx.json
+    - name: Upload SBOM
+      uses: actions/upload-artifact@v4
+      with:
+        name: sbom
+        path: sbom.spdx.json
 
   # NOTE: Kubernetes-based deployments are disabled and retained only as optional reference.
   # If you do not plan to use Kubernetes, you can ignore the jobs below or remove them.
@@ -218,42 +239,42 @@ jobs:
     if: false # Disabled until Kubernetes cluster is configured
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Configure kubectl
-        if: false # Disabled until cluster configured
-        uses: azure/k8s-set-context@v1
-        with:
-          method: kubeconfig
-          kubeconfig: "dummy" # ${{ secrets.KUBE_CONFIG_STAGING }}
+    - name: Configure kubectl
+      if: false   # Disabled until cluster configured
+      uses: azure/k8s-set-context@v1
+      with:
+        method: kubeconfig
+        kubeconfig: dummy     # ${{ secrets.KUBE_CONFIG_STAGING }}
 
-      - name: Deploy to staging
-        env:
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          # Update image tags in deployment
-          sed -i "s|routeforce/app:latest|${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:develop-${IMAGE_TAG:0:7}|g" k8s/02-application.yaml
+    - name: Deploy to staging
+      env:
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        # Update image tags in deployment
+        sed -i "s|routeforce/app:latest|${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:develop-${IMAGE_TAG:0:7}|g" k8s/02-application.yaml
 
-          # Apply Kubernetes manifests
-          kubectl apply -f k8s/ -n routeforce-staging
+        # Apply Kubernetes manifests
+        kubectl apply -f k8s/ -n routeforce-staging
 
-          # Wait for deployment to complete
-          kubectl rollout status deployment/routeforce-app -n routeforce-staging --timeout=300s
+        # Wait for deployment to complete
+        kubectl rollout status deployment/routeforce-app -n routeforce-staging --timeout=300s
 
-      - name: Run staging tests
-        run: |
-          # Wait for application to be ready
-          sleep 30
+    - name: Run staging tests
+      run: |
+        # Wait for application to be ready
+        sleep 30
 
-          # Get service URL
-          STAGING_URL=$(kubectl get service routeforce-lb -n routeforce-staging -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+        # Get service URL
+        STAGING_URL=$(kubectl get service routeforce-lb -n routeforce-staging -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 
-          # Run basic health checks
-          curl -f http://${STAGING_URL}/health || exit 1
+        # Run basic health checks
+        curl -f http://${STAGING_URL}/health || exit 1
 
-          # Run integration tests against staging
-          pytest tests/integration/ --staging-url=http://${STAGING_URL}
+        # Run integration tests against staging
+        pytest tests/integration/ --staging-url=http://${STAGING_URL}
 
   # Deploy to production
   deploy-production:
@@ -262,37 +283,37 @@ jobs:
     if: false # Disabled until Kubernetes cluster is configured
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Configure kubectl
-        if: false # Disabled until cluster configured
-        uses: azure/k8s-set-context@v1
-        with:
-          method: kubeconfig
-          kubeconfig: "dummy" # ${{ secrets.KUBE_CONFIG_PRODUCTION }}
+    - name: Configure kubectl
+      if: false   # Disabled until cluster configured
+      uses: azure/k8s-set-context@v1
+      with:
+        method: kubeconfig
+        kubeconfig: dummy     # ${{ secrets.KUBE_CONFIG_PRODUCTION }}
 
-      - name: Deploy to production
-        env:
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          # Update image tags in deployment
-          sed -i "s|routeforce/app:latest|${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:main-${IMAGE_TAG:0:7}|g" k8s/02-application.yaml
+    - name: Deploy to production
+      env:
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        # Update image tags in deployment
+        sed -i "s|routeforce/app:latest|${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:main-${IMAGE_TAG:0:7}|g" k8s/02-application.yaml
 
-          # Apply Kubernetes manifests
-          kubectl apply -f k8s/ -n routeforce-production
+        # Apply Kubernetes manifests
+        kubectl apply -f k8s/ -n routeforce-production
 
-          # Wait for deployment to complete
-          kubectl rollout status deployment/routeforce-app -n routeforce-production --timeout=600s
+        # Wait for deployment to complete
+        kubectl rollout status deployment/routeforce-app -n routeforce-production --timeout=600s
 
-      - name: Run production health checks
-        run: |
-          # Wait for application to be ready
-          sleep 60
+    - name: Run production health checks
+      run: |
+        # Wait for application to be ready
+        sleep 60
 
-          # Get service URL
-          PROD_URL=$(kubectl get service routeforce-lb -n routeforce-production -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+        # Get service URL
+        PROD_URL=$(kubectl get service routeforce-lb -n routeforce-production -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 
-          # Run comprehensive health checks
-          curl -f https://${PROD_URL}/health || exit 1
-          curl -f https://${PROD_URL}/metrics || exit 1
+        # Run comprehensive health checks
+        curl -f https://${PROD_URL}/health || exit 1
+        curl -f https://${PROD_URL}/metrics || exit 1

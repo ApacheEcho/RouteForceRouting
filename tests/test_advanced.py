@@ -1,6 +1,11 @@
 """
 Comprehensive test suite for the modernized RouteForce Routing application
+
+Marked as slow to keep default CI fast; run with -m slow or in nightly jobs.
 """
+
+import pytest
+pytestmark = pytest.mark.slow
 
 import io
 from unittest.mock import Mock, patch

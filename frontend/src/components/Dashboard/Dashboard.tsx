@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
 import { MetricsGrid } from './MetricsGrid';
+import { RecentRoutes } from './RecentRoutes';
 import { PerformanceChart } from './PerformanceChart';
 import { AlertsPanel } from './AlertsPanel';
 import { OptimizationInsights } from './OptimizationInsights';
@@ -220,7 +221,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ className = '' }) => {
         {activeTab === 'overview' && data && (
           <div className="space-y-6">
             <MetricsGrid data={data} />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 3xl:grid-cols-3 4k:grid-cols-4 8k:grid-cols-6 gap-6">
               <PerformanceChart data={data.performance} />
               <Card>
                 <CardHeader>
@@ -249,6 +250,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ className = '' }) => {
                   </div>
                 </CardContent>
               </Card>
+              <RecentRoutes />
             </div>
           </div>
         )}

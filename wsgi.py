@@ -9,6 +9,7 @@ if __name__ == "__main__":
     socketio.run(
         app,
         host="0.0.0.0",
-        port=int(os.getenv("PORT", 5000)),
+        # Default port: 5000 in dev, 8000 in production
+        port=int(os.getenv("PORT", 8000 if app.config.get("ENV", "development") == "production" else 5000)),
         debug=app.config.get("DEBUG", False),
     )

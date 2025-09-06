@@ -28,6 +28,8 @@ Go to: **https://dashboard.render.com/**
    SECRET_KEY=your-super-secret-key-here
    JWT_SECRET_KEY=your-jwt-secret-key-here
    ```
+   Note: The application defaults to port 8000 in production if `PORT` is not set.
+   Render explicitly sets `PORT=5000`, so keep this value in Render environments.
 
 5. **Auto-Deploy**: Enable auto-deploy from `main` branch for staging, `production` branch for production
 

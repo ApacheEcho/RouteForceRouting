@@ -98,6 +98,7 @@ SECRET_KEY=your-secret-key
 DEBUG=False
 
 # Cache Configuration
+# NOTE: CACHE_TYPE supports shorthand and is auto-mapped to the proper backend
 CACHE_TYPE=redis
 CACHE_REDIS_URL=redis://localhost:6379
 
@@ -107,6 +108,11 @@ UPLOAD_FOLDER=uploads
 
 # Rate Limiting
 RATELIMIT_STORAGE_URI=redis://localhost:6379
+
+# Ports
+# Default production port is 8000 if PORT is not set.
+# Set PORT explicitly to match your infra (e.g., 5000 on Render/Compose)
+PORT=8000
 ```
 
 ### Production Settings
@@ -140,7 +146,7 @@ class ProductionConfig(Config):
 ```http
 GET  /                    # Main interface
 POST /generate           # Generate route (form-based)
-POST /export             # Export route to CSV
+GET  /api/export/routes  # Export routes (JSON stub)
 GET  /health             # Health check
 GET  /metrics            # Application metrics
 ```
@@ -150,6 +156,9 @@ GET  /metrics            # Application metrics
 POST /api/v1/routes      # Create route (JSON API)
 GET  /api/v1/routes/:id  # Get route by ID
 GET  /api/v1/health      # API health check
+POST /api/optimize/genetic          # Genetic optimization (stubbed)
+POST /api/optimize/multi-objective  # Multi-objective optimization (stubbed)
+GET  /api/organizations/list        # List organizations (RBAC: requires org.view)
 ```
 
 ### Example API Usage

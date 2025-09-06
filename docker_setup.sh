@@ -81,6 +81,8 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     
     echo "🚀 Building and starting with Docker Compose..."
     docker-compose up --build
+    echo "ℹ️  Note: The app defaults to port 8000 in production if PORT is not set."
+    echo "    Set PORT explicitly (e.g., PORT=5000) to match your reverse proxy or platform."
 else
     echo "👍 No problem! The application is running at: http://localhost:8080"
     echo "🎯 Try uploading the demo_stores.csv file to see the route optimization in action!"

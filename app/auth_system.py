@@ -39,6 +39,9 @@ def init_jwt(app):
     app.config["JWT_SECRET_KEY"] = app.config.get(
         "JWT_SECRET_KEY", secrets.token_hex(32)
     )
+    # Avoid PyJWT subject type validation by not using the 'sub' claim
+    # Store identity under a custom claim instead (e.g., 'id')
+    app.config["JWT_IDENTITY_CLAIM"] = "id"
     # Enforce JWT algorithm verification
     app.config["JWT_ALGORITHM"] = os.environ.get("JWT_ALGORITHM", "HS256")
     app.config["JWT_DECODE_ALGORITHMS"] = [os.environ.get("JWT_ALGORITHM", "HS256")]

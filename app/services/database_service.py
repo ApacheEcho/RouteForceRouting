@@ -12,6 +12,7 @@ from app.models.database import (
     Route,
     RouteOptimization,
     Analytics,
+    Connection,
 )
 import logging
 
@@ -258,6 +259,35 @@ class DatabaseService:
         except Exception as e:
             logger.error(f"Error getting analytics summary: {e}")
             return {}
+
+    # === Connections ===
+    @staticmethod
+    def get_connections_for_user(user_id: int) -> Dict[str, Any]:
+        try:
+            conns = Connection.query.filter_by(user_id=user_id).all()
+            return {c.provider: c.to_dict() for c in conns}
+        except Exception as e:
+            logger.error(f"Error loading connections for user {user_id}: {e}")
+            return {}
+
+    @staticmethod
+    def upsert_connection(user_id: int, provider: str, *, connected: bool, auth_type: str | None = None, config: Dict[str, Any] | None = None) -> Connection:
+        try:
+            conn = Connection.query.filter_by(user_id=user_id, provider=provider).first()
+            if not conn:
+                conn = Connection(user_id=user_id, provider=provider)
+                db.session.add(conn)
+            conn.connected = connected
+            if auth_type:
+                conn.auth_type = auth_type
+            if config is not None:
+                conn.set_config(config)
+            db.session.commit()
+            return conn
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Error upserting connection {provider} for {user_id}: {e}")
+            raise
 
     @staticmethod
     def get_performance_metrics() -> Dict[str, Any]:

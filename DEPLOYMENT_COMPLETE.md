@@ -119,4 +119,10 @@ Your RouteForce Routing application is now equipped with **professional-grade de
 **Live Service**: https://routeforcepro.onrender.com
 
 ---
+
+### 🔌 Ports & Defaults
+- App binds to port 5000 in development and 8000 in production if `PORT` is not set.
+- Set `PORT` explicitly per environment to align Nginx upstreams, health checks, and platform expectations (Render uses 5000).
+
+---
 **Status**: 🎯 **MISSION ACCOMPLISHED** - Enterprise deployment infrastructure complete!

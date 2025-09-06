@@ -56,5 +56,5 @@ EXPOSE 5000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:5000/health || exit 1
 
-# Production startup command
-CMD gunicorn --bind 0.0.0.0:5000 --workers 4 --worker-class gthread --worker-connections 1000 --timeout 120 --keep-alive 5 --max-requests 1000 --max-requests-jitter 100 --access-logfile "-" --error-logfile "-" --log-level info app:create_app
+# Production startup command (respects $PORT, $GUNICORN_WORKERS, $GUNICORN_LOG_LEVEL)
+CMD ["/bin/sh","-lc","exec gunicorn --bind 0.0.0.0:${PORT:-5000} --workers ${GUNICORN_WORKERS:-4} --worker-class gthread --worker-connections 1000 --timeout 120 --keep-alive 5 --max-requests 1000 --max-requests-jitter 100 --access-logfile '-' --error-logfile '-' --log-level ${GUNICORN_LOG_LEVEL:-info} app:create_app"]

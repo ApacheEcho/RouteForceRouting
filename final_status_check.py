@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """
 Final System Status Check - RouteForce Enterprise
-Comprehensive validation of the complete system
+Comprehensive validation of the complete system.
+
+Ports & Defaults: app defaults to port 8000 in production if PORT is not set
+(5000 in development). Adjust URLs below or set PORT explicitly.
 """
 
 import requests

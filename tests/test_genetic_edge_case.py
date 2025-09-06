@@ -1,5 +1,6 @@
 
 import pytest
+pytestmark = pytest.mark.slow
 import requests
 from integration_test import RouteForceSystemTest
 

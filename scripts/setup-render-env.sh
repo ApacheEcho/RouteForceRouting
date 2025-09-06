@@ -58,6 +58,9 @@ SLACK_WEBHOOK_URL=https://hooks.slack.com/services/your/slack/webhook
 DEBUG=false
 TESTING=false
 
+# Note: Application defaults to port 8000 in production if PORT is not set.
+# Render requires binding to 0.0.0.0:5000; keep PORT=5000 here.
+
 # Performance Configuration
 WORKERS=4
 TIMEOUT=120

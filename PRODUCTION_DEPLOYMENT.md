@@ -7,11 +7,15 @@ cd frontend && npm run build
 
 ## 2. Start Flask with Gunicorn
 ```
-gunicorn -w 4 -b 0.0.0.0:5000 gunicorn_entry:app
+# Bind to the port your runtime expects.
+# The app defaults to 8000 in production if PORT is not set.
+# Many platforms (e.g., Render) require 5000.
+gunicorn -w 4 -b 0.0.0.0:${PORT:-8000} gunicorn_entry:app
 ```
 
 ## 3. Configure Nginx
 See `nginx.sample.conf` for a sample config. Place it in your Nginx sites-available and enable it.
+Adjust the upstream port to match your app's PORT (5000 or 8000) or set `PORT` explicitly to avoid drift.
 
 ## 4. Enable HTTPS
 Use Certbot or another tool to obtain SSL certificates and enable HTTPS in your Nginx config.

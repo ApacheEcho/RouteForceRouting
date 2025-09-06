@@ -38,6 +38,18 @@ python app.py
 
 # Or on a different port if 5000 is busy:
 PORT=5001 python app.py
+
+## ⚙️ Gunicorn Runtime Configuration (Docker)
+
+The production image uses Gunicorn and respects these environment variables:
+
+```
+PORT=5000                # Bind port (defaults to 5000)
+GUNICORN_WORKERS=4       # Worker processes
+GUNICORN_LOG_LEVEL=info  # Log level (debug|info|warning|error)
+```
+
+You can override them in your compose file or environment.
 ```
 
 ## 🔧 Docker Setup Instructions

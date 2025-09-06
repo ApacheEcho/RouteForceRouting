@@ -220,7 +220,11 @@ org_manager = OrganizationManager()
 def list_organizations():
     """List all organizations (super admin only)"""
     try:
-        # TODO: Check super admin permissions
+        # Enforce RBAC: require organization view permissions
+        from app.enterprise.users import user_manager
+        current_user_id = get_jwt_identity()
+        if not user_manager.has_permission(current_user_id, "org.view"):
+            return jsonify({"error": "Insufficient permissions"}), 403
         orgs = org_manager.list_organizations()
         return (
             jsonify(

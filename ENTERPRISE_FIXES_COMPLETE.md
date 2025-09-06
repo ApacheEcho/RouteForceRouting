@@ -13,12 +13,12 @@
 
 ## 🏗️ INFRASTRUCTURE IMPLEMENTATIONS
 
-### 1. 🏭 Production Configuration (`app/config/production.py`)
+### 1. 🏭 Production Configuration (`app/config.py`)
 - **Enterprise Redis Configuration:** 50-connection pool with clustering support
 - **Celery Async Processing:** 1000 tasks/child worker configuration  
 - **Database Sharding:** Multi-database support for enterprise scale
 - **Security Settings:** Production-hardened Flask configuration
-- **Environment Integration:** Full support for containerized deployment
+- **Environment Integration:** Full support for containerized deployment (centralized in `app/config.py`)
 
 ### 2. 🗄️ Database Connection Pooling (`app/database/connection_pool.py`)
 - **Enterprise Pooling:** SQLAlchemy QueuePool with overflow handling

@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """
-Test script to validate the 10/10 architecture implementation
+Test script to validate the 10/10 architecture implementation.
+
+Ports & Defaults: the app binds to 5000 in development and 8000 in production
+if PORT is not set. Set PORT explicitly in your environment to avoid drift
+and match reverse proxies or platform defaults.
 """
 import sys
 import subprocess
